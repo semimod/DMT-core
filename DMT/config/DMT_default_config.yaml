@@ -1,0 +1,38 @@
+# DMTs default config
+user_name:      USER # user name. Used for autodoc
+user_email:     mail #
+progress_minimal: no # if no: Show Simulation Information Info for each simulation, if yes: show only total Progress (good when starting hundreds of simulations)
+directories:
+    simulation: ~/.DMT/simulation_results/ # All simulations are saved here.
+    database:   ~/.DMT/databases/ # All data bases are stored here.
+    autodoc:    null # Path to an autodoc template, if null, the DMT provided template is used.
+    libautodoc: null # Path to an libautodoc template, if null, the DMT provided template is used.
+    x_doc_dir:  null # Path to the documentation. If null the extraction directory is used. The create_xdoc file dialog will start here by default.
+build_doc:      no # Only generates LaTeX files for the autodoc and do not build them. If True, the given LaTeX compiler and standard compilers are called.
+commands:
+    DEVICE:     device # Command to execute the TCAD simulator DEVICE.
+    Hdev:       hdev # Command to execute the TCAD simulator Hdev.
+    TRADICA:    tradica  # Command to execute the device geometry scaling software TRADICA.
+    ADS:        hpeesofsim # Command to execute the circuit simulator of ADS.
+    SPECTRE:    spectre # Command to execute the circuit simulator of Cadence spectre.
+    SIMU:       simul # Command to execute the circuit simulator SIMU.
+    NGSPICE:    ngspice # Command to execute the circuit simulator ngspice.
+    XYCE:       Xyce # Command to execute the circuit simulator Xyce.
+    VMC:        vmc # Command to execute the MCBTE simulator VMC
+    TEX:        pdflatex # Tex Compiler of your system
+    TEXARGS:    #arguments for Tex Compiler
+        - --shell-escape
+        - --interaction=nonstopmode
+backend_remote: no # with yes, the simulations are run on the specified server, per default.
+server:
+    adress:     no # Server IP in the form 0.0.0.0.
+    unix:       yes # Server os. Either unix (yes) or windows (no). Used to ensure correct path styles.
+    ssh_user:   user # User to log in on the server.
+    ssh_key:    path # Path to the ssh key used for the simulations.
+    simulation_path: ~/.DMT/simulations/ # Simulation path on the given server. Make sure that this path exists!
+    use_pbs:    no # if yes: try to use the pbs job runner to queue the jobs. Make sure this is possible on the server
+    command_qsub: 'qsub' # command to invoke "qsub" from PBC
+    command_qsstat: 'qstat' # command to invoke "qstat" from PBC
+useHDF5Store:   yes # if yes saves data as HDF5 Databases, if no, pickle is used.
+custom_specifiers : [] # are added to the DMT specifiers and then can be identified by get_specifier_from_string()
+custom_sub_specifiers : []  # are added to the DMT specifiers and then can be identified by get_sub_specifiers()
