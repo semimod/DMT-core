@@ -1,0 +1,12 @@
+digraph "classes_mcard" {
+rankdir=BT
+charset="utf-8"
+"/home/mario/Documents/work/dmt/dmt/DMT_core_pkg/DMT/core/mcard.py.Calculator" [color="black", fontcolor="black", label="Calculator", shape="record", style="solid"];
+"/home/mario/Documents/work/dmt/dmt/DMT_core_pkg/DMT/core/mcard.py.MCard" [color="black", fontcolor="black", label="MCard", shape="record", style="solid"];
+"/home/mario/Documents/work/dmt/dmt/DMT_core_pkg/DMT/core/mc_parameter.py.McParameter" [color="black", fontcolor="black", label="McParameter", shape="record", style="solid"];
+"DMT.core.mc_parameter.McParameterComposition" [color="black", fontcolor="black", label="McParameterComposition", shape="record", style="solid"];
+"/home/mario/Documents/work/dmt/dmt/DMT_core_pkg/DMT/core/mc_parameter.py.McParameterComposition" [color="black", fontcolor="black", label="McParameterComposition", shape="record", style="solid"];
+"ast.NodeVisitor" [color="black", fontcolor="black", label="NodeVisitor", shape="record", style="solid"];
+"/home/mario/Documents/work/dmt/dmt/DMT_core_pkg/DMT/core/mcard.py.Calculator" -> "ast.NodeVisitor" [arrowhead="empty", arrowtail="none"];
+"/home/mario/Documents/work/dmt/dmt/DMT_core_pkg/DMT/core/mcard.py.MCard" -> "DMT.core.mc_parameter.McParameterComposition" [arrowhead="empty", arrowtail="none"];
+}

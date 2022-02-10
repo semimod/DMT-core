@@ -1,0 +1,390 @@
+* Example parameter test set
+.model hicumL2V2p40 npn level=8
+*
+*Transfer current
++ c10 = 9.074e-030
++ qp0 = 1.008e-013
++ ich = 0
++ hf0 = 40
++ hfe = 10.01
++ hfc = 20.04
++ hjei = 3.382
++ hjci = 0.2
++ ahjei = 3
++ rhjei = 2
+*
+*Base-Emitter diode currents
++ ibeis = 1.328e-019
++ mbei = 1.027
+*+ ireis = 1.5e-014
++ ireis = 1.5e-015
++ mrei = 2
++ ibeps = 1.26e-019
++ mbep = 1.042
+*+ ireps = 1.8e-014
++ ireps = 1.8e-015
++ mrep = 1.8
++ mcf = 1
+*
+*Transit time for excess recombination current at b-c barrier
++ tbhrec = 1e-010
+*
+*Base-Collector diode currents
++ ibcis = 4.603e-017
++ mbci = 1.15
++ ibcxs = 0
++ mbcx = 1
+*
+*Base-Emitter tunneling current
++ ibets = 0.02035
++ abet = 24
++ tunode = 1
+*
+*Base-Collector avalanche current
++ favl = 18.96
++ qavl = 5.092e-014
++ alfav = -0.0024
++ alqav = -0.0006284
++ kavl = 0.0
++ alkav = 0.0
+*
+*Series resistances
++ rbi0 = 4.444
++ rbx = 2.568
++ fgeo = 0.7409
++ fdqr0 = 0
++ fcrbi = 0
++ fqi = 1
++ re = 1.511
++ rcx = 2.483
+*
+*Substrate transistor
+*+ itss = 1.143e-019
++ itss = 1.143e-016
++ msf = 1.056
++ iscs = 4.60106e-015
++ msc = 1.018
++ tsf = 0
+*
+*Intra-device substrate coupling
++ rsu = 500
++ csu = 6.4e-014
+*
+*Depletion Capacitances
++ cjei0 = 8.869e-015
++ vdei = 0.714
++ zei = 0.2489
++ ajei = 1.65
++ cjep0 = 2.178e-015
++ vdep = 0.8501
++ zep = 0.2632
++ ajep = 1.6
++ cjci0 = 3.58e-015
++ vdci = 0.8201
++ zci = 0.2857
++ vptci = 1.79
++ cjcx0 = 6.299e-015
++ vdcx = 0.8201
++ zcx = 0.2863
++ vptcx = 1.977
++ fbcpar = 0.3
++ fbepar = 1
++ cjs0 = 2.6e-014
++ vds = 0.9997
++ zs = 0.4295
++ vpts = 100
++ cscp0 = 1.4e-014
++ vdsp = 0
++ zsp = 0.35
++ vptsp = 4
+*
+*Diffusion Capacitances
++ t0 = 2.089e-013
++ dt0h = 8e-014
++ tbvl = 8.25e-014
++ tef0 = 3.271e-013
++ gtfe = 3.548
++ thcs = 5.001e-012
++ ahc = 0.05
++ fthc = 0.7
++ rci0 = 9.523
++ vlim = 0.6999
++ vces = 0.01
++ vpt = 2
++ delck = 2
++ tr = 0
++ acbar = 1.5
++ icbar = 0.01
++ vcbar = 0.04
+*
+*Isolation Capacitances
++ cbepar = 2.609e-014
++ cbcpar = 1.64512e-014
+*
+*Non-quasi-static Effect
++ flnqs = 0
++ alqf = 0.166667
++ alit = 0.333333
+*
+*Noise
++ kf = .3e-16
++ af = .75
++ cfbe = -1
++ flcono = 0
+*
+*Lateral Geometry Scaling (at high current densities)
++ latb = 0
++ latl = 0
+*
+*Temperature dependence
++ vgb = 0.91
++ alt0 = 0.004
++ kt0 = 6.588e-005
++ zetaci = 0.58
++ alvs = 0.001
++ alces = -0.2286
++ zetarbi = 0.3002
++ zetarbx = 0.06011
++ zetarcx = -0.02768
++ zetare = -0.9605
++ zetacx = 0
++ vge = 1.17
++ vgc = 1.17
++ vgs = 1.049
++ f1vg = -0.000102377
++ f2vg = 0.00043215
++ zetact = 5
++ zetabet = 4.892
++ alb = 0
++ zetahjei = -0.5
++ zetavgbe = 0.7
+*
+*Self-Heating
++ flsh = 0
++ rth = 1113.4
++ cth = 6.841e-012
++ zetarth = 0
++ alrth = 0.002
+*
+*Compatibility with V2.1
++ flcomp = 2.3
+*
+*Circuit simulator specific parameters
++ tnom = 26.85
+*+ dt = 0
+
+.model hicum2_real npn level=8 
++ abet=24
++ af=2
++ ahc=0.05
++ ahjei=0
++ ajei=1.65
++ ajep=1.6
++ alces=-0.2286
++ alfav=-0.0024
++ alit=0.4
++ alqav=-0.0006284
++ alqf=0.1
++ alt0=0.005
++ alvs=0.001
++ c10=3.544e-032
++ cbcpar=1.2502e-015
++ cbepar=1.631e-015
++ cjci0=2.237e-016
++ cjcx0=3.937e-016
++ cjei0=5.543e-016
++ cjep0=1.361e-016
++ cjs0=1.625e-015
++ csu=4e-015
++ cth=4.276e-013
++ delck=2
++ dt0h=8e-014
++ dvgbe=-0.1688
++ f1vg=-0.0001024
++ f2vg=0.0004322
++ favl=18.96
++ fbcpar=0.4
++ fbepar=1
++ fcrbi=0
++ fdqr0=0
++ fgeo=0.7409
++ flcomp=2.3
++ flnqs=0
++ flsh=0
++ fqi=1
++ fthc=0.7
++ gtfe=3.548
++ hf0=40
++ hfc=20.04
++ hfe=10.01
++ hjci=0.2
++ hjei=3.382
++ ibcis=6.237e-020
++ ibcxs=2.877e-018
++ ibeis=8.301e-021
++ ibeps=7.872e-021
++ ibets=0.001272
++ ich=1e6
++ ireis=4e-017
++ ireps=3e-017
++ iscs=1.153e-015
++ itss=7.145e-021
++ kf=0
++ kt0=0
++ latb=0
++ latl=0
++ mbci=1.044
++ mbcx=1.15
++ mbei=1.027
++ mbep=1.042
++ mcf=1
++ mrei=2
++ mrep=2
++ msc=1.018
++ msf=1.056
++ qavl=3.183e-015
++ qp0=6.299e-015
++ rbi0=71.08
++ rbx=41.09
++ rci0=152.4
++ rcx=39.72
++ re=24.18
++ rhjei=2
++ rsu=8000
++ rth=11140
++ t0=2.2979e-013
++ tbhrec=5e-011
++ tbvl=8.25e-014
++ tef0=3.271e-013
++ thcs=5.001e-012
++ tnom=26.85
++ tr=0
++ tsf=3.001e-008
++ tunode=1
++ vcbar=0
++ vces=0.01
++ vdci=0.8201
++ vdcx=0.8201
++ vdei=0.714
++ vdep=0.8501
++ vds=0.9997
++ version=2.3
++ vgb=0.91
++ vgc=1.023
++ vge=0.973
++ vgs=1.049
++ vlim=0.6999
++ vpt=2
++ vptci=1.79
++ vptcx=1.977
++ vpts=100
++ zci=0.2857
++ zcx=0.2863
++ zei=0.2489
++ zep=0.2632
++ zetabet=4.892
++ zetaci=0.58
++ zetact=5
++ zetacx=0
++ zetahjei=0
++ zetarbi=0.3002
++ zetarbx=0.06011
++ zetarcx=-0.02768
++ zetare=-0.9605
++ zetavgbe=1.339
++ zs=0.4295
+.MODEL hicum_hsp NPN Level=8
++ tref = 26.85
++ c10=.3760000E-31 qp0=.2780000E-13 ich=.2090000E-01
++ hfc=.1000000E+01
++ hfe=1.0000000E+00 hjei=.000000E+00
++ hjci=.100000E+01 tr=1.00000000E-9
++ cjei0=.81100E-14 vdei=.950000E+00 zei=.5000000E+00
++ aljei=.18000E+01
++ cjci0=.11600E-14 vdci=.800000E+00 zci=.3330000E+00
++ vptci=.41600E+03
++ rci0=.127800E+03 vlim=.700000E+00 vpt=.5000000E+01
++ vces=.100000E+00
++ t0=.47500000E-11 dt0h=.210000E-11 tbvl=.400000E-11
++ tef0=.180000E-11 gtfe=.140000E+01 thcs=.300000E-10
++ alhc=.750000E+00
++ fthc=.600000E+00
++ latb=.376500E+01 latl=.342000E+00 fqi=.9055000E+00
++ alit=.450000E+00 alqf=.225000E+00
++ favl=.118600E+01 qavl=.111000E-13 alfav=.82500E-04
++ alqav=.19600E-03
++ ibeis=.11600E-19 mbei=.101500E+01 ibeps=.10000E-29
++ mbep=.200000E+01
++ ireis=.11600E-15 mrei=.200000E+01 ireps=.10000E-29
++ mrep=.200000E+01
++ rbi0=.000000E+00 fdqr0=.00000E+00 fgeo=.730000E+00
++ fcrbi=.00000E+00
++ cjep0=.00000E+00 vdep=.105000E+01 zep=.4000000E+00
++ aljep=.24000E+01
++ ceox=.000000E+00
++ cjcx0=.00000E+00 vdcx=.700000E+00 zcx=.3330000E+00
++ vptcx=.10000E+03
++ ccox=.000000E+00 fbc=.1526000E+00
++ ibcxs=.10000E-29 mbcx=.200000E+01 ibcis=.11600E-19
++ mbci=.101500E+01
++ cjs0=.000000E+00 vds=.6000000E+00 zs=.44700000E+00
++ vpts=.100000E+04
++ rcx=.0000000E+00 rbx=.0000000E+00 re=.00000000E+00
++ kf=.00000000E+00 af=.00000000E+00
++ vgb=.1170000E+01 alb=.6300000E-02 alt0=.000000E+00
++ kt0=.0000000E+00
++ zetaci=.1600E+01 alvs=.100000E-02 alces=.40000E-03
++ zetarbi=0.5880E+00 zetarcx=0.2230E+00
++ zetarbx=0.2060E+00 zetare=0.0000E+00
++ rth=0.0 cth=0.0
++ ibets=.00000E+00 abet=.000000E+00
++ itss=.000000E+00 msf=.0000000E+00 tsf=0.000000E+00
++ iscs=.000000E+00
++ msc=.0000000E+00
++ rsu=.0000000E+00 csu=.0000000E+00
+.model hicum_va NPN level=8
++ acbar=2.0000000000e+00 ahc=1.0000000000e-01 aick=1.0000000000e-03 
++ delck=5.4779291809e+00 dt0h=4.1007000000e-13 fthc=9.9000000000e-01 
++ gtfe=1.8660038651e+00 icbar=2.1928604449e-03 rci0=1.7462009300e+01 
++ t0=3.8007000000e-13 tbvl=2.4007000000e-13 tef0=3.5000000000e-13 
++ thcs=1.0000000000e-11 tr=5.0000000000e-12 vcbar=1.4047004816e-02 
++ vces=4.3940666321e-02 vlim=4.4291309985e-01 vpt=5.8374925224e+00 
++ ajei=2.2922993904e+00 ajep=1.1119105504e+00 cjci0=4.9539653461e-15 
++ cjcx0=1.4508504378e-15 cjei0=6.3856100000e-15 cjep0=3.3322561112e-15 
++ cjs0=0.0000000000e+00 cscp0=0.0000000000e+00 fbcpar=0.0000000000e+00 
++ fbepar=1.0000000000e-01 vdci=6.8496043619e-01 vdcx=8.2778000000e-01 
++ vdei=8.8677706077e-01 vdep=8.2701238829e-01 vds=6.0000000000e-01 
++ vdsp=6.0000000000e-01 vptci=9.9999582757e+01 vptcx=2.5775500000e+00 
++ vpts=1.0000000000e+02 vptsp=1.0000000000e+02 zci=2.7773563034e-01 
++ zcx=5.8444600000e-01 zei=1.2312147332e-01 zep=1.0048748799e-01 
++ zs=5.0000000000e-01 zsp=5.0000000000e-01 cbcpar=1.9337504713e-15 
++ cbepar=1.4482214687e-15 alfav=0.0000000000e+00 alkav=0.0000000000e+00 
++ alqav=-5.0000000000e-04 favl=3.0000000000e+00 kavl=0.0000000000e+00 
++ qavl=5.0000000000e-14 ibcis=0.0000000000e+00 ibcxs=0.0000000000e+00 
++ mbci=1.2284717030e+00 mbcx=1.1835731792e+00 ibeis=1.2900136836e-18 
++ ibeps=0.0000000000e+00 ireis=0.0000000000e+00 ireps=0.0000000000e+00 
++ mbei=1.1241505897e+00 mbep=9.6374438272e-01 mcf=1.0000000000e+00 
++ mrei=2.0000000000e+00 mrep=2.0000000000e+00 tbhrec=0.0000000000e+00 
++ abet=4.0000000000e+01 ibets=0.0000000000e+00 tunode=1.0000000000e+00 
++ iscs=0.0000000000e+00 itss=0.0000000000e+00 msc=1.0000000000e+00 
++ msf=1.0000000000e+00 tsf=0.0000000000e+00 ahjei=1.9171216490e+01 
++ c10=4.1435959427e-30 hf0=3.0000000000e+01 hfc=1.0000000000e-08 
++ hfe=1.0000000000e+01 hjci=2.0000000000e-01 hjei=6.3362063018e-01 
++ ich=0.0000000000e+00 qp0=6.1283687723e-14 rhjei=2.0000000000e+00 
++ latb=0.0000000000e+00 latl=0.0000000000e+00 alit=3.3300000000e-01 
++ alqf=1.6700000000e-01 flnqs=0.0000000000e+00 af=2.0000000000e+00 
++ afre=2.0000000000e+00 cfbe=-1.0000000000e+00 flcono=0.0000000000e+00 
++ kf=0.0000000000e+00 kfre=0.0000000000e+00 fcrbi=0.0000000000e+00 
++ fdqr0=0.0000000000e+00 fgeo=6.5570000000e-01 fqi=1.0000000000e+00 
++ rbi0=2.9290000000e+00 rbx=1.5000000000e+01 rcx=1.0000000000e+01 
++ re=2.0000000000e+00 csu=0.0000000000e+00 rsu=0.0000000000e+00 
++ alrth=3.0000000000e-03 cth=1.0000000000e+00 flsh=0.0000000000e+00 
++ rth=2.7000000000e+03 zetarth=0.0000000000e+00 flcomp=2.4000000000e+00 
++ tnom=2.7000000000e+01 alb=0.0000000000e+00 alces=0.0000000000e+00 
++ alt0=1.3807632330e-03 alvs=0.0000000000e+00 dvgbe=-7.4678551951e-02 
++ f1vg=-1.0237700000e-04 f2vg=4.3215000000e-04 kt0=0.0000000000e+00 
++ vgb=1.0100000000e+00 vgc=9.1041800000e-01 vge=9.0000000000e-01
++ vgs=1.1700000000e+00 zetabet=4.0000000000e+00 zetaci=0.0000000000e+00 
++ zetact=7.2321621565e-01 zetacx=0.0000000000e+00 zetahjei=1.0000000000e+00 
++ zetarbi=0.0000000000e+00 zetarbx=0.0000000000e+00 zetarcx=0.0000000000e+00 
++ zetare=5.8400000000e-01 zetavgbe=3.0525867950e+00

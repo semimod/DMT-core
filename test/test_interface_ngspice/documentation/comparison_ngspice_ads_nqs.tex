@@ -1,0 +1,82 @@
+\documentclass{article}%
+\usepackage[T1]{fontenc}%
+\usepackage[utf8]{inputenc}%
+\usepackage{lmodern}%
+\usepackage{textcomp}%
+\usepackage{lastpage}%
+\usepackage{siunitx}%
+\usepackage{tikz}%
+\usepackage{fontspec}%
+\usepackage{pgfplots}%
+%
+%
+%
+\begin{document}%
+\normalsize%
+\section{Comparison ADS/NGspice}%
+\label{sec:ComparisonADS/NGspice}%
+In this document the ngspice HICUM/L2.4.3 model in ngspice is compared against ADS simulations.%
+The modelcard is taken from the ngspice examples directory. %
+This document is auto-generated using Pylatex. The shown ft are calculated from simulated Y-parameters. %
+\subsection{Example Modelcard Characteristics}%
+\label{subsec:ExampleModelcardCharacteristics}%
+First, the transfer characteristics and transit frequency as a function of Jc are shown: %
+
+
+\begin{figure}[h!]%
+\input{"/home/markus/Documents/Gitprojects/DMT/test/test_interface_ngspice/documentation/figs/FTVBE.tex"}%
+\caption{FT(VBE)}%
+\label{FT(VBE)}%
+\end{figure}
+
+%
+
+
+\begin{figure}[h!]%
+\input{"/home/markus/Documents/Gitprojects/DMT/test/test_interface_ngspice/documentation/figs/IV_mathrmBE.tex"}%
+\caption{$I(V_{\mathrm{BE}})$}%
+\label{I(V_BE)}%
+\end{figure}
+
+%
+\newpage%
+\subsection{Frequency Dependence Y21}%
+\label{subsec:FrequencyDependenceY21}%
+Next, the frequency dependence of Y21 at peak ft are shown: %
+
+
+\begin{figure}[h!]%
+\input{"/home/markus/Documents/Gitprojects/DMT/test/test_interface_ngspice/documentation/figs/ReY21f.tex"}%
+\caption{ReY21(f)}%
+\label{ReY21(f)}%
+\end{figure}
+
+%
+
+
+\begin{figure}[h!]%
+\input{"/home/markus/Documents/Gitprojects/DMT/test/test_interface_ngspice/documentation/figs/ImY21f.tex"}%
+\caption{ImY21(f)}%
+\label{ImY21(f)}%
+\end{figure}
+
+%
+
+
+\begin{figure}[h!]%
+\input{"/home/markus/Documents/Gitprojects/DMT/test/test_interface_ngspice/documentation/figs/PhaseY21f.tex"}%
+\caption{PhaseY21(f)}%
+\label{PhaseY21(f)}%
+\end{figure}
+
+%
+
+
+\begin{figure}[h!]%
+\input{"/home/markus/Documents/Gitprojects/DMT/test/test_interface_ngspice/documentation/figs/MagY21f.tex"}%
+\caption{MagY21(f)}%
+\label{MagY21(f)}%
+\end{figure}
+
+%
+\end{document}

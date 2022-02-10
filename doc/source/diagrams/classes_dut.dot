@@ -1,0 +1,44 @@
+digraph "classes_dut" {
+rankdir=BT
+charset="utf-8"
+"/home/mario/Documents/work/dmt/dmt/DMT_core_pkg/DMT/core/mcard.py.Calculator" [color="black", fontcolor="black", label="Calculator", shape="record", style="solid"];
+"/home/mario/Documents/work/dmt/dmt/DMT_core_pkg/DMT/core/circuit.py.Circuit" [color="black", fontcolor="black", label="Circuit", shape="record", style="solid"];
+"/home/mario/Documents/work/dmt/dmt/DMT_core_pkg/DMT/core/circuit.py.CircuitElement" [color="black", fontcolor="black", label="CircuitElement", shape="record", style="solid"];
+"/home/mario/Documents/work/dmt/dmt/DMT_core_pkg/DMT/COOS/dut_coos.py.DutCOOS" [color="black", fontcolor="black", label="DutCOOS", shape="record", style="solid"];
+"DMT.core.dut_circuit.DutCircuit" [color="black", fontcolor="black", label="DutCircuit", shape="record", style="solid"];
+"/home/mario/Documents/work/dmt/dmt/DMT_core_pkg/DMT/core/dut_meas.py.DutMeas" [color="black", fontcolor="black", label="DutMeas", shape="record", style="solid"];
+"/home/mario/Documents/work/dmt/dmt/DMT_core_pkg/DMT/ngspice/dut_ngspice.py.DutNgspice" [color="black", fontcolor="black", label="DutNgspice", shape="record", style="solid"];
+"DMT.core.dut_tcad.DutTcad" [color="black", fontcolor="black", label="DutTcad", shape="record", style="solid"];
+"/home/mario/Documents/work/dmt/dmt/DMT_core_pkg/DMT/core/dut_type.py.DutType" [color="black", fontcolor="black", label="DutType", shape="record", style="solid"];
+"/home/mario/Documents/work/dmt/dmt/DMT_core_pkg/DMT/core/dut_type.py.DutTypeInt" [color="black", fontcolor="black", label="DutTypeInt", shape="record", style="solid"];
+"DMT.core.dut_view.DutView" [color="black", fontcolor="black", label="DutView", shape="record", style="solid"];
+"/home/mario/Documents/work/dmt/dmt/DMT_core_pkg/DMT/xyce/dut_xyce.py.DutXyce" [color="black", fontcolor="black", label="DutXyce", shape="record", style="solid"];
+"enum.Enum" [color="black", fontcolor="black", label="Enum", shape="record", style="solid"];
+"enum.Flag" [color="black", fontcolor="black", label="Flag", shape="record", style="solid"];
+"/home/mario/Documents/work/dmt/dmt/DMT_core_pkg/DMT/core/mcard.py.MCard" [color="black", fontcolor="black", label="MCard", shape="record", style="solid"];
+"DMT.core.mc_parameter.McParameterComposition" [color="black", fontcolor="black", label="McParameterComposition", shape="record", style="solid"];
+"ast.NodeVisitor" [color="black", fontcolor="black", label="NodeVisitor", shape="record", style="solid"];
+"collections.OrderedDict" [color="black", fontcolor="black", label="OrderedDict", shape="record", style="solid"];
+"pathlib.Path" [color="black", fontcolor="black", label="Path", shape="record", style="solid"];
+"pathlib.PurePath" [color="black", fontcolor="black", label="PurePath", shape="record", style="solid"];
+"pathlib._Accessor" [color="black", fontcolor="black", label="_Accessor", shape="record", style="solid"];
+"pathlib._NormalAccessor" [color="black", fontcolor="black", label="_NormalAccessor", shape="record", style="solid"];
+"/home/mario/Documents/work/dmt/dmt/DMT_core_pkg/DMT/COOS/dut_coos.py.DutCOOS" -> "DMT.core.dut_tcad.DutTcad" [arrowhead="empty", arrowtail="none"];
+"/home/mario/Documents/work/dmt/dmt/DMT_core_pkg/DMT/core/dut_meas.py.DutMeas" -> "DMT.core.dut_view.DutView" [arrowhead="empty", arrowtail="none"];
+"/home/mario/Documents/work/dmt/dmt/DMT_core_pkg/DMT/core/dut_type.py.DutType" -> "enum.Flag" [arrowhead="empty", arrowtail="none"];
+"/home/mario/Documents/work/dmt/dmt/DMT_core_pkg/DMT/core/mcard.py.Calculator" -> "ast.NodeVisitor" [arrowhead="empty", arrowtail="none"];
+"/home/mario/Documents/work/dmt/dmt/DMT_core_pkg/DMT/core/mcard.py.MCard" -> "DMT.core.mc_parameter.McParameterComposition" [arrowhead="empty", arrowtail="none"];
+"/home/mario/Documents/work/dmt/dmt/DMT_core_pkg/DMT/ngspice/dut_ngspice.py.DutNgspice" -> "DMT.core.dut_circuit.DutCircuit" [arrowhead="empty", arrowtail="none"];
+"/home/mario/Documents/work/dmt/dmt/DMT_core_pkg/DMT/xyce/dut_xyce.py.DutXyce" -> "DMT.core.dut_circuit.DutCircuit" [arrowhead="empty", arrowtail="none"];
+"DMT.core.dut_circuit.DutCircuit" -> "DMT.core.dut_view.DutView" [arrowhead="empty", arrowtail="none"];
+"DMT.core.dut_tcad.DutTcad" -> "DMT.core.dut_view.DutView" [arrowhead="empty", arrowtail="none"];
+"enum.Flag" -> "enum.Enum" [arrowhead="empty", arrowtail="none"];
+"pathlib.Path" -> "pathlib.PurePath" [arrowhead="empty", arrowtail="none"];
+"pathlib._NormalAccessor" -> "pathlib._Accessor" [arrowhead="empty", arrowtail="none"];
+"collections.OrderedDict" -> "DMT.core.dut_circuit.DutCircuit" [arrowhead="diamond", arrowtail="none", fontcolor="green", label="simulator_options", style="solid"];
+"collections.OrderedDict" -> "DMT.core.dut_circuit.DutCircuit" [arrowhead="diamond", arrowtail="none", fontcolor="green", label="simulator_options", style="solid"];
+"pathlib.Path" -> "/home/mario/Documents/work/dmt/dmt/DMT_core_pkg/DMT/core/mcard.py.MCard" [arrowhead="diamond", arrowtail="none", fontcolor="green", label="_va_file", style="solid"];
+"pathlib.Path" -> "DMT.core.dut_view.DutView" [arrowhead="diamond", arrowtail="none", fontcolor="green", label="_database_dir", style="solid"];
+"pathlib.Path" -> "DMT.core.dut_view.DutView" [arrowhead="diamond", arrowtail="none", fontcolor="green", label="_database_dir", style="solid"];
+"pathlib._NormalAccessor" -> "pathlib.Path" [arrowhead="diamond", arrowtail="none", fontcolor="green", label="_accessor", style="solid"];
+}

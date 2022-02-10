@@ -1,0 +1,35 @@
+digraph "classes_sim_con" {
+rankdir=BT
+charset="utf-8"
+"DMT.core.data_frame.DataFrame" [color="black", fontcolor="black", label="DataFrame", shape="record", style="solid"];
+"/home/mario/Documents/work/dmt/dmt/DMT_core_pkg/DMT/core/dut_type.py.DutType" [color="black", fontcolor="black", label="DutType", shape="record", style="solid"];
+"/home/mario/Documents/work/dmt/dmt/DMT_core_pkg/DMT/core/dut_type.py.DutTypeInt" [color="black", fontcolor="black", label="DutTypeInt", shape="record", style="solid"];
+"/home/mario/Documents/work/dmt/dmt/DMT_core_pkg/DMT/core/dut_view.py.DutView" [color="black", fontcolor="black", label="DutView", shape="record", style="solid"];
+"pathlib.Path" [color="black", fontcolor="black", label="Path", shape="record", style="solid"];
+"scp.SCPClient" [color="black", fontcolor="black", label="SCPClient", shape="record", style="solid"];
+"paramiko.client.SSHClient" [color="black", fontcolor="black", label="SSHClient", shape="record", style="solid"];
+"/home/mario/Documents/work/dmt/dmt/DMT_core_pkg/DMT/core/sim_con.py.SimCon" [color="black", fontcolor="black", label="SimCon", shape="record", style="solid"];
+"DMT.core.naming.SpecifierStr" [color="black", fontcolor="black", label="SpecifierStr", shape="record", style="solid"];
+"/home/mario/Documents/work/dmt/dmt/DMT_core_pkg/DMT/core/sweep.py.Sweep" [color="black", fontcolor="black", label="Sweep", shape="record", style="solid"];
+"/home/mario/Documents/work/dmt/dmt/DMT_core_pkg/DMT/core/sweep.py.SweepDef" [color="black", fontcolor="black", label="SweepDef", shape="record", style="solid"];
+".ndarray" [color="black", fontcolor="black", label="ndarray", shape="record", style="solid"];
+".ndarray" [color="black", fontcolor="black", label="ndarray", shape="record", style="solid"];
+".ndarray" [color="black", fontcolor="black", label="ndarray", shape="record", style="solid"];
+".ndarray" [color="black", fontcolor="black", label="ndarray", shape="record", style="solid"];
+".ndarray" [color="black", fontcolor="black", label="ndarray", shape="record", style="solid"];
+".ndarray" [color="black", fontcolor="black", label="ndarray", shape="record", style="solid"];
+".ndarray" [color="black", fontcolor="black", label="ndarray", shape="record", style="solid"];
+".ndarray" -> "/home/mario/Documents/work/dmt/dmt/DMT_core_pkg/DMT/core/sweep.py.SweepDef" [arrowhead="diamond", arrowtail="none", fontcolor="green", label="value_def", style="solid"];
+".ndarray" -> "/home/mario/Documents/work/dmt/dmt/DMT_core_pkg/DMT/core/sweep.py.SweepDef" [arrowhead="diamond", arrowtail="none", fontcolor="green", label="values", style="solid"];
+".ndarray" -> "/home/mario/Documents/work/dmt/dmt/DMT_core_pkg/DMT/core/sweep.py.SweepDef" [arrowhead="diamond", arrowtail="none", fontcolor="green", label="values", style="solid"];
+".ndarray" -> "/home/mario/Documents/work/dmt/dmt/DMT_core_pkg/DMT/core/sweep.py.SweepDef" [arrowhead="diamond", arrowtail="none", fontcolor="green", label="values", style="solid"];
+".ndarray" -> "/home/mario/Documents/work/dmt/dmt/DMT_core_pkg/DMT/core/sweep.py.SweepDef" [arrowhead="diamond", arrowtail="none", fontcolor="green", label="values", style="solid"];
+".ndarray" -> "/home/mario/Documents/work/dmt/dmt/DMT_core_pkg/DMT/core/sweep.py.SweepDef" [arrowhead="diamond", arrowtail="none", fontcolor="green", label="values", style="solid"];
+".ndarray" -> "/home/mario/Documents/work/dmt/dmt/DMT_core_pkg/DMT/core/sweep.py.SweepDef" [arrowhead="diamond", arrowtail="none", fontcolor="green", label="values", style="solid"];
+"DMT.core.data_frame.DataFrame" -> "/home/mario/Documents/work/dmt/dmt/DMT_core_pkg/DMT/core/sweep.py.Sweep" [arrowhead="diamond", arrowtail="none", fontcolor="green", label="df", style="solid"];
+"DMT.core.naming.SpecifierStr" -> "/home/mario/Documents/work/dmt/dmt/DMT_core_pkg/DMT/core/sweep.py.SweepDef" [arrowhead="diamond", arrowtail="none", fontcolor="green", label="var_name", style="solid"];
+"paramiko.client.SSHClient" -> "/home/mario/Documents/work/dmt/dmt/DMT_core_pkg/DMT/core/sim_con.py.SimCon" [arrowhead="diamond", arrowtail="none", fontcolor="green", label="ssh_client", style="solid"];
+"pathlib.Path" -> "/home/mario/Documents/work/dmt/dmt/DMT_core_pkg/DMT/core/dut_view.py.DutView" [arrowhead="diamond", arrowtail="none", fontcolor="green", label="_database_dir", style="solid"];
+"pathlib.Path" -> "/home/mario/Documents/work/dmt/dmt/DMT_core_pkg/DMT/core/dut_view.py.DutView" [arrowhead="diamond", arrowtail="none", fontcolor="green", label="_database_dir", style="solid"];
+"scp.SCPClient" -> "/home/mario/Documents/work/dmt/dmt/DMT_core_pkg/DMT/core/sim_con.py.SimCon" [arrowhead="diamond", arrowtail="none", fontcolor="green", label="scp_client", style="solid"];
+}

@@ -1,0 +1,100 @@
+\documentclass[class=IEEEtran]{standalone}
+\usepackage{tikz,amsmath,siunitx}
+\usetikzlibrary{arrows,snakes,backgrounds,patterns,matrix,shapes,fit,calc,shadows,plotmarks}
+\usepackage[graphics,tightpage,active]{preview}
+\usepackage{pgfplots}
+\pgfplotsset{compat=newest}
+\usetikzlibrary{shapes.geometric}
+\PreviewEnvironment{tikzpicture}
+\PreviewEnvironment{equation}
+\PreviewEnvironment{equation*}
+\newlength\figurewidth
+\begin{document}
+\setlength\figurewidth{3in}
+\begin{tikzpicture}[font=\normalsize]
+\pgfplotsset{every axis/.append style={very thick}},
+\definecolor{color0}{rgb}{0.12157, 0.46667, 0.46667}
+
+\begin{axis}[
+width=3in,
+xlabel={$I_{\mathrm{C}}\left(\si{\milli\ampere}\right)$},
+ylabel={$f_{\mathrm{T}}/\si{\giga\hertz}$},
+xmode=log,
+xmin=0.001,
+% xmax=0,
+% restrict x to domain=0:1,
+log basis x=10,
+ymin=0,
+% ymax=0,
+% restrict y to domain=0:1,
+log basis y=10,
+xmajorgrids,
+enlargelimits=false,
+scaled ticks=false,
+ymajorgrids,
+x tick style={color=black},
+y tick style={color=black},
+x grid style={white!69.01960784313725!black},
+y grid style={white!69.01960784313725!black},
+/tikz/mark repeat=1,
+legend style={at={(0.98,0.98)}, anchor=north east,legend cell align=left, align=left},
+]
+\addplot [color=color0, solid, mark phase=1, forget plot, ]
+  table[row sep=crcr, x expr=\thisrowno{0}*1.000000e+03, y expr=\thisrowno{1}*1.000000e-09]{
+1.14419e-08 7.83982e+10\\
+1.6764e-08 5.43497e+10\\
+2.45617e-08 3.7392e+10\\
+3.59863e-08 2.56533e+10\\
+5.27242e-08 1.7636e+10\\
+7.72463e-08 1.20649e+10\\
+1.13171e-07 8.25127e+09\\
+1.65801e-07 5.64716e+09\\
+2.42899e-07 3.87428e+09\\
+3.55839e-07 2.67315e+09\\
+5.21276e-07 1.86708e+09\\
+7.63606e-07 1.33187e+09\\
+1.11855e-06 1.00457e+09\\
+1.63843e-06 8.2017e+08\\
+2.39983e-06 7.53297e+08\\
+3.51491e-06 7.99616e+08\\
+5.14743e-06 9.60582e+08\\
+7.53812e-06 1.26259e+09\\
+1.10383e-05 1.74004e+09\\
+1.6162e-05 2.47235e+09\\
+2.36612e-05 3.54579e+09\\
+3.46341e-05 5.11595e+09\\
+5.06844e-05 7.37233e+09\\
+7.41495e-05 1.063e+10\\
+0.00010843 1.52631e+10\\
+0.000158456 2.1806e+10\\
+0.000231348 3.097e+10\\
+0.000337307 4.3676e+10\\
+0.000490814 6.06694e+10\\
+0.000712107 8.31401e+10\\
+0.00102888 1.11453e+11\\
+0.00147788 1.4541e+11\\
+0.0021059 1.84717e+11\\
+0.00296943 2.26751e+11\\
+0.00413226 2.69925e+11\\
+0.00566127 3.11982e+11\\
+0.00762119 3.50888e+11\\
+0.0100698 3.85247e+11\\
+0.0130547 4.13158e+11\\
+0.0166123 4.34206e+11\\
+0.0207667 4.46659e+11\\
+0.0255268 4.49824e+11\\
+0.0308717 4.39535e+11\\
+0.0367086 4.04731e+11\\
+0.0427664 3.32446e+11\\
+0.0484567 2.25948e+11\\
+0.0531924 1.40606e+11\\
+0.0570604 9.55132e+10\\
+0.0604386 7.20363e+10\\
+0.0635718 5.80351e+10\\
+0.0665805 4.85888e+10\\
+};
+% \addlegendentry{}
+\end{axis}
+
+\end{tikzpicture}
+\end{document}

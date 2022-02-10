@@ -1,15 +1,24 @@
+
+[build-system]
+requires = [
+  "setuptools",
+  "wheel",
+  "numpy"
+]
+build-backend = "setuptools.build_meta"
+
+[install-system]
+requires = [
+  "numpy"
+]
+
 [tool.black]
 line-length = 100
 exclude = '''
 (
   /(
     | \.git
-    | \.hg
-    | \.mypy_cache
-    | \.direnv
-    | \.vscode
-    | DMT_other/DMT_other.egg-info
-    | examples
+    | /DMT_core.egg-info
   )/
 )
 '''
