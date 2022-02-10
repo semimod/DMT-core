@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="DMT_core",
-    version="1.2.0",
+    version="1.2.1",
     author="M.Mueller, M.Krattenmacher",
     author_email="markus.mueller@semimod.de and mario.krattenmacher@semimod.de",
     description="Device Modeling Toolkit Core",

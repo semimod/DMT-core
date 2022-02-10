@@ -1,12 +1,13 @@
 import os.path
 import numpy as np
 import pytest
+from pathlib import Path
 from DMT.core import specifiers, sub_specifiers, read_elpa, read_mdm
 from DMT.core.df_to_sweep import df_to_sweep
 
 
 def test_errors():
-    df_elpa = read_elpa(os.path.join("test", "test_core_no_interfaces", "HBT_vbc.elpa"))
+    df_elpa = read_elpa(Path(__file__).parent / "HBT_vbc.elpa")
 
     with pytest.raises(
         IOError
@@ -28,8 +29,8 @@ def test_convert_elpa():
     col_vce = specifiers.VOLTAGE + ["C", "E"] + sub_specifiers.FORCED
     col_vbc = specifiers.VOLTAGE + ["B", "C"] + sub_specifiers.FORCED
 
-    df_elpa = read_elpa(os.path.join("test", "test_core_no_interfaces", "HBT_vbc.elpa"))
-    # df_elpa.append(read_elpa(os.path.join('test', 'extr_example',  'HBT_vbc_s.elpa')))
+    df_elpa = read_elpa(Path(__file__).parent / "HBT_vbc.elpa")
+    # df_elpa.append(read_elpa(Path(__file__).parent / 'HBT_vbc_s.elpa'))
     # df_elpa.sort_values(by=['VBC','VBE'], inplace=True)
 
     df_elpa[specifiers.VOLTAGE + "B" + sub_specifiers.FORCED] = df_elpa["VBE"]
@@ -67,8 +68,8 @@ def test_convert_elpa():
         ]
     )
 
-    df_elpa = read_elpa(os.path.join("test", "test_core_no_interfaces", "HBT_vce.elpa"))
-    # df_elpa.append(read_elpa(os.path.join('test','extr_example','HBT_vce_s.elpa')))
+    df_elpa = read_elpa(Path(__file__).parent / "HBT_vce.elpa")
+    # df_elpa.append(read_elpa(Path(__file__).parent /'HBT_vce_s.elpa'))
     # df_elpa.sort_values(by=['VCE','VBE'], inplace=True)
 
     df_elpa[specifiers.VOLTAGE + "B" + sub_specifiers.FORCED] = df_elpa["VBE"]
@@ -112,7 +113,7 @@ def test_convert_mdm():
     col_vce = specifiers.VOLTAGE + ["C", "E"] + sub_specifiers.FORCED
     col_vbc = specifiers.VOLTAGE + ["B", "C"] + sub_specifiers.FORCED
     # load test measurements
-    df_mdm = read_mdm(os.path.join("test", "test_core_no_interfaces", "test_data", "Spar_vb.mdm"))
+    df_mdm = read_mdm(Path(__file__).parent / "test_data" / "Spar_vb.mdm")
 
     # correct data format of measurements
     nodes = ["B", "C", "E", "S"]

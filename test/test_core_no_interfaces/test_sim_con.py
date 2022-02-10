@@ -39,7 +39,7 @@ def test_run_sim():
         ["A"], "Q_HIC", "hicuml2va", va_file=Path(__file__).parent / "hicumL2V2p4p0_release.va"
     )
     mcard.load_model(
-        "test/test_core_no_interfaces/test_modelcards/IHP_ECE704_03_para_D21.mat",
+        Path(__file__).parent / "test_modelcards" / "IHP_ECE704_03_para_D21.mat",
     )
 
     dut = DutDummy("test", "dummy", DutType.npn, mcard, nodes=None, reference_node="E", force=True)

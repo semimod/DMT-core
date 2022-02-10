@@ -1,12 +1,10 @@
-import os.path
 import numpy as np
+from pathlib import Path
 from DMT.core import read_data, DataFrame, specifiers, sub_specifiers
 
 
 def test_clean_data():
-    data = read_data(
-        os.path.join("test", "test_core_no_interfaces", "test_data", "dummy_open_freq.mdm")
-    )
+    data = read_data(Path(__file__).parent / "test_data" / "dummy_open_freq.mdm")
     data_clean = data.clean_data(nodes=["B", "E", "C"], reference_node="E", ac_ports=["B", "C"])
     return data_clean
 

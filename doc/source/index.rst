@@ -17,7 +17,7 @@ The project ist still in its infancy, though many things already work. Here is a
 Currently ongoing projects:
 
 - VSource model availability
-- Our partner project `VAE <https://dspom.gitlab.io/verilogae>`_, a new verilog-A compiler aimed at replacing ADMS once and for all
+- Our partner project `VAE <https://man.sr.ht/~dspom/openvaf_doc/verilogae/>`_, a new verilog-A compiler aimed at replacing ADMS once and for all
 
 Ongoing goals:
 
@@ -51,11 +51,9 @@ Overview of Documentation
 .. toctree::
     :maxdepth: 1
 
-    installation/index
     examples/index
     automatic_testing/index
     technical_documentation/index
-    todo/index
 
 Indices and tables
 ==================

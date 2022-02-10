@@ -1,5 +1,6 @@
 import logging
 import os.path
+from pathlib import Path
 from DMT.core import DutMeas, DutType, Plot, DutLib
 
 # -->Start main function
@@ -47,7 +48,7 @@ def test_lib_import():
     )
     # --->Add source measurement information in dmt and to duts
     lib.import_directory(
-        import_dir=os.path.join("test", "test_core_no_interfaces", "test_data", "0p25x10x1_full"),
+        import_dir=Path(__file__).parent / "test_data" / "0p25x10x1_full",
         dut_filter=filter_dut,
         dut_level=0,
         force=True,
@@ -67,13 +68,8 @@ def test_lib_import():
         width=float(0.25e-6),
         length=float(0.25e-6),
     )
-    dut_short.add_data(
-        os.path.join("test", "test_core_no_interfaces", "test_data", "dummy_short_freq.mdm"),
-        key="ac",
-    )
-    dut_short.add_data(
-        os.path.join("test", "test_core_no_interfaces", "test_data", "short_dc.mdm"), key="dc"
-    )
+    dut_short.add_data(Path(__file__).parent / "test_data" / "dummy_short_freq.mdm", key="ac")
+    dut_short.add_data(Path(__file__).parent / "test_data" / "short_dc.mdm", key="dc")
     dut_open = DutMeas(
         database_dir=os.path.join("test", "tmp"),
         name="dut_open_npn",
@@ -85,10 +81,7 @@ def test_lib_import():
         width=float(0.25e-6),
         length=float(0.25e-6),
     )
-    dut_open.add_data(
-        os.path.join("test", "test_core_no_interfaces", "test_data", "dummy_open_freq.mdm"),
-        key="ac",
-    )
+    dut_open.add_data(Path(__file__).parent / "test_data" / "dummy_open_freq.mdm", key="ac")
     lib.add_duts([dut_short, dut_open])
 
     # --->Clean the names of all dataframes, e.g. VB=>V_B
@@ -146,7 +139,7 @@ def test_lib_import_lvl1():
     )
     # --->Add source measurement information in dmt and to duts
     lib.import_directory(
-        import_dir=os.path.join("test", "test_core_no_interfaces", "test_data"),
+        import_dir=Path(__file__).parent / "test_data",
         dut_filter=filter_dut,
         dut_level=1,
         force=True,
@@ -166,13 +159,8 @@ def test_lib_import_lvl1():
         width=float(0.25e-6),
         length=float(0.25e-6),
     )
-    dut_short.add_data(
-        os.path.join("test", "test_core_no_interfaces", "test_data", "dummy_short_freq.mdm"),
-        key="ac",
-    )
-    dut_short.add_data(
-        os.path.join("test", "test_core_no_interfaces", "test_data", "short_dc.mdm"), key="dc"
-    )
+    dut_short.add_data(Path(__file__).parent / "test_data" / "dummy_short_freq.mdm", key="ac")
+    dut_short.add_data(Path(__file__).parent / "test_data" / "short_dc.mdm", key="dc")
     dut_open = DutMeas(
         database_dir=os.path.join("test", "tmp"),
         name="dut_open_npn",
@@ -184,10 +172,7 @@ def test_lib_import_lvl1():
         width=float(0.25e-6),
         length=float(0.25e-6),
     )
-    dut_open.add_data(
-        os.path.join("test", "test_core_no_interfaces", "test_data", "dummy_open_freq.mdm"),
-        key="ac",
-    )
+    dut_open.add_data(Path(__file__).parent / "test_data" / "dummy_open_freq.mdm", key="ac")
     lib.add_duts([dut_short, dut_open])
 
     # --->Clean the names of all dataframes, e.g. VB=>V_B

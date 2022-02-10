@@ -1,24 +1,13 @@
-from DMT.core import read_data, DataFrame, specifiers
-
-# from DMT.core import DataFrame, DataProcessor
-import os
 import numpy as np
-
-# import numpy as np
+from pathlib import Path
+from DMT.core import read_data, DataFrame, specifiers
 
 
 def test_data_processor_and_deem():
-    # processor = DataProcessor()
-    # init DMT classes
-
     # load test measurements
-    df = read_data(os.path.join("test", "test_core_no_interfaces", "test_data", "Spar_vb.mdm"))
-    df_open = read_data(
-        os.path.join("test", "test_core_no_interfaces", "test_data", "dummy_open_freq.mdm")
-    )
-    df_short = read_data(
-        os.path.join("test", "test_core_no_interfaces", "test_data", "dummy_short_freq.mdm")
-    )
+    df = read_data(Path(__file__).parent / "test_data" / "Spar_vb.mdm")
+    df_open = read_data(Path(__file__).parent / "test_data" / "dummy_open_freq.mdm")
+    df_short = read_data(Path(__file__).parent / "test_data" / "dummy_short_freq.mdm")
 
     # correct data format of measurements
     nodes = ["B", "C", "E", "S"]
