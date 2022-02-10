@@ -37,7 +37,7 @@ def get_circuit(self, use_build_in=False, topology="common_emitter", **kwargs):
     modelcard : :class:`~DMT.hl2.mc_hicum.McHicum`
 
     Returns
-    -----------
+    -------
     circuit : :class:`~DMT.core.circuit.Circuit`
 
     """

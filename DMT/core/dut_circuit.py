@@ -43,7 +43,7 @@ class DutCircuit(DutView):
     Makes a circuit simulator like ADS or XYCE useable by DMT
 
     Parameters
-    -----------
+    ----------
     database_dir    : string
         This is the directory were the DUT will create its database.
     name      :  string
@@ -58,7 +58,7 @@ class DutCircuit(DutView):
 
 
     Attributes
-    -----------
+    ----------
     sim_command : str
         Command to start the correct circuit simulator
     sim_args : list[str]
@@ -104,7 +104,7 @@ class DutCircuit(DutView):
         """Setter method for the input header. This removes any stored data from the object, as it is not valid anymore! Automatically calls create_inp_header, if it is not a string or a list of strings.
 
         Parameters
-        -----------
+        ----------
         value : str, list[string] or valid for create_inp_header
         """
         value = copy.deepcopy(value)
@@ -157,11 +157,11 @@ class DutCircuit(DutView):
         Is overwritten here, to include the imported and appended files!
 
         Returns
-        --------
+        -------
         str or False
 
-        Todo
-        ----
+        Notes
+        -----
         Also account for dut.name?
         """
         if self.inp_header is None:
@@ -194,7 +194,7 @@ class DutCircuit(DutView):
         """Transforms a :class:`~DMT.classes.circuit.CircuitElement` into a string fitting for the inheriting DutCircuit.
 
         Parameters
-        -----------
+        ----------
         circuit_element
             CircuitElement to transform
 

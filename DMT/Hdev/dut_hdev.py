@@ -62,7 +62,7 @@ class DutHdev(DutTcad):
     r"""Manages simulations and simulation data with Hdev.
 
     Parameters
-    -----------
+    ----------
     database_dir : str
         Directory for the current databases
     dut_type   : :class:`~DMT.core.dut_type.DutType`
@@ -80,7 +80,7 @@ class DutHdev(DutTcad):
         Arguments for the system command
 
     Attributes
-    -----------
+    ----------
     sim_name : str
         DEVICE simulation title. Sort of a DUT-Name.
 
@@ -113,7 +113,7 @@ class DutHdev(DutTcad):
         inp_ : dict of dicts that describes a Hdev input structure
 
         Returns
-        --------
+        -------
         inp_header : str
         """
         if not "BIAS_DEF" in inp_:
@@ -251,7 +251,7 @@ class DutHdev(DutTcad):
             Sweep that has been simulated.
 
         Raises
-        --------
+        ------
         NotImplementedError
             If the Dut is not a simulatable dut.
         SimulationUnsuccessful
@@ -338,14 +338,14 @@ class DutHdev(DutTcad):
             Sweep that has been simulated for the desired output files.
 
         Returns
-        ----------
+        -------
         output_files : [string]
             List of strings that contain the full path to the output files.
         delete_sim_results : {False, True}, optional
             If True, the simulation folder is deleted after reading.
 
         Notes
-        ------
+        -----
         .. todo:: Add more column renaming and resorting here!
         """
         # list_elpa_files = re.findall(
@@ -898,7 +898,7 @@ def getITRSHBT(
         If True: use ET model, else DD model.
 
     Returns
-    --------
+    -------
     dut_hdev : DutHdev
         A DMT.Hdev.DutHdev object ready for simulation.
     """

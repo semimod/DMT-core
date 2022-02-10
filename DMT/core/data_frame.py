@@ -86,7 +86,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
         df = df.calc_ft()
 
     Methods
-    -----------
+    -------
     convert_n_port_para(p_from='', p_to='', z0=float(50), ports=None):
         convert the small signal parameters of type p_from to small signal parameters of type p_to.
     cmplx2real():
@@ -610,7 +610,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
         """Checks if a column with the given combination of specifier and nodes exists in the given dataframe using the DMT naming style.
 
         Parameters
-        -----------
+        ----------
         specifier : str
             Ideally a specifier from :mod:`~DMT.core.specifiers`
         *nodes : str, optional
@@ -623,7 +623,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
             If the column exists the name is returned.
 
         Raises
-        -------
+        ------
         KeyError
             If the column does not exist.
         """
@@ -647,7 +647,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
         """Checks if a column with the specifier name exists in the dataframe, if not it tries to calculate it!
 
         Parameters
-        -----------
+        ----------
         specifier : str
             Ideally a specifier from :mod:`~DMT.core.specifiers`
         *nodes : str, optional
@@ -665,7 +665,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
             If true: re-calculate specifier, even if already existing.
 
         Raises
-        -------
+        ------
         KeyError
             If the column does not exist.
         """
@@ -914,7 +914,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
             The sub specifier that shall be valid for the voltage to be created by this method.
 
         Returns
-        ----------
+        -------
         df  : :class:`DMT.core.DataFrame`
             DMT.Dataframe with new dataframe, if successfull
         """
@@ -1018,12 +1018,12 @@ class DataFrame(DataProcessor, pd.DataFrame):
             If True, print out debugging information
 
         Returns
-        ----------
+        -------
         df  : :class:`DMT.core.DataFrame`
             DMT.Dataframe with new dataframe, if successfull
 
         Raises
-        ----------
+        ------
         IOError
             If it is not possible to create the potential
         """
@@ -1195,7 +1195,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
         """Drops all found voltages (but ignores potentials)
 
         Returns
-        ----------
+        -------
         df  : :class:`DMT.core.DataFrame`
             DMT.Dataframe with new dataframe, if successfull
         """
@@ -1520,7 +1520,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
             Small signal parameter whose existence shall be checked.
 
         Raises
-        -------
+        ------
         error       :  IOError
             Raised if the ss parameters para are not present in self.columns.
 
@@ -1548,7 +1548,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
             Further nodes in order to build up a higher order matrix.
 
         Returns
-        ----------
+        -------
         para_values  :  np.ndarray()
             Numpy array containing the values of the ss parameter para with shape [n_freq,n_port_in,n_port_out].
         """
@@ -1664,7 +1664,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
         """Return a list of strings of all small signal parameters (ss) in df.
 
         Returns
-        ----------
+        -------
         ss_paras  :  [str]
             List of strings of the ss parameter columns in self.
         """
@@ -2065,8 +2065,8 @@ class DataFrame(DataProcessor, pd.DataFrame):
         It is assumed that the frequency is strictly increasing for every DC operating point in the DataFrame,
         as is usually the case for measurement data-
 
-        Input
-        -----
+        Parameters
+        ----------
         ports : [str]
             The AC ports of the device
         fmin : float

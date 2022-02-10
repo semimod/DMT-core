@@ -31,12 +31,12 @@ def create_md5_hash(*contents):
     """Construct the hash MD5 string with all parameters
 
     Parameters
-    -----------
+    ----------
     contents : \*str
         Either a path to a file to read or some object which can be converted to a string using str()
 
     Returns
-    -----------
+    -------
     hash : str
         MD5 string
     """

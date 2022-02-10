@@ -38,7 +38,7 @@ class DutView(object):
     This ensures that all classes in DMT work independent of the concrete simulation back-end.
 
     Parameters
-    ------------
+    ----------
 
     database_dir :  str or None
         The directory where all the databases of this project are saved. If None, DMT.config.DB_DIR is used.
@@ -78,7 +78,7 @@ class DutView(object):
         The name of the input file to be generated.
 
     Attributes
-    -----------
+    ----------
     database_dir :  str
         The directory where all the databases of this project are saved.
     name       :  str
@@ -106,7 +106,7 @@ class DutView(object):
         List of path or data to save to the simlation folder. If it is a path, the file is copied. If it is data, a file is created.
 
     Methods
-    --------
+    -------
     run_simulation(sweep)
         Start the simulation of this DutView object.
     prepare_simulation(sweep)
@@ -268,7 +268,7 @@ class DutView(object):
         """Creates a simulation folder, appends the sweep to the structure definition and creates a input file in the simulation folder.
 
         Parameters
-        -----------
+        ----------
         sweep : Sweep
         """
         logging.info(
@@ -329,7 +329,7 @@ class DutView(object):
         """Returns the command to start the simulation
 
         Returns
-        --------
+        -------
         str
         """
         return self.sim_command + " " + " ".join(self.sim_args) + " " + self.inp_name
@@ -356,7 +356,7 @@ class DutView(object):
         """Return a unique hash for this Dut without (!) considering the Sweep.
 
         Returns
-        ----------
+        -------
         hash : float64
             Hash that corresponds to this DUT.
         """
@@ -373,7 +373,7 @@ class DutView(object):
             If True, the simulation folder is deleted after reading.
 
         Raises
-        -------
+        ------
         NotImplementedError
             If the Dut is not a simulatable dut.
         IOError
@@ -392,7 +392,7 @@ class DutView(object):
             Sweep that has been simulated.
 
         Raises
-        --------
+        ------
         NotImplementedError
             If the Dut is not a simulatable dut.
         SimulationUnsuccessful
@@ -453,7 +453,7 @@ class DutView(object):
             Sweep object that corresponds to the folder.
 
         Returns
-        --------
+        -------
         str
             Path to the simulationfolder
         """
@@ -730,7 +730,7 @@ class DutView(object):
         if separate databases is activated it loads only the given sweep (and it has to be given then!)
 
         Parameters
-        -------------
+        ----------
         sweep : Sweep or str, optional
             In case of separate databases, the sweep must be given either directly or as string name
         """
@@ -783,11 +783,11 @@ class DutView(object):
         """Joins the parts of the key into one key for self.dict
 
         Parameters
-        -----------
+        ----------
         parts_key : iterable
 
         Returns
-        --------
+        -------
         str
             parts_key[0]/parts_key[1]/.../parts_key[-1]
         """
@@ -797,11 +797,11 @@ class DutView(object):
         """Splits the key up in its parts.
 
         Parameters
-        -----------
+        ----------
         key : str
 
         Returns
-        --------
+        -------
         list[str]
             key splitted at '/'
 
@@ -812,12 +812,12 @@ class DutView(object):
         """Key for the dict in dut.data.
 
         Parameters
-        ------------
+        ----------
         sweep : :class:`~DMT.core.sweep.Sweep` or str
             Either the key for the given sweep or if it is a string, directly the string
 
         Returns
-        ---------
+        -------
         key : str
         """
         try:
@@ -836,7 +836,7 @@ class DutView(object):
         * Range of temperatures: "T[xxx.xx-sss.ss-yyy.yy]K", s is the step
 
         Parameters
-        ------------
+        ----------
         key : str
             Key that shall be evaluated.
 

@@ -32,12 +32,12 @@ class Circuit(object):
     """Circuit description as a list of :class:`CircuitElement`
 
     Parameters
-    -----------
+    ----------
     circuit_elements : list(CircuitElement or str)
         Either directly the netlist elements as a list of CircuitElements or strings (for equations)
 
     Attributes
-    -----------
+    ----------
     netlist : list(CircuitElement)
     """
 
@@ -96,7 +96,7 @@ class CircuitElement(object):
     * va_module -> could be a transistor
 
     Parameters
-    -----------
+    ----------
     element_type : str
         Element type, for example: 'R' for resistor. possible values: 'V_Source', 'I_Source', 'R', 'C', 'L', 'Short' ,'va_module'
     name : str
@@ -107,7 +107,7 @@ class CircuitElement(object):
         Parameters of the element, for example: [('R', '1k')]
 
     Attributes
-    -----------
+    ----------
     element_type : str
         Element type, for example: 'R' for resistor
     name : str

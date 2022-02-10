@@ -59,7 +59,7 @@ def read_data(filename, key=None, **kwargs):
         Name of the file to be read including path
 
     Returns
-    ----------
+    -------
     df       :  DMT.Dataframe()
         Dataframe that contains the cleaned up data contained in file filename
     """
@@ -111,7 +111,7 @@ def save_hdf(df, save_dir, filename):
         Name of the file
 
     Returns
-    ----------
+    -------
     success  :  boolean
         if saving was successfull returns True, else False
     """
@@ -132,7 +132,7 @@ def read_hdf(filename, key):
         filename of .mdm file including path
 
     Returns
-    ----------
+    -------
     dataframe  :  :class:`DMT.core.Dataframe`
         DMT DataFrame that stores the mdm data.
     """
@@ -158,7 +158,7 @@ def read_mdm(filename):
         filename of .mdm file including path.
 
     Returns
-    ----------
+    -------
     dataframe : :class:`DMT.core.Dataframe`
         DMT dataframe representing the mdm data.
     """
@@ -241,7 +241,7 @@ def read_elpa(filename, header=2):
         Row number where actual data starts. Default=2 as is common for CEDIC in-house tools.
 
     Returns
-    ----------
+    -------
     df       : :class:`DMT.core.Dataframe`
         DMT dataframe representing the elpa data.
     """
@@ -307,7 +307,7 @@ def read_csv(filename, **kwargs):
         kwargs are passed to pandas.read_csv
 
     Returns
-    ----------
+    -------
     df       : :class:`DMT.core.Dataframe`
         DMT dataframe representing the csv data.
     """
@@ -328,7 +328,7 @@ def read_feather(filename, **kwargs):
         kwargs are passed to pandas.read_csv
 
     Returns
-    ----------
+    -------
     df       : :class:`DMT.core.Dataframe`
         DMT dataframe representing the csv data.
     """
@@ -342,12 +342,12 @@ def read_DEVICE_bin(filename):
     """Reads DEVICE binaries. Here the internal spacial data is saved. Returns a Dataframe.
 
     Parameters
-    -----------
+    ----------
     filename : str
         Path to the file to read
 
     Returns
-    --------
+    -------
     df       : :class:`DMT.core.Dataframe`
         DMT dataframe representing the data.
     """
@@ -362,12 +362,12 @@ def read_DEVICE_bin(filename):
         ...
 
         Parameters
-        -----------
+        ----------
         ba_in : Byte array
             Read byte array from a binary file
 
         Returns
-        --------
+        -------
         int
             Calculated integer
         """
@@ -495,12 +495,12 @@ def read_ADS_bin(filename):
     """Reads a ADS raw data file into a DMT dataframe.
 
     Parameters
-    -----------
+    ----------
     filename : str
         Path to the file to read
 
     Returns
-    --------
+    -------
     df       : :class:`DMT.core.Dataframe`
         DMT dataframe representing the data.
     """
@@ -716,7 +716,7 @@ def read_tikz_file(filename, col_x=None, col_y=None):
     """Reads a tikz plot file into a DMT dataframe.
 
     Parameters
-    -----------
+    ----------
     filename : str
         Path to the file to read
     col_x : str, optional
@@ -725,7 +725,7 @@ def read_tikz_file(filename, col_x=None, col_y=None):
         Base name of the y columns, if not given, it is ugly extracted from the file
 
     Returns
-    --------
+    -------
     df : :class:`DMT.core.Dataframe`
         DMT dataframe representing the data.
     """

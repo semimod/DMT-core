@@ -70,7 +70,7 @@ class DutDummy(DutView):
         """Return a hash for the DutView's input file.
 
         Returns
-        ----------
+        -------
         hash : float64
             Hash that corresponds to this DUT.
         """
@@ -94,7 +94,7 @@ class DutDummy(DutView):
             If True, the simulation folder is deleted after reading.
 
         Raises
-        -------
+        ------
         NotImplementedError
             If the Dut is not a simulatable dut.
         IOError
@@ -129,7 +129,7 @@ class DutDummy(DutView):
             Sweep that has been simulated.
 
         Raises
-        --------
+        ------
         NotImplementedError
             If the Dut is not a simulatable dut.
         SimulationUnsuccessful

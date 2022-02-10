@@ -31,7 +31,7 @@ class DutMeas(DutView):
     """Subclass of DutView that is used to capture relevant methods and properties of measured data.
 
     Parameters
-    -----------
+    ----------
     database_dir         :  string
         Root directory for saving duts and databases of this project.
     name           :  string
@@ -51,7 +51,7 @@ class DutMeas(DutView):
         Unique hash of this object.
 
     Attributes
-    -----------
+    ----------
     width          :  float64
         Width in m.
     length         :  float64
@@ -119,7 +119,7 @@ class DutMeas(DutView):
         """Raise a OSError. Measurements can not be simulated!
 
         Raises
-        -------
+        ------
         OSError
             Always when called.
         """
@@ -129,7 +129,7 @@ class DutMeas(DutView):
         """Raise a OSError. Measurement duts can not be simulated!
 
         Raises
-        -------
+        ------
         OSError
             Always when called.
         """
@@ -139,7 +139,7 @@ class DutMeas(DutView):
         """Should genrate the input file for a given simulation sweep. This is not possible for measurements!
 
         Raises
-        -------
+        ------
         OSError
             Always when called.
         """
@@ -149,7 +149,7 @@ class DutMeas(DutView):
         """Empty string, so it is evaluated to false, but still a string.
 
         Returns
-        --------
+        -------
         ''
         """
         return ""
@@ -275,7 +275,7 @@ class DutMeas(DutView):
             Function to convert a key part into a temperature.
 
         Returns
-        --------
+        -------
         key : str
             The correctly joined key_parts. If the temperature was inside, it is converted into "T" + temp + "K".
 

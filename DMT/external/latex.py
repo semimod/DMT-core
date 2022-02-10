@@ -30,7 +30,7 @@ def build_tex(full_path_to_file, additional_compiler=None, wait=False):
     r"""Builds a tex file
 
     Parameters
-    ------------
+    ----------
     full_path_to_file : str or os.Pathlike
     additional_compiler: (str , [str])
         If a additional tex compiler should be used, supply it here. It will be tried as first compiler.
@@ -103,7 +103,7 @@ def build_png(full_path_to_file, wait=True):
     r"""Builds a tex file to png graphic.
 
     Parameters
-    ------------
+    ----------
     full_path_to_file : str or os.Pathlike
 
     TODO
@@ -146,7 +146,7 @@ def build_svg(full_path_to_file, wait=True):
     r"""Builds a tex file to scalable vector graphic.
 
     Parameters
-    ------------
+    ----------
     full_path_to_file : str or os.Pathlike
     """
     if not isinstance(full_path_to_file, Path):
@@ -182,7 +182,7 @@ def clean_tex_files(directory, file_name, keep=(".tex", ".pdf"), regex=False):
     """Deletes all intermediate files in the directory with name file_name except the tex and pdf.
 
     Parameters
-    ---------------
+    ----------
     directory : str
         Direcory to clean
     file_name : str

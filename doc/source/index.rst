@@ -5,18 +5,16 @@ DeviceModelingToolkit (DMT) is a python tool targeted at helping modeling engine
 
 The project ist still in its infancy, though many things already work. Here is an incomplete list of already working stuff:
 
-- HiCUML2 scalable model parameter extraction
-- HiCUML0 model parameter extraction
-- NGSpice, Xyce, Spectre and ADS circuit simulator interface
-- DEVICE, Spring and Hdev TCAD simulator interface
+- NGSpice and Xyce circuit simulator interface
+- Hdev TCAD simulator interface
 - Data management with pandas
 - Typical electrical engineering relevant equations such as S-to-Z parameter conversions and so on are mostly implemented
+- Verilog-AMS model parameter reading and handling in model cards
 - Many examples
 - Many test cases
 
 Currently ongoing projects:
 
-- VSource model availability
 - Our partner project `VAE <https://man.sr.ht/~dspom/openvaf_doc/verilogae/>`_, a new verilog-A compiler aimed at replacing ADMS once and for all
 
 Ongoing goals:
@@ -32,7 +30,7 @@ If you have used our framework for research purposes, please cite us with:
 
 .. code:: tex
 
-    @misc{pymoo,
+    @misc{DMT,
     author = {M. Krattenmacher, M. Mueller and M. Schroeter},
     title = {DMT - {Device-Modeling-Toolkit}},
     howpublished = {https://www.iee.et.tu-dresden.de/iee/eb/eb_home.html}

@@ -30,7 +30,7 @@ def df_to_sweep(df_to_convert, temperature=300, name=None, from_forced=True, Swe
     For the moment only voltage sweeps...
 
     Parameters
-    ------------
+    ----------
     df_to_convert : :class:`DMT.core.data_frame.DataFrame`
     temperature : float, optional
         Temperature of the measurement in Kelvin.
@@ -40,7 +40,7 @@ def df_to_sweep(df_to_convert, temperature=300, name=None, from_forced=True, Swe
         If True, the forced voltages are used to create the sweepdef.
 
     Returns
-    ---------
+    -------
     sweep : :class:`DMT.core.sweep.Sweep`
     """
     vars_other = {

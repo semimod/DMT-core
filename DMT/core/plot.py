@@ -327,14 +327,14 @@ class Plot(object):
         """Set the x label. Either using directly a string or a specifier.
 
         Parameters
-        --------------
+        ----------
         x_label : str
         x_specifier : SpecifierStr
         x_scale : float
             If given, self.x_scale is overwritten with this value.
 
         Raises
-        -----------
+        ------
         IOError
             If neither x_label nor x_specifier were given.
         """
@@ -364,14 +364,14 @@ class Plot(object):
         """Set the y label. Either using directly a string or a specifier.
 
         Parameters
-        --------------
+        ----------
         y_label : str
         y_specifier : SpecifierStr
         y_scale : float
             If given, self.y_scale is overwritten with this value.
 
         Raises
-        -----------
+        ------
         IOError
             If neither y_label nor y_specifier were given.
         """
@@ -692,7 +692,7 @@ class Plot(object):
         Each data set is a dict.
 
         Parameters
-        -----------
+        ----------
         x : array-like
             X data of this line.
         y : array-like
@@ -722,7 +722,7 @@ class Plot(object):
         Each data set is a tuple with five entries, no need to create a dictionary, keeps it simple
 
         Parameters
-        -----------
+        ----------
         x : array-like
         *y : array-likes
             multiple y arrays to plot versus x
@@ -757,7 +757,7 @@ class Plot(object):
         """Plots using matplotlib.pyplot, without IPython shell. If plot is displayed, the python session is halted.
 
         Parameters
-        -----------
+        ----------
         show : {True, False}, optional
             Set to False if the plot should only be prepared, use show_py later to show it
         font_size : int, optional
@@ -924,7 +924,7 @@ class Plot(object):
         """Plots the figure using PyQtGraph
 
         Parameters
-        ---------------
+        ----------
         only_widget : Bool, False
             If True, only a plot widget is returned that can be used in other Qt applications. If False, a full QApplication with layout is returned.
         show        : {True, False}, optional
@@ -1162,12 +1162,12 @@ class Plot(object):
         This can be very complicated as PyQtGraph directly uses a QtPen/QtBrush...
 
         Parameters
-        -----------
+        ----------
         mpl_style : str
             For example 'k-o' for a solid black line with circle symbols
 
         Returns
-        --------
+        -------
         dict_style : dict
             Dictionary with kwargs for pyqtgraph.plot() and similar routines
         """
@@ -1249,12 +1249,12 @@ class Plot(object):
         This can be very complicated as PyQtGraph directly uses a QtPen/QtBrush...
 
         Parameters
-        -----------
+        ----------
         i_line : int
             Number of the line to draw.
 
         Returns
-        --------
+        -------
         dict_style : dict
             Dictionary with kwargs for pyqtgraph.plot() and similar routines
         """
@@ -1793,7 +1793,7 @@ class Plot(object):
         """Transforms a line into a pgfplots addplot command.
 
         Parameters
-        -----------
+        ----------
         dict_line : (x_data, y_data, label, style)
             See the description in Plot.add_data .
         nr_line : int
@@ -2014,7 +2014,7 @@ class SmithPlot(Plot):
         """Plots using matplotlib.pyplot, without IPython shell. If plot is displayed, the python session is halted.
 
         Parameters
-        -----------
+        ----------
         show : {True, False}, optional
             Set to False if the plot should only be prepared, use show_py later to show it
         font_size : int, optional

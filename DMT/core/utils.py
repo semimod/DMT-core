@@ -158,13 +158,13 @@ def enumerate_reversed(iterable, start=0, stop=None, step=1):
         `Stack Overflow <https://stackoverflow.com/a/52195368>`_
 
     Parameters
-    ------------
+    ----------
     iterable : Iterable[_T]
     start, stop, step : int, optional
         Starting and ending index with step size for the iterable
 
     Returns
-    --------
+    -------
     index, value for each element in the iterable.
         index always refers to the true index of the iterable, independent of start or stop!
     """

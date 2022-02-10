@@ -36,7 +36,7 @@ except ImportError:
 class XVIntervalley(XStep):
     """
     Parameters
-    -----------
+    ----------
     name                    : str
         Name of this specific object.
     mcard                   : :class:`~DMT.core.mcard.MCard` or :class:`~DMT.core.mc_parameter.McParameterCollection`

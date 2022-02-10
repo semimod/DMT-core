@@ -62,7 +62,7 @@ class DutNgspice(DutCircuit):
     """Class description and methods
 
     Parameters
-    -----------
+    ----------
     database_dir    : string
         This is the directory were the DUT will create its database.
     name      :  string
@@ -123,12 +123,12 @@ class DutNgspice(DutCircuit):
         """Creates the input header of the given circuit description and returns it.
 
         Parameters
-        -----------
+        ----------
         input : MCard or Circuit
             If a HICUM modelcard is given, a common emitter Circuit is created from it.
 
         Returns
-        --------
+        -------
         netlist : str
         """
         if isinstance(inp_circuit, MCard) or isinstance(inp_circuit, McParameterComposition):
@@ -196,7 +196,7 @@ class DutNgspice(DutCircuit):
         sweep : Sweep
 
         Returns
-        --------
+        -------
         str
             header with added bias definitions
         """
@@ -687,7 +687,7 @@ class DutNgspice(DutCircuit):
             Sweep that has been simulated.
 
         Raises
-        --------
+        ------
         NotImplementedError
             If the Dut is not a simulatable dut.
         SimulationUnsuccessful
@@ -751,11 +751,11 @@ class DutNgspice(DutCircuit):
         into a line with "key1=value1 key2=value2 ". Correctly converts strings, iteratables, bools and numbers.
 
         Parameters
-        -----------
+        ----------
         dict_key_para : dict
 
         Returns
-        --------
+        -------
         str
             Line to add into input file
         """
@@ -782,7 +782,7 @@ class DutNgspice(DutCircuit):
         """Transforms a :class:`~DMT.classes.circuit.CircuitElement` into a string fitting for NGspice.
 
         Parameters
-        -----------
+        ----------
         circuit_element
             CircuitElement to transform
 

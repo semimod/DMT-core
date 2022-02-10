@@ -56,7 +56,7 @@ class Technology(object):
         """Prints a technology description, mainly used for autodocumentation reasons.
 
         Parameters
-        -----------
+        ----------
         dut_ref : :class:`~DMT.core.DutView`
             Can be used to obtain tech quanties... (or to generate a TRADICA input file :) )
         mcard : :class:`~DMT.core.McParameterComposition`
@@ -77,7 +77,7 @@ class Technology(object):
         """Creates a file containing model cards for all sizes of duts present in the lib.
 
         Parameters
-        -----------
+        ----------
         lib : :class:`~DMT.core.DutLib`
         path : str
             File path to write to.

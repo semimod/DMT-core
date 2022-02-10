@@ -71,7 +71,7 @@ class DatabaseManager(object, metaclass=Singleton):
             Path to the database that shall be used to load df.
 
         Raises
-        --------
+        ------
 
 
         Returns

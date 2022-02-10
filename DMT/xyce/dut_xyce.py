@@ -111,12 +111,12 @@ class DutXyce(DutCircuit):
         """Creates the input header of the given circuit description and returns it.
 
         Parameters
-        -----------
+        ----------
         input : DMT.core.Circuit or DMT.core.MCard
             If a MCard is given, the circuit is created from it.
 
         Returns
-        --------
+        -------
         netlist : str
         """
         va_from_model_build_in = False
@@ -216,7 +216,7 @@ class DutXyce(DutCircuit):
         """Transforms a :class:`~DMT.classes.circuit.CircuitElement` into a string fitting for ADS.
 
         Parameters
-        -----------
+        ----------
         circuit_element : :class:`DMT.core.CircuitElement`
             CircuitElement to transform
         index : int
@@ -390,7 +390,7 @@ class DutXyce(DutCircuit):
         sweep : Sweep
 
         Returns
-        --------
+        -------
         str
             header with added bias definitions
         """
@@ -575,7 +575,7 @@ class DutXyce(DutCircuit):
             Sweep that has been simulated.
 
         Raises
-        --------
+        ------
         NotImplementedError
             If the Dut is not a simulatable dut.
         SimulationUnsuccessful
@@ -612,7 +612,7 @@ class DutXyce(DutCircuit):
             If True, the simulation folder is deleted after reading.
 
         Raises
-        -------
+        ------
         NotImplementedError
             If the Dut is not a simulatable dut.
         IOError

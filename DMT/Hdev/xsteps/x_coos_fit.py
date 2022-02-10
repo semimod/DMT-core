@@ -42,7 +42,7 @@ class XFitCOOS(XStep):
     """This XStep can fit measurement data to a TCAD model implemented in Hdev.
 
     Parameters
-    -----------
+    ----------
     name            : str
         Name of this specific xcjei object.
     mcard           : :class:`~DMT.core.mcard.MCard` or :class:`~DMT.core.mc_parameter.McParameterCollection`

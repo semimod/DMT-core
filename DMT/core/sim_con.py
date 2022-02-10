@@ -60,14 +60,14 @@ class SimCon(object, metaclass=Singleton):
     """Simulation controller class. SINGLETON design pattern.
 
     Parameters
-    -----------
+    ----------
     n_core  :  int
         Number of cores that shall be used for simulations.
     t_max   :  float
         Timeout for simulations. If a simulation runs longer than t_max in seconds, it is killed.
 
     Attributes
-    -----------
+    ----------
     n_core  :  int
         Number of cores that shall be used for simulations.
     t_max   :  float
@@ -104,7 +104,7 @@ class SimCon(object, metaclass=Singleton):
         This methods adds each dut with a copy of each sweep to the simulation list.
 
         Parameters
-        -----------
+        ----------
         dut : :class:`~DMT.core.dut_view.DutView` or [:class:`~DMT.core.dut_view.DutView`]
             Objected of a subclass of DutView. This object describes the device to be simulated and specifies the backend.
         sweep : :class:`~DMT.core.sweep.Sweep` or [:class:`~DMT.core.sweep.Sweep`]
@@ -278,7 +278,7 @@ class SimCon(object, metaclass=Singleton):
         """Copies the simulation data to the server. Before doing this, old simulation data is deleted
 
         Parameters
-        -----------
+        ----------
         sims_to_zip : list[dict]
             A list of dictionaries with 2 keys:
             dut : DutView
@@ -339,7 +339,7 @@ class SimCon(object, metaclass=Singleton):
         """Collects the simulation data from the server.
 
         Parameters
-        -----------
+        ----------
         dut : DutView
         sweep : Sweep
         zip_result : bool, optional
@@ -396,7 +396,7 @@ class SimCon(object, metaclass=Singleton):
         """Collects the simulation log file from the server.
 
         Parameters
-        -----------
+        ----------
         dut : DutView
         sweep : Sweep
         """
@@ -420,7 +420,7 @@ class SimCon(object, metaclass=Singleton):
         """Runs all given simulations in parallel.
 
         Parameters
-        -----------
+        ----------
         sim_list :  [{}]
             List of dictionaries, each dictionary has a 'dut': :class:`~DMT.core.DutView` and 'sweep': :class:`~DMT.core.Sweep` key value pair.
 
@@ -667,7 +667,7 @@ class SimCon(object, metaclass=Singleton):
         """Starts the simulation
 
         Parameters
-        -----------
+        ----------
         dut : DutView
         sweep : Sweep
         """
@@ -690,7 +690,7 @@ class SimCon(object, metaclass=Singleton):
         """Starts the remote simulation
 
         Parameters
-        -----------
+        ----------
         dut : DutView
         sweep : Sweep
         pbs : Boolean
@@ -750,7 +750,7 @@ def _check_simulation_needed(i_sim, n_tot, dut=None, sweep=None):
     sweep : DMT.core.Sweep
 
     Returns
-    --------
+    -------
     {key: DMT.core.Dataframe}
         In case the data is read from database or previous simulation.
     None
@@ -798,7 +798,7 @@ def _read_process_results(success, dut, sweep):
     sweep : DMT.core.Sweep
 
     Returns
-    --------
+    -------
     {'success': success, 'dut_hash':dut.get_hash(), 'data':dut.data}
     """
     dut_name = dut.name + str(dut.get_hash())

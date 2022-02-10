@@ -92,7 +92,7 @@ class MCard(McParameterComposition):
     """DMT class that implements attributes and methods that are common between all ModelCards such as HICUM and BSIM.
 
     Parameters
-    -----------
+    ----------
     nodes_list        :  tuple(str)
         Port list for this model.
     default_subckt_name  :  str
@@ -111,7 +111,7 @@ class MCard(McParameterComposition):
         Level of the Model, this is used by EvalTradica, so it must fit there, e.g. '2'
 
     Attributes
-    -----------
+    ----------
     nodes_list : tuple(str)
         Port list for this model.
     circuit : {None,:class:`~DMT.core.circuit.Circuit`}
@@ -332,7 +332,7 @@ class MCard(McParameterComposition):
         be saved/loaded from a json (see dump_json)
 
         Parameters
-        --------------
+        ----------
         remove_old_parameters : {True, False}, optional
             If False, parameters which are not found in the VA-File are not removed.
         """
@@ -521,7 +521,7 @@ class MCard(McParameterComposition):
         """Returns a dict with serializeable content for the json file to create. Add the info about the concrete subclass to create here!
 
         Parameters
-        -----------
+        ----------
         save_va_code : {True, False}, optional
             If False, the va_codes are not saved...
         compress_va_code : {False, True}, optional
@@ -566,7 +566,7 @@ class MCard(McParameterComposition):
         """Here the modelcard defines it's default simulation circuit.
 
         Parameters
-        -----------
+        ----------
         use_build_in : {False, True}, optional
             Creates a circtui the modelcard using the build-in model
         topology : optional
@@ -588,7 +588,7 @@ class MCard(McParameterComposition):
         Name of File: path_to_file + ".lib"
 
         Parameters
-        -----------
+        ----------
         path_to_file : str or os.Pathlike
             Absolute or relative path with file name to the file to generate.
         file_mode : str, optional
@@ -647,7 +647,7 @@ class MCard(McParameterComposition):
         Possible is "mcp" (see save_model), "txt" or "mat" (planned)
 
         Parameters
-        -----------
+        ----------
         path_to_file : str
             Filename (with ending!) including a relative or absolute path
         force : boolean, optional

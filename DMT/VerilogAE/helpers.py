@@ -37,14 +37,14 @@ def get_param_list(meq_function, all_parameters=False, info=None):
     """Returns a list with the McParameter names for the given callable in correct order, assuming that only the top-most function is not from VerilogAE
 
     Parameters
-    -----------
+    ----------
     meq_function : function
         Function of the model equation which shall be used.
     all_parameters : {False, True}, optional
         If True, the independent_vars are ignored and the full parameter list is returned.
 
     Returns
-    --------
+    -------
     params : list
         List of parameters for this function
     """
@@ -112,7 +112,7 @@ def get_dmt_model(vae_module, model_type, version):
         Version of the compiled va-code
 
     Returns
-    --------
+    -------
     model : module
         The VAE module with added attributes
 

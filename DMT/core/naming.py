@@ -69,13 +69,13 @@ class SpecifierStr(str):
     Yeah it is already implemented :P
 
     Parameters
-    -----------
+    ----------
     specifier : str
     nodes : [str], optional
     sub_specifiers : [str], str, {'', sub_specifier}, optional
 
     Attributes
-    ------------
+    ----------
     specifier : str
     nodes : [str]
     sub_specifiers : [str]
@@ -156,7 +156,7 @@ class SpecifierStr(str):
             Additional string that is added to the unit
 
         Returns
-        ------
+        -------
         unit : string
             TeX representation of the specifer's unit
         """
@@ -655,7 +655,7 @@ def to_tex(self, subscript="", superscript=""):
         Superscript to add to the specifier's Tex representation
 
     Returns
-    ------
+    -------
     tex : str
             A Tex representation fo the specifier.
     """
@@ -762,7 +762,7 @@ def set_col_name(specifier, *nodes, sub_specifiers=None):
     """Returns the valid DMT name for this column.
 
     Parameters
-    -----------
+    ----------
     specifier : str
         Ideally a specifier from :mod:`~DMT.core.specifiers`
     *nodes : str, optional
@@ -770,7 +770,7 @@ def set_col_name(specifier, *nodes, sub_specifiers=None):
     sub_specifiers : str, {'', :py:const:`DMT.core.sub_specifiers.PERIMETER`, :py:const:`DMT.core.sub_specifiers.AREA`}
 
     Returns
-    --------
+    -------
     col : str
         If nodes are given: specifier + '_' + ''.join(nodes)
         Without nodes: specifier
@@ -795,7 +795,7 @@ def get_nodes(string, nodes, fallback=None):
         If value == '', the node is ignored.
 
     Returns
-    ----------
+    -------
     relevant_nodes  :  list of string
         list of strings with the nodes in string.
     """
