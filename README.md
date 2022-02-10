@@ -1,3 +1,10 @@
+[![pyversion](https://img.shields.io/badge/python->3.6-blue?logo=python)](https://docs.python.org/3.8/)
+[![Build Status](https://gitlab.com/dmt-development/dmt/badges/master/pipeline.svg)](https://gitlab.com/dmt-development/dmt/-/pipelines)
+[![Coverage](https://gitlab.com/dmt-development/dmt/-/jobs/artifacts/master/raw/badge_coverage.svg?job=coverage)](https://gitlab.com/dmt-development/dmt/-/jobs/artifacts/master/file/htmlcov/index.html?job=coverage)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+
+<img src="doc/logo/DMT_Logo_wText.png" width="200">
+
 # DMT-core
 
 Device modeling toolkit core package

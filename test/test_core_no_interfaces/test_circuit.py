@@ -2,7 +2,6 @@
 """
 from DMT.core.mcard import MCard
 import pytest
-from pathlib import Path
 from DMT.core import Circuit, CircuitElement
 from DMT.core.circuit import RESISTANCE, CAPACITANCE, INDUCTANCE, CURRENT, VOLTAGE, SHORT
 

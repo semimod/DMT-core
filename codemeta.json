@@ -1,0 +1,37 @@
+{
+    "@context": "https://raw.githubusercontent.com/codemeta/codemeta/0.1-alpha/codemeta.jsonld",
+    "@type": "Code",
+    "author": [
+        {
+            "@id": "https://orcid.org/my-orcid?orcid=0000-0003-1274-3429",
+            "@type": "Person",
+            "email": "Mario.Krattenmacher@semimod.de",
+            "name": "Mario Krattenmacher",
+            "affiliation": "TU Dresden and SemiMod"
+        },
+        {
+            "@id": "https://orcid.org/my-orcid?orcid=XXXXXXXXXXXXXXXXXXX",
+            "@type": "Person",
+            "email": "Markus.Mueller@semimod.de",
+            "name": "Markus Müller",
+            "affiliation": "TU Dresden and SemiMod"
+        },
+        {
+            "@id": "https://orcid.org/my-orcid?orcid=XXXXXXXXXXXXXXXXXXX",
+            "@type": "Person",
+            "email": "Pascal.Kuthe@semimod.de",
+            "name": "Pascal Kuthe",
+            "affiliation": "TU Dresden and SemiMod"
+        }
+    ],
+    "identifier": "http://dx.doi.org/XXXXXXXXXXXXXXXXXXXXXXXXXX",
+    "codeRepository": "https://gitlab.com/dmt-development/dmt",
+    "datePublished": "2022-02-04",
+    "dateModified": "2022-02-04",
+    "dateCreated": "2022-02-04",
+    "description": "",
+    "keywords": "",
+    "license": "GPL-v3-or-later",
+    "title": "DMT",
+    "version": ""
+}
