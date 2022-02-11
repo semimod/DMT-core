@@ -39,6 +39,28 @@ run_core:
     - main
     - pre-main
 
+hdev:
+  stage: test
+  script:
+    - source /venv/bin/activate
+    - git clone https://gitlab.com/metroid120/hdev_simulator.git
+    - cd hdev_simulator/HdevPy #HdevPy depends on DMT_core and therefore is installed here
+    - pip install -e .
+    - cd ..
+    # download the executable and put it into path
+    - wget "https://gitlab.com/metroid120/hdev_simulator/-/jobs/artifacts/master/raw/builddir_docker/hdev?job=build:linux" -O hdev
+    - chmod +x hdev
+    - export PATH=$PATH:$(pwd)
+    - apt-get -y install libsz2
+    # now create the DMT simulation directorr
+    - mkdir ~/.DMT
+    - mkdir ~/.DMT/simulation_results
+    # run many test
+    - python HdevPy/scripts/run_tests.py
+  only:
+    - main
+    - pre-main
+
 format:
   stage: build
   script:
