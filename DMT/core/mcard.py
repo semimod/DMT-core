@@ -619,7 +619,7 @@ class MCard(McParameterComposition):
             str_modelcard += f"  {para:<12s} = {para:10.3e} {line_break:s}"
 
         str_modelcard += ")\n"
-        str_modelcard += "ends {subckt_name:s} \n"
+        str_modelcard += f"ends {subckt_name:s} \n"
 
         with path_to_file.open(file_mode) as fp:
             fp.write(str_modelcard)
