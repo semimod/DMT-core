@@ -20,6 +20,7 @@ Now change into some arbitrary directory (not inside the WPy64-3870 directory) a
 Change directory into the DMT folder and run the following commands:
 
 .. code-block:: bash
+
     pip install ./DMT_core_pkg --force
     pip install ./DMT_other[vae_models, batch_mode] --force
 

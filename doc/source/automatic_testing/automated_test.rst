@@ -1,14 +1,16 @@
-CLI File
+CI/CD File
 ==================================================
 
-This page explains the Gitlab CLI file, which automatically runs a number of
+This page explains the Gitlab CI/CD file, which automatically runs a number of
 test-cases and generates the documentation when a new commit is added to the DMT master or pre-master branch.
+
+For the full how-to check the documentation of `gitlab <https://docs.gitlab.com/ee/ci/index.html>`
 
 
 Explanation to the automatic test and result generation
 ----------------------------------------------------------
 
-Next, the yaml-File [.gitlab-ci.yml](.gitlab-ci.yml) is briefly explained. The first lines
+Next, the yaml-File .gitlab-ci.yml is briefly explained. The first lines
 
 .. code-block:: yaml
 
@@ -32,20 +34,7 @@ In the next step, the core module is tested
     script:
       - ... # bash commands
     only:
-      - master
-
-The same is the done for the extraction module:
-
-.. code-block:: yaml
-
-  run_xtraction:
-    stage: test
-    script:
-      - ... # bash commands
-    only:
-      - master
-
-and all other modules in the same way.
+      - main
 
 GitLab has the stages `build`, `test` and `deploy`, which are run one after another.
 The last stage is used to generate the coverage report and the documentation:
@@ -76,7 +65,7 @@ The last stage is used to generate the coverage report and the documentation:
     only:
       - master
 
-The artifacts that are generated in this step can be download from [pipelines](https://gitlab.com/dmt-development/dmt/pipelines).
+The artifacts that are generated in this step can be download from `pipelines <https://gitlab.com/dmt-development/dmt-core/pipelines>`.
 
 Automatic Testing
 ----------------------------------------------------------
@@ -105,7 +94,7 @@ The coverage report is basically generated using the command
 
 .. code-block:: bash
 
-  pytest --cov=DMT/core/ test/test_core_no_interfaces/
+  pytest --cov=DMT/ test/test_core_no_interfaces/
 
 `--cov=DMT/core/` activates the coverage plug-in of pytest and sets the path to cover,
 this limits the report to the files in the specified directory.
@@ -113,15 +102,15 @@ If multiple directories should be included in the test, the cov argument can be 
 
 .. code-block:: bash
 
-  pytest --cov=DMT/core/ --cov=DMT/extraction --cov-append test/test_xtraction_no_gui/
+  pytest --cov=DMT/ --cov-append test/test_interface_ngspice/test_*.py
 
 Additionally `--cov-append` is used to append the new results to the already existing ones.
-This is done the same way for the HICUM/L0 module and then finally while testing HICUM/L2,
+This is done the same way for the ngspice module and then finally while testing xyce,
 additionally 2 reports are generated:
 
 .. code-block:: bash
 
-  pytest --cov-report term-missing --cov-report html --cov=DMT/core/ --cov=DMT/extraction --cov=DMT/hl2 --cov-append test/test_xtraction_hl2/ > coverage_report.txt
+  pytest --cov-report term-missing --cov-report html --cov=DMT/ --cov-append test/test_interface_xyce/test_*.py | tee coverage_report.txt
 
 
   * On one hand, the regular output is appended by the untested lines (`--cov-report term-missing`) and saved into `coverage_report.txt`.
@@ -138,3 +127,5 @@ The test container can be run locally using gitlab-runner. This is substantially
 .. code-block:: bash
 
   gitlab-runner exec docker <test_stage>
+
+This will download the correct docker container and execute the tests inside the container as it would do on the gitlab.com server.

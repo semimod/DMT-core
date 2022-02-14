@@ -1,11 +1,11 @@
 Updating the Docker image on gitlab.com
 =======================================
 
-When a dependency of DMT changes, the Docker image used to run the DMT test cases 
+When a dependency of DMT changes, the Docker image used to run the DMT test cases
 needs to be re-built as-well.
-This is a short explanation how to update the docker image. 
+This is a short explanation how to update the docker image.
 
-For details, see the [gitlab Container Registry](https://gitlab.com/help/user/packages/container_registry/index).
+For details, see the `gitlab Container Registry <https://gitlab.com/help/user/packages/container_registry/index>`.
 
 Docker generals
 -----------------
@@ -18,7 +18,7 @@ In Debian this can be done by:
 
   sudo apt install docker.io
 
-Also make sure that your user is added to the docker group ([see here for more info](https://www.configserverfirewall.com/ubuntu-linux/add-user-to-docker-group-ubuntu/)):
+Also make sure that your user is added to the docker group (`see here for more info <https://www.configserverfirewall.com/ubuntu-linux/add-user-to-docker-group-ubuntu/>`):
 The docker installation can be tested by:
 
 .. code-block:: bash
@@ -60,4 +60,3 @@ And finally push the image to the server:
   docker push registry.gitlab.com/dmt-development/dmt
 
 That's it. Now the next test run is done with the new image.
-
