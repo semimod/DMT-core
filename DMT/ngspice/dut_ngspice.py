@@ -45,15 +45,14 @@ from DMT.config import COMMANDS
 from DMT.core import (
     DutCircuit,
     Circuit,
-    create_md5_hash,
     MCard,
     constants,
     DataFrame,
     specifiers,
     sub_specifiers,
-    Sweep,
     McParameterComposition,
 )
+from DMT.core.circuit import VOLTAGE, CURRENT, HICUML2_HBT, SHORT
 
 from DMT.exceptions import SimulationUnsuccessful
 
@@ -800,13 +799,14 @@ class DutNgspice(DutCircuit):
         # map dmt circuit element_type to ngspice element types
         # only those that differ between DMT definiton and NGspice definition are listed here
         element_types = {
-            "V_Source": "V",
-            "I_Source": "I",
+            VOLTAGE: "V",
+            CURRENT: "I",
             "hicumL2va": "Q",
+            HICUML2_HBT: "Q",
         }
         if circuit_element.element_type in element_types.keys():
             element_type = element_types[circuit_element.element_type]
-        elif circuit_element.element_type == "Short":
+        elif circuit_element.element_type == SHORT:
             element_type = "V"
             circuit_element.name = "V_" + circuit_element.name.replace("I", "V")
             circuit_element.parameters = [("dc", str(0)), ("ac", str(0))]
@@ -832,7 +832,42 @@ class DutNgspice(DutCircuit):
             + " "
         )
         if circuit_element.parameters is not None:
-            try:
+            if isinstance(circuit_element.parameters, MCard):
+                str_temp = "+ "
+
+                if circuit_element.element_type in ["hicuml2va", HICUML2_HBT]:
+                    mcard = circuit_element.parameters
+                    str_instance_parameters = ""
+                    str_model_parameters = ""
+                    str_type = "NPN"
+                    for para in sorted(mcard.paras, key=lambda x: (x.group, x.name)):
+                        if para.name == "type":
+                            str_type = "NPN" if (para.value == 1) else "PNP"
+                        elif para.name in [
+                            "dt",
+                        ]:  # here all instance parameters
+                            str_instance_parameters += "{0:s}={0:10.10e} ".format(para)
+                        else:  # here all model parameters
+                            str_model_parameters += "{0:s}={0:10.10e} ".format(para)
+
+                    for (key, val) in self.initial_conditions.items():
+                        # dirty to allow debugging ngspice
+                        str_model_parameters += "{0:s}={1:10.10e} ".format(key, val)
+                    str_temp = (
+                        str_instance_parameters
+                        + "\n.model hicum_va "
+                        + str_type
+                        + " level=8\n+ "
+                        + str_model_parameters
+                    )
+                else:
+                    raise NotImplementedError(
+                        "The element type "
+                        + circuit_element.element_type
+                        + " is not implemented for ngspice.",
+                        "Check the ngspice manual if this type needs special treatment and implement it accordingly.",
+                    )
+            else:
                 str_temp = []
                 for (para, value) in circuit_element.parameters:
                     if para in ["C", "R", "L"]:  # rename according to ngspice manual
@@ -854,55 +889,16 @@ class DutNgspice(DutCircuit):
                     sim_paras = "\n.param " + sim_paras
 
                 str_temp = str_temp + "".join(sim_paras)
-            except TypeError:
-                str_temp = "+ "
-                # for para in circuit_element.parameters.iter_alphabetical():
-                #     if para.name[0] != '_': #do not use parameters that start with _
-                #         str_temp = str_temp + "  {0:s} = {0:10.10e}".format( para)
 
-                if True:
-                    mcard = circuit_element.parameters
-                    str_instance_parameters = ""
-                    str_model_parameters = ""
-                    for para in sorted(mcard.paras, key=lambda x: (x.group, x.name)):
-                        if para.name == "type":
-                            str_type = "NPN" if (para.value == 1) else "PNP"
-                        elif para.name in [
-                            "dt",
-                        ]:  # here all instance parameters
-                            str_instance_parameters += "{0:s}={0:10.10e} ".format(para)
-                        else:  # here all model parameters
-                            str_model_parameters += "{0:s}={0:10.10e} ".format(para)
-
-                    for (
-                        key,
-                        val,
-                    ) in self.initial_conditions.items():  # dirty to allow debugging ngspice
-                        str_model_parameters += "{0:s}={1:10.10e} ".format(key, val)
-                    str_temp = (
-                        str_instance_parameters
-                        + "\n.model hicum_va "
-                        + str_type
-                        + " level=8\n+ "
-                        + str_model_parameters
-                    )
-                else:
-                    str_temp += circuit_element.parameters.print_parameters()
-
-                    if "hicumL2V2p4p0" in circuit_element.parameters.va_file:
-                        str_temp = "\n.model hicum_va npn level=10\n" + str_temp
-                    else:  # hicum InP
-                        str_temp = "\n.model hicum_va npn level=11\n" + str_temp
-
+            # catch ngspice keywords
+            str_temp = str_temp.replace(" L=", "")
+            str_temp = str_temp.replace("Vdc=", "dc ")
+            str_temp = str_temp.replace("Idc=", "dc ")
+            str_temp = str_temp.replace("Vac=", "ac ")
+            str_temp = str_temp.replace("Iac=", "ac ")
         else:
             str_temp = ""
 
-        # catch ngspice keywords TODO: move this directly to parameter writing
-        str_temp = str_temp.replace(" L=", "")
-        str_temp = str_temp.replace("Vdc=", "dc ")
-        str_temp = str_temp.replace("Idc=", "dc ")
-        str_temp = str_temp.replace("Vac=", "ac ")
-        str_temp = str_temp.replace("Iac=", "ac ")
         str_netlist = str_netlist.replace("IS", "I_")
         return str_netlist + str_temp + "\n"
 

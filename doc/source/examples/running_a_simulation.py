@@ -1,18 +1,84 @@
-from DMT.core import Sweep, SimCon, Plot, specifiers, DutType
-from DMT.hl2 import McHicum
+import types
+from pathlib import Path
+from DMT.core import Sweep, SimCon, Plot, specifiers, DutType, MCard
+from DMT.core.circuit import Circuit, CircuitElement, HICUML2_HBT, SHORT, VOLTAGE, RESISTANCE
+from DMT.xyce import DutXyce
 from DMT.ngspice import DutNgspice
-import os
 
-# load a hicum modelcard library and define the corresponding *va code.
-mc_D21 = McHicum(
-    va_file=VA_FILES["L2V2.4.0_release"],
-    load_model_from_path="test/test_core_no_interfaces/test_modelcards/IHP_ECE704_03_para_D21.mat",
+# path to DMT test cases
+path_test = Path("/home/mario/Documents/work/dmt/dmt/DMT_core/test")
+
+# load a hicum/L2 modelcard library by loading the corresponding *va code.
+modelcard = MCard(
+    ["C", "B", "E", "S", "T"],
+    default_module_name="",
+    default_subckt_name="",
+    va_file=path_test / "test_interface_xyce" / "hicuml2v2p4p0_xyce.va",
 )
+modelcard.load_model(
+    path_test / "test_core_no_interfaces" / "test_modelcards" / "npn_full.lib",
+)
+modelcard.update_from_vae(remove_old_parameters=True)
 
-# init an Ngspice Dut
-dut = DutNgspice(None, DutType.npn, mc_D21, nodes="C,B,E,S,T", reference_node="E")
-# DMT uses the exact same interface for all circuit simulators, e.g. the call for an ADS simulation would be:
-# dut = DutADS(None, DutType.npn, mc_D21, nodes='C,B,E,S,T', reference_node='E')
+# bind the correct get_circuit method in order to make it easily available for simulation
+def get_circuit(self):
+    """
+
+    Parameter
+    ------------
+    modelcard : :class:`~DMT.core.MCard`
+
+    Returns
+    -------
+    circuit : :class:`~DMT.core.circuit.Circuit`
+
+    """
+    circuit_elements = []
+    # model instance
+    circuit_elements.append(
+        CircuitElement(
+            HICUML2_HBT, "Q_H", [f"n_{node.upper()}" for node in self.nodes_list], parameters=self
+        )
+    )
+
+    # BASE NODE CONNECTION #############
+    # shorts for current measurement
+    circuit_elements.append(CircuitElement(SHORT, "I_B", ["n_B", "n_B_FORCED"]))
+    # COLLECTOR NODE CONNECTION #############
+    circuit_elements.append(CircuitElement(SHORT, "I_C", ["n_C", "n_C_FORCED"]))
+    # EMITTER NODE CONNECTION #############
+    circuit_elements.append(CircuitElement(SHORT, "I_E", ["n_E", "0"]))
+    # add sources and thermal resistance
+    circuit_elements.append(
+        CircuitElement(
+            VOLTAGE, "V_B", ["n_B_FORCED", "0"], parameters=[("Vdc", "V_B"), ("Vac", "1")]
+        )
+    )
+    circuit_elements.append(
+        CircuitElement(
+            VOLTAGE, "V_C", ["n_C_FORCED", "0"], parameters=[("Vdc", "V_C"), ("Vac", "1")]
+        )
+    )
+
+    # metal resistance between substrate contact and ground
+    circuit_elements.append(
+        CircuitElement(RESISTANCE, "R_S", ["n_S", "0"], parameters=[("R", "0.1")])
+    )
+    # thermal node resistance
+    circuit_elements.append(
+        CircuitElement(RESISTANCE, "R_t", ["n_T", "0"], parameters=[("R", "1e9")])
+    )
+    circuit_elements += ["V_B=0", "V_C=0", "ac_switch=0", "V_B_ac=1-ac_switch", "V_C_ac=ac_switch"]
+
+    return Circuit(circuit_elements)
+
+
+modelcard.get_circuit = types.MethodType(get_circuit, modelcard)
+
+# init an Xyce Dut
+dut = DutXyce(None, DutType.npn, modelcard, nodes="C,B,E,S,T", reference_node="E")
+# DMT uses the exact same interface for all circuit simulators, e.g. the call for a ngspice simulation would be:
+dut = DutNgspice(None, DutType.npn, modelcard, nodes="C,B,E,S,T", reference_node="E")
 # isn't it great?!?
 
 # create a sweep (all DMT Duts can use this!)
@@ -46,16 +112,14 @@ data.ensure_specifier_column(specifiers.TRANSIT_FREQUENCY, ports=["B", "C"])
 # Plot and save as pdf
 plt_ft = Plot(
     plot_name="F_T(J_C)",
-    x_label=r"$I_{\mathrm{C}}\left(\si{\milli\ampere}\right)$",
+    x_specifier=specifiers.CURRENT + "C",
     x_scale=1e3,
-    y_specifier=specifiers.TRANSIT_FREQUENCY,
     x_log=True,
+    y_specifier=specifiers.TRANSIT_FREQUENCY,
 )
-plt_ft.add_data_set(
-    data[specifiers.CURRENT + "C"],
-    data[specifiers.TRANSIT_FREQUENCY],
-)
-plt_ft.x_limits = 1e-3, None
-plt_ft.y_limits = 0, None
+plt_ft.add_data_set(data[specifiers.CURRENT + "C"], data[specifiers.TRANSIT_FREQUENCY])
+plt_ft.x_limits = 1e-2, 1e2
+plt_ft.y_limits = 0, 420
 
-plt_ft.save_tikz("doc/source/_static/", standalone=True, build=True, clean=True, width="3in")
+plt_ft.plot_pyqtgraph()
+# plt_ft.save_tikz("doc/source/_static/", standalone=True, build=True, clean=True, width="3in")
