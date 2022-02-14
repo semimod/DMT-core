@@ -613,7 +613,7 @@ class MCard(McParameterComposition):
         str_modelcard = "simulator lang = spectre\n"
 
         str_modelcard += f"subckt {subckt_name:s} (" + " ".join(self.nodes_list) + ")\n"
-        str_modelcard += " Q1 (" + " ".join(self.nodes_list) + f") {module_name:s} (\\\n"
+        str_modelcard += " Q1 (" + " ".join(self.nodes_list) + f") {module_name:s} ({line_break:s}"
 
         for para in self:
             str_modelcard += f"  {para:<12s} = {para:10.3e} {line_break:s}"

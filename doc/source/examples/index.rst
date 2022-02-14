@@ -1,3 +1,6 @@
+
+.. _examples:
+
 Test Cases and Examples
 ===============================
 In order to ease the use of DMT, some basic examples can be found here.

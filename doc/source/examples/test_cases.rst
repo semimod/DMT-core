@@ -4,7 +4,7 @@ Running Test Cases
 The test cases are a great starting point to learn more about the inner working of DMT.
 
 To run them, first your system has to be set up accordingly.
-DMT is mainly developed on Ubuntu Linux and using Python 3.6.8, but also tested on Windows.
+DMT is mainly developed on Ubuntu Linux and using Python 3.8, but also tested on Windows.
 For installation help go to :ref:`install_dmt`.
 
 After you have installed DMT,
@@ -82,4 +82,3 @@ Finally we arrive at the GUI for the extraction, this can be seen in::
 
     test_xtraction_gui
     test_xtract_cjc_temp
-

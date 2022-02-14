@@ -1,15 +1,6 @@
 mcard module
 ============
 
-
-Submodules
--------------------------------
-
-.. toctree::
-    :maxdepth: 1
-
-    ../hl2/mc_hicum
-
 Class diagram
 -------------------------------
 
