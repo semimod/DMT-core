@@ -1,11 +1,11 @@
 """
 This example shows how to read in measurement data in batch mode.
 """
-import numpy as np
-import os
+from pathlib import Path
 from DMT.core import DutLib, DutMeas, DutType
 
-lib = DutLib()
+# path to DMT test cases
+path_test = Path("test")
 
 
 def dut_filter(dut_name):
@@ -14,7 +14,7 @@ def dut_filter(dut_name):
     """
     if "0p25x10" in dut_name:
         return DutMeas(
-            os.path.join("test/tmp"),  # here the device is stored when its save() routine is called
+            path_test / "tmp",  # here the device is stored when its save() routine is called
             "CBEBC_0p25x10",
             DutType.npn,
             wafer="xy",
@@ -31,12 +31,12 @@ def dut_filter(dut_name):
 #'test/test_core_no_interfaces/test_data/0p25x10/meas_2'
 #'test/test_core_no_interfaces/test_data/0p25x10/...'
 
+# create a library
+lib = DutLib()
+
 # read in all data for all devices
-lib.import_directory(
-    os.path.join("test/test_core_no_interfaces/test_data"),
-    dut_filter,
-    dut_level=1,  # the folders that contain measurement data for one device structure lie one level below the given first argument.
-)
+# the folders that contain measurement data for one device structure lie one level below the given first argument.
+lib.import_directory(path_test / "test_core_no_interfaces" / "test_data", dut_filter, dut_level=1)
 
 # now the data has been read-in, but the data columns are not yet ensured to
 # follow the DMT specifiers grammar for electrical variables => important to have consistent data within DMT
