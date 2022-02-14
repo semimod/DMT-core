@@ -2,7 +2,7 @@
 This example shows the basic data handling with python.
 We will read data, clean it, calculate with the data and then plot.
 """
-import numpy as np
+from pathlib import Path
 from DMT.core import read_data, specifiers, Plot
 
 # some specifiers, they allow consistent access to electrical data
@@ -13,7 +13,7 @@ col_ic = specifiers.CURRENT + "C"
 col_ib = specifiers.CURRENT + "B"
 
 # read data using the given method
-data = read_data("doc/source/_static/HBT_vbc.elpa")
+data = read_data(Path(__file__).parent.parent / "_static" / "HBT_vbc.elpa")
 
 # "clean" the data so we have DMT-specifier in it.
 # This ensure that the read-in data is consistent with the DMT specifiers.
@@ -51,4 +51,10 @@ for _index, vbc, data_vbc in data.iter_unique_col(col_vbc, decimals=3):
 # show the plot (DMT has three plotting back-ends: matplotlib, pyqtgraph and tikz)
 plot.plot_pyqtgraph()
 # save the plot as tikz and build it
-plot.save_tikz("doc/source/_static/", standalone=True, build=True, clean=True, width="3in")
+plot.save_tikz(
+    Path(__file__).parent.parent / "_static",
+    standalone=True,
+    build=True,
+    clean=True,
+    width="3in",
+)

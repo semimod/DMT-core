@@ -9,29 +9,31 @@
 \PreviewEnvironment{equation}
 \PreviewEnvironment{equation*}
 \newlength\figurewidth
+\newlength\figureheight
 \begin{document}
-\setlength\figurewidth{3in}
+\setlength\figurewidth{60mm}
+\setlength\figureheight{60mm}
 \begin{tikzpicture}[font=\normalsize]
-\pgfplotsset{every axis/.append style={very thick}},
-\definecolor{color0}{rgb}{0.12157, 0.46667, 0.46667}
-\definecolor{color1}{rgb}{1.00000, 0.49804, 0.49804}
-\definecolor{color2}{rgb}{0.17255, 0.62745, 0.62745}
-\definecolor{color3}{rgb}{0.83922, 0.15294, 0.15294}
-\definecolor{color4}{rgb}{0.58039, 0.40392, 0.40392}
-\definecolor{color5}{rgb}{0.54902, 0.33725, 0.33725}
+\pgfplotsset{every axis/.append style={ultra thick},compat=1.5},
+\definecolor{color0}{rgb}{0.00000, 0.39216, 0.00000}
+\definecolor{color1}{rgb}{0.00000, 0.00000, 0.54510}
+\definecolor{color2}{rgb}{0.69020, 0.18824, 0.37647}
+\definecolor{color3}{rgb}{1.00000, 0.00000, 0.00000}
+\definecolor{color4}{rgb}{0.58039, 0.40392, 0.74118}
+\definecolor{color5}{rgb}{0.87059, 0.72157, 0.52941}
 
-\begin{axis}[
+\begin{axis}[scale only axis,ytick pos=left,
 width=3in,
-xlabel={$V_{\mathrm{BE}}^{}/\si{\volt}$},
-ylabel={$I_{\mathrm{C}}^{}/\si{\milli\ampere}$},
+xlabel={$V_{\mathrm{BE}}\left(\si{\volt}\right)$},
+ylabel={$I_{\mathrm{C}}\left(\si{\milli\ampere}\right)$},
 ymode=log,
 xmin=0.6,
 xmax=1.1,
-restrict x to domain=0.6:1.1,
+restrict x to domain=0.12:5.5,
 log basis x=10,
-ymin=7.73711e-05,
-ymax=45.2869,
-restrict y to domain=-4.11142:1.65597,
+ymin=0.000115874,
+ymax=39.5057,
+restrict y to domain=-19.6801:7.9833,
 log basis y=10,
 xmajorgrids,
 enlargelimits=false,
@@ -44,7 +46,7 @@ y grid style={white!69.01960784313725!black},
 /tikz/mark repeat=1,
 legend style={at={(0.98,0.02)}, anchor=south east,legend cell align=left, align=left, fill=none, draw=none},
 ]
-\addplot [color=color0, solid, mark phase=0, ]
+\addplot [color=color0, solid, mark=x, mark options={solid}, mark phase=1, ]
   table[row sep=crcr, x expr=\thisrowno{0}*1.000000e+00, y expr=\thisrowno{1}*1.000000e+03]{
 0.6 1.57931e-07\\
 0.61 2.31036e-07\\
@@ -98,8 +100,8 @@ legend style={at={(0.98,0.02)}, anchor=south east,legend cell align=left, align=
 1.09 0.0208371\\
 1.1 0.023341\\
 };
-\addlegendentry{$V_{\mathrm{BC}}^{}= \SI{-1.0}{\volt}$}
-\addplot [color=color1, solid, mark phase=0, ]
+\addlegendentry{$V_{\mathrm{BC}}= \SI{-1.0}{\volt}$}
+\addplot [color=color1, solid, mark=+, mark options={solid}, mark phase=1, ]
   table[row sep=crcr, x expr=\thisrowno{0}*1.000000e+00, y expr=\thisrowno{1}*1.000000e+03]{
 0.6 1.56378e-07\\
 0.61 2.28783e-07\\
@@ -153,8 +155,8 @@ legend style={at={(0.98,0.02)}, anchor=south east,legend cell align=left, align=
 1.09 0.0204957\\
 1.1 0.0229951\\
 };
-\addlegendentry{$V_{\mathrm{BC}}^{}= \SI{-0.5}{\volt}$}
-\addplot [color=color2, solid, mark phase=0, ]
+\addlegendentry{$V_{\mathrm{BC}}= \SI{-0.5}{\volt}$}
+\addplot [color=color2, solid, mark=triangle, mark options={solid, rotate=180}, mark phase=1, ]
   table[row sep=crcr, x expr=\thisrowno{0}*1.000000e+00, y expr=\thisrowno{1}*1.000000e+03]{
 0.6 1.55669e-07\\
 0.61 2.27755e-07\\
@@ -208,8 +210,8 @@ legend style={at={(0.98,0.02)}, anchor=south east,legend cell align=left, align=
 1.09 0.0203448\\
 1.1 0.0228409\\
 };
-\addlegendentry{$V_{\mathrm{BC}}^{}= \SI{-0.3}{\volt}$}
-\addplot [color=color3, solid, mark phase=0, ]
+\addlegendentry{$V_{\mathrm{BC}}= \SI{-0.3}{\volt}$}
+\addplot [color=color3, solid, mark=triangle, mark options={solid, rotate=0}, mark phase=1, ]
   table[row sep=crcr, x expr=\thisrowno{0}*1.000000e+00, y expr=\thisrowno{1}*1.000000e+03]{
 0.6 1.54461e-07\\
 0.61 2.26002e-07\\
@@ -263,8 +265,8 @@ legend style={at={(0.98,0.02)}, anchor=south east,legend cell align=left, align=
 1.09 0.0200962\\
 1.1 0.0225853\\
 };
-\addlegendentry{$V_{\mathrm{BC}}^{}= \SI{0.0}{\volt}$}
-\addplot [color=color4, solid, mark phase=0, ]
+\addlegendentry{$V_{\mathrm{BC}}= \SI{0.0}{\volt}$}
+\addplot [color=color4, solid, mark=asterisk, mark options={solid}, mark phase=1, ]
   table[row sep=crcr, x expr=\thisrowno{0}*1.000000e+00, y expr=\thisrowno{1}*1.000000e+03]{
 0.6 1.52964e-07\\
 0.61 2.2383e-07\\
@@ -318,8 +320,8 @@ legend style={at={(0.98,0.02)}, anchor=south east,legend cell align=left, align=
 1.09 0.0198004\\
 1.1 0.0222831\\
 };
-\addlegendentry{$V_{\mathrm{BC}}^{}= \SI{0.3}{\volt}$}
-\addplot [color=color5, solid, mark phase=0, ]
+\addlegendentry{$V_{\mathrm{BC}}= \SI{0.3}{\volt}$}
+\addplot [color=color5, solid, mark=triangle, mark options={solid, rotate=270}, mark phase=1, ]
   table[row sep=crcr, x expr=\thisrowno{0}*1.000000e+00, y expr=\thisrowno{1}*1.000000e+03]{
 0.6 1.51634e-07\\
 0.61 2.21907e-07\\
@@ -373,7 +375,7 @@ legend style={at={(0.98,0.02)}, anchor=south east,legend cell align=left, align=
 1.09 0.01955\\
 1.1 0.0220256\\
 };
-\addlegendentry{$V_{\mathrm{BC}}^{}= \SI{0.5}{\volt}$}
+\addlegendentry{$V_{\mathrm{BC}}= \SI{0.5}{\volt}$}
 \end{axis}
 
 \end{tikzpicture}

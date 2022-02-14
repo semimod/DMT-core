@@ -6,7 +6,7 @@ from DMT.xyce import DutXyce
 from DMT.ngspice import DutNgspice
 
 # path to DMT test cases
-path_test = Path("/home/mario/Documents/work/dmt/dmt/DMT_core/test")
+path_test = Path("test")
 
 # load a hicum/L2 modelcard library by loading the corresponding *va code.
 modelcard = MCard(
@@ -78,7 +78,7 @@ modelcard.get_circuit = types.MethodType(get_circuit, modelcard)
 # init an Xyce Dut
 dut = DutXyce(None, DutType.npn, modelcard, nodes="C,B,E,S,T", reference_node="E")
 # DMT uses the exact same interface for all circuit simulators, e.g. the call for a ngspice simulation would be:
-dut = DutNgspice(None, DutType.npn, modelcard, nodes="C,B,E,S,T", reference_node="E")
+# dut = DutNgspice(None, DutType.npn, modelcard, nodes="C,B,E,S,T", reference_node="E")
 # isn't it great?!?
 
 # create a sweep (all DMT Duts can use this!)
@@ -122,4 +122,10 @@ plt_ft.x_limits = 1e-2, 1e2
 plt_ft.y_limits = 0, 420
 
 plt_ft.plot_pyqtgraph()
-# plt_ft.save_tikz("doc/source/_static/", standalone=True, build=True, clean=True, width="3in")
+plt_ft.save_tikz(
+    Path(__file__).parent.parent / "_static",
+    standalone=True,
+    build=True,
+    clean=True,
+    width="3in",
+)
