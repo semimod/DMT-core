@@ -9,15 +9,13 @@ In this short document, we will explain how to install DMT and many of its depen
 
 This tutorial is written for Unix-users. Most of the command-line commands given herein have very similar windows equivalents and we hope that this tutorial is helpful for both Windows aswell as Unix users. DMT can be run both on Windows and Unix (probably also Mac, but we have not tried that, yet).
 
-Before you get started with DMT, please note that DMT is a high-level project (in terms of programming level abstraction), meaning that it has many dependencies. Since DMT is not developed by a software company, it is not a finished project. Especially the documentation needs a lot of improvement and hence, DMT is certainly not easy to get into.
+Before you get started with DMT, please note that DMT is a high-level project (in terms of programming level abstraction), meaning that it has many dependencies. Additionally, DMT is still in development and if you use DMT be careful when updating to new versions. We try to keep everything backwards compatible as much as possible and also breaking changes will be denoted by a new master version, but this major version increase may happen earlier than you like.
 
 So before we get started, please:
 
 - Make sure you have Python >= 3.8 installed.
-- Make sure you have Git installed.
-- Learn how to use Git. There are lots of tutorials on this on the internet!
-- Make sure you have a basic understanding of the Python programing language and object-oriented programming in general.
 - If run circuit or TCAD simulations, make sure you have one installed on your system which is interfaced by DMT. The Core package offers `Hdev <https://gitlab.com/metroid120/hdev_simulator>`__, `Xyce <https://xyce.sandia.gov/>`__ and `ngspice <http://ngspice.sourceforge.net/>`__. If you need a different simulator, either you have to implement it yourself or contact the DMT team for it.
+- After every update, ensure that your use cases still run as expected. If you have a special use, which is not covered by our current test-environment feel free to suggest your use case to us via an issue. As we are eager to improve the Code, more test cases are always welcome.
 
 
 Virtual Environment
@@ -96,8 +94,8 @@ If you want to use such interfaces, you need:
 
 Using other software may require DMT to be configured for your user and also for your current
 working directory.
-The default config file is placed inside the DMT python package (DMT/DMT_default_config.py) and should be
-copied manually to your ~/.DMT (for Linux) or C:\Users\<CurrentUserName>\.DMT for windows when installing DMT.
+The default config file is placed inside the DMT python package (DMT/DMT_default_config.py) and can be
+copied manually to your ~/.DMT (for Linux) or C:\Users\<CurrentUserName>\.DMT for windows when installing DMT. In this file you also can check for most of the possible configuration options DMT offers.
 Each DMT module should contain documentation that explains the relevant configuration options.
 
 In example to use ADS on a Unix system one needs to type
@@ -135,5 +133,7 @@ More installation details
 Further installation and configuration guides for DMT are:
 
 .. toctree::
+    :glob:
+    :maxdepth: 1
 
     *

@@ -41,8 +41,7 @@ plot.legend_frame = False
 plot.x_limits = (0.6, 1.1)
 
 # fill the gummel plot with a line for each V_BC
-for vbc in np.unique(np.round(data[col_vbc].to_numpy(), decimals=3)):
-    data_vbc = data[np.isclose(data[col_vbc], vbc)]
+for _index, vbc, data_vbc in data.iter_unique_col(col_vbc, decimals=3):
     plot.add_data_set(
         data_vbc[col_vbe],
         data_vbc[col_ic],

@@ -28,6 +28,7 @@ Achieving better usability for engineers that do not have the time or skills to 
 
 If you have used our framework for research purposes, please cite us with:
 
+TODO
 .. code:: tex
 
     @misc{DMT,
@@ -36,11 +37,18 @@ If you have used our framework for research purposes, please cite us with:
     howpublished = {https://www.iee.et.tu-dresden.de/iee/eb/eb_home.html}
     }
 
-Currently DMT is developed
-at SemiMod, by:
+Currently DMT is developed at `SemiMod <https://semimod.de/>`, by:
 
 * Dipl.-Ing. M.Krattenmacher
 * Dipl.-Ing. M.Müller
+
+Open-Source
+--------------
+
+The core package of DMT is available for everyone in a `gitlab.com repository <https://gitlab.com/dmt-development/dmt-core>` under GPLv3. If you find bugs, want to suggest enhancements or even join the developement team, the repository is the best point to start.
+
+If are interested in other modules, need installation or usage support, or you want to use DMT in your own project contact: info@semimod.de
+
 
 
 Overview of Documentation
