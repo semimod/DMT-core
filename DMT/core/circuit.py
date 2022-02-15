@@ -25,6 +25,7 @@ Later on this can be extended to allow (pseudo-)simulations directly inside DMT.
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 from __future__ import annotations
+import warnings
 from typing import Callable, Iterable
 from DMT.core import MCard, McParameterComposition
 
@@ -204,8 +205,9 @@ class CircuitElement(object):
         self.parameters = parameters
 
         if method is not None:
-            raise DeprecationWarning(
-                "Method will be deprecated in future DMT releases. This feature is not needed anymore since VAE is mature."
+            warnings.warn(
+                "method will be deprecated in future DMT releases. This feature is not needed anymore since VAE is mature.",
+                category=DeprecationWarning,
             )
         self.method = method
 

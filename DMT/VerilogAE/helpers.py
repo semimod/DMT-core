@@ -19,13 +19,9 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
-import numpy as np
 import warnings
 from inspect import signature
 from collections import OrderedDict
-from DMT.core import MCard, McParameter
-from DMT.core.mcard import unit_converter
-from DMT.core import unit_registry as ur
 
 # VAE models known to DMT
 HICUM_L2 = "HICUM_L2"
@@ -142,16 +138,3 @@ def get_dmt_model(vae_module, model_type, version):
         raise IOError("DMT->VerilogAE: Currently only 'HICUM' is supported")
 
     return model
-
-
-# if __name__ == "__main__":
-#     from DMT.hl2 import McHicum
-#     dmt_modelcard = McHicum()
-#     import hl2 #VAE module
-#     vae_modelcard = get_modelcard(hl2, ['B','E','C','S'], 'common_emitter')
-
-#     for para in vae_modelcard:
-#         if not para.name in dmt_modelcard.name:
-#             raise IOError('Parameter ' + para.name + ' not in dmt_modelcard that is hand implemented.')
-#         else:
-#             print('ok')

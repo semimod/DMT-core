@@ -22,7 +22,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 import numpy as np
-import skrf  as rf
+import skrf as rf
 from DMT.core import specifiers, set_col_name, sub_specifiers, strictly_increasing
 
 #cython stuff
@@ -33,7 +33,7 @@ ctypedef np.float64_t DTYPE_f
 ctypedef np.cdouble_t DTYPE_c
 
 class DataProcessor(object):
-    """ Basic class responsible for the manipulation and performing calculations on electrical Data in DMT.
+    """Basic class responsible for the manipulation and performing calculations on electrical Data in DMT.
 
     This class is designed as a `mixin <http://www.qtrac.eu/pyagg.html>`_ class. This design pattern allows to use multiple inheritance in order
     to extend the functionality of other DMT modules by the basic functions provided here.
@@ -66,8 +66,9 @@ class DataProcessor(object):
     -----
     ..todo: Nice tex equations here!
     """
+
     def fix_z0_shape(self, z0, nfreqs, nports):
-        ''' #stolen from scikit rf
+        """
         Make a port impedance of correct shape for a given network's matrix
 
         This attempts to broadcast z0 to satisfy
@@ -102,7 +103,7 @@ class DataProcessor(object):
         >>> z0 = rf.fix_z0_shape(range(201) , 201,2)
 
 
-        '''
+        """
 
         if np.shape(z0) == (nfreqs, nports):
             # z0 is of correct shape. super duper.return it quick.
@@ -123,10 +124,10 @@ class DataProcessor(object):
             return np.array(nports * [z0]).T
 
         else:
-            raise IndexError('z0 is not an acceptable shape')
+            raise IndexError("z0 is not an acceptable shape")
 
     def s2y(self,np.ndarray[DTYPE_c, ndim=3] s_in, z0=50):
-        """ #stolen from scikit-rf
+        """
         convert scattering parameters [#]_ to admittance parameters [#]_
 
 
@@ -170,30 +171,30 @@ class DataProcessor(object):
         .. [#] http://en.wikipedia.org/wiki/Admittance_parameters
         """
         cdef int nfreqs, nports
-        cdef np.ndarray s   = np.copy(s_in          )
-        cdef np.ndarray Id  = np.zeros_like(s_in    , dtype=np.cdouble)  # (nfreqs, nports, nports)
-        cdef np.ndarray sqrty0  = np.zeros_like(s_in, dtype=np.cdouble)  # (nfreqs, nports, nports)
+        cdef np.ndarray s = np.copy(s_in)
+        cdef np.ndarray Id = np.zeros_like(s_in, dtype=np.cdouble)  # (nfreqs, nports, nports)
+        cdef np.ndarray sqrty0 = np.zeros_like(s_in, dtype=np.cdouble)  # (nfreqs, nports, nports)
 
         nfreqs = s_in.shape[0]
         nports = s_in.shape[1]
 
         z0 = self.fix_z0_shape(z0, nfreqs, nports)
 
-        s[s == -1.] = -1. + 1e-12  # solve numerical singularity
-        s[s == 1.] = 1. + 1e-12  # solve numerical singularity
+        s[s == -1.0] = -1.0 + 1e-12  # solve numerical singularity
+        s[s == 1.0] = 1.0 + 1e-12  # solve numerical singularity
 
         # The following is a vectorized version of a for loop for all frequencies.
         # Creating Identity matrices of shape (nports,nports) for each nfreqs
-        np.einsum('ijj->ij', Id)[...] = 1.0
+        np.einsum("ijj->ij", Id)[...] = 1.0
         # Creating diagonal matrices of shape (nports, nports) for each nfreqs
-        np.einsum('ijj->ij', sqrty0)[...] = np.sqrt(1.0/z0)
+        np.einsum("ijj->ij", sqrty0)[...] = np.sqrt(1.0 / z0)
         # s -> y
         # y = sqrty0 @ (Id - s) @  npy.linalg.inv(Id + s) @ sqrty0  # Python>3.5
         y = np.matmul(np.matmul(np.matmul(sqrty0, (Id - s)), np.linalg.inv(Id + s)), sqrty0)
         return y
 
     def s2z(self, np.ndarray[DTYPE_c, ndim=3] s_in, z0=50):
-        ''' #stolen from scitkit-rf
+        """
         Convert scattering parameters [1]_ to impedance parameters [2]_
 
 
@@ -219,30 +220,30 @@ class DataProcessor(object):
         .. [1] http://en.wikipedia.org/wiki/S-parameters
         .. [2] http://en.wikipedia.org/wiki/impedance_parameters
 
-        '''
+        """
         cdef int nfreqs = s_in.shape[0]
         cdef int nports = s_in.shape[1]
-        cdef np.ndarray s      = np.copy(s_in      )
-        cdef np.ndarray Id     = np.zeros_like(s_in, dtype=np.cdouble)  # (nfreqs, nports, nports)
+        cdef np.ndarray s = np.copy(s_in)
+        cdef np.ndarray Id = np.zeros_like(s_in, dtype=np.cdouble)  # (nfreqs, nports, nports)
         cdef np.ndarray sqrtz0 = np.zeros_like(s_in, dtype=np.cdouble)  # (nfreqs, nports, nports)
 
         z0 = self.fix_z0_shape(z0, nfreqs, nports)
 
-        s[s == -1.] = -1. + 1e-12  # solve numerical singularity
-        s[s == 1.] = 1. + 1e-12  # solve numerical singularity
+        s[s == -1.0] = -1.0 + 1e-12  # solve numerical singularity
+        s[s == 1.0] = 1.0 + 1e-12  # solve numerical singularity
 
         # The following is a vectorized version of a for loop for all frequencies.
         # Creating Identity matrices of shape (nports,nports) for each nfreqs
-        np.einsum('ijj->ij', Id)[...] = 1.0
+        np.einsum("ijj->ij", Id)[...] = 1.0
         # Creating diagonal matrices of shape (nports, nports) for each nfreqs
-        np.einsum('ijj->ij', sqrtz0)[...] = np.sqrt(z0)
+        np.einsum("ijj->ij", sqrtz0)[...] = np.sqrt(z0)
         # s -> z
         # z = sqrtz0 @ npy.linalg.inv(Id - s) @ (Id + s) @ sqrtz0  # Python>3.5
         z = np.matmul(np.matmul(np.matmul(sqrtz0, np.linalg.inv(Id - s)), (Id + s)), sqrtz0)
         return z
 
     def convert_n_port_para(self,np.ndarray para_values,str p_from,str p_to, z0=float(50)):
-        ''' n_port parameter conversion routine.
+        """ n_port parameter conversion routine.
 
         Convert n_port parameters from p_from to p_to using scikit-rf. Available are all conversion between parameters S,Y,Z,T,A.
 
@@ -264,109 +265,110 @@ class DataProcessor(object):
         -------
         para_new  :  np.ndarray()
             Numpy array with shape (n_freq, n_port, n_port) holding the values of the small signal parameter p_to.
-        '''
+        """
         cdef np.ndarray para_new = np.zeros_like(para_values)
 
         if p_from == p_to:
-            return  para_values
+            return para_values
 
         # call the right conversion routine in scikit-rf.
-        if p_from == 'S':
-            if   p_to == 'Z':
-                para_new  =  self.s2z(para_values, z0)
-            elif p_to == 'Y':
-                para_new  =  self.s2y(para_values, z0)
-            elif p_to == 'T':
-                para_new  =  rf.network.s2t(para_values)
-            elif p_to == 'A':
-                para_new  =  rf.network.s2a(para_values, z0)
-            elif p_to == 'H':
-                para_new  =  rf.network.s2y(para_values, z0)
-                para_new  =  self.y2h(para_new)
+        if p_from == "S":
+            if p_to == "Z":
+                para_new = self.s2z(para_values, z0)
+            elif p_to == "Y":
+                para_new = self.s2y(para_values, z0)
+            elif p_to == "T":
+                para_new = rf.network.s2t(para_values)
+            elif p_to == "A":
+                para_new = rf.network.s2a(para_values, z0)
+            elif p_to == "H":
+                para_new = rf.network.s2y(para_values, z0)
+                para_new = self.y2h(para_new)
 
-        elif p_from == 'Z':
-            if   p_to == 'S':
-                para_new  =  rf.network.z2s(para_values, z0)
-            elif p_to == 'Y':
-                para_new  =  rf.network.z2y(para_values)
-            elif p_to == 'T':
-                para_new  =  rf.network.z2t(para_values)
-            elif p_to == 'A':
-                para_new  =  rf.network.z2a(para_values)
+        elif p_from == "Z":
+            if p_to == "S":
+                para_new = rf.network.z2s(para_values, z0)
+            elif p_to == "Y":
+                para_new = rf.network.z2y(para_values)
+            elif p_to == "T":
+                para_new = rf.network.z2t(para_values)
+            elif p_to == "A":
+                para_new = rf.network.z2a(para_values)
 
-        elif p_from == 'Y':
-            if   p_to ==  'S':
-                para_new  =  rf.network.y2s(para_values, z0)
-            elif p_to == 'Z':
-                para_new  =  rf.network.y2z(para_values)
-            elif p_to == 'T':
-                para_new  =  rf.network.y2t(para_values)
-            elif p_to == 'A': #i want to cry: y2a is not available in scikit-rf. workaround here
-                para_new  =  self.y2a(para_values)
+        elif p_from == "Y":
+            if p_to == "S":
+                para_new = rf.network.y2s(para_values, z0)
+            elif p_to == "Z":
+                para_new = rf.network.y2z(para_values)
+            elif p_to == "T":
+                para_new = rf.network.y2t(para_values)
+            elif p_to == "A":  # i want to cry: y2a is not available in scikit-rf. workaround here
+                para_new = self.y2a(para_values)
 
-        elif p_from == 'T':
-            if   p_to ==  'S':
-                para_new  =  rf.network.t2s(para_values)
-            elif p_to == 'Z':
-                para_new  =  rf.network.t2z(para_values)
-            elif p_to == 'Y':
-                para_new  =  rf.network.t2y(para_values)
+        elif p_from == "T":
+            if p_to == "S":
+                para_new = rf.network.t2s(para_values)
+            elif p_to == "Z":
+                para_new = rf.network.t2z(para_values)
+            elif p_to == "Y":
+                para_new = rf.network.t2y(para_values)
 
-        elif p_from == 'A':
-            if   p_to == 'Y':
-                para_new  =  self.a2y(para_values)
-            if   p_to == 'S':
-                para_new  =  rf.network.a2s(para_values, z0)
-            if   p_to == 'Z':
+        elif p_from == "A":
+            if p_to == "Y":
+                para_new = self.a2y(para_values)
+            elif p_to == "S":
+                para_new = rf.network.a2s(para_values, z0)
+            elif p_to == "Z":
                 raise NotImplementedError
 
         else:
-            raise IOError('DMT -> DataProcessor: You specified an n-port Conversion that is not implemented or makes no sense.')
+            raise IOError(
+                "DMT -> DataProcessor: You specified an n-port Conversion that is not implemented or makes no sense."
+            )
 
         return para_new
 
     def y2a(self, y):
-        """ My own y2a routine since scikit rf does not have one. What a shame!
-        """
-        a     = np.zeros(y.shape, dtype='complex')
+        """My own y2a routine since scikit rf does not have one. What a shame!"""
+        a = np.zeros(y.shape, dtype="complex")
         for fidx in range(y.shape[0]):
-            det_y         =  np.linalg.det(y[fidx,:,:])
-            a[fidx, 0, 0] = -1.0/y[fidx,1,0] * y[fidx,1,1]
-            a[fidx, 1, 1] = -1.0/y[fidx,1,0] * y[fidx,0,0]
-            a[fidx, 0, 1] = -1.0/y[fidx,1,0]
-            a[fidx, 1, 0] = -1.0/y[fidx,1,0] * det_y
+            det_y = np.linalg.det(y[fidx, :, :])
+
+            a[fidx, 0, 0] = -1.0/y[fidx, 1, 0] * y[fidx, 1, 1]
+            a[fidx, 0, 1] = -1.0/y[fidx, 1, 0]
+            a[fidx, 1, 0] = -1.0/y[fidx, 1, 0] * det_y
+            a[fidx, 1, 1] = -1.0/y[fidx, 1, 0] * y[fidx, 0, 0]
 
         return a
 
     def y2h(self, y):
-        """ My own y2h routine since scikit rf does not have one. What a shame!
-        """
-        h     = np.zeros(y.shape, dtype='complex')
+        """My own y2h routine since scikit rf does not have one. What a shame!"""
+        h = np.zeros(y.shape, dtype="complex")
         for fidx in range(y.shape[0]):
-            det_y         =  np.linalg.det(y[fidx,:,:])
-            h[fidx, 0, 0] =  1
-            h[fidx, 1, 1] =  det_y
-            h[fidx, 0, 1] = -y[fidx,0,1]
-            h[fidx, 1, 0] =  y[fidx,1,0]
-            h[fidx, :, :] =  h[fidx, :, :]/y[fidx, 0, 0]
+            det_y = np.linalg.det(y[fidx, :, :])
+
+            h[fidx, 0, 0] = 1
+            h[fidx, 1, 1] = det_y
+            h[fidx, 0, 1] = -y[fidx, 0, 1]
+            h[fidx, 1, 0] = y[fidx, 1, 0]
+            h[fidx, :, :] = h[fidx, :, :] / y[fidx, 0, 0]
 
         return h
 
     def a2y(self, a):
-        """ My own a2y routine since scikit rf does not have one. What a shame!
-        """
-        y     = np.zeros(a.shape, dtype='complex')
+        """My own a2y routine since scikit rf does not have one. What a shame!"""
+        y = np.zeros(a.shape, dtype="complex")
         for fidx in range(a.shape[0]):
-            det_a         =  np.linalg.det(a[fidx,:,:])
-            y[fidx, 0, 0] =  1.0/a[fidx,0,1] * a[fidx,1,1]
-            y[fidx, 1, 1] =  1.0/a[fidx,0,1] * a[fidx,0,0]
-            y[fidx, 0, 1] = -1.0/a[fidx,0,1] * det_a
-            y[fidx, 1, 0] = -1.0/a[fidx,0,1]
+            det_a = np.linalg.det(a[fidx, :, :])
+            y[fidx, 0, 0] = 1.0 / a[fidx, 0, 1] * a[fidx, 1, 1]
+            y[fidx, 1, 1] = 1.0 / a[fidx, 0, 1] * a[fidx, 0, 0]
+            y[fidx, 0, 1] = -1.0 / a[fidx, 0, 1] * det_a
+            y[fidx, 1, 0] = -1.0 / a[fidx, 0, 1]
 
         return y
 
     def parallel_norm(self, s_para_values, ndevices):
-        ''' Normalize the measured S parameters in s_para_values to the number of parallel devices.
+        """Normalize the measured S parameters in s_para_values to the number of parallel devices.
 
         Parameters
         ----------
@@ -381,17 +383,18 @@ class DataProcessor(object):
         s_para_values       :  np.ndarray(np.cmplx128)
             Normalized S-para-values
 
-        '''
+        """
+        # create Y para from S para
+        y_para_values = self.convert_n_port_para(
+            s_para_values, "S", "Y"
+        )  # (n_freq, n_port, n_port)
+        # normalize Y para
+        y_para_values = y_para_values / ndevices
 
-        #create Y para from S para
-        y_para_values        =  self.convert_n_port_para(s_para_values, 'S', 'Y') #(n_freq, n_port, n_port)
-        #normalize Y para
-        y_para_values        =  y_para_values/ndevices
-
-        return  self.convert_n_port_para(y_para_values, 'Y', 'S')
+        return self.convert_n_port_para(y_para_values, "Y", "S")
 
     def calc_RBC_RBE(self, mres, df_RM):
-        '''Calculate the metallization resistances R_CE and R_BE.
+        """Calculate the metallization resistances R_CE and R_BE.
 
         Parameters
         ----------
@@ -402,21 +405,21 @@ class DataProcessor(object):
         -------
         mres    : [list]
             List containing the calculated resistance values
-        '''
+        """
 
-        df_RM_clean     = df_RM.dropna(axis = 0, how = 'any')
+        df_RM_clean = df_RM.dropna(axis=0, how="any")
 
-        R_BCM           = np.polyfit(np.negative(df_RM_clean['I_C']), df_RM_clean['V_B'], 1)
+        R_BCM = np.polyfit(np.negative(df_RM_clean["I_C"]), df_RM_clean["V_B"], 1)
 
-        ic_2            = df_RM_clean['I_B']+df_RM_clean['I_C']
-        R_BEM           = np.polyfit(ic_2, df_RM_clean['V_B'], 1)
+        ic_2 = df_RM_clean["I_B"] + df_RM_clean["I_C"]
+        R_BEM = np.polyfit(ic_2, df_RM_clean["V_B"], 1)
 
-        mres['R_BCM']   = R_BCM[0]
-        mres['R_BEM']   = R_BEM[0]
+        mres["R_BCM"] = R_BCM[0]
+        mres["R_BEM"] = R_BEM[0]
         return mres
 
     def calc_RCE(self, mres, df_RM):
-        '''Calculate the metallization resistances R_BC.
+        """Calculate the metallization resistances R_BC.
 
         Parameters
         ----------
@@ -427,17 +430,17 @@ class DataProcessor(object):
         -------
         mres    : {dict}
             List containing the calculated resistance values
-        '''
-        df_RM_clean     = df_RM.dropna(axis = 0, how = 'any')
+        """
+        df_RM_clean = df_RM.dropna(axis=0, how="any")
 
-        R_CEM           = np.polyfit((df_RM_clean['I_B']+df_RM_clean['I_C']), df_RM_clean['V_C'], 1)
+        R_CEM = np.polyfit((df_RM_clean["I_B"] + df_RM_clean["I_C"]), df_RM_clean["V_C"], 1)
 
-        mres['R_CEM']   = R_CEM[0]
+        mres["R_CEM"] = R_CEM[0]
 
         return mres
 
     def convert_mres(self, mres):
-        '''Converts the calculated resistance network from delta- to wye-form.
+        """Converts the calculated resistance network from delta- to wye-form.
 
         Parameters
         ----------
@@ -447,21 +450,21 @@ class DataProcessor(object):
         -------
         mres    : {dict}
             Same list with appended wye-form parameters.
-        '''
-        R_sum=mres['R_BCM']+mres['R_CEM']+mres['R_BEM']
+        """
+        R_sum = mres["R_BCM"] + mres["R_CEM"] + mres["R_BEM"]
 
-        R_BM    = (mres['R_BEM']*mres['R_BCM'])/R_sum
-        R_CM    = (mres['R_BCM']*mres['R_CEM'])/R_sum
-        R_EM    = (mres['R_BEM']*mres['R_CEM'])/R_sum
+        R_BM = (mres["R_BEM"] * mres["R_BCM"]) / R_sum
+        R_CM = (mres["R_BCM"] * mres["R_CEM"]) / R_sum
+        R_EM = (mres["R_BEM"] * mres["R_CEM"]) / R_sum
 
-        mres['R_BM']    = R_BM
-        mres['R_CM']    = R_CM
-        mres['R_EM']    = R_EM
+        mres["R_BM"] = R_BM
+        mres["R_CM"] = R_CM
+        mres["R_EM"] = R_EM
 
         return mres
 
     def deembed_mres(self, df, mres):
-        '''Substract external voltage drop over metal resistances from measured voltages.
+        """Substract external voltage drop over metal resistances from measured voltages.
 
         Parameters
         ----------
@@ -469,61 +472,66 @@ class DataProcessor(object):
             df contains DC measurements that are to be deembedded.
         mres    : {'R_BM':float64, 'R_CM':float64, 'R_EM'_float64}
             List of calculated resistances R_CM, R_BM, and R_EM.
-        '''
+        """
         col_vb, col_ib, col_vc, col_ic, col_ve = None, None, None, None, None
         try:
-            col_vb           = df.get_col_name(specifiers.VOLTAGE, 'B')
-            col_vb_force     = set_col_name(specifiers.VOLTAGE, 'B', sub_specifiers=sub_specifiers.FORCED)
+            col_vb = df.get_col_name(specifiers.VOLTAGE, "B")
+            col_vb_force = set_col_name(
+                specifiers.VOLTAGE, "B", sub_specifiers=sub_specifiers.FORCED
+            )
             df[col_vb_force] = df[col_vb].to_numpy()
         except KeyError:
             pass
         try:
-            col_vc           = df.get_col_name(specifiers.VOLTAGE, 'C')
-            col_vc_force     = set_col_name(specifiers.VOLTAGE, 'C', sub_specifiers=sub_specifiers.FORCED)
+            col_vc = df.get_col_name(specifiers.VOLTAGE, "C")
+            col_vc_force = set_col_name(
+                specifiers.VOLTAGE, "C", sub_specifiers=sub_specifiers.FORCED
+            )
             df[col_vc_force] = df[col_vc].to_numpy()
         except KeyError:
             pass
         try:
-            col_ve           = df.get_col_name(specifiers.VOLTAGE, 'E')
-            col_ve_force     = set_col_name(specifiers.VOLTAGE, 'E', sub_specifiers=sub_specifiers.FORCED)
+            col_ve = df.get_col_name(specifiers.VOLTAGE, "E")
+            col_ve_force = set_col_name(
+                specifiers.VOLTAGE, "E", sub_specifiers=sub_specifiers.FORCED
+            )
             df[col_ve_force] = df[col_ve].to_numpy()
         except KeyError:
             pass
         try:
-            col_ic           = df.get_col_name(specifiers.CURRENT, 'C')
+            col_ic = df.get_col_name(specifiers.CURRENT, "C")
         except KeyError:
             pass
         try:
-            col_ib           = df.get_col_name(specifiers.CURRENT, 'B')
+            col_ib = df.get_col_name(specifiers.CURRENT, "B")
         except KeyError:
             pass
 
         if col_vb and col_ib:
             vb = df[col_vb].to_numpy()
             ib = df[col_ib].to_numpy()
-            #vb_dif      = [i * mres['R_BM'] for i in ib]
-            vb_dif      = ib * mres['R_BM']
-            df[col_vb]  = vb - vb_dif
+            # vb_dif      = [i * mres["R_BM"] for i in ib]
+            vb_dif = ib * mres["R_BM"]
+            df[col_vb] = vb - vb_dif
 
         if col_vc and col_ic:
             vc = df[col_vc].to_numpy()
             ic = df[col_ic].to_numpy()
-            vc_dif      = ic * mres['R_CM']
-            df[col_vc]  = vc - vc_dif
+            vc_dif = ic * mres["R_CM"]
+            df[col_vc] = vc - vc_dif
 
         if col_ve and col_ib and col_ic:
             ve = df[col_ve].to_numpy()
-            #ie = [sum(i) for i in zip(ic, ib)]
+            # ie = [sum(i) for i in zip(ic, ib)]
             ie = ib + ic
-            #ve_dif      = [i * mres['R_EM'] for i in ie]
-            ve_dif      = ie * mres['R_EM']
-            df[col_ve]  = ve + ve_dif
+            # ve_dif      = [i * mres["R_EM"] for i in ie]
+            ve_dif = ie * mres["R_EM"]
+            df[col_ve] = ve + ve_dif
 
         return df
 
-
     def deembed_short(self,np.ndarray s_para_values,np.ndarray s_para_short_values, times=1):
-        ''' Deembed the measured S parameters in s_para_values from the measured S parameters in s_para_short_values.
+        """Deembed the measured S parameters in s_para_values from the measured S parameters in s_para_short_values.
 
         Parameters
         ----------
@@ -540,26 +548,28 @@ class DataProcessor(object):
         -------
         s_para_values       :  np.ndarray(np.cmplx128)
             Short de-embedded S parameters.
-        '''
-        #create Z para from S para
-        z_para_values        =  self.convert_n_port_para(s_para_values, 'S', 'Z')
-        z_para_short_values  =  self.convert_n_port_para(s_para_short_values, 'S', 'Z')/times
+        """
+        # create Z para from S para
+        z_para_values = self.convert_n_port_para(s_para_values, "S", "Z")
+        z_para_short_values = self.convert_n_port_para(s_para_short_values, "S", "Z") / times
 
-        #find number of frequency sweeps
-        n_sweeps                           =  z_para_values.shape[0] / z_para_short_values.shape[0]
+        # find number of frequency sweeps
+        n_sweeps = z_para_values.shape[0] / z_para_short_values.shape[0]
         if not np.mod(n_sweeps, 1) == 0:
-            raise IOError('DMT -> DataProcessor: short de-embedding structure does not match the data in df.')
+            raise IOError(
+                "DMT -> DataProcessor: short de-embedding structure does not match the data in df."
+            )
 
-        z_para_short_values  =  np.tile(z_para_short_values, [int(n_sweeps), 1, 1])
+        z_para_short_values = np.tile(z_para_short_values, [int(n_sweeps), 1, 1])
 
-        #de-embed
-        z_para_values        =  z_para_values - z_para_short_values
+        # de-embed
+        z_para_values = z_para_values - z_para_short_values
 
-        #convert back to S para
-        return  self.convert_n_port_para(z_para_values, 'Z', 'S')
+        # convert back to S para
+        return self.convert_n_port_para(z_para_values, "Z", "S")
 
     def deembed_open(self,np.ndarray s_para_values,np.ndarray s_para_open_values, times=1):
-        ''' Deembed the measured S parameters in s_para_values from the measured S parameters in s_para_open_values.
+        """Deembed the measured S parameters in s_para_values from the measured S parameters in s_para_open_values.
 
         Parameters
         ----------
@@ -576,28 +586,30 @@ class DataProcessor(object):
         -------
         s_para_values       :  np.ndarray(np.cmplx128)
             Short de-embedded S parameters.
-        '''
+        """
         cdef np.ndarray y_para_values
         cdef np.ndarray y_para_open_values
 
-        #calculate the y parameters in both dataframes
-        y_para_values       =  self.convert_n_port_para(s_para_values, 'S', 'Y')
-        y_para_open_values  =  self.convert_n_port_para(s_para_open_values, 'S', 'Y')
+        # calculate the y parameters in both dataframes
+        y_para_values = self.convert_n_port_para(s_para_values, "S", "Y")
+        y_para_open_values = self.convert_n_port_para(s_para_open_values, "S", "Y")
 
-        #find the number of frequency sweeps
-        n_sweeps            =  y_para_values.shape[0]/y_para_open_values.shape[0]
+        # find the number of frequency sweeps
+        n_sweeps = y_para_values.shape[0] / y_para_open_values.shape[0]
         if not np.mod(n_sweeps, 1) == 0:
-            raise IOError('DMT -> DataProcessor: open de-embedding structure does not match the data in df.')
+            raise IOError(
+                "DMT -> DataProcessor: open de-embedding structure does not match the data in df."
+            )
 
-        y_para_open_values  =  np.tile(y_para_open_values, [int(n_sweeps), 1, 1])
-        #deembed
-        y_para_values       =  y_para_values - y_para_open_values*times
+        y_para_open_values = np.tile(y_para_open_values, [int(n_sweeps), 1, 1])
+        # deembed
+        y_para_values = y_para_values - y_para_open_values * times
 
-        #convert Y para back to S para
-        return  self.convert_n_port_para(y_para_values, 'Y', 'S')
+        # convert Y para back to S para
+        return self.convert_n_port_para(y_para_values, "Y", "S")
 
     def calc_ft(self, freq, para_values, p_type):
-        ''' Calculate the transit frequency F_T using the spot frequency method.
+        """Calculate the transit frequency F_T using the spot frequency method.
 
         Parameters
         ----------
@@ -612,14 +624,14 @@ class DataProcessor(object):
         -------
         F_T  :  np.ndarray()
             Array of shape [n_freq] that contains ft from the spot frequency method.
-        '''
-        y_para_values  =  self.convert_n_port_para(para_values, p_type, 'Y')
+        """
+        y_para_values = self.convert_n_port_para(para_values, p_type, "Y")
 
-        #calculate ft = f / im( Y(1,1)/Y(2,1) ) element-wise for every frequency
-        return  freq / np.imag( y_para_values[:,0,0] / y_para_values[:,1,0] )
+        # calculate ft = f / im( Y(1,1)/Y(2,1) ) element-wise for every frequency
+        return freq / np.imag(y_para_values[:, 0, 0] / y_para_values[:, 1, 0])
 
     def calc_tfit1(self, freq, para_values, p_type):
-        ''' Calculate the transit frequency F_T using the spot frequency method.
+        """Calculate the transit frequency F_T using the spot frequency method.
 
         Parameters
         ----------
@@ -634,17 +646,16 @@ class DataProcessor(object):
         -------
         tfit  :  np.ndarray()
             Array of shape [n_freq] that contains tfit from the spot frequency method.
-        '''
+        """
 
-
-        y_para_values = self.convert_n_port_para(para_values, p_type, 'Y')
-        omega = 2 * np.pi *freq
+        y_para_values = self.convert_n_port_para(para_values, p_type, "Y")
+        omega = 2 * np.pi * freq
         gm = np.real(y_para_values[:, 1, 0])
         # tfi = im ( Y_11 + Y_21)/(gm*omega)
-        return np.imag(y_para_values[:, 0, 0] + y_para_values[:, 0, 1]) / (omega*gm)
+        return np.imag(y_para_values[:, 0, 0] + y_para_values[:, 0, 1]) / (omega * gm)
 
     def calc_tfit2(self, freq, para_values, p_type):
-        ''' Calculate the transit frequency F_T using the spot frequency method.
+        """Calculate the transit frequency F_T using the spot frequency method.
 
         Parameters
         ----------
@@ -659,17 +670,16 @@ class DataProcessor(object):
         -------
         tfit  :  np.ndarray()
             Array of shape [n_freq] that contains tfit from the spot frequency method.
-        '''
+        """
 
-
-        y_para_values = self.convert_n_port_para(para_values, p_type, 'Y')
-        omega = 2 * np.pi *freq
+        y_para_values = self.convert_n_port_para(para_values, p_type, "Y")
+        omega = 2 * np.pi * freq
         gm = np.real(y_para_values[:, 1, 0])
         # tfi = im ( Y_11 + Y_21)/(gm*omega)
-        return np.imag(y_para_values[:, 0, 0] + y_para_values[:, 1, 0]) / (omega*gm)
+        return np.imag(y_para_values[:, 0, 0] + y_para_values[:, 1, 0]) / (omega * gm)
 
     def calc_fmax(self, freq, para_values, p_type):
-        ''' Calculate the maximum frequency of oscillation from the unilateral gain.
+        """Calculate the maximum frequency of oscillation from the unilateral gain.
 
         Parameters
         ----------
@@ -684,16 +694,16 @@ class DataProcessor(object):
         -------
         fmax         :  np.ndarray()
             Array of shape [n_freq] that contains ft from the spot frequency method.
-        '''
-        #calc the unilateral gain
-        gu  =  self.calc_unilateral_gain(freq, para_values, p_type)
+        """
+        # calc the unilateral gain
+        gu = self.calc_unilateral_gain(freq, para_values, p_type)
 
-        #calculate FMAX
-        return  freq * gu ** 0.5
+        # calculate FMAX
+        return freq * gu**0.5
 
-    #pylint: disable=unused-argument
+    # pylint: disable=unused-argument
     def calc_unilateral_gain(self, freq, para_values, p_type):
-        ''' Calculates the unilateral gain `GU <https://www2.eecs.berkeley.edu/Pubs/TechRpts/2016/EECS-2016-15.pdf>`_ .
+        """Calculates the unilateral gain `GU <https://www2.eecs.berkeley.edu/Pubs/TechRpts/2016/EECS-2016-15.pdf>`_ .
         | https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=1083579
 
         Parameters
@@ -709,18 +719,22 @@ class DataProcessor(object):
         -------
         gu           :  np.ndarray()
             Unilateral gain as an array with shape [n_freq].
-        '''
-
-        #from y parameters
-        y_para_values  =  self.convert_n_port_para(para_values, p_type, 'Y')
-        #calculate GU
-        gu   =  abs(y_para_values[:,1,0] - y_para_values[:,0,1]) ** 2 / 4.0 / (
-            np.real(y_para_values[:,0,0]) * np.real(y_para_values[:,1,1]) - np.real(y_para_values[:,0,1]) * np.real(y_para_values[:,1,0]))
-        return  gu
-
+        """
+        # from y parameters
+        y_para_values = self.convert_n_port_para(para_values, p_type, "Y")
+        # calculate GU
+        gu = (
+            abs(y_para_values[:, 1, 0] - y_para_values[:, 0, 1]) ** 2
+            / 4.0
+            / (
+                np.real(y_para_values[:, 0, 0]) * np.real(y_para_values[:, 1, 1])
+                - np.real(y_para_values[:, 0, 1]) * np.real(y_para_values[:, 1, 0])
+            )
+        )
+        return gu
 
     def calc_mag(self, freq, para_values, p_type):
-        ''' Calculates the maximum available gain MAG.
+        """Calculates the maximum available gain MAG.
 
         Parameters
         ----------
@@ -735,16 +749,20 @@ class DataProcessor(object):
         -------
         mag           :  np.ndarray()
             maximum available gain mag.
-        '''
-        s_para_values  =  self.convert_n_port_para(para_values, p_type, 'S')
+        """
+        s_para_values = self.convert_n_port_para(para_values, p_type, "S")
 
-        k    =  self.calc_k(freq, s_para_values, 'S')
-        mag  =  ( k - np.sqrt(k ** 2.0 - 1.0) ) * np.abs(s_para_values[:,1,0]) / np.abs(s_para_values[:,0,1])
+        k = self.calc_k(freq, s_para_values, "S")
+        mag = (
+            (k - np.sqrt(k**2.0 - 1.0))
+            * np.abs(s_para_values[:, 1, 0])
+            / np.abs(s_para_values[:, 0, 1])
+        )
 
         return mag
 
     def calc_k(self, freq, para_values, p_type):
-        ''' Calculates the k-factor.
+        """Calculates the k-factor.
 
         Parameters
         ----------
@@ -763,13 +781,16 @@ class DataProcessor(object):
         Notes
         -----
         ..todo: from s para
-        '''
-        y_para_values  =  self.convert_n_port_para(para_values, p_type, 'Y')
-        k  =  ( 2*np.real(y_para_values[:,0,0])*np.real(y_para_values[:,1,1]) - np.real(y_para_values[:,0,1]*y_para_values[:,1,0]) ) / np.abs( y_para_values[:,0,1]*y_para_values[:,1,0] )
-        return  k
+        """
+        y_para_values = self.convert_n_port_para(para_values, p_type, "Y")
+        k = (
+            2 * np.real(y_para_values[:, 0, 0]) * np.real(y_para_values[:, 1, 1])
+            - np.real(y_para_values[:, 0, 1] * y_para_values[:, 1, 0])
+        ) / np.abs(y_para_values[:, 0, 1] * y_para_values[:, 1, 0])
+        return k
 
     def calc_msg(self, freq, para_values, p_type):
-        ''' Calculates the maximum stable gain MSG.
+        """Calculates the maximum stable gain MSG.
 
         Parameters
         ----------
@@ -788,14 +809,14 @@ class DataProcessor(object):
         Notes
         -----
         ..todo: calc from S para too
-        '''
-        y_para_values  =  self.convert_n_port_para(para_values, p_type, 'Y')
+        """
+        y_para_values = self.convert_n_port_para(para_values, p_type, "Y")
 
-        msg  =  np.absolute( y_para_values[:,1,0] ) / np.absolute( y_para_values[:,0,1] )
-        return  msg
+        msg = np.absolute(y_para_values[:, 1, 0]) / np.absolute(y_para_values[:, 0, 1])
+        return msg
 
     def calc_cap_shunt_port_1(self, freq, para_values, p_type):
-        ''' Calculates the shunt capacitance at port 1 assuming a Pi equivalent circuit capacitance cbe from the small signal parameters para_values.
+        """Calculates the shunt capacitance at port 1 assuming a Pi equivalent circuit capacitance cbe from the small signal parameters para_values.
 
         Parameters
         ----------
@@ -810,17 +831,16 @@ class DataProcessor(object):
         -------
         cbe           :  np.ndarray()
             Base emitter junction capacitance as an array with shape [n_freq].
-        '''
-        y_para_values  =  self.convert_n_port_para(para_values, p_type, 'Y')
+        """
+        y_para_values = self.convert_n_port_para(para_values, p_type, "Y")
 
-        #calculate cbe from y para
-        cbe  =  ( np.imag(y_para_values[:,0,0] + y_para_values[:,0,1] )
-                            / (2.0 * np.pi * freq))
+        # calculate cbe from y para
+        cbe = np.imag(y_para_values[:, 0, 0] + y_para_values[:, 0, 1]) / (2.0 * np.pi * freq)
 
-        return  cbe
+        return cbe
 
     def calc_cap_series_thru(self, freq, para_values, p_type):
-        ''' Calculates the the series-thru junction capacitance cbc from the small signal parameters para_values.
+        """Calculates the the series-thru junction capacitance cbc from the small signal parameters para_values.
 
         Parameters
         ----------
@@ -835,14 +855,14 @@ class DataProcessor(object):
         -------
         cbc           :  np.ndarray()
             Base collector junction capacitance as an array with shape [n_freq].
-        '''
-        y_para_values  =  self.convert_n_port_para(para_values, p_type, 'Y')
+        """
+        y_para_values = self.convert_n_port_para(para_values, p_type, "Y")
 
-        #calculate GU
-        return -np.imag(y_para_values[:,0,1]) / ( 2.0 * np.pi * freq )
+        # calculate GU
+        return -np.imag(y_para_values[:, 0, 1]) / (2.0 * np.pi * freq)
 
     def calc_cap_shunt_port_2(self, freq, para_values, p_type):
-        ''' Calculates the active shunt capacitance at port_2 assuming a PI equivalent circuit.
+        """Calculates the active shunt capacitance at port_2 assuming a PI equivalent circuit.
 
         Parameters
         ----------
@@ -857,17 +877,16 @@ class DataProcessor(object):
         -------
         cce           :  np.ndarray()
             Collector emitter junction capacitance as an array with shape [n_freq].
-        '''
-        y_para_values  =  self.convert_n_port_para(para_values, p_type, 'Y')
+        """
+        y_para_values = self.convert_n_port_para(para_values, p_type, "Y")
 
-        #calculate cce from y para
-        cce  =  ( np.imag(y_para_values[:,1,1] + y_para_values[:,0,1] )
-                            / (2.0 * np.pi * freq))
+        # calculate cce from y para
+        cce = np.imag(y_para_values[:, 1, 1] + y_para_values[:, 0, 1]) / (2.0 * np.pi * freq)
 
-        return  cce
+        return cce
 
     def calc_beta(self, ic, ib):
-        ''' Calculates the base collector current amplification from dc currents
+        """Calculates the base collector current amplification from dc currents
 
         Parameters
         ----------
@@ -880,11 +899,11 @@ class DataProcessor(object):
         -------
         beta  :  np.ndarray()
             Base collector junction capacitance as an array with shape [n_freq].
-        '''
-        return ic/ib # I know this seems crazy, however it ist clean coding style.
+        """
+        return ic / ib  # I know this seems crazy, however it ist clean coding style.
 
     def calc_gm(self, ic, vbe, vb_forced=None, vc_forced=None):
-        ''' Calculates the transconductance of a bjt or mosfet.
+        """Calculates the transconductance of a bjt or mosfet.
 
         Parameters
         ----------
@@ -899,16 +918,16 @@ class DataProcessor(object):
         -------
         gm  :  np.ndarray()
             The transconductance
-        '''
+        """
         # vb_forced is not necessarily increasing as needed for gm calculation, e.g. vb is not increasing at constant vc.
         # following code tries to catch that.
 
-        gm        = np.zeros_like(vbe)
+        gm = np.zeros_like(vbe)
         if vb_forced is not None and vc_forced is not None:
             vbc_forced = vb_forced - vc_forced
             # V_BC or V_C forced?
-            vc_forced_unique = np.unique(np.round(vc_forced,decimals=3))
-            vbc_forced_unique = np.unique(np.round(vbc_forced,decimals=3))
+            vc_forced_unique = np.unique(np.round(vc_forced, decimals=3))
+            vbc_forced_unique = np.unique(np.round(vbc_forced, decimals=3))
             vbc_unique = vbc_forced_unique.size < vc_forced_unique.size
             if vbc_unique:
                 v_outer_unique = vbc_forced_unique
@@ -918,30 +937,38 @@ class DataProcessor(object):
                 v_outer = vc_forced
 
             for v_out in v_outer_unique:
-                indices = np.isclose(v_outer,v_out, rtol=1e-3, atol=4.99e-3)
-                vb_unique, indicies_unique, unique_inverse = np.unique(vb_forced[indices], return_index=True, return_inverse=True)
+                indices = np.isclose(v_outer, v_out, rtol=1e-3, atol=4.99e-3)
+                vb_unique, indicies_unique, unique_inverse = np.unique(
+                    vb_forced[indices], return_index=True, return_inverse=True
+                )
                 sorted_indices = np.argsort(vb_unique)
                 ic_unique = ic[indices][indicies_unique][sorted_indices]
                 res = np.empty_like(ic_unique)
-                res[sorted_indices] = np.gradient(np.log(ic_unique), vb_unique[sorted_indices], edge_order=2) * ic_unique
+                res[sorted_indices] = (
+                    np.gradient(np.log(np.abs(ic_unique)), vb_unique[sorted_indices], edge_order=2)
+                    * ic_unique
+                )
                 gm[indices] = res[unique_inverse]
+
         elif vc_forced is None and vb_forced is None:
             resort = None
-            #sort to increasing vbe
+            # sort to increasing vbe
             if not strictly_increasing(vbe):
                 vbe_indexes = vbe.argsort()
-                resort      = vbe_indexes.argsort()
-                vbe         = vbe[vbe_indexes]
-                ic          = ic[vbe_indexes]
+                resort = vbe_indexes.argsort()
+                vbe = vbe[vbe_indexes]
+                ic = ic[vbe_indexes]
 
             # calculate
-            gm    = np.gradient(np.log(ic), vbe) * ic
+            gm = np.gradient(np.log(np.abs(ic)), vbe) * ic
 
             if resort is not None:
                 gm = gm[resort]
 
         else:
-            raise NotImplementedError('DMT data_processor -> combination of arguments not yet implemented.')
+            raise NotImplementedError(
+                "DMT data_processor -> combination of arguments not yet implemented."
+            )
 
         print(vbe[gm<=0.0])
-        return np.where(gm<=0.0, np.nan,gm)
+        return np.where(gm <= 0.0, np.nan, gm)
