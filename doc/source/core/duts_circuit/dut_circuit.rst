@@ -8,7 +8,7 @@ Submodules
     :maxdepth: 1
     :glob:
 
-    *
+    interfaces/*
 
 Module documentation
 ------------------------------

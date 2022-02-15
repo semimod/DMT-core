@@ -4,7 +4,7 @@ Running Test Cases
 The test cases are a great starting point to learn more about the inner working of DMT.
 
 To run them, first your system has to be set up accordingly.
-DMT is mainly developed on Ubuntu Linux and using Python 3.6.8, but also tested on Windows.
+DMT is mainly developed on Ubuntu Linux and using Python 3.8, but also tested on Windows.
 For installation help go to :ref:`install_dmt`.
 
 After you have installed DMT,
@@ -36,9 +36,7 @@ TCAD tests
 Learn how to use DMT's data management and TCAD interface for the DEVICE TCAD simulator::
 
     test_elpa
-    test_device
-    test_dmt_device_interaction
-    test_read_DEVICE_internal
+    test_interface_Hdev/*
 
 
 Modelcard handling
@@ -46,7 +44,8 @@ Modelcard handling
 
 Learn how to use model cards inside of DMT to manage model parameters::
 
-    test_mcard_class
+    test_mc_parameter_composition
+    test_MCard
 
 
 Circuit Simulator Interface
@@ -54,8 +53,8 @@ Circuit Simulator Interface
 
 Use the model card class to build a circuit and simulate it using ADS::
 
-    test_dut_ads
-    test_dut_ads_many_sweeps
+    test_interface_ngspice/*
+    test_interface_Xyce/*
 
 
 Measurement data handling
@@ -65,21 +64,3 @@ Read and preprocess data from measurements::
 
     test_data_processor
     test_manager_processor_and_plotter
-
-
-Extraction steps
-^^^^^^^^^^^^^^^^
-
-Finally we can start extraction, the test uses Cjei as an example::
-
-    test_xtraction
-
-
-Extraction GUI
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Finally we arrive at the GUI for the extraction, this can be seen in::
-
-    test_xtraction_gui
-    test_xtract_cjc_temp
-

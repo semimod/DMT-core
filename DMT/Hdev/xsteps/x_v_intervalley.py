@@ -3,7 +3,7 @@
 Author: Markus Müller | Markus.Mueller3@tu-dresden.de
 """
 # DMT_core
-# Copyright (C) from 2020  SemiMod
+# Copyright (C) from 2022  SemiMod
 # Copyright (C) until 2021  Markus Müller, Mario Krattenmacher and Pascal Kuthe
 # <https://gitlab.com/dmt-development/dmt-device>
 #
@@ -36,7 +36,7 @@ except ImportError:
 class XVIntervalley(XStep):
     """
     Parameters
-    -----------
+    ----------
     name                    : str
         Name of this specific object.
     mcard                   : :class:`~DMT.core.mcard.MCard` or :class:`~DMT.core.mc_parameter.McParameterCollection`

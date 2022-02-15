@@ -13,7 +13,6 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
 import os
-from pathlib import Path
 
 # -- Project information -----------------------------------------------------
 
@@ -45,7 +44,7 @@ extensions = [
     "sphinx.ext.mathjax",
     "sphinx.ext.coverage",
     "sphinx.ext.ifconfig",
-    "sphinx.ext.viewcode",
+    "sphinx.ext.linkcode",
     "sphinx.ext.graphviz",
     "sphinx.ext.autosectionlabel",
     "sphinxcontrib.pdfembed",
@@ -66,29 +65,6 @@ source_suffix = ".rst"
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path .
 exclude_patterns = []
-
-# Replace the marker with the correct strings for the different variants
-index_content = (Path(__file__).parent / "index_rst_template.txt").read_text()
-
-if "DMT_DOC_CORE" in os.environ:
-    print("Documentation of core DMT only")
-    index_content = index_content.replace("%MARKER%", "")
-    exclude_patterns += [
-        "extraction.rst",
-        "extraction",
-        "hl2",
-        "TRADICA",
-        "dut_hdev",
-        "dut_device",
-        "inp_device",
-        "dut_ads",
-        "dut_ngspice",
-    ]
-else:
-    print("Documentation of full DMT")
-    index_content = index_content.replace("%MARKER%", "extraction\n" + "    hl2/x_hicum_L2")
-
-(Path(__file__).parent / "index.rst").write_text(index_content)
 
 # The master toctree document.
 master_doc = "index"
@@ -138,7 +114,7 @@ html_theme_path = [themedir]
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-html_logo = "../logo/DMT_Logo_wText.jpg"
+html_logo = "../logo/DMT_Logo_wText.png"
 
 # The name of an image file (relative to this directory) to use as a favicon of
 # the docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
@@ -200,7 +176,7 @@ html_last_updated_fmt = "%d.%m.%Y"
 # Sphinx supports the following languages:
 #   'da', 'de', 'en', 'es', 'fi', 'fr', 'hu', 'it', 'ja'
 #   'nl', 'no', 'pt', 'ro', 'ru', 'sv', 'tr'
-# html_search_language = 'en'
+html_search_language = "en"
 
 # A dictionary with options for the search language support, empty by default.
 # Now only 'ja' uses this config value
@@ -213,6 +189,24 @@ html_last_updated_fmt = "%d.%m.%Y"
 # Output file base name for HTML help builder.
 htmlhelp_basename = "DMTdoc"
 
+# numpydoc_xref_param_typebool
+#     Whether to create cross-references for the parameter types in the Parameters, Other Parameters, Returns and Yields sections of the docstring. False by default.
+numpydoc_xref_param_type = True
+
+numpydoc_xref_aliases = {
+    "CircuitElement": "DMT.core.circuit.CircuitElement",
+    "Circuit": "DMT.core.circuit.Circuit",
+    "MCard": "DMT.core.mcard.MCard",
+    "McParameterComposition": "DMT.core.mc_parameter.McParameterComposition",
+    "McParameter": "DMT.core.mc_parameter.McParameter",
+    "core": "DMT.core",
+    "ngspice": "DMT.ngspice",
+    "xyce": "DMT.xyce",
+    "exceptions": "DMT.exceptions",
+    "config": "DMT.config",
+    "Hdev": "DMT.Hdev",
+    "VerilogAE": "DMT.VerilogAE",
+}
 
 # -- Options for LaTeX output ------------------------------------------------
 
@@ -269,3 +263,12 @@ texinfo_documents = [
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = True
+
+# -- Options for linkcode extension ----------------------------------------------
+def linkcode_resolve(domain, info):
+    if domain != "py":
+        return None
+    if not info["module"]:
+        return None
+    filename = info["module"].replace(".", "/")
+    return f"https://gitlab.com/dmt-development/dmt-core/-/tree/main/{filename:s}.py"

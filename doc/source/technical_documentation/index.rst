@@ -6,5 +6,4 @@ In order to ease the use of DMT, some basic examples can be found here:
     :maxdepth: 2
 
     dmt
-    extraction
     exceptions

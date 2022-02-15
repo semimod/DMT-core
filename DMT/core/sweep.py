@@ -7,7 +7,7 @@ Features:
 
 """
 # DMT_core
-# Copyright (C) from 2020  SemiMod
+# Copyright (C) from 2022  SemiMod
 # Copyright (C) until 2021  Markus Müller, Mario Krattenmacher and Pascal Kuthe
 # <https://gitlab.com/dmt-development/dmt-device>
 #
@@ -45,7 +45,7 @@ class SweepDef(object):
     It is recommended try the super method and except the raised errors.
 
     Parameters
-    --------------
+    ----------
     var_name : :class:`~DMT.core.naming.SpecifierStr`
         Name of the variable to sweep.
     sweep_type : str
@@ -140,15 +140,15 @@ class SweepDef(object):
         """Correct the sweep type string to allowed ones.
 
         Parameters
-        -----------
+        ----------
         sweep_type_new : str
 
         Returns
-        ----------
+        -------
         sweep_type : str
 
         Raises
-        ----------
+        ------
         IOError
             If the sweep type is not known.
         """
@@ -253,7 +253,7 @@ class SweepDef(object):
         """Sets self.values
 
         Raises
-        ----------
+        ------
         OSError
             If the sweep type is not known.
         """
@@ -571,7 +571,7 @@ class Sweep(object):
         """Returns the temperature of the sweep as a string. Use this to set the key of a dut.
 
         Returns
-        --------
+        -------
         str
             - Single temperature: "Txxx.xxK"
             - List of temperatures: "T(xxx.xx,yyy.yy,...)K"

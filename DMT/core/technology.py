@@ -4,7 +4,7 @@ If a technology can use TRADICA, the class :class:`DMT.TRADICA.TechTradica` is r
 
 """
 # DMT_core
-# Copyright (C) from 2020  SemiMod
+# Copyright (C) from 2022  SemiMod
 # Copyright (C) until 2021  Markus Müller, Mario Krattenmacher and Pascal Kuthe
 # <https://gitlab.com/dmt-development/dmt-device>
 #
@@ -56,7 +56,7 @@ class Technology(object):
         """Prints a technology description, mainly used for autodocumentation reasons.
 
         Parameters
-        -----------
+        ----------
         dut_ref : :class:`~DMT.core.DutView`
             Can be used to obtain tech quanties... (or to generate a TRADICA input file :) )
         mcard : :class:`~DMT.core.McParameterComposition`
@@ -77,7 +77,7 @@ class Technology(object):
         """Creates a file containing model cards for all sizes of duts present in the lib.
 
         Parameters
-        -----------
+        ----------
         lib : :class:`~DMT.core.DutLib`
         path : str
             File path to write to.

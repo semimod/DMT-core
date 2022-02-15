@@ -3,7 +3,7 @@
 
 """
 # DMT_core
-# Copyright (C) from 2020  SemiMod
+# Copyright (C) from 2022  SemiMod
 # Copyright (C) until 2021  Markus Müller, Mario Krattenmacher and Pascal Kuthe
 # <https://gitlab.com/dmt-development/dmt-device>
 #
@@ -74,7 +74,7 @@ class DataProcessor(object):
             npy.shape(z0) == (nfreqs,nports)
 
         Parameters
-        --------------
+        ----------
         z0 : number, array-like
             z0 can be:
             * a number (same at all ports and frequencies)
@@ -88,12 +88,12 @@ class DataProcessor(object):
             number of ports
 
         Returns
-        ----------
+        -------
         z0 : array of shape ==(nfreqs,nports)
             z0  with the right shape for a nport Network
 
         Examples
-        ----------
+        --------
         For a two-port network with 201 frequency points, possible uses may
         be
 
@@ -134,19 +134,19 @@ class DataProcessor(object):
             y = \\sqrt {y_0} \\cdot (I - s)(I + s)^{-1} \\cdot \\sqrt{y_0}
 
         Parameters
-        ------------
+        ----------
         s : complex array-like
             scattering parameters
         z0 : complex array-like or number
             port impedances
 
         Returns
-        ---------
+        -------
         y : complex array-like
             admittance parameters
 
         See Also
-        ----------
+        --------
         s2z
         s2y
         s2t
@@ -201,14 +201,14 @@ class DataProcessor(object):
             z = \\sqrt {z_0} \\cdot (I + s) (I - s)^{-1} \\cdot \\sqrt{z_0}
 
         Parameters
-        ------------
+        ----------
         s : complex array-like
             scattering parameters
         z0 : complex array-like or number
             port impedances.
 
         Returns
-        ---------
+        -------
         z : complex array-like
             impedance parameters
 
@@ -377,7 +377,7 @@ class DataProcessor(object):
             Number of parallel devices.
 
         Returns
-        ----------
+        -------
         s_para_values       :  np.ndarray(np.cmplx128)
             Normalized S-para-values
 
@@ -537,7 +537,7 @@ class DataProcessor(object):
             Number of times the short has to be removed
 
         Returns
-        ----------
+        -------
         s_para_values       :  np.ndarray(np.cmplx128)
             Short de-embedded S parameters.
         '''
@@ -573,7 +573,7 @@ class DataProcessor(object):
             Numer of times the open has to be removed.
 
         Returns
-        ----------
+        -------
         s_para_values       :  np.ndarray(np.cmplx128)
             Short de-embedded S parameters.
         '''

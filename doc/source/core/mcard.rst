@@ -1,20 +1,6 @@
 mcard module
 ============
 
-
-Submodules
--------------------------------
-
-.. toctree::
-    :maxdepth: 1
-
-    ../hl2/mc_hicum
-
-Class diagram
--------------------------------
-
-.. graphviz:: ../diagrams/classes_mcard.dot
-
 Module Documentation
 -------------------------
 .. autoclass:: DMT.core.mcard.MCard

@@ -6,7 +6,7 @@ finally an additional (bytes) string can be given to add further customization
 Author: Mario Krattenmacher | Mario.Krattenmacher@tu-dresden.de
 """
 # DMT_core
-# Copyright (C) from 2020  SemiMod
+# Copyright (C) from 2022  SemiMod
 # Copyright (C) until 2021  Markus Müller, Mario Krattenmacher and Pascal Kuthe
 # <https://gitlab.com/dmt-development/dmt-device>
 #
@@ -31,12 +31,12 @@ def create_md5_hash(*contents):
     """Construct the hash MD5 string with all parameters
 
     Parameters
-    -----------
+    ----------
     contents : \*str
         Either a path to a file to read or some object which can be converted to a string using str()
 
     Returns
-    -----------
+    -------
     hash : str
         MD5 string
     """

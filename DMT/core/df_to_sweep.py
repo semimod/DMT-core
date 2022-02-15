@@ -1,7 +1,7 @@
 """ Converter routine to create a sweep definition from a given DataFrame
 """
 # DMT_core
-# Copyright (C) from 2020  SemiMod
+# Copyright (C) from 2022  SemiMod
 # Copyright (C) until 2021  Markus Müller, Mario Krattenmacher and Pascal Kuthe
 # <https://gitlab.com/dmt-development/dmt-device>
 #
@@ -30,8 +30,8 @@ def df_to_sweep(df_to_convert, temperature=300, name=None, from_forced=True, Swe
     For the moment only voltage sweeps...
 
     Parameters
-    ------------
-    df_to_convert : :class:`DMT.core.data_frame.DataFrame`
+    ----------
+    df_to_convert : :class:`~DMT.core.data_frame.DataFrame`
     temperature : float, optional
         Temperature of the measurement in Kelvin.
     name : str, optional
@@ -40,8 +40,8 @@ def df_to_sweep(df_to_convert, temperature=300, name=None, from_forced=True, Swe
         If True, the forced voltages are used to create the sweepdef.
 
     Returns
-    ---------
-    sweep : :class:`DMT.core.sweep.Sweep`
+    -------
+    sweep : :class:`~DMT.core.sweep.Sweep`
     """
     vars_other = {
         specifiers.TEMPERATURE: temperature

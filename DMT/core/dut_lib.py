@@ -1,4 +1,4 @@
-# Copyright (C) from 2020  SemiMod
+# Copyright (C) from 2022  SemiMod
 # Copyright (C) until 2021  Markus Müller, Mario Krattenmacher and Pascal Kuthe
 # <https://gitlab.com/dmt-development/dmt-device>
 #
@@ -51,7 +51,7 @@ class __Filter(object):
     """Superclass for all implemented filters. Is used to compare specified properties of devices and deembedding structures.
 
     Parameters
-    -----------
+    ----------
     devProp     : 'str'
         Property of the device that is to be compared to that of the deembedding structure.
     testProp    : 'str'
@@ -143,7 +143,7 @@ class DutLib(object):
     Class is able to match any device type with its corresponding deembedding dummies and perform the deembedding process.
 
     Parameters
-    -----------
+    ----------
     deem_types      : [:class:`~DMT.core.dut_type.DutType`], optional
         A list of dut_types, that are used to filter the incoming list of duts for those devices that need deembedding.
     AC_filter_names    : [tuple], optional
@@ -376,7 +376,7 @@ class DutLib(object):
             Additional keyword arguments that are passed to the read_data routines, which are called to read the (mdm, csv or elpa) data. E.g. if you have delimiter ',' in your .csv file, pass delimeter=','.
 
         Returns
-        --------
+        -------
         duts : [:class:`~DMT.core.dut_view.DutView`]
             DutViews loaded from the given directory
         """
@@ -772,7 +772,7 @@ class DutLib(object):
             Applies the necessary filter functions to a device and a deembedding structure and adds the correct deembedding structure accordingly to the device.
 
         Returns
-        ------------
+        -------
         mres : dict
             {'R_EM':float64, 'R_BM':float64, 'R_CM':float64}
 
@@ -1059,13 +1059,13 @@ class DutLib(object):
         """Loads all DuTs from a given database directory. Does NOT load the data of the duts, they are loaded using run_and_read
 
         Parameters
-        -----------
+        ----------
         database_dir : str
         only_meas : {True, False}, optional
             If True, only folders without "_hash_" are loaded. This is exclusive for :class:`~DMT.core.dut_meas.DutMeas`
 
         Returns
-        --------
+        -------
         duts : [:class:`~DMT.core.dut_view.DutView`]
             DutViews loaded from the given directory
         """
@@ -1128,7 +1128,7 @@ class DutLib(object):
             Temperature of the metallization resistances to return
 
         Returns
-        -----------
+        -------
         dict  :  {'R_EM':float64, 'R_BM':float64, 'R_CM':float64}
         """
         # test input:
@@ -2303,7 +2303,7 @@ def _read_dut_folder(dut, path, force, temperature_converter, **kwargs):
         Passed to DutView.add_data
 
     Returns
-    --------
+    -------
     dut.data : {key: DMT.DataFrame}
     """
     if not force:

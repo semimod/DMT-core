@@ -5,7 +5,7 @@ Provides a interface superclass. Here all methods which must be implemented by a
 Author: Mario Krattenmacher | Mario.Krattenmacher@tu-dresden.de
 """
 # DMT_core
-# Copyright (C) from 2020  SemiMod
+# Copyright (C) from 2022  SemiMod
 # Copyright (C) until 2021  Markus Müller, Mario Krattenmacher and Pascal Kuthe
 # <https://gitlab.com/dmt-development/dmt-device>
 #
@@ -34,7 +34,7 @@ class DutTcad(DutView):
     Makes a TCAD simulator like DEVICE or Hdev useable by DMT
 
     Parameters
-    -----------
+    ----------
     database_dir    : string
         This is the directory were the DUT will create its database.
     name      : string
@@ -51,7 +51,7 @@ class DutTcad(DutView):
         List of arguments for the simulator command, will be added one by one before the input file.
 
     Attributes
-    -----------
+    ----------
     sim_command : str
         Command to start the correct TCAD simulator
     sim_args : list[str]
@@ -98,7 +98,7 @@ class DutTcad(DutView):
         Automatically recalls create_inp_header, if it is not a string.
 
         Parameters
-        -----------
+        ----------
         value : str or anything fitting for overwritten create_inp_header
         """
         self._data = {}
@@ -126,7 +126,7 @@ class DutTcad(DutView):
         In case a InpStructure is set, this always recreates the inp_header :/.
 
         Returns
-        --------
+        -------
         str or False
         """
         if self.inp_header is None:

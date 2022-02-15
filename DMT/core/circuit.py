@@ -6,7 +6,7 @@ Later on this can be extended to allow (pseudo-)simulations directly inside DMT.
 
 """
 # DMT_core
-# Copyright (C) from 2020  SemiMod
+# Copyright (C) from 2022  SemiMod
 # Copyright (C) until 2021  Markus Müller, Mario Krattenmacher and Pascal Kuthe
 # <https://gitlab.com/dmt-development/dmt-device>
 #
@@ -24,39 +24,9 @@ Later on this can be extended to allow (pseudo-)simulations directly inside DMT.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
-
+from __future__ import annotations
+from typing import Callable, Iterable
 from DMT.core import MCard, McParameterComposition
-
-
-class Circuit(object):
-    """Circuit description as a list of :class:`CircuitElement`
-
-    Parameters
-    -----------
-    circuit_elements : list(CircuitElement or str)
-        Either directly the netlist elements as a list of CircuitElements or strings (for equations)
-
-    Attributes
-    -----------
-    netlist : list(CircuitElement)
-    """
-
-    def __init__(self, circuit_elements):
-        if isinstance(circuit_elements, str):
-            raise NotImplementedError(
-                "The default circuit has been moved into the corresponding module. Access the circuit from there!"
-            )
-
-        for i_element, element in enumerate(circuit_elements):
-            if not isinstance(element, (CircuitElement, str)):
-                raise TypeError(
-                    "The netlist has to be a list of CircuitElement or str! At position "
-                    + str(i_element)
-                    + " is a entry of type "
-                    + type(element)
-                )
-
-        self.netlist = circuit_elements
 
 
 RESISTANCE = "R"
@@ -96,28 +66,26 @@ class CircuitElement(object):
     * va_module -> could be a transistor
 
     Parameters
-    -----------
-    element_type : str
+    ----------
+    element_type
         Element type, for example: 'R' for resistor. possible values: 'V_Source', 'I_Source', 'R', 'C', 'L', 'Short' ,'va_module'
-    name : str
+    name
         Element name, for example: 'R1' for resistor 1. Names should be unique within their netlist.
-    contact_nodes : tuple(str)
+    contact_nodes
         Contact nodes of the element, for example: ('n__1', 'n__2')
-    parameters : list[tuple(str,str)], optional
+    parameters
         Parameters of the element, for example: [('R', '1k')]
 
     Attributes
-    -----------
-    element_type : str
+    ----------
+    element_type
         Element type, for example: 'R' for resistor
-    name : str
+    name
         Element name, for example: 'R1' for resistor 1
-    contact_nodes : iterable(str)
+    contact_nodes
         Contact nodes of the element, for example: ('n__1', 'n__2')
-    parameters : iterable[tuple(str,str)]
+    parameters
         Parameters of the element, for example: [('R', '1k')]
-    method : callable, optional
-        Used to build up the equivalent circuit in the model environment.
     """
 
     possible_types = [
@@ -145,9 +113,16 @@ class CircuitElement(object):
         '"TSC250_Models_lib_TSC_250nm_Agilent_v1p0_schematic"',
     ]
 
-    def __init__(self, element_type, name, contact_nodes, parameters=None, method=None):
+    def __init__(
+        self,
+        element_type: str,
+        name: str,
+        contact_nodes: Iterable[str],
+        parameters: list[tuple[str, str]] | MCard | McParameterComposition = None,
+        method: Callable = None,
+    ):
         if isinstance(parameters, MCard) or isinstance(parameters, McParameterComposition):
-            CircuitElement.possible_types.append(parameters.default_module_name)
+            CircuitElement.possible_types.append(parameters.default_module_name)  # type: ignore
 
         if isinstance(element_type, str):
             if element_type in self.possible_types:
@@ -189,7 +164,7 @@ class CircuitElement(object):
         else:
             raise TypeError(
                 "The element contact nodes have to be a tuple of strings! Given was "
-                + str(contact_nodes)
+                + str(contact_nodes)  # type: ignore
                 + " of type "
                 + type(contact_nodes)
             )
@@ -227,8 +202,45 @@ class CircuitElement(object):
             )
 
         self.parameters = parameters
+
+        if method is not None:
+            raise DeprecationWarning(
+                "Method will be deprecated in future DMT releases. This feature is not needed anymore since VAE is mature."
+            )
         self.method = method
 
     def __repr__(self):
         str_nodes = ",".join(self.contact_nodes)
         return f"DMT.CircuitElement:{self.name:s} model {self.element_type:s} nodes {str_nodes:s}"
+
+
+class Circuit(object):
+    """Circuit description as a list of :class:`CircuitElement`
+
+    Parameters
+    ----------
+    circuit_elements
+        Either directly the netlist elements as a list of CircuitElements or strings (for equations)
+
+    Attributes
+    ----------
+    netlist
+        Either directly the netlist elements as a list of CircuitElements or strings (for equations)
+    """
+
+    def __init__(self, circuit_elements: list[str | CircuitElement]):
+        if isinstance(circuit_elements, str):
+            raise NotImplementedError(
+                "The default circuit has been moved into the corresponding module. Access the circuit from there!"
+            )
+
+        for i_element, element in enumerate(circuit_elements):
+            if not isinstance(element, (CircuitElement, str)):
+                raise TypeError(
+                    "The netlist has to be a list of CircuitElement or str! At position "
+                    + str(i_element)
+                    + " is a entry of type "
+                    + type(element)
+                )
+
+        self.netlist = circuit_elements

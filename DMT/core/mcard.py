@@ -4,7 +4,7 @@ Author: Mario Krattenmacher | Mario.Krattenmacher@tu-dresden.de
 Author: Markus Müller       | Markus.Mueller3@tu-dresden.de
 """
 # DMT_core
-# Copyright (C) from 2020  SemiMod
+# Copyright (C) from 2022  SemiMod
 # Copyright (C) until 2021  Markus Müller, Mario Krattenmacher and Pascal Kuthe
 # <https://gitlab.com/dmt-development/dmt-device>
 #
@@ -92,7 +92,7 @@ class MCard(McParameterComposition):
     """DMT class that implements attributes and methods that are common between all ModelCards such as HICUM and BSIM.
 
     Parameters
-    -----------
+    ----------
     nodes_list        :  tuple(str)
         Port list for this model.
     default_subckt_name  :  str
@@ -111,7 +111,7 @@ class MCard(McParameterComposition):
         Level of the Model, this is used by EvalTradica, so it must fit there, e.g. '2'
 
     Attributes
-    -----------
+    ----------
     nodes_list : tuple(str)
         Port list for this model.
     circuit : {None,:class:`~DMT.core.circuit.Circuit`}
@@ -332,7 +332,7 @@ class MCard(McParameterComposition):
         be saved/loaded from a json (see dump_json)
 
         Parameters
-        --------------
+        ----------
         remove_old_parameters : {True, False}, optional
             If False, parameters which are not found in the VA-File are not removed.
         """
@@ -521,7 +521,7 @@ class MCard(McParameterComposition):
         """Returns a dict with serializeable content for the json file to create. Add the info about the concrete subclass to create here!
 
         Parameters
-        -----------
+        ----------
         save_va_code : {True, False}, optional
             If False, the va_codes are not saved...
         compress_va_code : {False, True}, optional
@@ -566,7 +566,7 @@ class MCard(McParameterComposition):
         """Here the modelcard defines it's default simulation circuit.
 
         Parameters
-        -----------
+        ----------
         use_build_in : {False, True}, optional
             Creates a circtui the modelcard using the build-in model
         topology : optional
@@ -588,7 +588,7 @@ class MCard(McParameterComposition):
         Name of File: path_to_file + ".lib"
 
         Parameters
-        -----------
+        ----------
         path_to_file : str or os.Pathlike
             Absolute or relative path with file name to the file to generate.
         file_mode : str, optional
@@ -613,13 +613,13 @@ class MCard(McParameterComposition):
         str_modelcard = "simulator lang = spectre\n"
 
         str_modelcard += f"subckt {subckt_name:s} (" + " ".join(self.nodes_list) + ")\n"
-        str_modelcard += " Q1 (" + " ".join(self.nodes_list) + f") {module_name:s} (\\\n"
+        str_modelcard += " Q1 (" + " ".join(self.nodes_list) + f") {module_name:s} ({line_break:s}"
 
         for para in self:
             str_modelcard += f"  {para:<12s} = {para:10.3e} {line_break:s}"
 
         str_modelcard += ")\n"
-        str_modelcard += "ends {subckt_name:s} \n"
+        str_modelcard += f"ends {subckt_name:s} \n"
 
         with path_to_file.open(file_mode) as fp:
             fp.write(str_modelcard)
@@ -647,7 +647,7 @@ class MCard(McParameterComposition):
         Possible is "mcp" (see save_model), "txt" or "mat" (planned)
 
         Parameters
-        -----------
+        ----------
         path_to_file : str
             Filename (with ending!) including a relative or absolute path
         force : boolean, optional

@@ -17,7 +17,7 @@ Author: Markus Müller       | Markus.Mueller@semimod.de
 Author: Pascal Kuthe        | Pascal.Kuthe@semimod.me
 """
 # DMT_core
-# Copyright (C) from 2020  SemiMod
+# Copyright (C) from 2022  SemiMod
 # Copyright (C) until 2021  Markus Müller, Mario Krattenmacher and Pascal Kuthe
 # <https://gitlab.com/dmt-development/dmt-device>
 #
@@ -82,7 +82,7 @@ class McParameter(object):
 
     Attributes
     ----------
-    _value   :  np.array([np.float64])
+    _value   :  np.array([float])
         The value of this parameter.
     name     :  string
         The name of the parameter.
@@ -90,9 +90,9 @@ class McParameter(object):
         If True, value==min is allowed.
     inc_max  :  bool
         If True, value==max is allowed.
-    min      :  np.array([np.float64])
+    min      :  np.array([float])
         The minimum boundary of this parameter.
-    max      :  np.array([np.float64])
+    max      :  np.array([float])
         The maximum boundary of this parameter.
     exclude  :  float64
         Optional value that can be excluded as a valid value for value. E.g. if min=-1, max=1, sometimes you might want to exclude 0.
@@ -101,15 +101,15 @@ class McParameter(object):
 
     Parameters
     ----------
-    value : float64
+    value : float
         Value for the parameter. Can also be a other Parameter, then all attributes are copied.
     name : str
         Name of the parameter.
     unit : pint.unit
         Unit of the python Pint package.
-    minval : float64
+    minval : float
         Minimum boundary value of the parameter.
-    maxval : float64
+    maxval : float
         Maximum boundary value of the parameter.
     group  : str
         Display is sorted by groups.
@@ -699,15 +699,15 @@ class McParameterComposition(object):
         """Returns a McParameterComposition with copies of all given parameter names.
 
         Parameters
-        -----------
+        ----------
         parameters  : str, iterable(str) or McParameterComposition
 
         Returns
-        ---------
+        -------
         mcard_collection : McParameterComposition
 
         Raises
-        --------
+        ------
         KeyError
             If the para was not in self.
         """
@@ -743,7 +743,7 @@ class McParameterComposition(object):
         """Set existing paramaters in self.
 
         Parameters
-        -----------
+        ----------
         parameters : McParameter or McParameterCollection
             For each parameter, if it is found in self, it is removed and the given is added. If it is not found, a KeyError is raised.
         update : {True, False}, optional
@@ -752,7 +752,7 @@ class McParameterComposition(object):
             If set to True, the parameter is added if it did not exist.
 
         Raises
-        --------
+        ------
         KeyError
             If the para was not in self.
         """
@@ -789,14 +789,14 @@ class McParameterComposition(object):
         """Sets a dictionary of {'name':value} to the parameters in this collection
 
         Parameters
-        -----------
+        ----------
         dict_parameters : {str: float64}
             For each parameter, if it is found in self, the given value is set.
         force : boolean, optional
             If True, values are force set.
 
         Raises
-        --------
+        ------
         KeyError
             If the para was not in self.
         """
@@ -831,12 +831,12 @@ class McParameterComposition(object):
         """Returns a list of the values of parameters.
 
         Returns
-        -----------
+        -------
         {name:value}
             A dict with the name of the parameter as key and value as value.
 
         Raises
-        --------
+        ------
         KeyError
             If the para was not in self.
         """
@@ -850,12 +850,12 @@ class McParameterComposition(object):
         """Sets a dictionary of {'name':(min, max )} to the parameters in this collection
 
         Parameters
-        -----------
+        ----------
         dict_parameters : {str: (float64, float64)}
             For each parameter, if it is found in self, the given values are set as minimum and maximum.
 
         Raises
-        --------
+        ------
         KeyError
             If the para was not in self.
         """
@@ -874,7 +874,7 @@ class McParameterComposition(object):
         """Returns itself as a dictionary fitting to unpack into a function call.
 
         Returns
-        ---------
+        -------
         dict
             {name: value}
         """
@@ -888,14 +888,14 @@ class McParameterComposition(object):
         """Just some pretty printing
 
         Parameters
-        ------------
+        ----------
         param : list[str], optional
             List of parameter names to print, if not given, all children are returned!
         line_break : str, optional
             Is added after each parameter, can be used as line breaks
 
         Returns
-        --------
+        -------
         str
             String with all parameters.
         """
@@ -919,7 +919,7 @@ class McParameterComposition(object):
         """Prints the parameters into a file. Uses :meth:`print_parameters` to obtain the string to print.
 
         Parameters
-        ------------
+        ----------
         path_to_file : str
             Path to the file to write. '.txt' is added automatically.
         line_break : str, optionally
@@ -945,12 +945,12 @@ class McParameterComposition(object):
         """Load an object from a pickle file.
 
         Parameters
-        -----------
+        ----------
         path : str
             Path to the file to load.
 
         Returns
-        ----------
+        -------
         compostion : McParameterComposition
         """
         if not isinstance(path, Path):
@@ -1020,7 +1020,7 @@ class McParameterComposition(object):
         r"""Removes the given parameter names from the parameter composition.
 
         Parameters
-        -----------
+        ----------
         parameters : str, iterable(str), McParameter or McParameterComposition
 
         """

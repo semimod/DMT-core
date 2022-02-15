@@ -2,7 +2,7 @@
 
 """
 # DMT_core
-# Copyright (C) from 2020  SemiMod
+# Copyright (C) from 2022  SemiMod
 # Copyright (C) until 2021  Markus Müller, Mario Krattenmacher and Pascal Kuthe
 # <https://gitlab.com/dmt-development/dmt-device>
 #
@@ -27,7 +27,7 @@ class DutTypeInt(object):
     """Class for DutType flags. Adds the nodes attribute to an integer value. This allows direct assignment of nodes to a DutType.
 
     Parameters
-    -----------
+    ----------
     value : int
     node  : [str]
         List of nodes.
@@ -54,7 +54,7 @@ class DutTypeInt(object):
         Repeated here just to get rid of the pylint error. The real method is below in the DutType-flag
 
         Returns
-        ----------
+        -------
         nodes  :  list of strings
             List of strings
         """
@@ -64,7 +64,7 @@ class DutTypeInt(object):
         """Return the string that describes this Dut_type.
 
         Returns
-        ----------
+        -------
         string  :  string
             the string that describes this object
         """
@@ -245,7 +245,7 @@ class DutType(Flag):
         Return the nodes that are typically found in this Dut_type. For convenience.
 
         Returns
-        ----------
+        -------
         nodes  :  list of strings
             List of strings
         """
@@ -260,7 +260,7 @@ class DutType(Flag):
         Return the string that describes this Dut_type.
 
         Returns
-        ----------
+        -------
         nodes  :  string
             String that describes this Dut_type.
         """
@@ -283,7 +283,7 @@ class DutType(Flag):
         Ignores the flag_subtype!
 
         Parameters
-        ------------
+        ----------
         other : int, DutTypeInt
         """
         try:

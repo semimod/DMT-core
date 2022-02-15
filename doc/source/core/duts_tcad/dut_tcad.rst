@@ -8,8 +8,7 @@ Submodules
     :maxdepth: 1
     :glob:
 
-    dut_hdev
-    dut_device
+    interfaces/*
 
 Module documentation
 ------------------------------
