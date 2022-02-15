@@ -51,7 +51,6 @@ hdev:
     - wget "https://gitlab.com/metroid120/hdev_simulator/-/jobs/artifacts/master/raw/builddir_docker/hdev?job=build:linux" -O hdev
     - chmod +x hdev
     - export PATH=$PATH:$(pwd)
-    - apt-get -y install libsz2
     # now create the DMT simulation directorr
     - mkdir ~/.DMT
     - mkdir ~/.DMT/simulation_results
