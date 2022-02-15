@@ -17,7 +17,7 @@ Author: Markus Müller       | Markus.Mueller@semimod.de
 Author: Pascal Kuthe        | Pascal.Kuthe@semimod.me
 """
 # DMT_core
-# Copyright (C) from 2020  SemiMod
+# Copyright (C) from 2022  SemiMod
 # Copyright (C) until 2021  Markus Müller, Mario Krattenmacher and Pascal Kuthe
 # <https://gitlab.com/dmt-development/dmt-device>
 #
@@ -82,7 +82,7 @@ class McParameter(object):
 
     Attributes
     ----------
-    _value   :  np.array([np.float64])
+    _value   :  np.array([float])
         The value of this parameter.
     name     :  string
         The name of the parameter.
@@ -90,9 +90,9 @@ class McParameter(object):
         If True, value==min is allowed.
     inc_max  :  bool
         If True, value==max is allowed.
-    min      :  np.array([np.float64])
+    min      :  np.array([float])
         The minimum boundary of this parameter.
-    max      :  np.array([np.float64])
+    max      :  np.array([float])
         The maximum boundary of this parameter.
     exclude  :  float64
         Optional value that can be excluded as a valid value for value. E.g. if min=-1, max=1, sometimes you might want to exclude 0.
@@ -101,15 +101,15 @@ class McParameter(object):
 
     Parameters
     ----------
-    value : float64
+    value : float
         Value for the parameter. Can also be a other Parameter, then all attributes are copied.
     name : str
         Name of the parameter.
     unit : pint.unit
         Unit of the python Pint package.
-    minval : float64
+    minval : float
         Minimum boundary value of the parameter.
-    maxval : float64
+    maxval : float
         Maximum boundary value of the parameter.
     group  : str
         Display is sorted by groups.
