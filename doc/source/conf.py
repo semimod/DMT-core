@@ -13,7 +13,6 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
 import os
-from pathlib import Path
 
 # -- Project information -----------------------------------------------------
 
@@ -45,7 +44,8 @@ extensions = [
     "sphinx.ext.mathjax",
     "sphinx.ext.coverage",
     "sphinx.ext.ifconfig",
-    "sphinx.ext.viewcode",
+    # "sphinx.ext.viewcode",
+    "sphinx.ext.linkcode",
     "sphinx.ext.graphviz",
     "sphinx.ext.autosectionlabel",
     "sphinxcontrib.pdfembed",
@@ -246,3 +246,14 @@ texinfo_documents = [
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = True
+
+# -- Options for linkcode extension ----------------------------------------------
+
+
+def linkcode_resolve(domain, info):
+    if domain != "py":
+        return None
+    if not info["module"]:
+        return None
+    filename = info["module"].replace(".", "/")
+    return f"https://gitlab.com/dmt-development/dmt-core/-/tree/main/{filename:s}.py"

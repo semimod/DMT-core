@@ -1386,7 +1386,6 @@ class Plot(object):
             Build the figure to svg (suited for FrameMaker), by default False
         png : bool, optional
             Build the figure to png.
-        png : bool, optional
         skip_every : callable, optional
             Apply this callable to the lines in the plot and only plot what is returned, by default lambda x:x
         n_ticks_x : int, optional

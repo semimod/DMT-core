@@ -1,4 +1,4 @@
-dut\_ngspice module
+dut\_xyce module
 =======================
 
 .. automodule:: DMT.xyce.dut_xyce
