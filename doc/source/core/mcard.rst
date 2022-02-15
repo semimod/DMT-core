@@ -1,11 +1,6 @@
 mcard module
 ============
 
-Class diagram
--------------------------------
-
-.. graphviz:: ../diagrams/classes_mcard.dot
-
 Module Documentation
 -------------------------
 .. autoclass:: DMT.core.mcard.MCard
