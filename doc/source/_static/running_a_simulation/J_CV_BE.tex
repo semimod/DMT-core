@@ -1,0 +1,214 @@
+\documentclass[class=IEEEtran]{standalone}
+\usepackage{tikz,amsmath,siunitx}
+\usetikzlibrary{arrows,snakes,backgrounds,patterns,matrix,shapes,fit,calc,shadows,plotmarks}
+\usepackage[graphics,tightpage,active]{preview}
+\usepackage{pgfplots}
+\pgfplotsset{compat=newest}
+\usetikzlibrary{shapes.geometric}
+\PreviewEnvironment{tikzpicture}
+\PreviewEnvironment{equation}
+\PreviewEnvironment{equation*}
+\newlength\figurewidth
+\newlength\figureheight
+\begin{document}
+\setlength\figurewidth{60mm}
+\setlength\figureheight{60mm}
+\begin{tikzpicture}[font=\normalsize]
+\pgfplotsset{every axis/.append style={ultra thick},compat=1.5},
+\definecolor{color0}{rgb}{0.00000, 0.39216, 0.00000}
+\definecolor{color1}{rgb}{0.00000, 0.00000, 0.54510}
+\definecolor{color2}{rgb}{0.69020, 0.18824, 0.37647}
+
+\begin{axis}[scale only axis,ytick pos=left,
+width=3in,
+xlabel={$V_{\mathrm{BE}}\left(\si{\volt}\right)$},
+ylabel={$I_{\mathrm{C}}\left(\si{\milli\ampere}\right)$},
+ymode=log,
+xmin=0.7,
+xmax=1,
+restrict x to domain=0.14:5,
+log basis x=10,
+ymin=0.01,
+ymax=100,
+restrict y to domain=-10:10,
+log basis y=10,
+xmajorgrids,
+enlargelimits=false,
+scaled ticks=false,
+ymajorgrids,
+x tick style={color=black},
+y tick style={color=black},
+x grid style={white!69.01960784313725!black},
+y grid style={white!69.01960784313725!black},
+/tikz/mark repeat=1,
+legend style={at={(0.98,0.02)}, anchor=south east,legend cell align=left, align=left},
+]
+\addplot [color=color0, solid, mark=x, mark options={solid}, mark phase=1, ]
+  table[row sep=crcr, x expr=\thisrowno{0}*1.000000e+00, y expr=\thisrowno{1}*1.000000e+03]{
+0.5 1.80639e-08\\
+0.51 2.63886e-08\\
+0.52 3.85387e-08\\
+0.53 5.62658e-08\\
+0.54 8.21192e-08\\
+0.55 1.19808e-07\\
+0.56 1.74723e-07\\
+0.57 2.54696e-07\\
+0.58 3.71093e-07\\
+0.59 5.40396e-07\\
+0.6 7.8648e-07\\
+0.61 1.1439e-06\\
+0.62 1.66263e-06\\
+0.63 2.41486e-06\\
+0.64 3.50476e-06\\
+0.65 5.08248e-06\\
+0.66 7.36121e-06\\
+0.67 1.06546e-05\\
+0.68 1.54062e-05\\
+0.69 2.22549e-05\\
+0.7 3.21173e-05\\
+0.71 4.63085e-05\\
+0.72 6.67132e-05\\
+0.73 9.60261e-05\\
+0.74 0.00013808\\
+0.75 0.000198284\\
+0.76 0.000284178\\
+0.77 0.000406103\\
+0.78 0.000577911\\
+0.79 0.000817588\\
+0.8 0.00114752\\
+0.81 0.00159412\\
+0.82 0.00218643\\
+0.83 0.00295385\\
+0.84 0.00392323\\
+0.85 0.00511616\\
+0.86 0.00654728\\
+0.87 0.00822382\\
+0.88 0.0101462\\
+0.89 0.0123096\\
+0.9 0.0147051\\
+0.91 0.0173211\\
+0.92 0.0201448\\
+0.93 0.0231623\\
+0.94 0.0263597\\
+0.95 0.0297231\\
+0.96 0.0332389\\
+0.97 0.0368942\\
+0.98 0.0406763\\
+0.99 0.0445729\\
+1 0.0485721\\
+};
+\addlegendentry{$V_{\mathrm{BC}}=\SI{-0.50}{\volt}$}
+\addplot [color=color1, solid, mark=+, mark options={solid}, mark phase=1, ]
+  table[row sep=crcr, x expr=\thisrowno{0}*1.000000e+00, y expr=\thisrowno{1}*1.000000e+03]{
+0.5 1.80136e-08\\
+0.51 2.6316e-08\\
+0.52 3.8434e-08\\
+0.53 5.61146e-08\\
+0.54 8.19008e-08\\
+0.55 1.19492e-07\\
+0.56 1.74267e-07\\
+0.57 2.54038e-07\\
+0.58 3.70145e-07\\
+0.59 5.3903e-07\\
+0.6 7.84516e-07\\
+0.61 1.14108e-06\\
+0.62 1.65858e-06\\
+0.63 2.40904e-06\\
+0.64 3.49644e-06\\
+0.65 5.07059e-06\\
+0.66 7.34427e-06\\
+0.67 1.06304e-05\\
+0.68 1.5372e-05\\
+0.69 2.22064e-05\\
+0.7 3.20488e-05\\
+0.71 4.62117e-05\\
+0.72 6.65771e-05\\
+0.73 9.58352e-05\\
+0.74 0.000137814\\
+0.75 0.000197914\\
+0.76 0.000283668\\
+0.77 0.000405407\\
+0.78 0.000576977\\
+0.79 0.000816361\\
+0.8 0.00114596\\
+0.81 0.00159219\\
+0.82 0.00218417\\
+0.83 0.00295136\\
+0.84 0.00392066\\
+0.85 0.00511375\\
+0.86 0.00654528\\
+0.87 0.00822245\\
+0.88 0.0101457\\
+0.89 0.0123098\\
+0.9 0.0147058\\
+0.91 0.0173218\\
+0.92 0.0201443\\
+0.93 0.0231587\\
+0.94 0.0263498\\
+0.95 0.0297021\\
+0.96 0.0331992\\
+0.97 0.0368232\\
+0.98 0.0405517\\
+0.99 0.0443502\\
+1 0.0481583\\
+};
+\addlegendentry{$V_{\mathrm{BC}}=\SI{0.00}{\volt}$}
+\addplot [color=color2, solid, mark=triangle, mark options={solid, rotate=180}, mark phase=1, ]
+  table[row sep=crcr, x expr=\thisrowno{0}*1.000000e+00, y expr=\thisrowno{1}*1.000000e+03]{
+0.5 9.27458e-10\\
+0.51 7.4876e-09\\
+0.52 1.97108e-08\\
+0.53 3.74843e-08\\
+0.54 6.33443e-08\\
+0.55 1.0098e-07\\
+0.56 1.55755e-07\\
+0.57 2.35462e-07\\
+0.58 3.51408e-07\\
+0.59 5.19993e-07\\
+0.6 7.64977e-07\\
+0.61 1.12075e-06\\
+0.62 1.63703e-06\\
+0.63 2.38569e-06\\
+0.64 3.47042e-06\\
+0.65 5.0407e-06\\
+0.66 7.30873e-06\\
+0.67 1.05868e-05\\
+0.68 1.53167e-05\\
+0.69 2.21346e-05\\
+0.7 3.19532e-05\\
+0.71 4.60822e-05\\
+0.72 6.63988e-05\\
+0.73 9.55863e-05\\
+0.74 0.000137462\\
+0.75 0.00019741\\
+0.76 0.000282939\\
+0.77 0.000404337\\
+0.78 0.000575387\\
+0.79 0.000813969\\
+0.8 0.00114233\\
+0.81 0.00158668\\
+0.82 0.00217581\\
+0.83 0.00293882\\
+0.84 0.00390223\\
+0.85 0.00508728\\
+0.86 0.0065082\\
+0.87 0.00817167\\
+0.88 0.0100772\\
+0.89 0.0122182\\
+0.9 0.0145821\\
+0.91 0.0171503\\
+0.92 0.0198959\\
+0.93 0.0227786\\
+0.94 0.0257388\\
+0.95 0.0286968\\
+0.96 0.0315715\\
+0.97 0.0343251\\
+0.98 0.0369758\\
+0.99 0.0395621\\
+1 0.0421177\\
+};
+\addlegendentry{$V_{\mathrm{BC}}=\SI{0.50}{\volt}$}
+\end{axis}
+
+\end{tikzpicture}
+\end{document}

@@ -7,13 +7,18 @@ The code
 
 The generated files
 -------------------
-F_TJ_C.pdf
 
-.. figure:: /_static/F_TJ_C.pdf.png
+.. figure:: /_static/running_a_simulation/J_CV_BE.png
 
-.. literalinclude:: /_static/F_TJ_C.tex
+.. literalinclude:: /_static/running_a_simulation/J_CV_BE.tex
+    :language: latex
+    :linenos:
+    :caption: J_CV_BE.tex
+
+
+.. figure:: /_static/running_a_simulation/F_TJ_C.png
+
+.. literalinclude:: /_static/running_a_simulation/F_TJ_C.tex
     :language: latex
     :linenos:
     :caption: F_TJ_C.tex
-
-
