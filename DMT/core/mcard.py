@@ -640,7 +640,15 @@ class MCard(McParameterComposition):
 
         return NotImplemented
 
-    def load_model(self, path_to_file, force=True):
+    def load_model_parameters(self, path_to_file, force=True):
+        """deprecated method, will be removed soon. See load_model_parameters for documentation."""
+        warnings.warn(
+            "load_model is deprecated and will be renamed in future major releases to load_model_parameters.\n",
+            category=DeprecationWarning,
+        )
+        self.load_model_parameters(self, path_to_file, force=force)
+
+    def load_model_parameters(self, path_to_file, force=True):
         """Loads the model from a file
 
         The loading method is determined according to the file ending (last 3 characters!!)

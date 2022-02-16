@@ -15,7 +15,7 @@ modelcard = MCard(
     default_subckt_name="",
     va_file=path_test / "test_interface_xyce" / "hicuml2v2p4p0_xyce.va",
 )
-modelcard.load_model(
+modelcard.load_model_parameters(
     path_test / "test_core_no_interfaces" / "test_modelcards" / "npn_full.lib",
 )
 modelcard.update_from_vae(remove_old_parameters=True)

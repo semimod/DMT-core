@@ -38,7 +38,7 @@ def test_run_sim():
     mcard = MCard(
         ["A"], "Q_HIC", "hicuml2va", va_file=Path(__file__).parent / "hicumL2V2p4p0_release.va"
     )
-    mcard.load_model(
+    mcard.load_model_parameters(
         Path(__file__).parent / "test_modelcards" / "IHP_ECE704_03_para_D21.mat",
     )
 

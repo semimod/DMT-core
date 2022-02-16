@@ -183,7 +183,7 @@ def get_dut_build_in():
     )
     modelcard.default_module_name = SGP_BJT
     modelcard.get_circuit = types.MethodType(get_circuit, modelcard)
-    modelcard.load_model(Path(__file__).resolve().parent / "bjt.lib")
+    modelcard.load_model_parameters(Path(__file__).resolve().parent / "bjt.lib")
     return DutXyce(
         None,
         DutType.npn,
@@ -205,7 +205,7 @@ def get_dut_va():
         va_file=Path(__file__).resolve().parent / "sgp_v1p0.va",
     )
     modelcard.get_circuit = types.MethodType(get_circuit, modelcard)
-    modelcard.load_model(Path(__file__).resolve().parent / "bjt.lib")
+    modelcard.load_model_parameters(Path(__file__).resolve().parent / "bjt.lib")
     return DutXyce(
         None,
         DutType.npn,

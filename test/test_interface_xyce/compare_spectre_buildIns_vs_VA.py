@@ -43,7 +43,7 @@ def get_spg_mc():
     modelcard.get_circuit = types.MethodType(
         get_circuit, modelcard
     )  # we need to bind here, this is a little tricky -.-
-    modelcard.load_model("test/test_interface_xyce/bjt.lib")
+    modelcard.load_model_parameters("test/test_interface_xyce/bjt.lib")
 
     # modelcard.set_values(
     #     {"is": 1e-16,}

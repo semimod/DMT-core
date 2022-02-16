@@ -55,6 +55,7 @@ hdev:
     - mkdir -p ~/.DMT/simulation_results
     # run many test
     - python HdevPy/scripts/run_tests.py
+    - pytest test/test_interface_hdev/test_*.py
   only:
     - main
     - pre-main

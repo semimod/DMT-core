@@ -210,7 +210,14 @@ class VAFile(object):  # Add Node feature
 
         path_to_main_code = path_to_own_folder / self.root
 
-        self.files[self.root] = VACode(code=path_to_main_code.read_text())  # be safe
+        try:
+            self.files[self.root] = VACode(code=path_to_main_code.read_text())  # be safe
+        except FileNotFoundError as e:
+            va_files = path_to_own_folder.glob("*.va")
+            va_files = [str(va_file) for va_file in va_files]
+            va_files = "\n" + "\n".join(va_files)
+            errmsg = e.strerror + e.filename + " . Verilog-A files in this folder:" + va_files
+            raise FileNotFoundError(errmsg)
 
         for file, code in verilogae.export_vfs(str(path_to_main_code)).items():  # type: ignore
             self.files[file[1:]] = VACode(code=code)

@@ -1,11 +1,12 @@
 ---
-title: 'DMT: A Python toolkit for electrical engineers'
+title: 'DMT-core: A Python Toolkit for Semiconductor Device Engineers'
 tags:
-  - Python
-  - electrical engineering
-  - modeling
-  - measurement data
   - circuit simulation
+  - compact modeling
+  - electrical engineering
+  - measurement data
+  - open source
+  - Python
   - TCAD simulation
 authors:
   - name: Mario Krattenmacher^[co-first author] # note this makes a footnote saying 'co-first author'
@@ -16,10 +17,12 @@ authors:
     affiliation: "1, 2"
   - name: Pascal Kuthe^[corresponding author]
     affiliation: "1, 2"
+  - name: Michael Schröter
+    affiliation: "1, 2"
 affiliations:
  - name: CEDIC, TU Dresden, 01062 Dresden, Germany
    index: 1
- - name: SemiMod UG (h.b.), 01159 Dresden, Germany
+ - name: SemiMod GmbH, 01159 Dresden, Germany
    index: 2
 date: 20 February 2022
 bibliography: paper.bib
@@ -27,60 +30,111 @@ bibliography: paper.bib
 
 # Statement of need
 
-Currently most electrical device modeling is done using proprietary software which results in non reproducible procedures and parameters. Device Modeling Toolkit (`DMT`) aims to fill this gap by offering a standard library of tools to obtain simulation and measurement data to be prepared for standardized and reproducible parameter extraction procedures.
+Semiconductor device engineers are faced by a number of non-trivial tasks that can only be solved efficiently using software. 
+These tasks comprise, amongst others, data analysis, visualization and processing, as well as interfacing (different) circuit simulators, TCAD (Technology-Computer-Aided-Design). 
+Different hardly documented, but ultimately similar scripts are often employed for solving above-mentioned tasks.
+It is not uncommon that fundamental concepts of software engineering, such as TDD (Test-Driven-Development) [@Shull2010] or the use of state-of-the-art version control tools and practices (Git, CI), are not adhered to by these scripts. 
+This causes severe in-efficiencies w.r.t. to money and time.
 
-NOTE: mhm we should also make the extraction module public (but maybe later ??)
+The issues can be summarized as follows:
+
+* The analysis/visualization/generation of data becomes difficult to re-produce
+* Device engineers work far from their maximum work-efficiency, as they are hindered, instead of empowered, by the used software infrastructure.
+* Knowledge build-up for decades may fade away when people leave a given company or institute
+
+Device Modeling Toolkit (`DMT`) aims to bring an end to this far from ideal situation. 
+`DMT` provides a Python library that offers 
+
+* classes and methods relevant for day-to-day device engineering tasks, 
+* several abstract base classes useful for implementing new interfaces, e.g. to circuit simulators and 
+* concrete implementations of the abstract base classes for open-source simulators such as Ngspice [@Vogt2022], Xyce [@Keiter2021] or Hdev [@Hdev].
+
+In the future, it is planed to also offer some infrastructure for compact model parameter extraction.
+Basic principles of software engineering, such as unit testing, version control and a well maintained documentation are provided, so that others can also use and contribute to the software. 
 
 # Summary
 
-`DMT` offers a set of basic classes which are either used directly or intended to be subclassed.
+`DMT` is implemented as a toolkit that heavily leverages principles ob object-oriented software design. Its Git project contains documentation, CI jobs that execute 
+unit and integration tests and also creates ready to install wheel files.  This enables a large community of engineers to install, use and contribute. 
 
-Data inside `DMT` is stored in  `DataFrame` objects. This class is derived from `pandas.DataFrame` [@pandas] to utilize its speed and existing indexing logic. `DMT` enhances this class by routines from `scikit-rf` [@scikit-rf] and own routines to calculate electrical charateristics. Correct naming of the frame columns is enabled by a `DMT` specfic naming scheme using standardized specifiers. This allows to easily and transferable handle data independent from the source.
+Data inside `DMT` is stored using `DataFrame` objects. 
+These are derived from the `pandas.DataFrame` [@McKinney2010] class, ideally suited to process and analyze large amounts of data. 
+`DMT` extends this class with several useful data-processing methods that are particularly useful for electrical quantities such as currents, voltages and charges. 
+Some of these methods are based on routines in `scikit-rf` [@Arsenovic2022]. 
 
-This data can be obtained from simulation or measurement of either single devices or full electrical circuits. For this `DMT` offers different `DutView` (Device Unter Test) subclasses. In `DutView` common properties of devices are stored and a database access is offered to safely store and load data on the hard drive. The subclasses enhance these possibilities by:
+Data may come from diverse sources like measurements or circuit simulations. 
+A central problem is the naming of columns in the data, which should be consistent throughout the code. 
+For example, some people might abbreviate the collector current of a bipolar transistor as $\textbf{I\_C}$, while others might write $\textbf{IC}$ instead. 
+This may lead to major confusion when exchanging data and code with others.
+`DMT` implements a bullet-proof grammar for naming electrical quantities for solving this problem. 
+During data import all data columns are translated to this grammar. 
 
-* `DutMeas` allows reading, storing and accessing of measurement data
-* `DutCircuit` is an abstract interface for circuit simulators. The interface is implemented for
-  * Xyce [@xyce] in `DutXyce` and
-  * [ngspice](http://ngspice.sourceforge.net) in `DutNgspice`
-* `DutTCAD` is an abstract interface for TCAD device simulators. The interface is implemented for
-  * Hdev [@hdev] in `DutHdev`
+`DMT` offers classes and methods which can be used either directly or need to be subclassed, i.e. for creating interfaces to circuit simulators. 
 
-More simulators are easy to implement and can later be used as drop in replacements for the given simulators. This is possible because `DMT` interfaces the simulators by calling them with a generated input file and reading the results into a `DataFrame`. This way only these two steps have to be implemented to allow to use a different simulator (see \autoref{fig:interface}).
+The base class offered by `DMT` to represent devices is called `DutView` (Device-Under-Test). 
+This abstract class provides common attributes and methods for devices that represent measurements, circuit simulations or TCAD simulations. 
+There are several subclasses that further add logic:
+
+* `DutMeas` represents a DUT that is based on measured data.
+* `DutCircuit` is an abstract class that represent a DUT based on circuit simulation. In DMT-core the interface is implemented for:
+  * Xyce [@Keiter2021] in `DutXyce` and
+  * Ngspice [@Vogt2022] in `DutNgspice`
+* `DutTCAD` is an abstract class that represents a DUT based on TCAD simulation. The interface is implemented for:
+  * Hdev [@Hdev] in `DutHdev`
+
+The interface to other simulators, i.e. proprietary ones, is straight forward to implement.
+All simulators can be used as drop-in replacements for each other. 
+There are two necessary steps that need to be implemented for each simulator. 
+First, a routine for generating the simulator input file must be implemented. Second, an import routine that returns a `DataFrame` must be provided. 
+This is illustrated in \autoref{fig:interface}. 
 
 ![TODO!! DMT interfacing a circuit simulator.\label{fig:interface}](DMT-interface.png){width=50%}
 
 ![Alternative: DMT interfacing a circuit simulator.\label{fig:interface2}](simulation_interface.png){width=50%}
 
-Mutliple `DutView` objects can be collected in a `DutLib` to be handled collectivly. This is usefull for technology charateriziations and model extractions, since in there processes many different devices are measured and then processes in parallel and dependent on each other.
+Often one needs to handle many different devices, e.g. transistors with different geometry on a given test chip. 
+For this purpose the `DutLib` class offers a "container" for `DutView` objects, e.g. to store measurement data of one wafer. 
+A typical use case is the read-in of measurement data generated for a given technology, including specific test structures and transistors. 
 
-The simulations of circuit and TCAD simulators are managed together in the `SimCon` class. This allows to call many simulations in parallel and utilize the high core count of many modern computers, although the simulators are often still single threaded. Also the simulations can be easily compared, because both circuit and TCAD simulations consists of two parts, one is the device, which is described by a `DutView`, and secondly the operation condition. The operation condition consists of for example ambient temperature and applied voltages to the dut contacts. These conditions are swept inside of a simulation and hence `DMT` offers the class `Sweep` to describe the conditions in python.
+Simulations of circuit and TCAD simulators are managed by the `SimCon` class.
+It allows to run many simulations in parallel and utilize the high core count many modern computers. 
+Each simulation requires one `DutView` object that defines either a circuit or TCAD simulation, as well as the definition of a sweep for changing the operating point. 
+The definition of sweeps, i.e. the sweep of voltages or currents, is controlled by objects of the `Sweep` class. 
+`SimCon` generates a hash for every simulation so that simulations need not be run when the software is called multiple times, provided the simulation (and therefore the hash) have not changed.
 
-To make the electrical circuit description in `DMT` transferable from one `DutCircuit` to another, the `Circuit` class offers a strongly type tested way. The type testing is done there to ease the implementation of the interfaces. This reduces the number of possibilities of circuit topologies, but since `DMT` focuses on single devices or small circuits this trade off was chosen.
+Another important class is `MCard`. It is useful to store the model parameters of compact models that are defined within Verilog-A files. 
+It implements a container to store all those parameters, including information on parameter boundaries that is directly obtained from Verilog-A source files. 
+This feature leverages the VerilogAE tool [@Kuthe2020a].
+`MCard` can interpret Verilog-A model codes, save and load lists of model parameters and also be used to define elements in the `Circuit` class used for defining circuit simulations. 
 
-This leads to the final feature `DMT` offers. As many device models have a defined set of model parameters each with special valid ranges `MCard` allows the easy handling of the model parameters. It can read model codes, carry, save and load a list of parameters and finally be used as `Circuit` elements in circuit simulations. The parameters inside a `MCard` are always valid and can be limited to be in the valid range. These parameters can be used later in parameter extraction procedures which often are badly conditioned numerical optimizations.
+Finally, `DMT` implements the `Plot` class for displaying electrical data using different back-ends: 
 
-Finally, for an everyday use of model engineers, `DMT` implements `Plot` to easily display device characteristics using different back-ends. The Back-ends range from `matplotlib` or `pyqtgraph` for direct to `LaTeX:pgfplots` for saving and using the plots in technical documentations or scientific publications.
+* `matplotlib` for interactive plots
+* `pyqtgraph` for plots to be used in GUI applications 
+* `LaTeX:pgfplots` for TeX based technical documentation or scientific publications
 
-# Mentioned
+# Related Publications
 
-The DMT project is already used internally by CEDIC in research and SemiMod in production. Furthermore DMT has been used by selected partners for their work.
+`DMT` is used internally by CEDIC staff in research and by SemiMod for commercial purposes. It has also been used by cooperating institutions and companies. 
+The project has been used in the following publications:
 
-The project is mentioned in the following papers
+* [@Muller2021]: TCAD simulations and plotting.
+* [@Phillips2021]: Model parameter extraction and TCAD simulation.
+* [@Weimer2021]: Circuit simulations.
+* [@Muller2021a]: Circuit and TCAD simulations.
+* [@Muller2020c]: Model parameter extraction.
 
-* [@weimer]
-* There was a conference paper from Wladek (or someone else) where he said: If they release others can shut down ??
-* others?
+`DMT` has been mentioned in [@Grabinski2019,@Kuthe2020a,@Muller2019a,@Muller2021b].
 
-# Related projects
+# Related Projects
 
-DMT uses two other open source projects in order to handle Verilog-AMS files for models
+`DMT` directly uses 
+the [VerilogAE tool](https://man.sr.ht/~dspom/openvaf_doc/verilogae/) [@Kuthe2020a] for accessing all information in Verilog-AMS files. 
+The TCAD simulator [Hdev](https://gitlab.com/metroid120/hdev_simulator) [@Hdev] uses the class `DutHdev` as its Python interface.
 
-* DMT uses [verilogae](https://man.sr.ht/~dspom/openvaf_doc/verilogae/) [@verilogae] to access data in Verilog-AMS files. Verilog-AMS is a standardized programming language for device models. verilogae is used so the implemented model can be used simulataniously in DMT and also in circuit simulation. The circuit simulation is possible for example using the [Xyce](https://xyce.sandia.gov/) [@xyce] interface DutXyce.
-* DMT is used as a front end for the open-source TCAD device simulator [Hdev](https://gitlab.com/metroid120/hdev_simulator) [@hdev]. DutHdev implements the input generation, simulation call and result reading. The results then can be used in further calculations and plotted using the DMT plot tools.
+# Acknowledgements 
 
-# Acknowledgements (TODO)
-
-We acknowledge contributions from Christoph Weimer and Prof. Schröter
+This project would not have been possible without our colleagues Dipl.-Ing. Christoph Weimer and Dr.-Ing. Yves Zimmermann. 
+We particularly acknowledge Wladek Grabinski for his efforts to promote the use of open source software in the semiconductor industry.
 
 # References
