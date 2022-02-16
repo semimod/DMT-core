@@ -26,6 +26,8 @@ import zlib, base64
 from typing import Union, Callable
 from pathlib import Path
 import verilogae
+from os import listdir
+from os.path import isfile, join
 
 from DMT.core import create_md5_hash
 
@@ -210,7 +212,13 @@ class VAFile(object):  # Add Node feature
 
         path_to_main_code = path_to_own_folder / self.root
 
-        self.files[self.root] = VACode(code=path_to_main_code.read_text())  # be safe
+        try:
+            self.files[self.root] = VACode(code=path_to_main_code.read_text())  # be safe
+        except FileNotFoundError as e:
+            va_files = [f for f in listdir(path_to_own_folder) if isfile(join(path_to_own_folder, f)) and f.endswith(".va")]
+            va_files = "\n" + "\n".join(va_files)
+            errmsg = e.strerror + e.filename + " . VerilogA files in this folder:" + va_files
+            raise FileExistsError(errmsg)
 
         for file, code in verilogae.export_vfs(str(path_to_main_code)).items():  # type: ignore
             self.files[file[1:]] = VACode(code=code)
