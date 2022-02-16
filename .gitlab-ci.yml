@@ -51,11 +51,12 @@ hdev:
     - wget "https://gitlab.com/metroid120/hdev_simulator/-/jobs/artifacts/master/raw/builddir_docker/hdev?job=build:linux" -O hdev
     - chmod +x hdev
     - export PATH=$PATH:$(pwd)
-    # now create the DMT simulation directorr
+    # now create the DMT simulation directory
     - mkdir ~/.DMT
     - mkdir ~/.DMT/simulation_results
-    # run many test
+    # run a test
     - python HdevPy/scripts/run_tests.py
+    - pytest test/test_interface_hdev/test_*.py
   only:
     - main
     - pre-main
