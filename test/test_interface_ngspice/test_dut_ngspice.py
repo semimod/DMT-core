@@ -172,7 +172,7 @@ def test_ngspice():
         / "test_core_no_interfaces"
         / "hicumL2V2p4p0_release.va",
     )
-    mc_D21.load_model(
+    mc_D21.load_model_parameters(
         Path(__file__).resolve().parent.parent
         / "test_core_no_interfaces"
         / "test_modelcards"

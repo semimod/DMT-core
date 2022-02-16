@@ -179,7 +179,7 @@ def get_dut_build_in():
         default_subckt_name="",
         va_file=Path(__file__).resolve().parent / "hicuml2v2p4p0_xyce.va",
     )
-    modelcard.load_model(
+    modelcard.load_model_parameters(
         Path(__file__).resolve().parent.parent
         / "test_core_no_interfaces"
         / "test_modelcards"
@@ -206,7 +206,7 @@ def get_dut_va():
         default_subckt_name="",
         va_file=Path(__file__).resolve().parent / "hicuml2v2p4p0_xyce.va",
     )
-    modelcard.load_model(
+    modelcard.load_model_parameters(
         Path(__file__).resolve().parent.parent
         / "test_core_no_interfaces"
         / "test_modelcards"

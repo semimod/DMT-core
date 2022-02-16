@@ -70,7 +70,7 @@ def test_mcard_load_compare():
         default_module_name="",
         default_subckt_name="",
     )
-    mc_D21.load_model(
+    mc_D21.load_model_parameters(
         Path(__file__).resolve().parent / "test_modelcards" / "IHP_ECE704_03_para_D21.mat",
     )
     mc_N5 = MCard(
@@ -78,7 +78,7 @@ def test_mcard_load_compare():
         default_module_name="",
         default_subckt_name="",
     )
-    mc_N5.load_model(
+    mc_N5.load_model_parameters(
         Path(__file__).resolve().parent / "test_modelcards" / "ITRS_N5.mat",
     )
     assert mc_N5 != mc_D21
