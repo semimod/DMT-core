@@ -61,7 +61,7 @@ class DataProcessor(object):
     """
 
     def fix_z0_shape(self, z0, nfreqs, nports):
-        """#stolen from scikit rf
+        """
         Make a port impedance of correct shape for a given network's matrix
 
         This attempts to broadcast z0 to satisfy
@@ -87,7 +87,7 @@ class DataProcessor(object):
             z0  with the right shape for a nport Network
 
         Examples
-        ----------
+        --------
         For a two-port network with 201 frequency points, possible uses may
         be
 
@@ -120,7 +120,7 @@ class DataProcessor(object):
             raise IndexError("z0 is not an acceptable shape")
 
     def s2y(self, s_in, z0=50):
-        """#stolen from scikit-rf
+        """
         convert scattering parameters [#]_ to admittance parameters [#]_
 
 
@@ -187,7 +187,7 @@ class DataProcessor(object):
         return y
 
     def s2z(self, s_in, z0=50):
-        """#stolen from scitkit-rf
+        """
         Convert scattering parameters [1]_ to impedance parameters [2]_
 
 
@@ -307,9 +307,9 @@ class DataProcessor(object):
         elif p_from == "A":
             if p_to == "Y":
                 para_new = self.a2y(para_values)
-            if p_to == "S":
+            elif p_to == "S":
                 para_new = rf.network.a2s(para_values, z0)
-            if p_to == "Z":
+            elif p_to == "Z":
                 raise NotImplementedError
 
         else:
@@ -337,6 +337,7 @@ class DataProcessor(object):
         h = np.zeros(y.shape, dtype="complex")
         for fidx in range(y.shape[0]):
             det_y = np.linalg.det(y[fidx, :, :])
+
             h[fidx, 0, 0] = 1
             h[fidx, 1, 1] = det_y
             h[fidx, 0, 1] = -y[fidx, 0, 1]
@@ -374,7 +375,6 @@ class DataProcessor(object):
             Normalized S-para-values
 
         """
-
         # create Y para from S para
         y_para_values = self.convert_n_port_para(
             s_para_values, "S", "Y"
@@ -501,7 +501,7 @@ class DataProcessor(object):
         if col_vb and col_ib:
             vb = df[col_vb].to_numpy()
             ib = df[col_ib].to_numpy()
-            # vb_dif      = [i * mres['R_BM'] for i in ib]
+            # vb_dif      = [i * mres["R_BM"] for i in ib]
             vb_dif = ib * mres["R_BM"]
             df[col_vb] = vb - vb_dif
 
@@ -515,7 +515,7 @@ class DataProcessor(object):
             ve = df[col_ve].to_numpy()
             # ie = [sum(i) for i in zip(ic, ib)]
             ie = ib + ic
-            # ve_dif      = [i * mres['R_EM'] for i in ie]
+            # ve_dif      = [i * mres["R_EM"] for i in ie]
             ve_dif = ie * mres["R_EM"]
             df[col_ve] = ve + ve_dif
 
@@ -617,12 +617,6 @@ class DataProcessor(object):
 
         # calculate ft = f / im( Y(1,1)/Y(2,1) ) element-wise for every frequency
         return freq / np.imag(y_para_values[:, 0, 0] / y_para_values[:, 1, 0])
-
-        # GUMMEL METHOD
-        # h_para_values  =  self.convert_n_port_para(para_values, p_type, 'H')
-
-        # #calculate ft = f / im( Y(1,1)/Y(2,1) ) element-wise for every frequency
-        # return  freq * 1 / np.imag(1 /  h_para_values[:,1,0] )
 
     def calc_tfit1(self, freq, para_values, p_type):
         """Calculate the transit frequency F_T using the spot frequency method.
@@ -920,8 +914,8 @@ class DataProcessor(object):
         if vb_forced is not None and vc_forced is not None:
             vbc_forced = vb_forced - vc_forced
             # V_BC or V_C forced?
-            vc_forced_unique = np.unique(np.round(vc_forced, decimals=2))
-            vbc_forced_unique = np.unique(np.round(vbc_forced, decimals=2))
+            vc_forced_unique = np.unique(np.round(vc_forced, decimals=3))
+            vbc_forced_unique = np.unique(np.round(vbc_forced, decimals=3))
             vbc_unique = vbc_forced_unique.size < vc_forced_unique.size
             if vbc_unique:
                 v_outer_unique = vbc_forced_unique
@@ -931,12 +925,17 @@ class DataProcessor(object):
                 v_outer = vc_forced
 
             for v_out in v_outer_unique:
-                indices = np.isclose(v_outer, v_out, rtol=1e-3, atol=4e-3)
+                indices = np.isclose(v_outer, v_out, rtol=1e-3, atol=4.99e-3)
                 vb_unique, indicies_unique, unique_inverse = np.unique(
                     vb_forced[indices], return_index=True, return_inverse=True
                 )
-                ic_unique = ic[indices][indicies_unique]
-                res = np.gradient(np.log(np.abs(ic_unique)), vb_unique, edge_order=2) * ic_unique
+                sorted_indices = np.argsort(vb_unique)
+                ic_unique = ic[indices][indicies_unique][sorted_indices]
+                res = np.empty_like(ic_unique)
+                res[sorted_indices] = (
+                    np.gradient(np.log(np.abs(ic_unique)), vb_unique[sorted_indices], edge_order=2)
+                    * ic_unique
+                )
                 gm[indices] = res[unique_inverse]
 
         elif vc_forced is None and vb_forced is None:
@@ -959,4 +958,4 @@ class DataProcessor(object):
                 "DMT data_processor -> combination of arguments not yet implemented."
             )
 
-        return np.where(gm < 0.0, np.nan, gm)
+        return np.where(gm <= 0.0, np.nan, gm)

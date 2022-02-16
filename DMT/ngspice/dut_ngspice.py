@@ -835,7 +835,7 @@ class DutNgspice(DutCircuit):
             if isinstance(circuit_element.parameters, MCard):
                 str_temp = "+ "
 
-                if circuit_element.element_type in ["hicuml2va", HICUML2_HBT]:
+                if circuit_element.element_type in ["hicumL2va", HICUML2_HBT]:
                     mcard = circuit_element.parameters
                     str_instance_parameters = ""
                     str_model_parameters = ""

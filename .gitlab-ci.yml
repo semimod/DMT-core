@@ -29,7 +29,7 @@ before_script:
   - pip install -e .
 
 run_core:
-  stage: test
+  stage: build
   script:
     - source /venv/bin/activate
     - pytest test/test_core_no_interfaces/
@@ -40,7 +40,7 @@ run_core:
     - pre-main
 
 hdev:
-  stage: test
+  stage: build
   script:
     - source /venv/bin/activate
     - git clone https://gitlab.com/metroid120/hdev_simulator.git
@@ -52,9 +52,8 @@ hdev:
     - chmod +x hdev
     - export PATH=$PATH:$(pwd)
     # now create the DMT simulation directory
-    - mkdir ~/.DMT
-    - mkdir ~/.DMT/simulation_results
-    # run a test
+    - mkdir -p ~/.DMT/simulation_results
+    # run many test
     - python HdevPy/scripts/run_tests.py
     - pytest test/test_interface_hdev/test_*.py
   only:
@@ -62,7 +61,7 @@ hdev:
     - pre-main
 
 format:
-  stage: build
+  stage: test
   script:
     - source /venv/bin/activate
     - black --check --diff -v .
@@ -71,7 +70,7 @@ format:
     - pre-main
 
 coverage:
-  stage: build
+  stage: test
   script:
     - source /venv/bin/activate
     - pytest --cov=DMT/ test/test_core_no_interfaces/

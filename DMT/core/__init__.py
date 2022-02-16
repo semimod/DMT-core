@@ -106,26 +106,25 @@ from .tikz_postprocess import TikzPostprocess
 # Data management and processing
 try:
     from .data_processor_pyx import DataProcessor
+
+    print("Using the pyx data-processor")
 except ImportError:
     from .data_processor_py import DataProcessor
+
+    print("Using the py data-processor")
 
 from .data_frame import DataFrame
 from .sweep import Sweep, SweepDef
 from .database_manager import DatabaseManager
-
-# try:
-#     from .data_reader_pyx     import read_data, read_ADS_bin, read_DEVICE_bin, read_elpa, read_mdm, read_hdf
-# except ImportError:
-if True:
-    from .data_reader_py import (
-        read_data,
-        read_ADS_bin,
-        read_DEVICE_bin,
-        read_elpa,
-        read_mdm,
-        read_hdf,
-        read_feather,
-    )
+from .data_reader_py import (
+    read_data,
+    read_ADS_bin,
+    read_DEVICE_bin,
+    read_elpa,
+    read_mdm,
+    read_hdf,
+    read_feather,
+)
 
 
 # Simulation management

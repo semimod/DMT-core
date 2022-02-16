@@ -1,3 +1,4 @@
+from datetime import datetime
 import numpy as np
 from pathlib import Path
 from DMT.core import read_data, DataFrame, specifiers
@@ -242,6 +243,7 @@ def test_cap_extraction_common_collector_reversed():
 if __name__ == "__main__":
     from DMT.core import Plot
 
+    time_start = datetime.now()
     test_cap_extraction_common_emitter()
     test_cap_extraction_common_emitter_reverse()
     test_cap_extraction_common_base()
@@ -249,6 +251,7 @@ if __name__ == "__main__":
     test_cap_extraction_common_collector()
     test_cap_extraction_common_collector_reversed()
     df_deemb = test_data_processor_and_deem()
+    print("Runtime: " + str(datetime.now() - time_start))
     # plot the result
     plt_cbe = Plot("C_BE(V_BE)", style="bw")
     for freq_a in [1e9, 5e9, 10e9]:
