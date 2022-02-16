@@ -7,10 +7,10 @@ Module Documentation
     :show-inheritance:
     :members:
 
-    .. automethod:: __eq__(self, other)
-
 .. autoclass:: DMT.core.mcard.McParameter
     :show-inheritance:
+    :members:
 
 .. autoclass:: DMT.core.mcard.McParameterComposition
     :show-inheritance:
+    :members:

@@ -21,21 +21,34 @@
 # dirty: check which modules available
 
 from importlib import util
+import semver
 
-core_exists = util.find_spec("DMT.core") is not None
-extraction_exists = util.find_spec("DMT.extraction") is not None
+core_exists = True  # always, without DMT is not possible
+try:
+    from DMT import extraction
 
-# if core_exists and not extraction_exists:
-#     mode = "free version"
-# elif core_exists and extraction_exists:
-#     mode = "all"
+    extraction_exists = True
+except ImportError:
+    extraction_exists = False
+
+
+if core_exists and not extraction_exists:
+    mode = "free version"
+elif core_exists and extraction_exists:
+    mode = "all"
 
 print("-----------------------------------------------------------------------")
-print("DMT Copyright (C) 2020 Markus Müller, Mario Krattenmacher, Pascal Kuthe")
+print("DMT Copyright (C) 2022 SemiMod")
 print("This program comes with ABSOLUTELY NO WARRANTY.")
 print("DMT_core is free software, and you are welcome to redistribute it.")
-print("DMT_other is free for non-commercial use, see LICENSE.md. ")
+if extraction_exists:
+    print("DMT_other is free for non-commercial use, see LICENSE.md. ")
 print("-----------------------------------------------------------------------")
+__version__ = semver.VersionInfo(major=1, minor=3, patch=0, prerelease="rc.1")
+
+# to get the next version:
+# __version__,next_version(x) - with x = "major", "minor", "patch", "prerelease"
+
 
 name = "core"
 
@@ -105,7 +118,7 @@ from .tikz_postprocess import TikzPostprocess
 
 # Data management and processing
 try:
-    from .data_processor_pyx import DataProcessor
+    from .data_processor_pyx import DataProcessor  # type: ignore
 
     print("Using the pyx data-processor")
 except ImportError:

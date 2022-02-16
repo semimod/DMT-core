@@ -64,66 +64,6 @@ SEMVER_MCPARAMETER_CURRENT = VersionInfo(major=1, minor=0)
 SEMVER_MCPARAMETER_COMPOSITION_CURRENT = VersionInfo(major=1, minor=0)
 
 
-class _Exclude(object):
-    def __init__(self, values: Union[float, int, str]):
-        self.value = None
-        self.inc_min = True
-        self.inc_max = True
-        self.value_min = None
-        self.value_max = None
-
-        if isinstance(values, (float, int)):
-            self.value = values
-        elif ":" not in values:
-            values = float(values)
-            if values == int(values):
-                self.value = int(values)
-            else:
-                self.value = values
-        else:
-            # must be (val:val) or [val:val] or combination of brackets
-            values = values.strip()  # be save
-            if values[0] == "(":
-                self.inc_min = False
-            if values[-1] == ")":
-                self.inc_max = False
-            values = values[1:-1]  # cut away the brackets
-            values = [float(val) for val in values.split(":")]  # type: ignore
-
-            for i_val, val in enumerate(values):  # type: ignore
-                if val == int(val):
-                    values[i_val] = int(val)  # type: ignore
-
-            self.value_min = values[0]  # type: ignore
-            self.value_max = values[1]  # type: ignore
-
-    def check(self, value_check: Union[float, int]):
-        if self.value_min is None:
-            return value_check == self.value
-
-        if self.inc_min and value_check < self.value_min:
-            return False
-        elif not self.inc_min and value_check <= self.value_min:
-            return False
-
-        if self.inc_max and value_check > self.value_max:
-            return False
-        elif not self.inc_max and value_check >= self.value_max:
-            return False
-
-        return True
-
-    def __str__(self) -> str:
-        if self.value_min is None:
-            return f"{self.value:.5g}"
-
-        text = "[" if self.inc_min else "("
-        text += f"{self.value_min:.5g}:{self.value_max:.5g}"
-        text += "]" if self.inc_min else ")"
-
-        return text
-
-
 class McParameter(object):
     """Objects of this class represent a model card parameter. If you want to store many of them, see McParameterComposition class.
 
@@ -142,7 +82,7 @@ class McParameter(object):
     max      :  Union[float, int]
         The maximum boundary of this parameter.
     exclude  :  Optional[List[Union[float, int]]]
-        Optional value that can be excluded as a valid value for value. E.g. if min=-1, max=1, sometimes you might want to exclude 0.
+        Optional list of values that can be excluded as a valid value for value. E.g. if min=-1, max=1, sometimes you might want to exclude 0.
     val_type : Type[Union[int, float]]
         The type of the value.
     description : str
@@ -169,7 +109,7 @@ class McParameter(object):
     inc_max  :  bool
         If True, value==max is allowed.
     exclude  :  Optional[List[Union[float, int]]]
-        Optional value that can be excluded as a valid value for value. E.g. if min=-1, max=1, sometimes you might want to exclude 0.
+        List of values that are excluded as a valid value for value. E.g. if min=-1, max=1, sometimes you might want to exclude 0.
     description : str
         Description of the parameter
 
@@ -195,7 +135,7 @@ class McParameter(object):
         value_type=float,
         inc_min: bool = True,
         inc_max: bool = True,
-        exclude: Optional[List[Union[float, int]]] = None,
+        exclude: Union[List[Union[float, int]], float, int, None] = None,
         group: str = "",
         unit=unit_registry.dimensionless,
         description: str = "",
@@ -252,11 +192,7 @@ class McParameter(object):
         else:
             str_type = str(self._val_type)  # make it reprable always...
 
-        str_exclude = (
-            "None"
-            if self.exclude is None
-            else "[" + ";".join(f"{excluded:g}" for excluded in self.exclude) + "]"
-        )
+        str_exclude = "[" + ";".join(f"{excluded:.5g}" for excluded in self.exclude) + "]"
 
         return (
             "McParameter("
@@ -283,7 +219,7 @@ class McParameter(object):
 
     def dict_json(
         self,
-    ) -> dict[str, Union[float, int, str, bool, None, List[Union[float, int, object]]]]:
+    ) -> dict[str, Union[float, int, str, bool, None, List[Union[float, int]]]]:
         """Returns a compact formatted json dump of this parameter"""
 
         if self._val_type == int:
@@ -298,11 +234,7 @@ class McParameter(object):
         except AttributeError:
             desc = ""
 
-        # str_exclude = (
-        #     "None"
-        #     if self.exclude is None
-        #     else "[" + ";".join(f"{excluded:g}" for excluded in self.exclude) + "]"
-        # )
+        # str_exclude = "[" + ";".join(f"{excluded:.5g}" for excluded in self.exclude) + "]"
 
         return {
             "name": self.name,
