@@ -39,7 +39,7 @@ def test_convert_elpa():
 
     sweep = df_to_sweep(df_elpa)
 
-    assert sweep.get_hash() == "df108d8bbd3b4ef51e27b83590361a3e"
+    assert sweep.get_hash() == "9f8ab4c53a97120a53e18460c98ab0a2"
     df_sweep = sweep.create_df()
 
     df_elpa.ensure_specifier_column(col_vbe)
@@ -78,7 +78,7 @@ def test_convert_elpa():
 
     sweep = df_to_sweep(df_elpa)
 
-    assert sweep.get_hash() == "c84094081366be34f588e72182118358"
+    assert sweep.get_hash() == "c1626b73fa3ef99aff187d2d927c00fb"
     df_sweep = sweep.create_df()
 
     df_elpa.ensure_specifier_column(col_vbe)
@@ -134,7 +134,7 @@ def test_convert_mdm():
 
     sweep = df_to_sweep(df_mdm)
 
-    assert sweep.get_hash() == "0c0ac0e5994bbb315bee8912f2a1f278"
+    assert sweep.get_hash() == "2a16370094ba0602c40c948b86904d87"
     df_sweep = sweep.create_df()
 
     df_mdm.ensure_specifier_column(col_vbe)
