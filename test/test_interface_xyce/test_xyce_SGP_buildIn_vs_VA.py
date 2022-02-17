@@ -27,14 +27,13 @@ logging.basicConfig(
 )
 
 
-def get_circuit(self, use_build_in=False, topology="common_emitter", **kwargs):
-    """
+def get_circuit(self, use_build_in=False, **kwargs):
+    """Returns a circuit which uses the modelcard to which the method is attached.
 
     Parameter
     ------------
-    circuit_type : str
-        For allowed types, see above
-    modelcard : :class:`~DMT.hl2.mc_hicum.McHicum`
+    use_build_in : bool
+        Choose which model to use.
 
     Returns
     -------
@@ -58,117 +57,113 @@ def get_circuit(self, use_build_in=False, topology="common_emitter", **kwargs):
         )
     )
 
-    if topology == "common_emitter":
+    # BASE NODE CONNECTION #############
+    # metal resistance between contact base point and real collector
+    try:
+        rbm = self.get("_rbm").value
+    except KeyError:
+        rbm = 1e-3
 
-        # BASE NODE CONNECTION #############
-        # metal resistance between contact base point and real collector
-        try:
-            rbm = self.get("_rbm").value
-        except KeyError:
-            rbm = 1e-3
-
-        circuit_elements.append(
-            CircuitElement(RESISTANCE, "Rbm", ["n_B_FORCED", "n_B"], parameters=[("R", str(rbm))])
+    circuit_elements.append(
+        CircuitElement(RESISTANCE, "Rbm", ["n_B_FORCED", "n_B"], parameters=[("R", str(rbm))])
+    )
+    # shorts for current measurement
+    circuit_elements.append(
+        CircuitElement(
+            SHORT,
+            "I_B",
+            ["n_BX", "n_B_FORCED"],
         )
-        # shorts for current measurement
+    )
+    # capacitance since AC already deembeded Rbm
+    circuit_elements.append(
+        CircuitElement(CAPACITANCE, "Cbm", ["n_B_FORCED", "n_B"], parameters=[("C", str(1))])
+    )
+
+    # COLLECTOR NODE CONNECTION #############
+    circuit_elements.append(
+        CircuitElement(
+            SHORT,
+            "I_C",
+            ["n_CX", "n_C_FORCED"],
+        )
+    )
+    # metal resistance between contact collector point and real collector
+    try:
+        rcm = self.get("_rcm").value
+    except KeyError:
+        rcm = 1e-3
+
+    circuit_elements.append(
+        CircuitElement(RESISTANCE, "Rcm", ["n_C_FORCED", "n_C"], parameters=[("R", str(rcm))])
+    )
+    # capacitance since AC already deembeded Rcm
+    circuit_elements.append(
+        CircuitElement(CAPACITANCE, "Ccm", ["n_C_FORCED", "n_C"], parameters=[("C", str(1))])
+    )
+    # EMITTER NODE CONNECTION #############
+    circuit_elements.append(
+        CircuitElement(
+            SHORT,
+            "I_E",
+            ["n_EX", "n_E_FORCED"],
+        )
+    )
+    # metal resistance between contact emiter point and real emiter
+    try:
+        rem = self.get("_rem").value
+    except KeyError:
+        rem = 1e-3
+
+    circuit_elements.append(
+        CircuitElement(RESISTANCE, "Rem", ["n_E_FORCED", "n_E"], parameters=[("R", str(rem))])
+    )
+    # capacitance since AC already deembeded Rcm
+    circuit_elements.append(
+        CircuitElement(CAPACITANCE, "Cem", ["n_E_FORCED", "n_E"], parameters=[("C", str(1))])
+    )
+    # add sources and thermal resistance
+    circuit_elements.append(
+        CircuitElement(
+            VOLTAGE, "V_B", ["n_BX", "0"], parameters=[("Vdc", "V_B"), ("Vac", "V_B_ac")]
+        )
+    )
+    circuit_elements.append(
+        CircuitElement(
+            VOLTAGE, "V_C", ["n_CX", "0"], parameters=[("Vdc", "V_C"), ("Vac", "V_C_ac")]
+        )
+    )
+    circuit_elements.append(
+        CircuitElement(
+            VOLTAGE, "V_E", ["n_EX", "0"], parameters=[("Vdc", "V_E"), ("Vac", "V_E_ac")]
+        )
+    )
+
+    # metal resistance between contact emitter potential and substrate contact
+    if len(self.nodes_list) > 3:
         circuit_elements.append(
             CircuitElement(
                 SHORT,
-                "I_B",
-                ["n_BX", "n_B_FORCED"],
+                "I_S",
+                ["n_SX", "n_S"],
             )
         )
-        # capacitance since AC already deembeded Rbm
-        circuit_elements.append(
-            CircuitElement(CAPACITANCE, "Cbm", ["n_B_FORCED", "n_B"], parameters=[("C", str(1))])
-        )
-
-        # COLLECTOR NODE CONNECTION #############
-        circuit_elements.append(
-            CircuitElement(
-                SHORT,
-                "I_C",
-                ["n_CX", "n_C_FORCED"],
-            )
-        )
-        # metal resistance between contact collector point and real collector
         try:
-            rcm = self.get("_rcm").value
+            rsm = self.get("_rsm").value
         except KeyError:
-            rcm = 1e-3
-
+            rsm = 5
         circuit_elements.append(
-            CircuitElement(RESISTANCE, "Rcm", ["n_C_FORCED", "n_C"], parameters=[("R", str(rcm))])
+            CircuitElement(RESISTANCE, "R_S", ["n_SX", "n_EX"], parameters=[("R", str(rsm))])
         )
-        # capacitance since AC already deembeded Rcm
-        circuit_elements.append(
-            CircuitElement(CAPACITANCE, "Ccm", ["n_C_FORCED", "n_C"], parameters=[("C", str(1))])
-        )
-        # EMITTER NODE CONNECTION #############
-        circuit_elements.append(
-            CircuitElement(
-                SHORT,
-                "I_E",
-                ["n_EX", "n_E_FORCED"],
-            )
-        )
-        # metal resistance between contact emiter point and real emiter
-        try:
-            rem = self.get("_rem").value
-        except KeyError:
-            rem = 1e-3
-
-        circuit_elements.append(
-            CircuitElement(RESISTANCE, "Rem", ["n_E_FORCED", "n_E"], parameters=[("R", str(rem))])
-        )
-        # capacitance since AC already deembeded Rcm
-        circuit_elements.append(
-            CircuitElement(CAPACITANCE, "Cem", ["n_E_FORCED", "n_E"], parameters=[("C", str(1))])
-        )
-        # add sources and thermal resistance
-        circuit_elements.append(
-            CircuitElement(VOLTAGE, "V_B", ["n_BX", "0"], parameters=[("Vdc", "V_B"), ("Vac", "1")])
-        )
-        circuit_elements.append(
-            CircuitElement(VOLTAGE, "V_C", ["n_CX", "0"], parameters=[("Vdc", "V_C"), ("Vac", "1")])
-        )
-        circuit_elements.append(
-            CircuitElement(VOLTAGE, "V_E", ["n_EX", "0"], parameters=[("Vdc", "V_E"), ("Vac", "1")])
-        )
-
-        # metal resistance between contact emitter potential and substrate contact
-        if len(self.nodes_list) > 3:
-            circuit_elements.append(
-                CircuitElement(
-                    SHORT,
-                    "I_S",
-                    ["n_SX", "n_S"],
-                )
-            )
-            try:
-                rsm = self.get("_rsm").value
-            except KeyError:
-                rsm = 5
-            circuit_elements.append(
-                CircuitElement(RESISTANCE, "R_S", ["n_SX", "n_EX"], parameters=[("R", str(rsm))])
-            )
-        if len(self.nodes_list) > 4:
-            circuit_elements.append(
-                CircuitElement(RESISTANCE, "R_t", ["n_T", "0"], parameters=[("R", "1e9")])
-            )
-        circuit_elements += [
-            "V_B=0",
-            "V_C=0",
-            "V_S=0",
-            "V_E=0",
-            "ac_switch=0",
-            "V_B_ac=1-ac_switch",
-            "V_C_ac=ac_switch",
-            "V_S_ac=0",
-            "V_E_ac=0",
-        ]
-    else:
-        raise IOError("The circuit type " + topology + " is unknown!")
+    circuit_elements += [
+        "V_B=0",
+        "V_C=0",
+        "V_E=0",
+        "ac_switch=0",
+        "V_B_ac=1-ac_switch",
+        "V_C_ac=ac_switch",
+        "V_E_ac=0",
+    ]
 
     return Circuit(circuit_elements)
 
@@ -220,7 +215,7 @@ def get_dut_va():
 
 def get_sweep():
     sweepdef = [
-        {"var_name": "FREQ", "sweep_order": 4, "sweep_type": "LOG", "value_def": [8, 9, 2]},
+        {"var_name": "FREQ", "sweep_order": 4, "sweep_type": "LOG", "value_def": [6, 7, 11]},
         {
             "var_name": specifiers.VOLTAGE + "B",
             "sweep_order": 3,
@@ -279,7 +274,7 @@ def test_run_and_read():
         df.ensure_specifier_column(col_vbc, ports=dut.nodes)
 
         for _index, vbc, data in df.iter_unique_col(col_vbc, decimals=3):
-            data = data[data[specifiers.FREQUENCY] == 1e8]
+            data = data[data[specifiers.FREQUENCY] == 1e7]
 
             if "BI" in dut_name:
                 vbe_test = np.array(
@@ -402,7 +397,7 @@ if __name__ == "__main__":
         df.ensure_specifier_column(col_vbc, ports=dut.nodes)
 
         for _index, vbc, data in df.iter_unique_col(col_vbc, decimals=3):
-            data = data[data[specifiers.FREQUENCY] == 1e8]
+            data = data[data[specifiers.FREQUENCY] == 1e7]
 
             plt_gummel.add_data_set(
                 data[col_vbe],

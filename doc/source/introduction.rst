@@ -5,15 +5,19 @@ Introduction
 
 This page ist a short introduction in the basic workflow and classes using ``DMT``. This guide here wil focus on the ``core`` (:ref:`DMT.core <dmt_core>`). module of DMT as this is the only public available module at the moment.
 
-The usual workflow is to import the modules and classes of DMT you need for the current use case. But for the sake of this intro lets import the full core module first:
+The usual workflow is to import the modules and classes of DMT you need for the current use case. But for the sake of this intro lets import the full core module first and also define the place where our data is located:
 
 .. code-block:: python
 
+    from pathlib import Path
     from DMT import core
+    path_data = Path(__file__).resolve().parent / "_static" / "intro"
 
 The final goal of this intro will be to compare measurement data to a Spice-Gummel-Poon model with a suitable model card. This is an every day task and ``DMT`` is perfectly suited for that.
 
 This is split up into multiple sections which itself can be used independently.
+
+The pure source code of the code is available in the gitlab repository `here <https://gitlab.com/dmt-development/dmt-core/-/tree/main/doc/source/examples/introduction.py>`__
 
 Read measurement data
 ---------------------
@@ -21,7 +25,7 @@ Read measurement data
 In the first step lets consider a ``.csv``-File which contains measurement data from a arbitrary measurement device. The file looks like this:
 
 .. csv-table:: Measurement data at 300 K
-    :file: _static/meas_data_300K.csv
+    :file: _static/intro/meas_data_300K.csv
     :header-rows: 1
 
 This is a typical measurement of an bipolar transistor. It is measured at 300 K in a common-emitter configuration with constant base-collector voltage. Additionally at each DC operation point a AC-Measurement with two frequencies is run. Also notice the inconsistent naming of the columns. This example here is artificially strange, but keeping the naming consistent is often an issue and DMT can handle this as will be shown in the next step.
@@ -38,7 +42,7 @@ As most data needs some context, most data inside ``DMT`` is handled in context 
         name="dut_meas_npn", # name and width/length for documentation
         reference_node="E", # defines configuration
     )
-    dut_meas.add_data(path_file.parent.parent / "_static/meas_data_300K.csv", key="300K/iv")
+    dut_meas.add_data(path_data / "meas_data_300K.csv", key="300K/iv")
 
 This method tries different approaches in order to read the supplied data into a ``DataFrame`` (:ref:`DMT.core.DataFrame <data_frame>`). As it is a  ``.csv``-File, the pandas csv-reader is used and then the result is casted into a DMT-DataFrame. The ``DataFrame`` object can then be accessed via its key.
 
@@ -68,12 +72,191 @@ Preparing a simulation
 
 In order to run a simulation of an BJT different things are needed:
 
-* a circuit simulator
-* A model (either build-in or as Verilog-AMS code)
-* model parameter
+* a circuit simulator,
+* a model (either build-in or as Verilog-AMS code),
+* model parameter,
+* a circuit,
+* and finally operation conditions (temperature, applied voltages and frequencies).
+
+For this introduction we start at the model defined using a Verilog-AMS source file:
+
+.. code-block:: python
+
+    modelcard = core.MCard(
+        ["c", "b", "e", "s"],
+        "QSGP1",
+        core.circuit.SGP_BJT,
+        1.0,
+        va_file=path_data / "sgp_v1p0.va",
+    )
+
+The ``MCard`` is now created with some information about the model. Most important is the subcircuit name and the Verilog-AMS code. Using `verilogae <https://man.sr.ht/~dspom/openvaf_doc/verilogae/>`__ the source file is read and the parameters with their default values are collected. The subcircuit name is used as device name in the circuit later.
+
+Let's assume we have a model library in which we store the parameters for this technology and now we want to load the parameter values into our modelcard. ``MCard`` offers the method
+
+.. code-block:: python
+
+    modelcard.load_model_parameters(path_data / "bjt.lib")
+
+to do exactly this.
+
+This way we already crossed off two points of our to-list to arrive at our simulation. The next is a little tricky, we want a circuit in which a device with our model and modelcard is used. We have two options, either directly make this circuit for the use case here or overwrite the  abstract ``MCard.get_circuit`` method and pass the modelcard directly into our simulator interface. We will use the second option and also, since the method is abstract you may notice that MCard is intended to be subclassed for the models you use most often.
+
+In this introduction we will go the non-intuitive way of overwritting the method just for this single instance (method binding). So lets create a circuit:
+
+.. code-block:: python
+
+    def get_circuit(self):
+        """Returns a circuit which uses the modelcard to which the method is attached.
+
+        Returns
+        -------
+        circuit : :class:`~DMT.core.circuit.Circuit`
+
+        """
+        circuit_elements = []
+        # model instance
+        circuit_elements.append(
+            core.circuit.CircuitElement(
+                self.default_module_name,
+                self.default_subckt_name,
+                [f"n_{node.upper()}" for node in self.nodes_list],
+                # ["n_C", "n_B", "n_E"],
+                parameters=self,
+            )
+        )
+
+        # BASE NODE CONNECTION #############
+        # shorts for current measurement
+        circuit_elements.append(
+            core.circuit.CircuitElement(core.circuit.SHORT, "I_B", ["n_B", "n_B_FORCED"])
+        )
+        # COLLECTOR NODE CONNECTION #############
+        circuit_elements.append(
+            core.circuit.CircuitElement(core.circuit.SHORT, "I_C", ["n_C", "n_C_FORCED"])
+        )
+        # EMITTER NODE CONNECTION #############
+        circuit_elements.append(
+            core.circuit.CircuitElement(core.circuit.SHORT, "I_E", ["n_E", "n_E_FORCED"])
+        )
+        # add sources
+        circuit_elements.append(
+            core.circuit.CircuitElement(
+                core.circuit.VOLTAGE,
+                "V_B",
+                ["n_B_FORCED", "0"],
+                parameters=[("Vdc", "V_B"), ("Vac", "1")],
+            )
+        )
+        circuit_elements.append(
+            core.circuit.CircuitElement(
+                core.circuit.VOLTAGE,
+                "V_C",
+                ["n_C_FORCED", "0"],
+                parameters=[("Vdc", "V_C"), ("Vac", "1")],
+            )
+        )
+        circuit_elements.append(
+            core.circuit.CircuitElement(
+                core.circuit.VOLTAGE,
+                "V_E",
+                ["n_E_FORCED", "0"],
+                parameters=[("Vdc", "V_E"), ("Vac", "1")],
+            )
+        )
+
+        # metal resistance between contact emitter potential and substrate contact
+        circuit_elements.append(
+            core.circuit.CircuitElement(
+                core.circuit.RESISTANCE, "R_S", ["n_S", "n_E_FORCED"], parameters=[("R", str(1.5))]
+            )
+        )
+
+        # some variables used in this circuit
+        circuit_elements += [
+            "V_B=0",
+            "V_C=0",
+            "V_E=0",
+            "ac_switch=0",
+            "V_B_ac=1-ac_switch",
+            "V_C_ac=ac_switch",
+            "V_E_ac=0",
+        ]
+
+        return core.circuit.Circuit(circuit_elements)
+
+This is just straight forward the device with sources on all nodes except the substrate. The sources are connected using shorts to measure the current, because not all simulators allow current measuring at sources.
+
+To bind the method to our modelcard, we have to import the ``types`` module:
 
 
+.. code-block:: python
 
+    import types
 
+    modelcard.get_circuit = types.MethodType(get_circuit, modelcard)
 
-In order to run a simulation and for especially to read one the ``SpecifierStr`` class really shows its advantages.
+Finally we can pass this model card to a circuit simulator interface which can handle Verilog-AMS files. In the core, this is possible using the simulator Xyce:
+
+.. code-block:: python
+
+    from DMT.xyce import DutXyce
+    dut_sim = DutXyce(
+        None,
+        core.DutType.npn,
+        modelcard,
+        nodes="C,B,E",
+        reference_node="E",
+    )
+
+The dut uses the get_circuit method of the modelcard to obtain a valid circuit. So we now have ticked of the circuit from our to-do-list. Only the sweep definition is missing now.
+
+For this our toolkit allows to extract the sweep definition from a suited ``DataFrame`` instance, like the one we have here. So we just call
+
+.. code-block:: python
+
+    sweep = core.df_to_sweep(dut_meas.data[key_saved], temperature=300, from_forced=False)
+
+In some cases this will not work, since data ordering and its corresponding measurements can be quite different, so if your ``DataFrame`` instance can not be converted by this approach, do not hesitate to create an `issue on github <https://gitlab.com/dmt-development/dmt-core/-/issues>`__ and supply us with an example of your measurement data. More test data is always welcome.
+
+The simulation is the easiest part now:
+
+.. code-block:: python
+
+    sim_con = core.SimCon()
+    sim_con.append_simulation(dut=dut_sim, sweep=sweep)
+    sim_con.run_and_read()
+
+Accessing the data and plotting
+-------------------------------
+
+Now the data is simulated and ready to use for us. In this short introduction we will show how to access and add more data to the ``DataFrame``, before finally plotting them in a suitable way for documentations or papers.
+
+To access the data we have to differentiate between the measurement data and the simulation data:
+
+.. code-block:: python
+
+    data_meas = dut_meas.data[key_saved]
+    data_sim = dut_sim.get_data(sweep=sweep)
+
+For the measurement data, we named the key ourselves. For simulations, ``DMT`` converts a sweep into a valid key string in which the simulation data is read, this can be used to access the data. This valid key string is an MD5-Hash created from the sweep and is also used as folder name to save the simulation. So no simulation has to be run twice. Sometimes one has to delete the simulation folder manually to get rid of old simulations as your drive will be flooded with simulations at some point.
+
+Now we want to access the different columns inside the ``DataFrame`` instances and now the ``SpecifierStr`` class really shows its advantages. We create some column names we will use first:
+
+.. code-block:: python
+
+    col_vbe = core.specifiers.VOLTAGE + ["B", "E"]
+    col_vbc = core.specifiers.VOLTAGE + ["B", "C"]
+    col_ic = core.specifiers.CURRENT + "C"
+    col_freq = core.specifiers.FREQUENCY
+    col_ft = core.specifiers.TRANSIT_FREQUENCY
+    col_y21 = core.specifiers.SS_PARA_Y + ["C", "B"]
+
+    data_meas.ensure_specifier_column(col_vbe)
+    data_sim.ensure_specifier_column(col_vbe)
+    data_meas.ensure_specifier_column(col_vbc)
+    data_sim.ensure_specifier_column(col_vbc)
+    data_meas.ensure_specifier_column(col_ft, ports=dut_meas.ac_ports)
+    data_sim.ensure_specifier_column(col_ft, ports=dut_sim.ac_ports)
+
+These new column names are instantly used to add the voltages and the transit frequency to the frames. independently which frame it is, the handling is the same and it even goes further, but before we need to define the plots:

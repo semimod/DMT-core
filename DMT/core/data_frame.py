@@ -536,6 +536,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
 
         # remove the voltages
         self = self.drop(columns=voltages)
+
         return self
 
     # pylint: disable=dangerous-default-value
@@ -675,12 +676,9 @@ class DataFrame(DataProcessor, pd.DataFrame):
         if col in self.columns and not force:  # pylint: disable=unsupported-membership-test
             return
 
-        try:
-            specifier = col.specifier
-            nodes = col.nodes
-            sub_specifiers_in_col = col.sub_specifiers
-        except AttributeError:
-            pass
+        specifier = col.specifier
+        nodes = col.nodes
+        sub_specifiers_in_col = col.sub_specifiers
 
         if (
             sub_specifiers.REAL.sub_specifiers[0] in sub_specifiers_in_col

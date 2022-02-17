@@ -332,6 +332,18 @@ def read_csv(filename, **kwargs):
     # ok, can just use standard pandas routine here. nice.
     df = pd.read_csv(str(filename), **kwargs)
     df.__class__ = DataFrame  # cast to DMT.DataFrame
+
+    # work around for complex data in one column in the csv:
+    # https://stackoverflow.com/a/18919965
+
+    for col in df.columns:  # type: ignore
+        if df[col].dtype == object:  # type: ignore
+            try:
+                df[col] = df[col].apply(lambda x: np.complex(x))  # type: ignore
+            except AttributeError:
+                # is there i instead of j ?
+                df[col] = df[col].str.replace("i", "j").apply(lambda x: np.complex(x))  # type: ignore
+
     return df
 
 
