@@ -25,7 +25,7 @@ import semver
 
 core_exists = True  # always, without DMT is not possible
 try:
-    from DMT import extraction
+    import DMT.extraction
 
     extraction_exists = True
 except ImportError:
@@ -47,17 +47,12 @@ print("-----------------------------------------------------------------------")
 __version__ = semver.VersionInfo(major=1, minor=3, patch=0, prerelease="rc.1")
 
 # to get the next version:
-# __version__,next_version(x) - with x = "major", "minor", "patch", "prerelease"
+# __version__.next_version(x) - with x = "major", "minor", "patch", "prerelease"
 
 
 name = "core"
 
 import numpy as np
-
-# compile cython DMT modules
-import pyximport
-
-pyximport.install(setup_args={"include_dirs": np.get_include()}, language_level=3)
 
 import os
 
@@ -117,14 +112,7 @@ from .plot import COMPARISON_3
 from .tikz_postprocess import TikzPostprocess
 
 # Data management and processing
-# try:
-#     from .data_processor_pyx import DataProcessor  # type: ignore
-
-#     print("Using the pyx data-processor")
-# except ImportError:
 from .data_processor import DataProcessor
-
-print("Using the py data-processor")
 
 from .data_frame import DataFrame
 from .sweep import Sweep, SweepDef

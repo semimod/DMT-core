@@ -16,6 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Changed
 
 - renamed load_model method of MCard to load_model_parameters to better reflect what the method does.
+- removed data_processor and data_reader pyx files and pyx import. The speed up is not worth the effort of two files to maintain.
 
 ### Move
 
