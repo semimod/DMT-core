@@ -1073,8 +1073,8 @@ class Plot(object):
 
         if self.x_axis_scale == "log":
             # also doing this in case of log for the data itself
-            x_min_set = np.log10(np.abs(x_min_set))
-            x_max_set = np.log10(np.abs(x_max_set))
+            x_min_set = np.log10(np.abs(x_min_set + np.finfo(float).eps))
+            x_max_set = np.log10(np.abs(x_max_set + np.finfo(float).eps))
 
         try:
             self.pw_pg.setXRange(np.real(x_min_set), np.real(x_max_set), padding=padding)
@@ -1088,8 +1088,8 @@ class Plot(object):
                     y_min = np.inf
                     for dict_line in self.data:
                         y_filter = np.logical_and(
-                            dict_line["x"] > x_min / self.x_scale,
-                            dict_line["x"] < x_max / self.x_scale,
+                            dict_line["x"] > x_min,
+                            dict_line["x"] < x_max,
                         )
                         y_min_local = np.min(dict_line["y"][y_filter])
                         y_min = np.min([y_min, y_min_local])
@@ -1112,8 +1112,8 @@ class Plot(object):
                     y_max = -np.inf
                     for dict_line in self.data:
                         y_filter = np.logical_and(
-                            dict_line["x"] > x_min / self.x_scale,
-                            dict_line["x"] < x_max / self.x_scale,
+                            dict_line["x"] > x_min,
+                            dict_line["x"] < x_max,
                         )
                         y_max_local = np.max(dict_line["y"][y_filter])
                         y_max = np.max([y_max, y_max_local])
@@ -1131,8 +1131,8 @@ class Plot(object):
 
         if self.y_axis_scale == "log":
             # also doing this in case of log for the data itself
-            y_min = np.log10(np.abs(y_min))
-            y_max = np.log10(np.abs(y_max))
+            y_min = np.log10(np.abs(y_min + np.finfo(float).eps))
+            y_max = np.log10(np.abs(y_max + np.finfo(float).eps))
         try:
             self.pw_pg.setYRange(np.real(y_min), np.real(y_max), padding=padding)
         except Exception:
@@ -1974,7 +1974,9 @@ class SmithPlot(Plot):
 
     def __init__(self, *args, **kwargs):
         if not smith_available:
-            raise IOError("DMT.core.Plot -> Pysmithplot is not installed. Try: pip install pysmithplot")
+            raise IOError(
+                "DMT.core.Plot -> Pysmithplot is not installed. Try: pip install pysmithplot"
+            )
         super().__init__(*args, **kwargs)
         self.outer_fig = None  # here the "outer" matplotlib figure reference is stored
 

@@ -1,0 +1,78 @@
+\documentclass[class=IEEEtran]{standalone}
+\usepackage{tikz,amsmath,siunitx}
+\usetikzlibrary{arrows,snakes,backgrounds,patterns,matrix,shapes,fit,calc,shadows,plotmarks}
+\usepackage[graphics,tightpage,active]{preview}
+\usepackage{pgfplots}
+\pgfplotsset{compat=newest}
+\usetikzlibrary{shapes.geometric}
+\PreviewEnvironment{tikzpicture}
+\PreviewEnvironment{equation}
+\PreviewEnvironment{equation*}
+\newlength\figurewidth
+\newlength\figureheight
+\begin{document}
+\setlength\figurewidth{60mm}
+\setlength\figureheight{60mm}
+\begin{tikzpicture}[font=\normalsize]
+\pgfplotsset{every axis/.append style={ultra thick},compat=1.5},
+\definecolor{color0}{rgb}{0.00000, 0.39216, 0.00000}
+\definecolor{color1}{rgb}{0.00000, 0.00000, 0.54510}
+
+\begin{axis}[scale only axis,ytick pos=left,
+width=3in,
+xlabel={$V_{\mathrm{BE}}\left(\si{\volt}\right)$},
+ylabel={$I_{\mathrm{C}}\left(\si{\milli\ampere}\right)$},
+ymode=log,
+xmin=-0.0396992,
+xmax=1.0397,
+restrict x to domain=-0.198496:5.1985,
+log basis x=10,
+ymin=3.65131e-11,
+ymax=55.1651,
+restrict y to domain=-52.1878:8.70832,
+log basis y=10,
+xmajorgrids,
+enlargelimits=false,
+scaled ticks=false,
+ymajorgrids,
+x tick style={color=black},
+y tick style={color=black},
+x grid style={white!69.01960784313725!black},
+y grid style={white!69.01960784313725!black},
+/tikz/mark repeat=1,
+legend style={at={(0.98,0.02)}, anchor=south east,legend cell align=left, align=left},
+]
+\addplot [color=color0, solid, mark=x, mark options={solid}, mark phase=1, ]
+  table[row sep=crcr, x expr=\thisrowno{0}*1.000000e+00, y expr=\thisrowno{1}*1.000000e+03]{
+0 0\\
+0.1 1.00255e-13\\
+0.2 2.12063e-13\\
+0.3 8.59203e-13\\
+0.4 2.62831e-11\\
+0.5 1.19712e-09\\
+0.6 5.52534e-08\\
+0.7 2.54706e-06\\
+0.8 0.000115611\\
+0.899996 0.00346916\\
+0.999979 0.0200867\\
+};
+\addlegendentry{meas $V_{\mathrm{BC}}=\SI{0.00}{\volt}$}
+\addplot [color=color1, solid, mark=+, mark options={solid}, mark phase=1, ]
+  table[row sep=crcr, x expr=\thisrowno{0}*1.000000e+00, y expr=\thisrowno{1}*1.000000e+03]{
+0 0\\
+0.1 1.00255e-13\\
+0.2 2.12063e-13\\
+0.3 8.59203e-13\\
+0.4 2.62831e-11\\
+0.5 1.19712e-09\\
+0.6 5.52534e-08\\
+0.7 2.54706e-06\\
+0.8 0.000115611\\
+0.9 0.00346948\\
+1 0.0200913\\
+};
+\addlegendentry{sim $V_{\mathrm{BC}}=\SI{0.00}{\volt}$}
+\end{axis}
+
+\end{tikzpicture}
+\end{document}

@@ -1,7 +1,6 @@
 """ Python script which is explained in detail in the introduction.
 Here the commands are repeated to be able to test them.
 """
-import numpy as np
 from pathlib import Path
 from DMT import core
 
@@ -56,15 +55,15 @@ def get_circuit(self):
     # BASE NODE CONNECTION #############
     # shorts for current measurement
     circuit_elements.append(
-        core.circuit.CircuitElement(core.circuit.SHORT, "I_B", ["n_B", "n_B_FORCED"])
+        core.circuit.CircuitElement(core.circuit.SHORT, "I_B", ["n_B_FORCED", "n_B"])
     )
     # COLLECTOR NODE CONNECTION #############
     circuit_elements.append(
-        core.circuit.CircuitElement(core.circuit.SHORT, "I_C", ["n_C", "n_C_FORCED"])
+        core.circuit.CircuitElement(core.circuit.SHORT, "I_C", ["n_C_FORCED", "n_C"])
     )
     # EMITTER NODE CONNECTION #############
     circuit_elements.append(
-        core.circuit.CircuitElement(core.circuit.SHORT, "I_E", ["n_E", "n_E_FORCED"])
+        core.circuit.CircuitElement(core.circuit.SHORT, "I_E", ["n_E_FORCED", "n_E"])
     )
     # add sources
     circuit_elements.append(
@@ -72,7 +71,7 @@ def get_circuit(self):
             core.circuit.VOLTAGE,
             "V_B",
             ["n_B_FORCED", "0"],
-            parameters=[("Vdc", "V_B"), ("Vac", "1")],
+            parameters=[("Vdc", "V_B"), ("Vac", "V_B_ac")],
         )
     )
     circuit_elements.append(
@@ -80,7 +79,7 @@ def get_circuit(self):
             core.circuit.VOLTAGE,
             "V_C",
             ["n_C_FORCED", "0"],
-            parameters=[("Vdc", "V_C"), ("Vac", "1")],
+            parameters=[("Vdc", "V_C"), ("Vac", "V_C_ac")],
         )
     )
     circuit_elements.append(
@@ -88,14 +87,14 @@ def get_circuit(self):
             core.circuit.VOLTAGE,
             "V_E",
             ["n_E_FORCED", "0"],
-            parameters=[("Vdc", "V_E"), ("Vac", "1")],
+            parameters=[("Vdc", "V_E"), ("Vac", "V_E_ac")],
         )
     )
 
     # metal resistance between contact emitter potential and substrate contact
     circuit_elements.append(
         core.circuit.CircuitElement(
-            core.circuit.RESISTANCE, "R_S", ["n_S", "n_E_FORCED"], parameters=[("R", str(1.5))]
+            core.circuit.RESISTANCE, "R_S", ["n_S", "n_E_FORCED"], parameters=[("R", str(0.5))]
         )
     )
 
@@ -144,14 +143,13 @@ col_vbc = core.specifiers.VOLTAGE + ["B", "C"]
 col_ic = core.specifiers.CURRENT + "C"
 col_freq = core.specifiers.FREQUENCY
 col_ft = core.specifiers.TRANSIT_FREQUENCY
-col_y21 = core.specifiers.SS_PARA_Y + ["C", "B"]
+col_y21_real = core.specifiers.SS_PARA_Y + ["C", "B"] + core.sub_specifiers.REAL
 
-data_meas.ensure_specifier_column(col_vbe)
-data_sim.ensure_specifier_column(col_vbe)
-data_meas.ensure_specifier_column(col_vbc)
-data_sim.ensure_specifier_column(col_vbc)
-data_meas.ensure_specifier_column(col_ft, ports=dut_meas.ac_ports)
-data_sim.ensure_specifier_column(col_ft, ports=dut_sim.ac_ports)
+for dut, data in zip([dut_meas, dut_sim], [data_meas, data_sim]):
+    data.ensure_specifier_column(col_vbe)
+    data.ensure_specifier_column(col_vbc)
+    data.ensure_specifier_column(col_ft, ports=dut.ac_ports)
+    data.ensure_specifier_column(col_y21_real, ports=dut.ac_ports)
 
 # Plot and save as pdf
 plt_ic = core.Plot(
@@ -167,7 +165,7 @@ plt_y21 = core.Plot(
     x_specifier=col_ic,
     x_scale=1e3,
     x_log=True,
-    y_specifier=col_y21,
+    y_specifier=col_y21_real,
     y_scale=1e3,
     y_log=True,
     legend_location="lower right",
@@ -181,9 +179,11 @@ plt_ft = core.Plot(
     legend_location="upper left",
 )
 
+import numpy as np
+
 for source, data in zip(["meas", "sim"], [data_meas, data_sim]):
     for i_vbc, vbc, data_vbc in data.iter_unique_col(col_vbc, decimals=3):
-        data_freq = data_vbc[np.isclose(data_vbc[col_freq], 1e9)]
+        data_freq = data_vbc[np.isclose(data_vbc[col_freq], 1e7)]
         plt_ic.add_data_set(
             data_freq[col_vbe],
             data_freq[col_ic],
@@ -191,12 +191,12 @@ for source, data in zip(["meas", "sim"], [data_meas, data_sim]):
         )
         plt_y21.add_data_set(
             data_freq[col_ic],
-            data_freq[col_y21],
+            data_freq[col_y21_real],
             label=source + " " + col_vbc.to_legend_with_value(vbc),
         )
         plt_ft.add_data_set(
             data_freq[col_ic],
-            data_freq[col_y21],
+            data_freq[col_ft],
             label=source + " " + col_vbc.to_legend_with_value(vbc),
         )
 
@@ -204,5 +204,6 @@ plt_ic.plot_pyqtgraph(show=False)
 plt_y21.plot_pyqtgraph(show=False)
 plt_ft.plot_pyqtgraph(show=True)
 
-
-dummy = 1
+plt_ic.save_tikz(path_data, standalone=True, build=True, clean=True, width="3in")
+plt_y21.save_tikz(path_data, standalone=True, build=True, clean=True, width="3in")
+plt_ft.save_tikz(path_data, standalone=True, build=True, clean=True, width="3in")

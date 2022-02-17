@@ -129,15 +129,15 @@ In this introduction we will go the non-intuitive way of overwritting the method
         # BASE NODE CONNECTION #############
         # shorts for current measurement
         circuit_elements.append(
-            core.circuit.CircuitElement(core.circuit.SHORT, "I_B", ["n_B", "n_B_FORCED"])
+            core.circuit.CircuitElement(core.circuit.SHORT, "I_B", ["n_B_FORCED", "n_B"])
         )
         # COLLECTOR NODE CONNECTION #############
         circuit_elements.append(
-            core.circuit.CircuitElement(core.circuit.SHORT, "I_C", ["n_C", "n_C_FORCED"])
+            core.circuit.CircuitElement(core.circuit.SHORT, "I_C", ["n_C_FORCED", "n_C"])
         )
         # EMITTER NODE CONNECTION #############
         circuit_elements.append(
-            core.circuit.CircuitElement(core.circuit.SHORT, "I_E", ["n_E", "n_E_FORCED"])
+            core.circuit.CircuitElement(core.circuit.SHORT, "I_E", ["n_E_FORCED", "n_E"])
         )
         # add sources
         circuit_elements.append(
@@ -145,7 +145,7 @@ In this introduction we will go the non-intuitive way of overwritting the method
                 core.circuit.VOLTAGE,
                 "V_B",
                 ["n_B_FORCED", "0"],
-                parameters=[("Vdc", "V_B"), ("Vac", "1")],
+                parameters=[("Vdc", "V_B"), ("Vac", "V_B_ac")],
             )
         )
         circuit_elements.append(
@@ -153,7 +153,7 @@ In this introduction we will go the non-intuitive way of overwritting the method
                 core.circuit.VOLTAGE,
                 "V_C",
                 ["n_C_FORCED", "0"],
-                parameters=[("Vdc", "V_C"), ("Vac", "1")],
+                parameters=[("Vdc", "V_C"), ("Vac", "V_C_ac")],
             )
         )
         circuit_elements.append(
@@ -161,14 +161,14 @@ In this introduction we will go the non-intuitive way of overwritting the method
                 core.circuit.VOLTAGE,
                 "V_E",
                 ["n_E_FORCED", "0"],
-                parameters=[("Vdc", "V_E"), ("Vac", "1")],
+                parameters=[("Vdc", "V_E"), ("Vac", "V_E_ac")],
             )
         )
 
         # metal resistance between contact emitter potential and substrate contact
         circuit_elements.append(
             core.circuit.CircuitElement(
-                core.circuit.RESISTANCE, "R_S", ["n_S", "n_E_FORCED"], parameters=[("R", str(1.5))]
+                core.circuit.RESISTANCE, "R_S", ["n_S", "n_E_FORCED"], parameters=[("R", str(0.5))]
             )
         )
 
@@ -250,13 +250,92 @@ Now we want to access the different columns inside the ``DataFrame`` instances a
     col_ic = core.specifiers.CURRENT + "C"
     col_freq = core.specifiers.FREQUENCY
     col_ft = core.specifiers.TRANSIT_FREQUENCY
-    col_y21 = core.specifiers.SS_PARA_Y + ["C", "B"]
+    col_y21_real = core.specifiers.SS_PARA_Y + ["C", "B"] + core.sub_specifiers.REAL
 
-    data_meas.ensure_specifier_column(col_vbe)
-    data_sim.ensure_specifier_column(col_vbe)
-    data_meas.ensure_specifier_column(col_vbc)
-    data_sim.ensure_specifier_column(col_vbc)
-    data_meas.ensure_specifier_column(col_ft, ports=dut_meas.ac_ports)
-    data_sim.ensure_specifier_column(col_ft, ports=dut_sim.ac_ports)
+    for dut, data in zip([dut_meas, dut_sim], [data_meas, data_sim]):
+        data.ensure_specifier_column(col_vbe)
+        data.ensure_specifier_column(col_vbc)
+        data.ensure_specifier_column(col_ft, ports=dut.ac_ports)
+        data.ensure_specifier_column(col_y21_real, ports=dut.ac_ports)
 
-These new column names are instantly used to add the voltages and the transit frequency to the frames. independently which frame it is, the handling is the same and it even goes further, but before we need to define the plots:
+These new column names are instantly used to add the voltages, the transit frequency and the real part of y_21 to the frames. independently which frame it is, the handling is the same and it even goes further, but before we need to define the plots:
+
+.. code-block:: python
+
+    plt_ic = core.Plot(
+        plot_name="I_C(V_BE)",
+        x_specifier=col_vbe,
+        y_specifier=col_ic,
+        y_scale=1e3,
+        y_log=True,
+        legend_location="lower right",
+    )
+    plt_y21 = core.Plot(
+        plot_name="Y_21(I_C)",
+        x_specifier=col_ic,
+        x_scale=1e3,
+        x_log=True,
+        y_specifier=col_y21_real,
+        y_scale=1e3,
+        y_log=True,
+        legend_location="lower right",
+    )
+    plt_ft = core.Plot(
+        plot_name="F_T(I_C)",
+        x_specifier=col_ic,
+        x_scale=1e3,
+        x_log=True,
+        y_specifier=col_ft,
+        legend_location="upper left",
+    )
+
+Again the specifiers are used, this time to make formatting and displaying nicer. This shows how they are also nice for good looking documentations. Fist lets add data to the plots:
+
+.. code-block:: python
+
+    import numpy as np
+
+    for source, data in zip(["meas", "sim"], [data_meas, data_sim]):
+        for i_vbc, vbc, data_vbc in data.iter_unique_col(col_vbc, decimals=3):
+            data_freq = data_vbc[np.isclose(data_vbc[col_freq], 1e7)]
+            plt_ic.add_data_set(
+                data_freq[col_vbe],
+                data_freq[col_ic],
+                label=source + " " + col_vbc.to_legend_with_value(vbc),
+            )
+            plt_y21.add_data_set(
+                data_freq[col_ic],
+                data_freq[col_y21_real],
+                label=source + " " + col_vbc.to_legend_with_value(vbc),
+            )
+            plt_ft.add_data_set(
+                data_freq[col_ic],
+                data_freq[col_ft],
+                label=source + " " + col_vbc.to_legend_with_value(vbc),
+            )
+
+This also heavily leans on the specifiers and the easy data handling ``DMT`` offers. But here are multiple things to unpack:
+
+#. the ``zip`` is used again to handle the both frames the same way.
+#. ``DataFrame.iter_unique_col`` allows to easily iterate through uniqued data. Here it is an overkill, since we only have V_BC = 0, but in case this changes the script is already prepared.
+#. In the next line, the pandas indexing is used together with a numpy filter. This way one can easily select the wanted rows.
+#. The correct columns are added to the plots using the specifiers from above.
+#. ``SpecifierStr`` instances offer many methods for pretty printing. The shown variant here, includes all of them at once, The variable is pretty printed together with an value with a possibly scaled unit.
+
+To have a look at the plots we can use different back-ends. ``pyqtgraph`` is the fastest:
+
+.. code-block:: python
+
+    plt_ic.plot_pyqtgraph(show=False)
+    plt_y21.plot_pyqtgraph(show=False)
+    plt_ft.plot_pyqtgraph(show=True)
+
+Additionally it is quite easy to export the plots to be ready for documentations or scientific papers:
+
+.. code-block:: python
+
+    plt_ic.save_tikz(path_data, standalone=True, build=True, clean=True, width="3in")
+    plt_y21.save_tikz(path_data, standalone=True, build=True, clean=True, width="3in")
+    plt_ft.save_tikz(path_data, standalone=True, build=True, clean=True, width="3in")
+
+The plots look like this:
