@@ -1,3 +1,5 @@
+.. _data_frame:
+
 data\_frame module
 =======================
 

@@ -1,4 +1,3 @@
-
 .. _examples:
 
 Test Cases and Examples

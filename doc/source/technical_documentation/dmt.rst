@@ -1,3 +1,5 @@
+.. _dmt_core:
+
 DMT core module
 ====================
 
@@ -9,5 +11,3 @@ Submodules
     :glob:
 
     ../core/*
-
-

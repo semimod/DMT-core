@@ -23,32 +23,9 @@
 from importlib import util
 import semver
 
-core_exists = True  # always, without DMT is not possible
-try:
-    import DMT.extraction
-
-    extraction_exists = True
-except ImportError:
-    extraction_exists = False
-
-
-if core_exists and not extraction_exists:
-    mode = "free version"
-elif core_exists and extraction_exists:
-    mode = "all"
-
-print("-----------------------------------------------------------------------")
-print("DMT Copyright (C) 2022 SemiMod")
-print("This program comes with ABSOLUTELY NO WARRANTY.")
-print("DMT_core is free software, and you are welcome to redistribute it.")
-if extraction_exists:
-    print("DMT_other is free for non-commercial use, see LICENSE.md. ")
-print("-----------------------------------------------------------------------")
 __version__ = semver.VersionInfo(major=1, minor=3, patch=0, prerelease="rc.1")
-
 # to get the next version:
 # __version__.next_version(x) - with x = "major", "minor", "patch", "prerelease"
-
 
 name = "core"
 
@@ -145,3 +122,26 @@ from .dut_circuit import DutCircuit
 from .dut_tcad import DutTcad
 
 import tables
+
+# determine which modules are present
+core_exists = True  # always, without DMT is not possible
+try:
+    import DMT.extraction
+
+    extraction_exists = True
+except ImportError:
+    extraction_exists = False
+
+
+if core_exists and not extraction_exists:
+    mode = "free version"
+elif core_exists and extraction_exists:
+    mode = "all"
+
+print("-----------------------------------------------------------------------")
+print("DMT Copyright (C) 2022 SemiMod")
+print("This program comes with ABSOLUTELY NO WARRANTY.")
+print("DMT_core is free software, and you are welcome to redistribute it.")
+if extraction_exists:
+    print("DMT_other is free for non-commercial use, see LICENSE.md. ")
+print("-----------------------------------------------------------------------")
