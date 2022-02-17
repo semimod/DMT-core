@@ -339,3 +339,19 @@ Additionally it is quite easy to export the plots to be ready for documentations
     plt_ft.save_tikz(path_data, standalone=True, build=True, clean=True, width="3in")
 
 The plots look like this:
+
+.. image:: _static/intro/I_CV_BE.png
+    :alt: Collector current versus base-emitter voltage for measurement and simulation.
+
+.. image:: _static/intro/Y_21I_C.png
+    :alt: Y_21 versus collector current for measurement and simulation.
+
+.. image:: _static/intro/F_TI_C.png
+    :alt: Transfer frequency versus collector current for measurement and simulation.
+
+
+Note that the Y-Parameters are converted back to the traditional way of expressing y-parameters and also the nice display of the legends and labels.
+
+As it is easy to see, this introduction uses simulated data as the measurement data. So no difference is visible between the two lines in the graphs. In the device modeling area it is always difficult to display measurements or publish model parameters. This is one issue DMT wants to address by making it very easy to make such data easily sharable if someone is allowed to share it.
+
+Do not hesitate to reach out us, if you have and questions or issues with ``DMT``. Also if you are missing a feature you would like to see in ``DMT`` you are welcome to make a feature request issue in the gitlab repository or implement it yourself and make a merge request!
