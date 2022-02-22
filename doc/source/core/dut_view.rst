@@ -1,3 +1,6 @@
+
+.. _dut_view:
+
 dut\_view module
 ================
 

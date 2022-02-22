@@ -1,3 +1,5 @@
+.. _sim_con:
+
 Simulation Controller module
 =============================
 
@@ -6,11 +8,12 @@ Class diagram
 
 .. graphviz:: ../diagrams/classes_sim_con.dot
 
+See the :ref:`DutView<dut_view>` documentation for available interfaces.
 
 Sequenz for many simulations in parallel
 ----------------------------------------
 
-.. figure:: ../diagrams/simulation_interface.png
+.. figure:: ../diagrams/many_simulations.png
    :scale: 100 %
    :alt: Sequenz diagram for SimCon
 
