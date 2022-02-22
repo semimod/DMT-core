@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="DMT_core",
-    version="1.3.0-rc.2",  # obtain by start DMT.core.__init__.py interactive and grab the next version
+    version="1.3.0-rc.3",  # obtain by start DMT.core.__init__.py interactive and grab the next version
     author="M.Mueller, M.Krattenmacher",
     author_email="markus.mueller@semimod.de and mario.krattenmacher@semimod.de",
     description="Device Modeling Toolkit Core",
