@@ -1,3 +1,5 @@
+.. _dut_ngspice:
+
 dut\_ngspice module
 =======================
 

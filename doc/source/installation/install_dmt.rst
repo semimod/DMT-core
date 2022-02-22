@@ -82,6 +82,8 @@ If this works, you have successfully installed DMT. For more tests visit the tes
 If you want to generate high-quality Tikz plots with DMT, you should also make sure that a Tex compiler such as latexmk and corresponding packages (texlive-full on Unix) are available.
 These are not installed when installing DMT.
 
+.. _config:
+
 Configuration
 --------------
 

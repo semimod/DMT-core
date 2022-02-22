@@ -1,5 +1,6 @@
 Technical Documentation
 ===============================
+
 In order to ease the use of DMT, some basic examples can be found here:
 
 .. toctree::
@@ -7,3 +8,6 @@ In order to ease the use of DMT, some basic examples can be found here:
 
     dmt
     exceptions
+    ngspice
+    xyce
+    hdev

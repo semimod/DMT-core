@@ -884,8 +884,9 @@ def getITRSHBT(
     mu_min_d=None,
 ):
     """Return a DutHdev for ITRS HBTS. Only for SiGe HBTs.
-    Input
-    -----
+
+    Parameters
+    ----------
     hbt_fun : callable
         Function that returns a Hdev HBT definition.
     fermi : bool

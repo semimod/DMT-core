@@ -1,3 +1,5 @@
+.. _dut_circuit:
+
 dut\_circuit module
 =======================
 
@@ -12,6 +14,7 @@ Submodules
 
 Module documentation
 ------------------------------
+
 .. automodule:: DMT.core.dut_circuit
     :members:
     :undoc-members:

@@ -1,6 +1,6 @@
 """ Module responsible for data reading in DMT.
 
-Funktions
+Functions
 ---------
 read_data(filename)
     Reads a given file into the internal DMT dataframe, the file's extension determines the exact method which is then called for reading.
@@ -15,10 +15,10 @@ read_elpa(filename)
 read_mdm(filename)
     Reads in a .mdm file into the internal DMT format.
 
-read_csv(filename, **kwargs)
+read_csv(filename)
     Read .csv file and generate a DMT dataframe from it.
 
-read_feather(filename, **kwargs)
+read_feather(filename)
     Read .feather file and generate a DMT dataframe from it.
 
 read_DEVICE_bin(filename)
@@ -130,7 +130,7 @@ def save_hdf(df, save_dir, filename):
 
     Returns
     -------
-    success  :  boolean
+    boolean
         if saving was successfull returns True, else False
     """
     if not isinstance(save_dir, Path):
