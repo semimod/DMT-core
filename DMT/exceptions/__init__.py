@@ -32,7 +32,7 @@ class ValueAtBoundsError(ValueError):
     """Raised when the input error is excluded."""
 
 
-class SimulationUnsuccessful(Exception):
+class SimulationFailed(Exception):
     """Raised if the output of a simulation is not valid."""
 
 

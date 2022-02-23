@@ -56,7 +56,7 @@ from DMT.core.circuit import (
     HICUML2_HBT,
     SGP_BJT,
 )
-from DMT.exceptions import SimulationUnsuccessful, SimulationFail
+from DMT.exceptions import SimulationFailed, SimulationFail
 
 
 class DutXyce(DutCircuit):
@@ -585,7 +585,7 @@ class DutXyce(DutCircuit):
         ------
         NotImplementedError
             If the Dut is not a simulatable dut.
-        SimulationUnsuccessful
+        SimulationFailed
             If the simulation output is not valid.
         FileNotFoundError
             If the sim log file does not exist.
@@ -599,14 +599,10 @@ class DutXyce(DutCircuit):
         log_content = sim_log.read_text()
 
         if "MSG_ERROR" in log_content:
-            raise SimulationUnsuccessful(
-                "Xyce simulation in the folder " + str(sim_folder) + " failed."
-            )
+            raise SimulationFailed("Xyce simulation in the folder " + str(sim_folder) + " failed.")
 
         if "MSG_FATAL" in log_content:
-            raise SimulationUnsuccessful(
-                "Xyce simulation in the folder " + str(sim_folder) + " failed."
-            )
+            raise SimulationFailed("Xyce simulation in the folder " + str(sim_folder) + " failed.")
 
     def import_output_data(self, sweep, delete_sim_results=False, key=None):
         """Read the output files that have been produced while simulating sweep and attach them to self.db.
