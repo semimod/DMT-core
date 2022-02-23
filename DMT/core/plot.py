@@ -1974,7 +1974,9 @@ class SmithPlot(Plot):
 
     def __init__(self, *args, **kwargs):
         if not smith_available:
-            raise IOError("DMT.core.Plot -> Pysmithplot is not installed. Try: pip install pysmithplot")
+            raise IOError(
+                "DMT.core.Plot -> Pysmithplot is not installed. Try: pip install pysmithplot"
+            )
         super().__init__(*args, **kwargs)
         self.outer_fig = None  # here the "outer" matplotlib figure reference is stored
 
@@ -2514,16 +2516,16 @@ class Plot2YAxis(object):
 
         file_tikz_left = self.plot_left.save_tikz(
             directory,
-            width=r"\figurewidth",
-            height=r"\figureheight",
+            width=width,
+            height=height,
             mark_repeat=mark_repeat,
             standalone=standalone,
             restrict=restrict_left,
         )
         file_tikz_right = self.plot_right.save_tikz(
             directory,
-            width=r"\figurewidth",
-            height=r"\figureheight",
+            width=width,
+            height=height,
             mark_repeat=mark_repeat,
             standalone=standalone,
             restrict=restrict_right,
