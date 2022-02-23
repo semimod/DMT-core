@@ -27,17 +27,30 @@ Provides a meta class to ensure single instantiation.
 class Singleton(type):
     """Implements the Singleton design pattern. Classes that use this class as a metaclass can only be initiated once.
 
-    If a new object of a singleton class is instanciated, the already existing one is returned.
+    If a new object of a singleton class is created, the already existing one is returned.
     Source: https://stackoverflow.com/questions/6760685/creating-a-singleton-in-python
 
     Here something else is added: If a already existing object is "created" again, it tries to transfer the given kwargs to the old object.
 
-    For example:
+    Examples
+    --------
 
-    sim_con1 = SimCon(n_core=4)
-    ...
-    sim_con2 = SimCon(n_core=8)
-    sim_con1.run_and_read() # now uses 8 cores..
+    The simulation controller should only exist once because of possible blocking of resources. This class is used to see singleton in action:
+
+    >>> sim_con1 = SimCon(n_core=4)
+    >>> sim_con1.n_core
+    4
+
+    If now a second simulation controller is created:
+
+    >>> sim_con2 = SimCon(n_core=8)
+    >>> sim_con2.n_core
+    8
+
+    The new attribute is overwritten with the new value. As the change is made to the already existing instance, this also has now 8 cores:
+
+    >>> sim_con1.n_core
+    8
 
     """
 

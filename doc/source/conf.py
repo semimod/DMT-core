@@ -36,10 +36,10 @@ release = "1.3.0"
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+    "sphinx.ext.intersphinx",
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
     "sphinx.ext.doctest",
-    "sphinx.ext.intersphinx",
     "sphinx.ext.todo",
     "sphinx.ext.mathjax",
     "sphinx.ext.coverage",
@@ -93,7 +93,6 @@ if not os.path.isdir(themedir):
 # a list of builtin themes.
 html_theme = "sphinx_rtd_theme"
 
-numpydoc_class_members_toctree = False
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
@@ -189,6 +188,8 @@ html_search_language = "en"
 # Output file base name for HTML help builder.
 htmlhelp_basename = "DMTdoc"
 
+numpydoc_show_class_members = False
+numpydoc_class_members_toctree = False
 # numpydoc_xref_param_typebool
 #     Whether to create cross-references for the parameter types in the Parameters, Other Parameters, Returns and Yields sections of the docstring. False by default.
 numpydoc_xref_param_type = True
@@ -207,6 +208,16 @@ numpydoc_xref_aliases = {
     "Hdev": "DMT.Hdev",
     "VerilogAE": "DMT.VerilogAE",
 }
+
+# intersphinx
+intersphinx_mapping = {
+    "python": ("https://docs.python.org/3", None),
+    "mne": ("https://mne.tools/dev", None),
+    "numpy": ("https://www.numpy.org/devdocs", None),
+    "scipy": ("https://scipy.github.io/devdocs", None),
+    "matplotlib": ("https://matplotlib.org", None),
+}
+intersphinx_timeout = 10
 
 # -- Options for LaTeX output ------------------------------------------------
 

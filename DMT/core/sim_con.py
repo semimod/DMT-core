@@ -7,8 +7,8 @@ Features:
 * Supports to run simulations on multiple cores in parallel
 * Supports to run simulations on a remote server (including file up- and download)
 
-Author: Mario Krattenmacher | Mario.Krattenmacher@tu-dresden.de
-Author: Markus Müller | markus.mueller3@tu-dresden.de
+Author: Mario Krattenmacher | mario.krattenmacher@semimod.de
+Author: Markus Müller | markus.mueller@semimod.de
 """
 # DMT_core
 # Copyright (C) from 2022  SemiMod
@@ -31,7 +31,6 @@ Author: Markus Müller | markus.mueller3@tu-dresden.de
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 import copy
 import logging
-import os
 import time
 import subprocess
 import itertools
@@ -72,7 +71,7 @@ class SimCon(object, metaclass=Singleton):
         Number of cores that shall be used for simulations.
     t_max   :  float
         Timeout for simulations. If a simulation runs longer than t_max in seconds, it is killed.
-    sim_list :  [{'dut': dut, 'sweep': sweep}]
+    sim_list :  [{'dut': :class:`~DMT.core.dut_view.DutView`, 'sweep': :class:`~DMT.core.sweep.Sweep`}]
         A list of dicts containing the queued simulations. Each dict holds a 'dut' key value pair and a 'sweep' key value pair.
 
     ssh_client
@@ -264,8 +263,8 @@ class SimCon(object, metaclass=Singleton):
 
         # make sure that the target folder exists
         for folder in reversed(DATA_CONFIG["server"]["simulation_path"].parents):
-            self.ssh_client.exec_command("mkdir " + str(folder))
-        self.ssh_client.exec_command("mkdir " + str(DATA_CONFIG["server"]["simulation_path"]))
+            self.ssh_client.exec_command("mkdir -p " + str(folder))
+        self.ssh_client.exec_command("mkdir -p " + str(DATA_CONFIG["server"]["simulation_path"]))
 
     def close_ssh_client(self):
         """Closes the ssh connection again."""

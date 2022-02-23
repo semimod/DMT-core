@@ -117,11 +117,11 @@ class McParameter(object):
     -------
     check_bounds(value)
         Check wheather or not value is within the bounds of this parameter.
-    _set_forced(self, value)
+    _set_forced( value)
         Force setting the value. ATTENTION: When used, the boundaries may be set to inf!
-    dict_json(self)
+    dict_json()
         Returns a compact formatted json dump of this parameter
-    load_json( cls, name, value, __McParameter__, min, max, type, inc_min, inc_max, exclude, group, unit, description)
+    load_json(cls, name, value, __McParameter__, min, max, type, inc_min, inc_max, exclude, group, unit, description)
         Creates a McParameter from a dictionary obtained by a json.load.
 
     """
@@ -593,10 +593,6 @@ class McParameterComposition(object):
         Dictionary of possible groups in this composition, saved as Description: GroupName, by default None
     __McParameterComposition__ : Union[VersionInfo, str, float], optional
         Version of the given creation parameters, by default SEMVER_MCPARAMETER_COMPOSITION_CURRENT
-
-    Methods
-    -------
-
 
     Raises
     ------

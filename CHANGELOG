@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Added ```__version__``` attribute and use it in setup.py
 - Added ```_Excluded``` class to correctly implement the Verilog-AMS standard
+- Added a test case for DMT.verilogae.helpers.get_param_list
 
 ### Changed
 

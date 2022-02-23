@@ -1357,7 +1357,9 @@ class Plot(object):
         legend_to_name=None,
         **kwargs,
     ):
-        """Save plot in directory and return name of the tikz file. The name of the tikz file will be the figure attribute self.num, if not given.
+        """Save plot in directory and return name of the tikz file.
+
+        The name of the tikz file will be the figure attribute self.num, if not given.
 
         Parameters
         ----------
@@ -1366,7 +1368,7 @@ class Plot(object):
         file_name : str, optional
             Set a different file name to create. Default is self.name sluggified, by default None
         width : str, optional
-            Width of the figure, by default "\textwidth"
+            Width of the figure, by default '\\\\textwidth'
         height : str, optional
             Height of the figure, by default None
         mark_repeat : int, optional
@@ -1384,7 +1386,7 @@ class Plot(object):
         clean : bool, optional
             Remove all files except the rendered picture after build, by default False
         fontsize : str, optional
-            [description], by default 'normalsize'.
+            Latex fontsize, by default 'normalsize'.
         svg : bool, optional
             Build the figure to svg (suited for FrameMaker), by default False
         png : bool, optional
@@ -1398,8 +1400,7 @@ class Plot(object):
         legend_location : str, optional
             Change legend location to something different, by default None
         legend_to_name: str, optional
-            If this value is set to a name the legend is saved to a label with the provided name.
-            It is not display inside the plot. Istead it can be printed anywhere in the document with \rec{<<name>>}
+            If this value is set to a name the legend is saved to a label with the provided name. It is not display inside the plot. Instead it can be printed anywhere in the document with '\\\\rec{<<name>>}'
 
         Returns
         -------
