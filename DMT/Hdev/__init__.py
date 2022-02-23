@@ -26,9 +26,3 @@ from .models.mobility import get_velocity
 from .dut_hdev import DutHdev
 from .dut_hdev import getITRSHBT
 from .dut_hdev import hdev_iv_fallback
-
-# deprecated and will remove at some point
-# from .xsteps.x_velocity_field import XVelocityField
-# from .xsteps.x_v_intervalley import XVIntervalley
-# from .xsteps.x_coos_fit import XFitCOOS
-# from .Hdevmodel import COOSModel
