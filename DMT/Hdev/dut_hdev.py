@@ -42,7 +42,7 @@ from DMT.core import (
 )
 from DMT.config import DATA_CONFIG
 
-from DMT.exceptions import SimulationFailed
+from DMT.exceptions import SimulationUnsuccessful
 from DMT.config import COMMANDS
 from hdevpy.tools import makeinp, turn_off_recombination
 
@@ -254,7 +254,7 @@ class DutHdev(DutTcad):
         ------
         NotImplementedError
             If the Dut is not a simulatable dut.
-        SimulationFailed
+        SimulationUnsuccessful
             If the simulation output is not valid.
         FileNotFoundError
             If the sim log file does not exist.
@@ -275,7 +275,7 @@ class DutHdev(DutTcad):
             print("Hdev error message is:")
             print(r1)
             print("\n")
-            raise SimulationFailed(
+            raise SimulationUnsuccessful(
                 "Hdev Simulation of the sweep "
                 + sweep.name
                 + " with the hash "
@@ -291,7 +291,7 @@ class DutHdev(DutTcad):
                 return sim_time[0]
             except (KeyError, IndexError) as e:
                 # error during simulation, sim_time not printed
-                raise SimulationFailed(
+                raise SimulationUnsuccessful(
                     "Hdev Simulation of the sweep "
                     + sweep.name
                     + " with the hash "

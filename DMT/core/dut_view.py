@@ -395,7 +395,7 @@ class DutView(object):
         ------
         NotImplementedError
             If the Dut is not a simulatable dut.
-        SimulationFailed
+        SimulationUnsuccessful
             If the simulation output is not valid.
         FileNotFoundError
             If the sim log file does not exist.

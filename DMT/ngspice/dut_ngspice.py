@@ -54,7 +54,7 @@ from DMT.core import (
 )
 from DMT.core.circuit import VOLTAGE, CURRENT, HICUML2_HBT, SHORT
 
-from DMT.exceptions import SimulationFailed
+from DMT.exceptions import SimulationUnsuccessful
 
 
 class DutNgspice(DutCircuit):
@@ -689,7 +689,7 @@ class DutNgspice(DutCircuit):
         ------
         NotImplementedError
             If the Dut is not a simulatable dut.
-        SimulationFailed
+        SimulationUnsuccessful
             If the simulation output is not valid.
         FileNotFoundError
             If the sim log file does not exist.
@@ -706,7 +706,7 @@ class DutNgspice(DutCircuit):
         if "error" in log_content:
             print("DMT - NGSPICE: Simulation failed! An error was found in the simulation log!")
             logging.debug("Log content:\n%s", log_content)
-            raise SimulationFailed(
+            raise SimulationUnsuccessful(
                 "NGSPICE Simulation of the sweep "
                 + sweep.name
                 + " with the hash "
@@ -718,7 +718,7 @@ class DutNgspice(DutCircuit):
         # if not seach_obj_end:
         #     print("DMT - DutAds: Simulation failed! The simulation log file is not complete!")
         #     logging.debug("Log content:\n%s", log_content)
-        #     raise SimulationFailed('ADS Simulation of the sweep ' + sweep.name + ' with the hash ' + sweep.get_hash() + ' failed! The simulation log file is not complete!')
+        #     raise SimulationUnsuccessful('ADS Simulation of the sweep ' + sweep.name + ' with the hash ' + sweep.get_hash() + ' failed! The simulation log file is not complete!')
 
         # find .ngspice file
         for my_file in os.listdir(sim_folder):
@@ -731,7 +731,7 @@ class DutNgspice(DutCircuit):
                 "DMT - DutNgspice: Simulation failed! The simulation result .raw file was not found!"
             )
             logging.debug("Log content:\n%s", log_content)
-            raise SimulationFailed(
+            raise SimulationUnsuccessful(
                 "NGSPICE Simulation of the sweep "
                 + sweep.name
                 + " with the hash "

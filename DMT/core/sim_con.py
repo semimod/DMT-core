@@ -42,7 +42,7 @@ import multiprocessing
 
 from DMT.core import Singleton, print_progress_bar
 from DMT.config import DATA_CONFIG
-from DMT.exceptions import SimulationFailed, SimulationFail
+from DMT.exceptions import SimulationUnsuccessful, SimulationFail
 
 # import them always -> can become very annoying otherways (if default is False but one dut is remote)
 from tempfile import NamedTemporaryFile
@@ -564,11 +564,11 @@ class SimCon(object, metaclass=Singleton):
                                             p["dut"].validate_simulation_successful(p["sweep"])
                                         except (
                                             SimulationFail,
-                                            SimulationFailed,
+                                            SimulationUnsuccessful,
                                             FileNotFoundError,
                                         ):
                                             p["success"] = False
-                                    except (SimulationFailed, FileNotFoundError):
+                                    except (SimulationUnsuccessful, FileNotFoundError):
                                         pass  # just try again
 
                             else:  # copy everything and check => slow
@@ -579,7 +579,7 @@ class SimCon(object, metaclass=Singleton):
                                         p["dut"], p["sweep"], zip_result=p["zip_result"]
                                     )
                                     process_finished.append(p)
-                                except (SimulationFailed, FileNotFoundError):
+                                except (SimulationUnsuccessful, FileNotFoundError):
                                     pass
                                 except SimulationFail:
                                     p["success"] = False
@@ -778,7 +778,7 @@ def _check_simulation_needed(i_sim, n_tot, dut=None, sweep=None):
             dut.add_data(sweep)
         except SimulationFail:
             print("Simulation of DuT %s with sweep %s already done and failed!", dut_name, sim_name)
-        # except (SimulationFailed, FileNotFoundError, IndexError, struct.error):
+        # except (SimulationUnsuccessful, FileNotFoundError, IndexError, struct.error):
         except:  # all exceptions should be re-simulated
             # ok simulate it!
             dut.delete_sim_results(sweep, ignore_errors=True)  # remove for safety
@@ -823,7 +823,7 @@ def _read_process_results(success, dut, sweep):
             )
             print((sim_folder / "sim.log").read_text())
             logging.info("Simulation of DuT %s with sweep %s failed.", dut_name, sim_name)
-    except (SimulationFailed, FileNotFoundError, KeyError):
+    except (SimulationUnsuccessful, FileNotFoundError, KeyError):
         color_red = "\033[91m"
         color_end = "\033[0m"
         print(
