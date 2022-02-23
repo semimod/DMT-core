@@ -272,3 +272,12 @@ def linkcode_resolve(domain, info):
         return None
     filename = info["module"].replace(".", "/")
     return f"https://gitlab.com/dmt-development/dmt-core/-/tree/main/{filename:s}.py"
+
+
+# -- Options for autodoc extension ----------------------------------------------
+
+# -- autodoc_typehints_format
+#     This value controls the format of typehints. The setting takes the following values:
+#         'fully-qualified' – Show the module name and its name of typehints
+#         'short' – Suppress the leading module names of the typehints (ex. io.StringIO -> StringIO) (default)
+autodoc_typehints_format = "short"

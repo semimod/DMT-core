@@ -14,6 +14,12 @@ image: registry.gitlab.com/dmt-development/dmt:latest
 variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
 
+stages:
+  - format
+  - test
+  - deploy
+  - release
+
 # Pip's cache doesn't store the python packages
 # https://pip.pypa.io/en/stable/reference/pip_install/#caching
 #
@@ -28,21 +34,23 @@ before_script:
   - source /venv/bin/activate
   - pip install -e .
 
-run_core:
-  stage: build
+check_format:
+  stage: format
   script:
     - source /venv/bin/activate
-    - pytest test/test_core_no_interfaces/
-    - pytest test/test_interface_ngspice/test_*.py
-    - pytest test/test_interface_xyce/test_*.py
+    - black --check --diff -v .
   only:
     - main
     - pre-main
 
-hdev:
-  stage: build
+test_DMT:
+  stage: test
   script:
     - source /venv/bin/activate
+    - pytest --cov=DMT/ test/test_core_no_interfaces/
+    - pytest --cov=DMT/ --cov-append test/test_interface_ngspice/test_*.py
+    - pytest --cov=DMT/ --cov-append test/test_interface_xyce/test_*.py
+    # Hdev:
     - git clone https://gitlab.com/metroid120/hdev_simulator.git
     - cd hdev_simulator/HdevPy #HdevPy depends on DMT_core and therefore is installed here
     - pip install -e .
@@ -55,27 +63,8 @@ hdev:
     - mkdir -p ~/.DMT/simulation_results
     # run many test
     - python HdevPy/scripts/run_tests.py
-    - pytest test/test_interface_hdev/test_*.py
-  only:
-    - main
-    - pre-main
-
-format:
-  stage: test
-  script:
-    - source /venv/bin/activate
-    - black --check --diff -v .
-  only:
-    - main
-    - pre-main
-
-coverage:
-  stage: test
-  script:
-    - source /venv/bin/activate
-    - pytest --cov=DMT/ test/test_core_no_interfaces/
-    - pytest --cov=DMT/ --cov-append test/test_interface_ngspice/test_*.py
-    - pytest --cov-report term-missing --cov-report html --cov=DMT/ --cov-append test/test_interface_xyce/test_*.py | tee coverage_report.txt
+    - cd ..
+    - pytest --cov-report term-missing --cov-report html --cov=DMT/ --cov-append test/test_interface_hdev/test_*.py | tee coverage_report.txt
     - coverage=$(python3 -c "import re; match = ''; match=re.search(r'TOTAL.+?([0-9]+)%', open('coverage_report.txt').read()); print(match.group(1))")
     - anybadge -l coverage -v $coverage -f badge_coverage.svg coverage
   coverage: "/TOTAL.+?([0-9]+)%/"
@@ -86,13 +75,13 @@ coverage:
       - badge_coverage.svg
   only:
     - main
+    - pre-main
 
 wheel:
   stage: deploy
   script:
     - source /venv/bin/activate
     - python3 setup.py sdist bdist_wheel
-    - pip3 install twine
     - TWINE_PASSWORD=${CI_JOB_TOKEN} TWINE_USERNAME=gitlab-ci-token python -m twine upload --repository-url ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/pypi dist/*
   artifacts:
     paths:
@@ -104,7 +93,6 @@ pages:
   stage: deploy
   script:
     - source /venv/bin/activate
-    - export DMT_DOC_CORE=True # only core
     - cd doc ; make html
     - mv build/html/ ../public/
   artifacts:
@@ -112,3 +100,16 @@ pages:
       - public
   only:
     - main
+
+release_to_pip:
+  stage: release
+  rules:
+    - if: $CI_COMMIT_TAG     # Run this job when a tag is created manually
+  script:
+    - echo "Running the release job."
+    - release_changelog=$(python3 -c "import re; match = re.search(r"(## \[\d.+?)((## \[)|\Z)", open("DMT_core/CHANGELOG").read(), re.DOTALL); print(match.group(1))") | tee current_changes.md
+    # push to pip
+    - TWINE_PASSWORD=${PIP_JOB_TOKEN} TWINE_USERNAME=__token__ python -m twine upload --repository-url https://upload.pypi.org/legacy/  dist/*
+  release:
+    tag_name: $CI_COMMIT_TAG
+    description: './current_changes.md'

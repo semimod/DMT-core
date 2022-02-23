@@ -1,3 +1,5 @@
+.. _dut_xyce:
+
 dut\_xyce module
 =======================
 

@@ -14,7 +14,7 @@ Before you get started with DMT, please note that DMT is a high-level project (i
 So before we get started, please:
 
 - Make sure you have Python >= 3.8 installed.
-- If run circuit or TCAD simulations, make sure you have one installed on your system which is interfaced by DMT. The Core package offers `Hdev <https://gitlab.com/metroid120/hdev_simulator>`__, `Xyce <https://xyce.sandia.gov/>`__ and `ngspice <http://ngspice.sourceforge.net/>`__. If you need a different simulator, either you have to implement it yourself or contact the DMT team for it.
+- If run circuit or TCAD simulations, make sure you have one installed on your system which is interfaced by DMT. The Core package offers interfaces to `Hdev <https://gitlab.com/metroid120/hdev_simulator>`__, `Xyce <https://xyce.sandia.gov/>`__ and `ngspice <http://ngspice.sourceforge.net/>`__. If you need a different simulator, either you have to implement it yourself or contact the DMT team for it.
 - After every update, ensure that your use cases still run as expected. If you have a special use, which is not covered by our current test-environment feel free to suggest your use case to us via an issue. As we are eager to improve the Code, more test cases are always welcome.
 
 
@@ -82,6 +82,8 @@ If this works, you have successfully installed DMT. For more tests visit the tes
 If you want to generate high-quality Tikz plots with DMT, you should also make sure that a Tex compiler such as latexmk and corresponding packages (texlive-full on Unix) are available.
 These are not installed when installing DMT.
 
+.. _config:
+
 Configuration
 --------------
 
@@ -94,38 +96,38 @@ If you want to use such interfaces, you need:
 
 Using other software may require DMT to be configured for your user and also for your current
 working directory.
-The default config file is placed inside the DMT python package (DMT/DMT_default_config.py) and can be
-copied manually to your ~/.DMT (for Linux) or C:\Users\<CurrentUserName>\.DMT for windows when installing DMT. In this file you also can check for most of the possible configuration options DMT offers.
+The default config file is placed inside the DMT python package (``DMT/config/DMT_default_config.py``) and can be
+copied manually to your ``~/.DMT`` (for Linux) or ``C:\Users\<CurrentUserName>\.DMT`` for windows when installing DMT. In this file you also can check for most of the possible configuration options DMT offers.
 Each DMT module should contain documentation that explains the relevant configuration options.
 
-In example to use ADS on a Unix system one needs to type
+In example to use ngspice on a Unix system one needs to type
 
 .. code:: bash
 
-    hpeesofsim
+    ngspice
 
 into the console. This command may be different and needs to be known to DMT.
-If you want to change this command for your user change in ~/.DMT/DMT_config.yaml
+If you want to change this command for your user change in ``~/.DMT/DMT_config.yaml``
 
 .. code:: yaml
 
     commands:
-        ADS:        hpeesofsim_user # Command to execute the circuit simulator of ADS.
+        NGSPICE:    ngspice # Command to execute the circuit simulator ngspice.
 
 
 This changes the default bash command to start the software.
 
-Additionally you can add a DMT configuration file "DMT_config.yaml" into your working directory.
+Additionally you can add a DMT configuration file ``DMT_config.yaml`` into your working directory.
 The configuration in the working directory will overwrite the user configuration on the home directory and the default configuration.
 This can be usefully if you have different projects on the same user, which need different database directories or custom_specifiers.
 
 DMT always tries to load:
 
-* the default config in the DMT installation directory
-* the user config in $home/.DMT/DMT_config.yaml
-* the local config the working directory
+* the default config in the DMT installation directory (for example: ``venv/lib/python3.10/site-packages/DMT/config/DMT_default_config.py``)
+* the user config in ``~/.DMT/DMT_config.yaml``
+* the local config the working directory ``$PWD/DMT_config.yaml``
 
-the default config is overwritten by the user config, which is in turn overwritten by the local config.
+The default config is overwritten by the existing keys from the user config, which is in turn overwritten by the existing keys from the local config. So if a key is not given in the local config, the user config value is used, if it is given there, if not the default value is employed.
 
 More installation details
 ----------------------------

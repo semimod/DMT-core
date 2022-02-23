@@ -19,12 +19,20 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
+from __future__ import annotations
 import numpy as np
 
-from DMT.core import Sweep, specifiers, sub_specifiers
+from DMT.core import Sweep, specifiers, sub_specifiers, DataFrame, SweepDef
 
 
-def df_to_sweep(df_to_convert, temperature=300, name=None, from_forced=True, SweepDefClass=None):
+def df_to_sweep(
+    df_to_convert: DataFrame,
+    temperature: float = 300.0,
+    name: str = None,
+    from_forced: bool = True,
+    SweepDefClass: SweepDef = None,
+    decimals_potentials: int = 3,
+):
     """Create a sweepdefinition which simulates the same forced values as the given measurement data frame.
 
     For the moment only voltage sweeps...
@@ -38,10 +46,14 @@ def df_to_sweep(df_to_convert, temperature=300, name=None, from_forced=True, Swe
         Name of the sweep to create. If None, automatic generation of a name is tried.
     from_forced : {True, False}, optional
         If True, the forced voltages are used to create the sweepdef.
+    SweepDefClass : :class:`~DMT.core.sweep.SweepDef`
+        SweepDef class for the sweep to create from
+    decimals_potentials : int
+        Round the potentials to this x decimals, defaults to 3
 
     Returns
     -------
-    sweep : :class:`~DMT.core.sweep.Sweep`
+    :class:`~DMT.core.sweep.Sweep`
     """
     vars_other = {
         specifiers.TEMPERATURE: temperature
@@ -74,7 +86,7 @@ def df_to_sweep(df_to_convert, temperature=300, name=None, from_forced=True, Swe
     for potential in sorted(
         potentials_forced, key=lambda x: x.nodes[0]
     ):  # sort to make sure everytime the same is found.
-        if len(np.unique(np.round(df_to_convert[potential].to_numpy(), 6))) == 1:
+        if len(np.unique(np.round(df_to_convert[potential].to_numpy(), decimals_potentials))) == 1:
             potential_common = potential  # use this one! Even if more than one would exist.
             break
 
@@ -114,14 +126,14 @@ def df_to_sweep(df_to_convert, temperature=300, name=None, from_forced=True, Swe
                 voltage = potential + potential_other.nodes[0]
 
             df_to_convert.ensure_specifier_column(voltage)
-            values = np.unique(np.round(df_to_convert[voltage].to_numpy(), 6))
+            values = np.unique(np.round(df_to_convert[voltage].to_numpy(), decimals_potentials))
             count_ops[voltage] = len(values)
 
     for i_voltage, (voltage, _count) in enumerate(
         sorted(count_ops.items(), key=lambda kv: kv[1])[:-1]
     ):  # last of the sorted list is the one we don't need
         df_to_convert.ensure_specifier_column(voltage)
-        values = np.unique(np.round(df_to_convert[voltage].to_numpy(), 6))
+        values = np.unique(np.round(df_to_convert[voltage].to_numpy(), decimals_potentials))
 
         if voltage.nodes[1] == potential_common.nodes[0]:  # convert to potential if possible
             if from_forced:
@@ -145,6 +157,8 @@ def df_to_sweep(df_to_convert, temperature=300, name=None, from_forced=True, Swe
             ]:
                 other_nodes += "".join(voltage_other.nodes)
 
+            potential = specifiers.VOLTAGE + "C"  # per default a BC sweep
+            potential_master = specifiers.VOLTAGE + "B"
             for node_master in voltage.nodes:
                 if node_master in other_nodes:
                     if from_forced:
@@ -159,7 +173,7 @@ def df_to_sweep(df_to_convert, temperature=300, name=None, from_forced=True, Swe
             voltage_offset = potential + potential_master.nodes[0]
 
             if voltage != voltage_offset:  # order of nodes reversed
-                values = np.round(-values, 6)  # invert voltage
+                values = np.round(-values, decimals_potentials)  # invert voltage
 
             def_sweep.append(
                 {
@@ -196,7 +210,9 @@ def df_to_sweep(df_to_convert, temperature=300, name=None, from_forced=True, Swe
 
     ### grab definition for the frequency, if possible
     if specifiers.FREQUENCY in df_to_convert.columns:
-        freq = np.unique(np.round(df_to_convert[specifiers.FREQUENCY].to_numpy(), 6))
+        freq = np.unique(
+            np.round(df_to_convert[specifiers.FREQUENCY].to_numpy(), decimals_potentials)
+        )
         def_sweep.append(
             {
                 "var_name": specifiers.FREQUENCY,

@@ -1,3 +1,6 @@
+
+.. _dut_hdev:
+
 dut\_hdev module
 =======================
 

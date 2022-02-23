@@ -243,7 +243,11 @@ def test_cap_extraction_common_collector_reversed():
 if __name__ == "__main__":
     from DMT.core import Plot
 
+    import cProfile, pstats, io
+
+    profiler = cProfile.Profile()
     time_start = datetime.now()
+    profiler.enable()
     test_cap_extraction_common_emitter()
     test_cap_extraction_common_emitter_reverse()
     test_cap_extraction_common_base()
@@ -251,11 +255,19 @@ if __name__ == "__main__":
     test_cap_extraction_common_collector()
     test_cap_extraction_common_collector_reversed()
     df_deemb = test_data_processor_and_deem()
+    profiler.disable()
     print("Runtime: " + str(datetime.now() - time_start))
+
+    s = io.StringIO()
+    ps = pstats.Stats(profiler, stream=s).sort_stats("cumulative")
+
+    ps.print_stats(50)  # print the 50 methods with the longest cumulative time
+
+    print(s.getvalue())
     # plot the result
     plt_cbe = Plot("C_BE(V_BE)", style="bw")
     for freq_a in [1e9, 5e9, 10e9]:
         df_tmp = df_deemb[df_deemb["FREQ"] == freq_a]
         plt_cbe.add_data_set(df_tmp["V_B"].to_numpy(), df_tmp["C_BE"].to_numpy(), label="meas")
 
-    plt_cbe.plot_py(show=True)
+    plt_cbe.plot_pyqtgraph(show=True)

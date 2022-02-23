@@ -1,0 +1,78 @@
+\documentclass[class=IEEEtran]{standalone}
+\usepackage{tikz,amsmath,siunitx}
+\usetikzlibrary{arrows,snakes,backgrounds,patterns,matrix,shapes,fit,calc,shadows,plotmarks}
+\usepackage[graphics,tightpage,active]{preview}
+\usepackage{pgfplots}
+\pgfplotsset{compat=newest}
+\usetikzlibrary{shapes.geometric}
+\PreviewEnvironment{tikzpicture}
+\PreviewEnvironment{equation}
+\PreviewEnvironment{equation*}
+\newlength\figurewidth
+\newlength\figureheight
+\begin{document}
+\setlength\figurewidth{60mm}
+\setlength\figureheight{60mm}
+\begin{tikzpicture}[font=\normalsize]
+\pgfplotsset{every axis/.append style={ultra thick},compat=1.5},
+\definecolor{color0}{rgb}{0.00000, 0.39216, 0.00000}
+\definecolor{color1}{rgb}{0.00000, 0.00000, 0.54510}
+
+\begin{axis}[scale only axis,ytick pos=left,
+width=3in,
+xlabel={$I_{\mathrm{C}}\left(\si{\milli\ampere}\right)$},
+ylabel={$f_{\mathrm{T}}\left(\si{\giga\hertz}\right)$},
+xmode=log,
+xmin=3.64628e-11,
+xmax=55.2411,
+restrict x to domain=-52.1907:8.71131,
+log basis x=10,
+ymin=-2.11935,
+ymax=56.9617,
+restrict y to domain=-10.5968:284.808,
+log basis y=10,
+xmajorgrids,
+enlargelimits=false,
+scaled ticks=false,
+ymajorgrids,
+x tick style={color=black},
+y tick style={color=black},
+x grid style={white!69.01960784313725!black},
+y grid style={white!69.01960784313725!black},
+/tikz/mark repeat=1,
+legend style={at={(0.02,0.98)}, anchor=north west,legend cell align=left, align=left},
+]
+\addplot [color=color0, solid, mark=x, mark options={solid}, mark phase=1, ]
+  table[row sep=crcr, x expr=\thisrowno{0}*1.000000e+03, y expr=\thisrowno{1}*1.000000e-09]{
+0 5.48338e+10\\
+1.00255e-13 4.95249e+10\\
+2.12063e-13 4.407e+10\\
+8.59203e-13 3.49142e+10\\
+2.62831e-11 6.13611e+09\\
+1.19712e-09 1.53666e+08\\
+5.52534e-08 8.55864e+06\\
+2.54706e-06 2.27859e+08\\
+0.000115611 7.42613e+09\\
+0.00346916 3.32507e+10\\
+0.0200867 2.63264e+10\\
+};
+\addlegendentry{meas $V_{\mathrm{BC}}=\SI{0.00}{\volt}$}
+\addplot [color=color1, solid, mark=+, mark options={solid}, mark phase=1, ]
+  table[row sep=crcr, x expr=\thisrowno{0}*1.000000e+03, y expr=\thisrowno{1}*1.000000e-09]{
+0 5.47782e+10\\
+1.00255e-13 4.94396e+10\\
+2.12063e-13 4.39739e+10\\
+8.59203e-13 3.49066e+10\\
+2.62831e-11 6.13963e+09\\
+1.19712e-09 1.54065e+08\\
+5.52534e-08 8.5677e+06\\
+2.54706e-06 2.27772e+08\\
+0.000115611 7.43645e+09\\
+0.00346948 3.32614e+10\\
+0.0200913 2.63238e+10\\
+};
+\addlegendentry{sim $V_{\mathrm{BC}}=\SI{0.00}{\volt}$}
+\end{axis}
+
+\end{tikzpicture}
+\end{document}

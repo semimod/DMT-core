@@ -1,13 +1,10 @@
-# cython: profile=True
-""" Class responsible for data reading in DMT.
+""" Module responsible for data reading in DMT.
 
-Methods
--------
+Functions
+---------
 read_data(filename)
     Reads a given file into the internal DMT dataframe, the file's extension determines the exact method which is then called for reading.
 
-save_data(df,save_dir,filename)
-    Saves internal DMT dataframe data to hdf5 file format.
 
 read_hdf(filename, key, convert_cmplx)
     Reads in a .hdf file into the internal DMT format.
@@ -17,6 +14,27 @@ read_elpa(filename)
 
 read_mdm(filename)
     Reads in a .mdm file into the internal DMT format.
+
+read_csv(filename)
+    Read .csv file and generate a DMT dataframe from it.
+
+read_feather(filename)
+    Read .feather file and generate a DMT dataframe from it.
+
+read_DEVICE_bin(filename)
+    Reads DEVICE binaries. Here the internal spacial data is saved. Returns a Dataframe.
+
+read_ADS_bin(filename)
+    Reads a ADS raw data file into a DMT dataframe.
+
+read_tikz_file(filename, col_x=None, col_y=None)
+    Reads a tikz plot file into a DMT dataframe.
+
+save_hdf(df, save_dir, filename)
+    Save the dataframe df into save_dir as filename.h5 .
+
+save_elpa(fname, ELPA, cols, firstline)
+    Save data as a elpa file.
 
 """
 # DMT_core
@@ -112,7 +130,7 @@ def save_hdf(df, save_dir, filename):
 
     Returns
     -------
-    success  :  boolean
+    boolean
         if saving was successfull returns True, else False
     """
     if not isinstance(save_dir, Path):
@@ -314,6 +332,18 @@ def read_csv(filename, **kwargs):
     # ok, can just use standard pandas routine here. nice.
     df = pd.read_csv(str(filename), **kwargs)
     df.__class__ = DataFrame  # cast to DMT.DataFrame
+
+    # work around for complex data in one column in the csv:
+    # https://stackoverflow.com/a/18919965
+
+    for col in df.columns:  # type: ignore
+        if df[col].dtype == object:  # type: ignore
+            try:
+                df[col] = df[col].apply(lambda x: np.complex(x))  # type: ignore
+            except AttributeError:
+                # is there i instead of j ?
+                df[col] = df[col].str.replace("i", "j").apply(lambda x: np.complex(x))  # type: ignore
+
     return df
 
 
@@ -673,6 +703,19 @@ def read_ADS_bin(filename):
 
 
 def save_elpa(fname, ELPA, cols, firstline):
+    """Save data as a elpa file
+
+    Parameters
+    ----------
+    fname : str or os.Pathlike
+        Path to the file to save
+    ELPA : object
+        This parameter is passed to numpy.array as first parameter. Check this function for the supported types.
+    cols : list[str]
+        List of column names
+    firstline : str
+        First line (comment) for the file to create
+    """
     # save xy data as elpa file
     # todo:does not work with pandas dataframes yet
     if not isinstance(fname, Path):

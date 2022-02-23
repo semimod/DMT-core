@@ -11,10 +11,6 @@ same name and value. Also compositions can be compared, they are equal, if they 
 the same parameters and all parameters are equal.
 
 Finally the classes here also add some pretty printing and loading and saving using pickle.
-
-Author: Mario Krattenmacher | Mario.Krattenmacher@semimod.de
-Author: Markus Müller       | Markus.Mueller@semimod.de
-Author: Pascal Kuthe        | Pascal.Kuthe@semimod.me
 """
 # DMT_core
 # Copyright (C) from 2022  SemiMod
@@ -41,9 +37,10 @@ import copy
 import json
 from semver import VersionInfo
 from pathlib import Path
+
 import _pickle as cpickle  # type: ignore
 import numpy as np
-from typing import OrderedDict, Union, List, Optional, List
+from typing import OrderedDict, Type, Union, List, Optional, List
 from pint.formatting import siunitx_format_unit
 from pint.errors import UndefinedUnitError
 
@@ -68,56 +65,64 @@ SEMVER_MCPARAMETER_COMPOSITION_CURRENT = VersionInfo(major=1, minor=0)
 
 
 class McParameter(object):
-    name: str
-    _value: Union[float, int, None]
-    _min: Union[float, int]
-    _max: Union[float, int]
-    inc_min: bool
-    inc_max: bool
-    _exclude: Optional[List[Union[float, int]]]
-    group: str
-    description: str
-
     """Objects of this class represent a model card parameter. If you want to store many of them, see McParameterComposition class.
 
     Attributes
     ----------
-    _value   :  np.array([float])
+    _value   :  Union[float, int, None]
         The value of this parameter.
-    name     :  string
+    name     :  str
         The name of the parameter.
     inc_min  :  bool
         If True, value==min is allowed.
     inc_max  :  bool
         If True, value==max is allowed.
-    min      :  np.array([float])
+    min      :  Union[float, int]
         The minimum boundary of this parameter.
-    max      :  np.array([float])
+    max      :  Union[float, int]
         The maximum boundary of this parameter.
-    exclude  :  float64
-        Optional value that can be excluded as a valid value for value. E.g. if min=-1, max=1, sometimes you might want to exclude 0.
-    val_type : type
+    exclude  :  Optional[List[Union[float, int]]]
+        Optional list of values that can be excluded as a valid value for value. E.g. if min=-1, max=1, sometimes you might want to exclude 0.
+    val_type : Type[Union[int, float]]
         The type of the value.
+    description : str
+        Description of the parameter
 
     Parameters
     ----------
-    value : float
-        Value for the parameter. Can also be a other Parameter, then all attributes are copied.
     name : str
         Name of the parameter.
+    value : Union[float, int, None]
+        Value for the parameter. Can also be a other Parameter, then all attributes are copied.
     unit : pint.unit
         Unit of the python Pint package.
-    minval : float
+    minval : Union[float, int, None]
         Minimum boundary value of the parameter.
-    maxval : float
+    maxval : Union[float, int, None]
         Maximum boundary value of the parameter.
     group  : str
         Display is sorted by groups.
+    value_type : Type[Union[int, float]]
+        The type of the value.
+    inc_min  :  bool
+        If True, value==min is allowed.
+    inc_max  :  bool
+        If True, value==max is allowed.
+    exclude  :  Optional[List[Union[float, int]]]
+        List of values that are excluded as a valid value for value. E.g. if min=-1, max=1, sometimes you might want to exclude 0.
+    description : str
+        Description of the parameter
 
     Methods
     -------
     check_bounds(value)
         Check wheather or not value is within the bounds of this parameter.
+    _set_forced(self, value)
+        Force setting the value. ATTENTION: When used, the boundaries may be set to inf!
+    dict_json(self)
+        Returns a compact formatted json dump of this parameter
+    load_json( cls, name, value, __McParameter__, min, max, type, inc_min, inc_max, exclude, group, unit, description)
+        Creates a McParameter from a dictionary obtained by a json.load.
 
     """
 
@@ -130,7 +135,7 @@ class McParameter(object):
         value_type=float,
         inc_min: bool = True,
         inc_max: bool = True,
-        exclude: Optional[List[Union[float, int]]] = None,
+        exclude: Union[List[Union[float, int]], float, int, None] = None,
         group: str = "",
         unit=unit_registry.dimensionless,
         description: str = "",
@@ -161,7 +166,7 @@ class McParameter(object):
         else:
             self._max = self._val_type(maxval)
 
-        self._exclude = None
+        self._exclude: List[Union[float, int]] = []
         self.exclude = exclude
 
         if value is None:
@@ -187,11 +192,7 @@ class McParameter(object):
         else:
             str_type = str(self._val_type)  # make it reprable always...
 
-        str_exclude = (
-            "None"
-            if self.exclude is None
-            else "[" + ";".join(f"{excluded:g}" for excluded in self.exclude) + "]"
-        )
+        str_exclude = "[" + ";".join(f"{excluded:.5g}" for excluded in self.exclude) + "]"
 
         return (
             "McParameter("
@@ -216,7 +217,9 @@ class McParameter(object):
             + '")'
         )
 
-    def dict_json(self) -> dict[str, Union[float, int, str, bool, None, List[Union[float, int]]]]:
+    def dict_json(
+        self,
+    ) -> dict[str, Union[float, int, str, bool, None, List[Union[float, int]]]]:
         """Returns a compact formatted json dump of this parameter"""
 
         if self._val_type == int:
@@ -230,6 +233,8 @@ class McParameter(object):
             desc = self.description
         except AttributeError:
             desc = ""
+
+        # str_exclude = "[" + ";".join(f"{excluded:.5g}" for excluded in self.exclude) + "]"
 
         return {
             "name": self.name,
@@ -441,7 +446,7 @@ class McParameter(object):
         return self._exclude
 
     @exclude.setter
-    def exclude(self, new_exclude):
+    def exclude(self, new_exclude: Union[List[Union[float, int]], float, int, None]):
         """Set the type of this parameter."""
         if new_exclude is None:
             self._exclude = []
@@ -452,7 +457,7 @@ class McParameter(object):
                 self._exclude = [self._val_type(new_exclude)]
 
     def _set_forced(self, value: Union[float, int]):
-        """force setting the value. ATTENTION: When used, the boundaries may be set to inf!"""
+        """Force setting the value. ATTENTION: When used, the boundaries may be set to inf!"""
         try:
             # try without changing bounds
             self.value = value
@@ -581,12 +586,30 @@ class McParameterComposition(object):
     ----------
     paras : list
         The parameters of this group
+
+    Parameters
+    ----------
+    possible_groups : dict[str, str], optional
+        Dictionary of possible groups in this composition, saved as Description: GroupName, by default None
+    __McParameterComposition__ : Union[VersionInfo, str, float], optional
+        Version of the given creation parameters, by default SEMVER_MCPARAMETER_COMPOSITION_CURRENT
+
+    Methods
+    -------
+
+
+    Raises
+    ------
+    NotImplementedError
+        Raised when the given version is unknown and hence the
     """
 
     def __init__(
         self,
-        possible_groups=None,
-        __McParameterComposition__=SEMVER_MCPARAMETER_COMPOSITION_CURRENT,
+        possible_groups: dict[str, str] = None,
+        __McParameterComposition__: Union[
+            VersionInfo, str, float
+        ] = SEMVER_MCPARAMETER_COMPOSITION_CURRENT,
         **_kwargs,
     ):
         if not isinstance(__McParameterComposition__, VersionInfo):
@@ -602,8 +625,8 @@ class McParameterComposition(object):
                 "DMT->McParameterComposition: Unknown version of composition to create!"
             )
 
-        self._paras = list()
-        self._values = OrderedDict()
+        self._paras: list[McParameter] = list()
+        self._values: OrderedDict[str, Union[float, int]] = OrderedDict()
 
         if possible_groups is None:
             self.possible_groups = {}

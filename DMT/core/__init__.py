@@ -21,30 +21,15 @@
 # dirty: check which modules available
 
 from importlib import util
+import semver
 
-core_exists = util.find_spec("DMT.core") is not None
-extraction_exists = util.find_spec("DMT.extraction") is not None
-
-# if core_exists and not extraction_exists:
-#     mode = "free version"
-# elif core_exists and extraction_exists:
-#     mode = "all"
-
-print("-----------------------------------------------------------------------")
-print("DMT Copyright (C) 2020 Markus Müller, Mario Krattenmacher, Pascal Kuthe")
-print("This program comes with ABSOLUTELY NO WARRANTY.")
-print("DMT_core is free software, and you are welcome to redistribute it.")
-print("DMT_other is free for non-commercial use, see LICENSE.md. ")
-print("-----------------------------------------------------------------------")
+__version__ = semver.VersionInfo(major=1, minor=3, patch=0, prerelease="rc.3")
+# to get the next version:
+# __version__.next_version(x) - with x = "major", "minor", "patch", "prerelease"
 
 name = "core"
 
 import numpy as np
-
-# compile cython DMT modules
-import pyximport
-
-pyximport.install(setup_args={"include_dirs": np.get_include()}, language_level=3)
 
 import os
 
@@ -104,19 +89,12 @@ from .plot import COMPARISON_3
 from .tikz_postprocess import TikzPostprocess
 
 # Data management and processing
-try:
-    from .data_processor_pyx import DataProcessor
-
-    print("Using the pyx data-processor")
-except ImportError:
-    from .data_processor_py import DataProcessor
-
-    print("Using the py data-processor")
+from .data_processor import DataProcessor
 
 from .data_frame import DataFrame
 from .sweep import Sweep, SweepDef
 from .database_manager import DatabaseManager
-from .data_reader_py import (
+from .data_reader import (
     read_data,
     read_ADS_bin,
     read_DEVICE_bin,
@@ -144,3 +122,26 @@ from .dut_circuit import DutCircuit
 from .dut_tcad import DutTcad
 
 import tables
+
+# determine which modules are present
+core_exists = True  # always, without DMT is not possible
+try:
+    import DMT.extraction
+
+    extraction_exists = True
+except ImportError:
+    extraction_exists = False
+
+
+if core_exists and not extraction_exists:
+    mode = "free version"
+elif core_exists and extraction_exists:
+    mode = "all"
+
+print("-----------------------------------------------------------------------")
+print("DMT Copyright (C) 2022 SemiMod")
+print("This program comes with ABSOLUTELY NO WARRANTY.")
+print("DMT_core is free software, and you are welcome to redistribute it.")
+if extraction_exists:
+    print("DMT_other is free for non-commercial use, see LICENSE.md. ")
+print("-----------------------------------------------------------------------")

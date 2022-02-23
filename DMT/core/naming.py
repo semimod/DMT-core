@@ -250,6 +250,8 @@ class SpecifierStr(str):
         str
             math tex legend entry
         """
+        value = np.real(value)
+
         unit = self.get_pint_unit()
         try:
             unit = siunitx_format_unit(unit)  # type: ignore

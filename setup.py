@@ -1,23 +1,25 @@
 import setuptools
-import numpy
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
     name="DMT_core",
-    version="1.2.1",
+    version="1.3.0-rc.3",  # obtain by start DMT.core.__init__.py interactive and grab the next version
     author="M.Mueller, M.Krattenmacher",
     author_email="markus.mueller@semimod.de and mario.krattenmacher@semimod.de",
     description="Device Modeling Toolkit Core",
-    # long_description=long_description,
-    # long_description_content_type="text/markdown",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
     url="https://gitlab.com/dmt-development/dmt",
-    # packages=setuptools.find_packages(),
+    project_urls={
+        "Bug Tracker": "https://gitlab.com/dmt-development/dmt",
+        "Documentation": "https://dmt-development.gitlab.io/dmt-core/",
+        "Source Code": "https://gitlab.com/dmt-development/dmt",
+    },
     packages=setuptools.find_namespace_packages(include=["DMT.*"]),
     license="GNU GPLv3+",
     classifiers=["Programming Language :: Python :: 3.8", "Operating System :: OS Independent"],
-    include_dirs=[numpy.get_include()],
     package_data={"": ["*.yaml", "*.txt"]},
     include_package_data=True,
     install_requires=[
@@ -29,7 +31,6 @@ setuptools.setup(
         "numba",
         "h5py",
         "tables",
-        "cython",
         "joblib",
         "pyqtgraph",
         "matplotlib",
@@ -46,6 +47,5 @@ setuptools.setup(
         "colormath",
         "semver",
         "verilogae>=0.9b4",
-        # "pyarrow",
     ],
 )

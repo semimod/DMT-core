@@ -59,6 +59,7 @@ Overview of Documentation
     :maxdepth: 1
 
     installation/install_dmt
+    introduction
     examples/index
     automatic_testing/index
     technical_documentation/index

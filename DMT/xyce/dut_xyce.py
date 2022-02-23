@@ -252,8 +252,14 @@ class DutXyce(DutCircuit):
                 parameters = "DC {" + dc + "}"
             try:
                 ac = next(para for para in circuit_element.parameters if para[0] == "Vac")[1]
+                try:
+                    float_ac = float(ac)
+                    ac = ac + "V"
+                except ValueError:
+                    # if dc contaíns a string -> it is a parameter and hence no unit needed but braces...
+                    ac = "{" + ac + "}"
                 phase = str(np.rad2deg(0))  # just to remember this
-                parameters += " AC " + ac + "V " + phase
+                parameters += " AC " + ac + " " + phase
             except StopIteration:
                 pass
             return (
@@ -552,7 +558,8 @@ class DutXyce(DutCircuit):
             str_netlist += ".AC DATA=TAB_FREQUENCIES \n"
             str_netlist += ".DATA TAB_FREQUENCIES \n"
             str_netlist += "+ FREQ \n"
-            str_netlist += "+ " + " ".join("{:.6g}".format(val) for val in swd_ac.values) + " \n"
+            str_netlist += "+ " + " ".join(f"{val:.6g}" for val in swd_ac.values) + " \n"
+            str_netlist += ".ENDDATA \n"
             str_netlist += "* AC output definition\n"
             str_netlist += ".PRINT AC FORMAT=CSV FILE=AC.csv V(*) I(*) \n"  # TODO add outputdef ?!?
         else:
@@ -815,6 +822,8 @@ class DutXyce(DutCircuit):
                 ports = ["B", "C"]
             elif self.dut_type.is_subtype(DutType.flag_mos):
                 ports = ["G", "D"]
+            else:
+                raise NotImplementedError("DutType not known!")
             cols_ac_forward = []
             cols_ac_backward = []
             for col_old in cols_ac_old:
