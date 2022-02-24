@@ -1,4 +1,6 @@
-McParameter and its composition
+.. _mc_parameter:
+
+McParameter and its collection
 ===============================
 
 .. automodule:: DMT.core.mc_parameter
