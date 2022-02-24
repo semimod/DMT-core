@@ -59,9 +59,6 @@ class DatabaseManager(object, metaclass=Singleton):
         Loads a DMT dataframe from the file.
     """
 
-    def __init__(self):
-        pass
-
     def load_db(self, db_dir):
         """Loads all DMT.DataFrames from the database at db_dir using implicit casting.
 

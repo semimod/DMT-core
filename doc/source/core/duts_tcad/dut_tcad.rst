@@ -1,10 +1,13 @@
 
 .. _dut_tcad:
 
-dut\_tcad module
+TCAD simulation DuTs
 =======================
 
-Submodules
+TCAD (Technology Computer-Aided Design) simulators often simulate just single devices and small volumes. As they allow to obtain special data from inside the device, they are different from circuit simulators.
+
+
+DutTcad submodules
 -------------------------------
 
 .. toctree::
@@ -13,7 +16,7 @@ Submodules
 
     interfaces/*
 
-Module documentation
+TCAD class
 ------------------------------
 
 .. automodule:: DMT.core.dut_tcad

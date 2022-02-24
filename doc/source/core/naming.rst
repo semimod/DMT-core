@@ -1,6 +1,6 @@
 .. _naming:
 
-naming module
+Naming module
 =======================
 
 .. autoattribute:: DMT.core.naming.specifiers

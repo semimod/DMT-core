@@ -87,73 +87,69 @@ class DataFrame(DataProcessor, pd.DataFrame):
 
     Methods
     -------
-    convert_n_port_para(p_from='', p_to='', z0=float(50), ports=None):
+    convert_n_port_para(p_from='', p_to='', z0=float(50), ports=None)
         convert the small signal parameters of type p_from to small signal parameters of type p_to.
-    cmplx2real():
+    cmplx2real()
         find all complex columns in self and split them up into one column for the real and one column for the complex part.
-    real2cmplx():
+    real2cmplx()
         find all associated columns that contain real and imaginary parts and merge them into one column that holds complex numbers.
-    clean_data(nodes, fallback=None,
-    specifier_voltage=specifiers.VOLTAGE, specifier_current=specifiers.CURRENT, specifier_capacitance=specifiers.CAPACITANCE,
-    specifier_frequency=specifiers.FREQUENCY, specifier_temperature=specifiers.TEMPERATURE):
+    clean_data(nodes, fallback=None, specifier_voltage=specifiers.VOLTAGE, specifier_current=specifiers.CURRENT, specifier_capacitance=specifiers.CAPACITANCE, specifier_frequency=specifiers.FREQUENCY, specifier_temperature=specifiers.TEMPERATURE)
         convert a DataFrame into the DMT format, e.g. use specifiers for the column names, drop unknown or unncessary columns and so on.
-    clean_names(
-    specifier_voltage=specifiers.VOLTAGE, specifier_current=specifiers.CURRENT, specifier_capacitance=specifiers.CAPACITANCE,
-    specifiers_ss_parameter=specifiers.SPECIFIERS_SS_PARA):
+    clean_names( specifier_voltage=specifiers.VOLTAGE, specifier_current=specifiers.CURRENT, specifier_capacitance=specifiers.CAPACITANCE, specifiers_ss_parameter=specifiers.SPECIFIERS_SS_PARA)
         convert all column names into a nicer format.
-    get_col_name(specifier, *nodes, sub_specifiers=''):
+    get_col_name(specifier, *nodes, sub_specifiers='')
         get the content of the column specified.y by the input to this method.
-    ensure_specifier_column(specifier, *nodes, sub_specifiers=None, ports=None):
+    ensure_specifier_column(specifier, *nodes, sub_specifiers=None, ports=None)
         make sure that the specifier specified by the arguments exists in the DataFrame.
-    create_voltage(nodes, sub_specifiers=None):
+    create_voltage(nodes, sub_specifiers=None)
         Try to create the voltage between nodes and save it into self.
-    create_potential(nodes, sub_specifiers=None):
+    create_potential(nodes, sub_specifiers=None)
         Try to create the potential at node and save it into self.
-    drop_all_voltages():
+    drop_all_voltages()
         Delete all voltages (but keep potentials).
-    get_all_voltages():
+    get_all_voltages()
         Return all voltages.
-    parallel_norm(n_parallel, port_1, port_2):
+    parallel_norm(n_parallel, port_1, port_2)
         Normalize Currents and small signal parameters assuming that n_parallel devices have been measured.
-    deembed_short(df_short, ports):
+    deembed_short(df_short, ports)
         perform a short deembeding of self with df_short.
-    deembed_open(df_open, ports):
+    deembed_open(df_open, ports)
         perform an open deembeding of self with df_short.
-    deembed(df_open, df_short, ports=None):
+    deembed(df_open, df_short, ports=None)
         perform open short deembeding of self with df_short and df_open.
-    determine_mres():
+    determine_mres()
         assume that self contains measurements of short structures. determine the metallization resistances using polyfits.
-    deembed_DC(df_short_dc):
+    deembed_DC(df_short_dc)
         perform DC deembeding of the currents in self, assuming that the metallization resistances can be calculated from df_short_dc.
-    check_ss_cols(para):
+    check_ss_cols(para)
         check if the small signal parameters para are existent in self.
-    get_ss_para(para, port_1, *ports_n):
+    get_ss_para(para, port_1, *ports_n)
         return the small signal parameter in self.
-    set_ss_para(para, para_values, port_1, *ports_n):
+    set_ss_para(para, para_values, port_1, *ports_n)
         set the small signal parameters para to self.
-    strip_ss_para(keep='S'):
+    strip_ss_para(keep='S')
         remove all small signal parameters except those specified by the keep argument.
     get_all_ss_para()
         return all small signal parameters in self.
-    calc_ft(port_1, port_2):
+    calc_ft(port_1, port_2)
         calculate ft using the spot frequency method.
-    calc_fmax(port_1, port_2):
+    calc_fmax(port_1, port_2)
         calculate fmax from msg.
-    calc_msg(port_1, port_2):
+    calc_msg(port_1, port_2)
         calculate msg and save into self.
-    calc_unilateral_gain(port_1, port_2):
+    calc_unilateral_gain(port_1, port_2)
         calculate u and save into self.
-    calc_mag(port_1, port_2):
+    calc_mag(port_1, port_2)
         calculate mag and save into self.
-    calc_k(port_1, port_2):
+    calc_k(port_1, port_2)
         calculate k and save into self.
-    calc_cbe():
+    calc_cbe()
         calculate cbe and save into self.
-    calc_cbc():
+    calc_cbc()
         calculate cbc and save into self.
-    calc_beta():
+    calc_beta()
         calculate beta and save into self.
-    calc_gm():
+    calc_gm()
         calculate gm and save into self.
     """
 
@@ -317,14 +313,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
         * assign a :class:`~DMT.core.specifiers.SpecifierStr` as column name if possible.
 
         If the nodes in the columns do not match with the nodes in the nodes parameter, the fallback dictionary is used to try and rename the nodes.
-        Example::
 
-            # Input:
-            self.columns = ['V_BE','V_c','V_c_','I_B']
-            # Call:
-            self.clean_data('B', 'E', {'c_':'C'})
-            # Output
-            self.columns = ['V_B','V_E','V_C','I_B'] # the second V_c_ got deleted in this case
 
         Parameters
         ----------
@@ -340,20 +329,33 @@ class DataFrame(DataProcessor, pd.DataFrame):
 
         ac_ports : [str]
             List that specifies the connection of the AC ports. E.g. ['B','C'] for common emitter.
-        specifier_voltage : str, {'V'}
-        specifier_current : str, {'I'}
-        specifier_capacitance : str, {'C'}
-        specifier_frequency : str, {'FREQ'}
-        specifier_temperature : str, {'TEMP'}
+        specifier_voltage : str
+            Specifier for the voltage, defaults to 'V'
+        specifier_current : str
+            Specifier for the voltage, defaults to 'I'
+        specifier_capacitance : str
+            Specifier for the voltage, defaults to 'C'
+        specifier_frequency : str
+            Specifier for the frequency, defaults to 'FREQ'
+        specifier_temperature : str
             Specifier for the column names in the measurements. Can be used to identify variables which have different names in the measurements.
             Inside of DMT the given default names are assumed to be valid and hence they can be renamed using these specifiers.
             Voltages, currents and capacitances are renamed in :meth:`~DMT.core.data_frame.DataFrame.clean_names`,
-            temperature and frequency are set as fallbacks for :meth:`~DMT.core.naming.get_nodes`.
+            temperature and frequency are set as fallbacks for :meth:`~DMT.core.naming.get_nodes`, defaults to 'TEMP'
 
         Returns
         -------
-        self       :  :class:`DMT.core.DataFrame`
+        :class:`DMT.core.DataFrame`
             Dataframe that contains columns according to the DMT internal standard.
+
+        Examples
+        --------
+
+        >>> df.columns
+        ['V_BE','V_c','V_c_','I_B']
+        >>> df.clean_data('B', 'E', {'c_':'C'})
+        >>> df.columns
+        ['V_B','V_E','V_C','I_B'] # the second V_c_ got deleted in this case
 
         Notes
         -----
@@ -542,34 +544,46 @@ class DataFrame(DataProcessor, pd.DataFrame):
     # pylint: disable=dangerous-default-value
     def clean_names(
         self,
-        specifier_voltage=specifiers.VOLTAGE,
-        specifier_current=specifiers.CURRENT,
-        specifier_capacitance=specifiers.CAPACITANCE,
+        specifier_voltage: str = specifiers.VOLTAGE,
+        specifier_current: str = specifiers.CURRENT,
+        specifier_capacitance: str = specifiers.CAPACITANCE,
         specifiers_ss_parameter=specifiers_ss_para,
-        ignore=[],
+        ignore: list = None,
     ):
         r"""Clean column names of DataFrame.
 
-        | Clean the column names of DataFrame into the DMT standard:
-        | * Goal is to have all column names as a :class:`~DMT.core.specifiers.SpecifierStr`.
-        | * potentials and voltages start with r'V\_'
-        | * currents start with r'I\_'
-        | * capacitances start with r'C\_'
+        Clean the column names of DataFrame into the DMT standard:
+
+        * Goal is to have all column names as a :class:`~DMT.core.specifiers.SpecifierStr`.
+        * potentials and voltages start with 'V\_'
+        * currents start with 'I\_'
+        * capacitances start with 'C\_'
+
+        Specifier for the column names in the measurements. Can be used to identify variables which have different names in the measurements.
+        Inside of DMT the given default names are assumed to be valid and hence they can be renamed using these specifiers.
+
 
         Parameters
         ----------
-        specifier_voltage : str, {:py:const:`DMT.core.specifiers.VOLTAGE`}
-        specifier_current : str, {:py:const:`DMT.core.specifiers.CURRENT`}
-        specifier_capacitance : str, {:py:const:`DMT.core.specifiers.CAPACITANCE`}
-            Specifier for the column names in the measurements. Can be used to identify variables which have different names in the measurements.
-            Inside of DMT the given default names are assumed to be valid and hence they can be renamed using these specifiers.
+        specifier_voltage : str, optional
+            Indicator for voltages in the measurements, by default specifiers.VOLTAGE
+        specifier_current : str, optional
+            Indicator for currents in the measurements, by default specifiers.CURRENT
+        specifier_capacitance : str, optional
+            Indicator for capacitances in the measurements, by default specifiers.CAPACITANCE
+        specifiers_ss_parameter : optional
+            Small signal parameters in the measurements, by default specifiers_ss_para
+        ignore : list, optional
+            Columns in the measurements to ignore, by default None
 
         Returns
         -------
-        self       :  :class:`DMT.core.DataFrame`
+        :class:`DMT.core.DataFrame`
             Dataframe that contains columns with names according to the DMT internal standard.
-
         """
+        if ignore is None:
+            ignore = []
+
         for i, column in enumerate(self.columns):
             if column in ignore:
                 continue
@@ -620,7 +634,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
 
         Returns
         -------
-        col : str
+        str
             If the column exists the name is returned.
 
         Raises
@@ -654,6 +668,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
         *nodes : str, optional
             Nodes for the column. Like 'B' for base or 'B', 'E' for base-emitter
         sub_specifiers : str, {'', :py:const:`DMT.core.sub_specifiers.PERIMETER`, :py:const:`DMT.core.sub_specifiers.AREA`}
+            Subscript of the specifier symbol to ensure.
         ports        : [str], optional
             Name of the ports, for a BJT in common-emitter this is ['B', 'C', ...] . Only needed to calculate AC-Quantities.
         reference_node : str, optional
@@ -910,10 +925,12 @@ class DataFrame(DataProcessor, pd.DataFrame):
             List containing the nodes present in self or just directly list of nodes.
         sub_specifiers : [str]
             The sub specifier that shall be valid for the voltage to be created by this method.
+        reference_node : str
+            Reference node of the potentials, defaults to 'E'
 
         Returns
         -------
-        df  : :class:`DMT.core.DataFrame`
+        :class:`DMT.core.DataFrame`
             DMT.Dataframe with new dataframe, if successfull
         """
         if len(nodes) != 2:
@@ -948,7 +965,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
 
         Returns
         -------
-        voltages : list
+        list
             List containing all voltages present in self.columns as specifiers.
         """
         # iterate over columns and find voltages
@@ -966,7 +983,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
         """
         Returns
         -------
-        potentials : list()
+        list
             List containing all voltages present in self.columns as specifiers.
         """
         # iterate over columns and find voltages
@@ -985,7 +1002,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
 
         Returns
         -------
-        nodes : nodes()
+        set
             Set containing all nodes of a given device.
         """
         # iterate over columns and find nodes
@@ -1194,7 +1211,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
 
         Returns
         -------
-        df  : :class:`DMT.core.DataFrame`
+        :class:`DMT.core.DataFrame`
             DMT.Dataframe with new dataframe, if successfull
         """
         to_drop = []
@@ -1225,7 +1242,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
 
         Returns
         -------
-        self        :  :class:`DMT.core.DataFrame`
+        :class:`DMT.core.DataFrame`
             DataFrame containing the normalized S parameters and currents.
         """
         # normalization of S parameters and deletion of all other parameters
@@ -1246,23 +1263,20 @@ class DataFrame(DataProcessor, pd.DataFrame):
     def deembed_short(self, df_short, ports, times=1):
         """Deembed the measured data in df from the measured data in df_short.
 
-        | This method deembeds the masured small signal parameters in df using the measured small signal parameters in df_short.
+        This method deembeds the measured small signal parameters in df using the measured small signal parameters in df_short.
 
         Parameters
         ----------
         df_short    :  :class:`DMT.core.DataFrame`
             df containing the S parameters of a short dummy.
-
         ports       :  [str]
-            List of port names. Should be the same for the device and the open and short.
-            Usually this would be ['1', '2']. For a BJT in common emitter, should be ['B', 'C', ...]
-
+            List of port names. Should be the same for the device and the open and short.  Usually this would be ['1', '2']. For a BJT in common emitter, should be ['B', 'C', ...]
         times       : int
             The number of times the short has to be removed.
 
         Returns
         -------
-        self        :  :class:`DMT.core.DataFrame`
+        :class:`DMT.core.DataFrame`
             DataFrame containing the de-embedded S parameters.
         """
         s_para_values = self.get_ss_para("S", *ports)
@@ -1296,7 +1310,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
     def deembed_open(self, df_open, ports, times=1):
         """Deembed the measured data in df from the measured data in df_open.
 
-        | This method deembeds the masured small signal parameters in df using the measured small signal parameters in df_open.
+        This method deembeds the masured small signal parameters in df using the measured small signal parameters in df_open.
 
         Parameters
         ----------
@@ -1311,7 +1325,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
 
         Returns
         -------
-        self        :  :class:`DMT.core.DataFrame`
+        :class:`DMT.core.DataFrame`
             DataFrame containing the de-embedded S parameters.
 
         """
@@ -1354,7 +1368,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
     def deembed(self, df_open, df_short, ports=None, ndevices=1, ndevices_open=1, ndevices_short=1):
         """Deembed the measured data in df from the measured data in df_open and df_short.
 
-        | This method deembeds the masured small signal parameters in df using the measured small signal parameters of one dummy open and one dummy short structure.
+        This method deembeds the masured small signal parameters in df using the measured small signal parameters of one dummy open and one dummy short structure.
 
         Parameters
         ----------
@@ -1377,7 +1391,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
 
         Returns
         -------
-        self        :  :class:`DMT.core.DataFrame`
+          :class:`DMT.core.DataFrame`
             DataFrame containing the de-embedded S parameters.
 
         Notes
@@ -1427,12 +1441,12 @@ class DataFrame(DataProcessor, pd.DataFrame):
 
         Parameters
         ----------
-        self    :   :class:`DMT.core.DataFrame`
-            df containing the DC measurements of a short.
+        forced_current : bool, optional
+
 
         Returns
         -------
-        mres    :   {}
+        dict
             A dict of resistances Rb,m, Rc,m, and Re,m.
 
         """
@@ -1494,12 +1508,12 @@ class DataFrame(DataProcessor, pd.DataFrame):
         Parameters
         ----------
         mres : dict
-        df_short_dc    :  :class:`DMT.core.DataFrame`
+        df_short_dc : :class:`DMT.core.DataFrame`
             df containing the dc-measured short structure.
 
         Returns
         -------
-        self        :  :class:`DMT.core.DataFrame`
+        :class:`DMT.core.DataFrame`
             DataFrame containing the de-embedded DC-voltages.
 
         """
@@ -1514,12 +1528,12 @@ class DataFrame(DataProcessor, pd.DataFrame):
 
         Parameters
         ----------
-        para        :   string
+        para : string
             Small signal parameter whose existence shall be checked.
 
         Raises
         ------
-        error       :  IOError
+        IOError
             Raised if the ss parameters para are not present in self.columns.
 
         """
@@ -1547,7 +1561,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
 
         Returns
         -------
-        para_values  :  np.ndarray()
+        np.ndarray()
             Numpy array containing the values of the ss parameter para with shape [n_freq,n_port_in,n_port_out].
         """
         # check existence of the paras
@@ -1617,14 +1631,14 @@ class DataFrame(DataProcessor, pd.DataFrame):
             Name of the parameter to be set.
         para_values   :  np.array()
             Array that holds the values of the ss parameter with shape [n_freq,n_port,n_port].
-
         port_1        : string
             Name of the nodes of the port 1, for a BJT in common-emitter this is 'B'.
         *port_n       : string
             Further nodes in order to build up a higher order matrix.
+
         Returns
         -------
-        self  :  DMT.DataFrame
+        :class:`DMT.core.DataFrame`
             DataFrame that contains the columns for the ss parameter para with values according to para_values.
 
         """
@@ -1642,12 +1656,12 @@ class DataFrame(DataProcessor, pd.DataFrame):
 
         Parameters
         ----------
-        keep        :  string
+        keep  :  string
             Default='S'. SS Para that shall be kept.
 
         Returns
         -------
-        self  :  DMT.DataFrame
+        :class:`DMT.core.DataFrame`
             The initial DataFrame without all ss parameters except keep.
         """
         ss_paras = self.get_all_ss_para()
@@ -1663,7 +1677,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
 
         Returns
         -------
-        ss_paras  :  [str]
+        [str]
             List of strings of the ss parameter columns in self.
         """
         ss_paras = []
@@ -1681,8 +1695,6 @@ class DataFrame(DataProcessor, pd.DataFrame):
 
         Parameters
         ----------
-        df  :  :class:`DMT.core.DataFrame`
-            AC Data that shall be used for the calculation of ft.
         port_1        : string
             Name of the nodes of the port 1, for a BJT in common-emitter this is 'B'.
         port_2        : string
@@ -1690,7 +1702,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
 
         Returns
         -------
-        df  :  :class:`DMT.core.DataFrame`
+        :class:`DMT.core.DataFrame`
             Dataframe that contains F_T.
         """
         # get values
@@ -1707,8 +1719,6 @@ class DataFrame(DataProcessor, pd.DataFrame):
 
         Parameters
         ----------
-        df  :  :class:`DMT.core.DataFrame`
-            AC Data that shall be used for the calculation of ft.
         port_1        : string
             Name of the nodes of the port 1, for a BJT in common-emitter this is 'B'.
         port_2        : string
@@ -1716,7 +1726,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
 
         Returns
         -------
-        df  :  :class:`DMT.core.DataFrame`
+        :class:`DMT.core.DataFrame`
             Dataframe that contains F_T.
         """
         # get values
@@ -1744,8 +1754,6 @@ class DataFrame(DataProcessor, pd.DataFrame):
 
         Parameters
         ----------
-        df  :  :class:`DMT.core.DataFrame`
-            AC Data that shall be used for the calculation of ft.
         port_1        : string
             Name of the nodes of the port 1, for a BJT in common-emitter this is 'B'.
         port_2        : string
@@ -1753,7 +1761,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
 
         Returns
         -------
-        df  :  :class:`DMT.core.DataFrame`
+        :class:`DMT.core.DataFrame`
             Dataframe that contains F_T.
         """
         # get values
@@ -1770,8 +1778,6 @@ class DataFrame(DataProcessor, pd.DataFrame):
 
         Parameters
         ----------
-        df  :  :class:`DMT.core.DataFrame`
-            AC Data that shall be used for the calculation of FMAX.
         port_1        : string
             Name of the nodes of the port 1, for a BJT in common-emitter this is 'B'.
         port_2        : string
@@ -1779,7 +1785,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
 
         Returns
         -------
-        df  :  :class:`DMT.core.DataFrame`
+        :class:`DMT.core.DataFrame`
             Dataframe that contains F_MAX.
         """
         # get values
@@ -1796,8 +1802,6 @@ class DataFrame(DataProcessor, pd.DataFrame):
 
         Parameters
         ----------
-        df  :  :class:`DMT.core.DataFrame`
-            AC Data that shall be used for the calculation of FMAX.
         port_1        : string
             Name of the nodes of the port 1, for a BJT in common-emitter this is 'B'.
         port_2        : string
@@ -1805,7 +1809,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
 
         Returns
         -------
-        df  :  :class:`DMT.core.DataFrame`
+        :class:`DMT.core.DataFrame`
             Dataframe that contains MSG.
         """
         # get values
@@ -1820,8 +1824,6 @@ class DataFrame(DataProcessor, pd.DataFrame):
 
         Parameters
         ----------
-        df  :  :class:`DMT.core.DataFrame`
-            AC Data that shall be used for the calculation of GU.
         port_1        : string
             Name of the nodes of the port 1, for a BJT in common-emitter this is 'B'.
         port_2        : string
@@ -1829,7 +1831,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
 
         Returns
         -------
-        df  :  :class:`DMT.core.DataFrame`
+         :class:`DMT.core.DataFrame`
             Dataframe that contains GU.
         """
         # get values
@@ -1844,8 +1846,6 @@ class DataFrame(DataProcessor, pd.DataFrame):
 
         Parameters
         ----------
-        df  :  :class:`DMT.core.DataFrame`
-            AC Data that shall be used for the calculation of GU.
         port_1        : string
             Name of the nodes of the port 1, for a BJT in common-emitter this is 'B'.
         port_2        : string
@@ -1853,7 +1853,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
 
         Returns
         -------
-        df  :  :class:`DMT.core.DataFrame`
+        :class:`DMT.core.DataFrame`
             Dataframe that contains MAG.
         """
         # get values
@@ -1868,8 +1868,6 @@ class DataFrame(DataProcessor, pd.DataFrame):
 
         Parameters
         ----------
-        df  :  :class:`DMT.core.DataFrame`
-            AC Data that shall be used for the calculation of GU.
         port_1        : string
             Name of the nodes of the port 1, for a BJT in common-emitter this is 'B'.
         port_2        : string
@@ -1877,7 +1875,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
 
         Returns
         -------
-        df  :  :class:`DMT.core.DataFrame`
+        :class:`DMT.core.DataFrame`
             Dataframe that contains K.
         """
         # get values
@@ -1892,7 +1890,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
 
         Returns
         -------
-        df  :  DMT.DataFrame
+        :class:`DMT.core.DataFrame`
             Dataframe that contains CBE.
         """
         # get values
@@ -1943,7 +1941,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
 
         Returns
         -------
-        df  :  DMT.DataFrame
+        :class:`DMT.core.DataFrame`
             Dataframe that contains CCE.
         """
         # get values
@@ -1964,7 +1962,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
 
         Returns
         -------
-        df  :  DMT.DataFrame
+        :class:`DMT.core.DataFrame`
             Dataframe that contains CBE.
         """
         # get values
@@ -2006,7 +2004,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
 
         Returns
         -------
-        df  :  :class:`DMT.core.DataFrame`
+        :class:`DMT.core.DataFrame`
             Dataframe that contains the DC current amplficiation I_C/I_B
         """
         # put values in col of self
@@ -2022,7 +2020,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
 
         Returns
         -------
-        df  :  :class:`DMT.core.DataFrame`
+        :class:`DMT.core.DataFrame`
             Dataframe that contains the TRANSCONDUCTANCE
         """
         col_ic = specifiers.CURRENT + "C"
@@ -2055,7 +2053,9 @@ class DataFrame(DataProcessor, pd.DataFrame):
         return self
 
     def smooth_SS_para(self, ports, fmin):
-        """Smooth the Small signal parameters in self and return a new dataframe. Method from:
+        """Smooth the Small signal parameters in self and return a new dataframe.
+
+        Method from:
         B. Saha et al.,
         "Reliable Technology Evaluation of SiGe HBTs and MOSFETs: fMAX Estimation From Measured Data,"
         in IEEE Electron Device Letters, vol. 42, no. 1, pp. 14-17, Jan. 2021, doi: 10.1109/LED.2020.3040891.
@@ -2072,7 +2072,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
 
         Returns
         -------
-        df  :  DMT.Dataframe()
+        :class:`DMT.core.DataFrame`
             Dataframe that contains the smoothed Y Parameters
         """
         # make sure we have all Y parameters available
@@ -2161,6 +2161,19 @@ class DataFrame(DataProcessor, pd.DataFrame):
         :class:`DMT.core.data_frame.IterUniqueRoundColumn`
             Iterator over all unique values of this column
 
+        Examples
+        --------
+        We want to replace:
+
+        >>> for vbc in np.unique(np.round(df[col_vbc], decimals=5)):
+                data = df[np.isclose(df[col_vbc], atol=1e-5)]
+                ... # user action
+
+        with
+
+        >>> for index, vbc, data in df.iter_unique_col(col_vbc, decimals=5):
+                ... # user action
+
         """
         return IterUniqueRoundColumn(self, column, decimals=decimals)
 
@@ -2212,22 +2225,7 @@ class IterUniqueRoundColumn(object):
         return self
 
     def __next__(self):
-        """This routine is magic and sets the iteration behaviour.
-
-        We want to replace:
-
-        ```
-            for vbc in np.unique(np.round(df[col_vbc], decimals=5)):
-                data = df[np.isclose(df[col_vbc], atol=1e-5)]
-                ... # user action
-        ```
-
-        with
-
-        ```
-            for index, vbc, data in df.iter_unique_col(col_vbc, decimals=5):
-                ... # user action
-        ```
+        """This routine is magic and sets the iteration behavior.
 
         Returns
         -------

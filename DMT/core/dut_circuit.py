@@ -10,7 +10,7 @@ A DuT can be supplied using the input_circuit parameter. This parameter can be:
 * List with paths to netlists or strings with netlists, these will be combined into the netlist to simulate.
 
 
-Author: Mario Krattenmacher | Mario.Krattenmacher@tu-dresden.de
+Author: Mario Krattenmacher | Mario.Krattenmacher@semimod.de
 """
 # DMT_core
 # Copyright (C) from 2022  SemiMod

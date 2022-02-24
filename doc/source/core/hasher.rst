@@ -1,4 +1,4 @@
-hasher module
+MD5-Hashing
 =============
 
 .. automodule:: DMT.core.hasher

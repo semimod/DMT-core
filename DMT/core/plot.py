@@ -1,7 +1,7 @@
 """ Wrapper for nice plots with tikz, pyqtgraph and matplotlib.
 
 Author:
-    Mario Krattenmacher | Mario.Krattenmacher@tu-dresden.de
+    Mario Krattenmacher | Mario.Krattenmacher@semimod.de
     Markus Mueller | Markus.Mueller3@tu-dresden.de
 """
 # DMT_core

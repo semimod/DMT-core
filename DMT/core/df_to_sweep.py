@@ -40,8 +40,9 @@ def df_to_sweep(
     Parameters
     ----------
     df_to_convert : :class:`~DMT.core.data_frame.DataFrame`
+        DataFrame with voltages which define the sweep.
     temperature : float, optional
-        Temperature of the measurement in Kelvin.
+        Temperature of the measurement in Kelvin, defaults to 300.0
     name : str, optional
         Name of the sweep to create. If None, automatic generation of a name is tried.
     from_forced : {True, False}, optional

@@ -1,4 +1,4 @@
-dut\_type module
+Types of DuTs
 ================
 
 .. automodule:: DMT.core.dut_type

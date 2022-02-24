@@ -1,6 +1,6 @@
 """ Base class to handle verilog-a modelcards.
 
-Author: Mario Krattenmacher | Mario.Krattenmacher@tu-dresden.de
+Author: Mario Krattenmacher | Mario.Krattenmacher@semimod.de
 Author: Markus Müller       | Markus.Mueller3@tu-dresden.de
 """
 # DMT_core

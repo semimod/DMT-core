@@ -1,9 +1,9 @@
 .. _dut_circuit:
 
-dut\_circuit module
+Circuit simulation DuTs
 =======================
 
-Submodules
+DutCircuit Submodules
 -------------------------------
 
 .. toctree::
@@ -12,7 +12,7 @@ Submodules
 
     interfaces/*
 
-Module documentation
+DutCircuit class
 ------------------------------
 
 .. automodule:: DMT.core.dut_circuit

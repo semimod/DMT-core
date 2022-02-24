@@ -1,9 +1,13 @@
-""" Creates MD5-HASH from given input file.
+""" Creates MD5-HASH from given string-convertable data.
 
-To simplify simulations of different VA-Codes, the corresponding VA-File can be given and added to the hash
-finally an additional (bytes) string can be given to add further customization
+In DMT this is used mainly to ensure unique simulation folders and keys.
+A simulation folder consist of 3 parts:
 
-Author: Mario Krattenmacher | Mario.Krattenmacher@tu-dresden.de
+* The simulation directory in used the :ref:`config`
+* The dut subfolder named `<dut_name><dut_hash>`. The dut name is a attribute of :ref:`DutView<dut_view>`. The hash calculation depends on the subclass, but most times this is simply the MD5-Hash of all input files, for example the netlist file and the Verilog-AMS code.
+* The sweep subfolder named `<sweep_name><sweep_hash>`. The sweep name is a attribute of :ref:`Sweep<sweep>`. The hash is calculated from text converted sweep definition.
+
+Author: Mario Krattenmacher | Mario.Krattenmacher@semimod.de
 """
 # DMT_core
 # Copyright (C) from 2022  SemiMod
@@ -25,19 +29,21 @@ Author: Mario Krattenmacher | Mario.Krattenmacher@tu-dresden.de
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 import hashlib
+import os
+from typing import Union
 
 
-def create_md5_hash(*contents):
+def create_md5_hash(*contents: Union[str, os.PathLike]):
     """Construct the hash MD5 string with all parameters
 
     Parameters
     ----------
-    contents : \*str
+    contents : str
         Either a path to a file to read or some object which can be converted to a string using str()
 
     Returns
     -------
-    hash : str
+    str
         MD5 string
     """
     str_to_hash = ""

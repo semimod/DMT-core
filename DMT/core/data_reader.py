@@ -1,10 +1,11 @@
 """ Module responsible for data reading in DMT.
 
+The functions here read from many different formats into a DMT-DataFrame. As reading and writing is always very close, recommended and often used save functions for DataFrames are also given.
+
 Functions
 ---------
 read_data(filename)
     Reads a given file into the internal DMT dataframe, the file's extension determines the exact method which is then called for reading.
-
 
 read_hdf(filename, key, convert_cmplx)
     Reads in a .hdf file into the internal DMT format.

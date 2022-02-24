@@ -2,7 +2,7 @@
 
 Provides a interface superclass. Here all methods which must be implemented by all TCAD interfaces are collected.
 
-Author: Mario Krattenmacher | Mario.Krattenmacher@tu-dresden.de
+Author: Mario Krattenmacher | Mario.Krattenmacher@semimod.de
 """
 # DMT_core
 # Copyright (C) from 2022  SemiMod
