@@ -59,7 +59,7 @@ class Technology(object):
         ----------
         dut_ref : :class:`~DMT.core.DutView`
             Can be used to obtain tech quanties... (or to generate a TRADICA input file :) )
-        mcard : :class:`~DMT.core.McParameterComposition`
+        mcard : :class:`~DMT.core.McParameterCollection`
             A Modelcard that contains all parameters that are required for scaling, as well as the parameters that shall be scaled.
         """
         doc = Tex()
@@ -91,7 +91,7 @@ class Technology(object):
 
         Parameters
         ----------
-        mcard : :class:`~DMT.core.McParameterComposition`
+        mcard : :class:`~DMT.core.McParameterCollection`
             A Modelcard or McParameterCompositon that contains all parameters that are required for scaling, as well as the parameters that shall be scaled.
         lE0   : float64
             The length of the desired emitter window to be modeled by mcard.
@@ -114,7 +114,7 @@ class Technology(object):
 
         Parameters
         ----------
-        mcard : :class:`~DMT.core.McParameterComposition`
+        mcard : :class:`~DMT.core.McParameterCollection`
             A Modelcard or McParameterCompositon that contains all parameters that are required for scaling, as well as the parameters that shall be scaled.
         lE0   : float64
             The length of the desired emitter window to be modeled by mcard.
@@ -133,7 +133,7 @@ class Technology(object):
 
         Parameters
         ----------
-        mcard : :class:`~DMT.core.McParameterComposition`
+        mcard : :class:`~DMT.core.McParameterCollection`
             A Modelcard or McParameterCompositon that contains all parameters that are required for scaling, as well as the parameters that shall be scaled.
         lE0   : float64
             The length of the desired emitter window to be modeled by mcard.
@@ -152,8 +152,8 @@ class Technology(object):
 
         Parameters
         ----------
-        mcard : :class:`~DMT.core.McParameterComposition`
-            A Modelcard or McParameterComposition that contains all parameters that are required for scaling, as well as the parameters that shall be scaled.
+        mcard : :class:`~DMT.core.McParameterCollection`
+            A Modelcard or McParameterCollection that contains all parameters that are required for scaling, as well as the parameters that shall be scaled.
         lE0   : float64
             The length of the desired emitter window to be modeled by mcard.
         bE0   : float64
@@ -173,7 +173,7 @@ class Technology(object):
 
         Parameters
         ----------
-        mcard : :class:`~DMT.core.McParameterComposition`
+        mcard : :class:`~DMT.core.McParameterCollection`
             A Modelcard or McParameterCompositon that contains all parameters that are required for scaling, as well as the parameters that shall be scaled.
         lE0   : float64
             The length of the desired emitter window to be modeled by mcard.

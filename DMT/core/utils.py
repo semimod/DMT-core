@@ -23,7 +23,7 @@ import re
 import inspect
 from functools import wraps
 from DMT.exceptions import NanInfError
-from DMT.core.mc_parameter import McParameterComposition
+from DMT.core.mc_parameter import McParameterCollection
 
 
 def print_progress_bar(
@@ -102,7 +102,7 @@ def memoize(obj):
         mcard = None
         args_cache = None
         for i_arg, arg in enumerate(args):
-            if isinstance(arg, McParameterComposition):
+            if isinstance(arg, McParameterCollection):
                 mcard = arg
                 args_cache = tuple(
                     [arg_a for i_arg_a, arg_a in enumerate(args) if i_arg_a != i_arg]

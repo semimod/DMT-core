@@ -770,7 +770,7 @@ def read_tikz_file(filename, col_x=None, col_y=None):
 
     Returns
     -------
-    df : :class:`DMT.core.Dataframe`
+    :class:`DMT.core.Dataframe`
         DMT dataframe representing the data.
     """
     # read file

@@ -33,7 +33,7 @@ from DMT.config import DATA_CONFIG
 from DMT.core import (
     DutCircuit,
     DutType,
-    McParameterComposition,
+    McParameterCollection,
     MCard,
     Sweep,
     SweepDef,
@@ -120,7 +120,7 @@ class DutXyce(DutCircuit):
         netlist : str
         """
         va_from_model_build_in = False
-        if isinstance(inp_circuit, MCard) or isinstance(inp_circuit, McParameterComposition):
+        if isinstance(inp_circuit, MCard) or isinstance(inp_circuit, McParameterCollection):
             # save the modelcard, in case it was set inderectly via the input header!
             self._modelcard = copy.deepcopy(inp_circuit)
             # get the circuit for netlist generation

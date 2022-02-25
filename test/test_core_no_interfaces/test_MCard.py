@@ -1,4 +1,4 @@
-""" Testing McParameter, McParameterComposition, MCard and McHicum from L2
+""" Testing McParameter, McParameterCollection, MCard and McHicum from L2
 """
 from importlib.resources import read_text
 import os

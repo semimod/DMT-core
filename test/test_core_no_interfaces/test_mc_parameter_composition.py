@@ -7,8 +7,7 @@ import json
 import tempfile
 import pytest
 import numpy as np
-from DMT.core import unit_registry
-from DMT.core import McParameter, McParameterComposition
+from DMT.core import unit_registry, McParameter, McParameterCollection
 from DMT.exceptions import (
     BoundsError,
     ValueAtBoundsError,
@@ -144,10 +143,10 @@ def test_mc_parameter():
         _comp = param_1 + param_2
 
 
-def test_mc_parameter_composition():
+def test_mc_parameter_collection():
     """here compositions are tested!"""
     # create:
-    mc_comp = McParameterComposition()
+    mc_comp = McParameterCollection()
 
     # add
     mc_comp.add(McParameter("a", value=1, minval=0, maxval=10))
@@ -180,7 +179,7 @@ def test_mc_parameter_composition():
         assert para.name == name
 
     # adding 2 compositions:
-    mc_comp_2 = McParameterComposition()
+    mc_comp_2 = McParameterCollection()
     mc_comp_2.add(McParameter("x", value=1, minval=0, maxval=10))
     mc_comp_2.add(McParameter("y", value=1, minval=0, maxval=10))
     mc_comp_2.add(McParameter("z", value=1, minval=0, maxval=10))
@@ -262,9 +261,9 @@ def test_mc_parameter_composition():
     assert np.isclose(mc_comp["b"].max, 12)
 
 
-def test_mc_parameter_composition_to_kwargs():
+def test_mc_parameter_collection_to_kwargs():
     """separate test for to_kwargs as this method is very important!!"""
-    mc_comp_2 = McParameterComposition()
+    mc_comp_2 = McParameterCollection()
     mc_comp_2.add(McParameter("x", value=1, minval=0, maxval=10))
     mc_comp_2.add(McParameter("y", value=1, minval=0, maxval=10))
     mc_comp_2.add(McParameter("z", value=1, minval=0, maxval=10))
@@ -273,9 +272,9 @@ def test_mc_parameter_composition_to_kwargs():
     assert mc_comp_2.to_kwargs() == control_dict
 
 
-def test_mc_parameter_composition_file_methods():
+def test_mc_parameter_collection_file_methods():
     """File in and output"""
-    mc_comp_2 = McParameterComposition()
+    mc_comp_2 = McParameterCollection()
     mc_comp_2.add(McParameter("x", value=1, minval=0, maxval=10))
     mc_comp_2.add(McParameter("y", value=1, minval=0, maxval=10))
     mc_comp_2.add(McParameter("z", value=1, minval=0, maxval=10))
@@ -299,8 +298,8 @@ def test_mc_parameter_composition_file_methods():
         )
 
 
-def test_mc_parameter_composition_properties():
-    mc_comp_2 = McParameterComposition()
+def test_mc_parameter_collection_properties():
+    mc_comp_2 = McParameterCollection()
     mc_comp_2.add(McParameter("x", value=1, minval=0, maxval=10, group="g1"))
     mc_comp_2.add(McParameter("y", value=1, minval=0, maxval=10, group="g1"))
     mc_comp_2.add(McParameter("z", value=1, minval=0, maxval=10, group="g2"))
@@ -356,8 +355,8 @@ def test_mc_parameter_composition_properties():
     assert len(mc_comp_2) == 0
 
 
-def test_mc_parameter_composition_to_tex():
-    mc_comp_2 = McParameterComposition()
+def test_mc_parameter_collection_to_tex():
+    mc_comp_2 = McParameterCollection()
     mc_comp_2.add(McParameter("x", value=1, minval=0, maxval=10, group="g1"))
     mc_comp_2.add(McParameter("y", value=1, minval=0, maxval=10, group="g1"))
     mc_comp_2.add(McParameter("z", value=1, minval=0, maxval=10, group="g2"))
@@ -418,14 +417,14 @@ def test_json():
         if not callable(getattr(mc_1, param)) and not param.startswith("__"):
             assert getattr(mc_1, param) == getattr(mc_loaded, param)
 
-    mc_comp = McParameterComposition()
+    mc_comp = McParameterCollection()
     mc_comp.add(McParameter("x", value=1, minval=0, maxval=10, group="g1"))
     mc_comp.add(McParameter("y", value=1, minval=0, maxval=10, group="g1"))
     mc_comp.add(McParameter("z", value=1, minval=0, maxval=10, group="g2"))
 
     file_name = "test_json_composition.json"
     mc_comp.dump_json(file_name)
-    mc_comp_read = McParameterComposition.load_json(file_name)
+    mc_comp_read = McParameterCollection.load_json(file_name)
 
     os.remove(file_name)
 
@@ -434,9 +433,9 @@ def test_json():
 
 if __name__ == "__main__":
     test_mc_parameter()
-    test_mc_parameter_composition()
-    test_mc_parameter_composition_to_kwargs()
-    test_mc_parameter_composition_file_methods()
-    test_mc_parameter_composition_properties()
-    test_mc_parameter_composition_to_tex()
+    test_mc_parameter_collection()
+    test_mc_parameter_collection_to_kwargs()
+    test_mc_parameter_collection_file_methods()
+    test_mc_parameter_collection_properties()
+    test_mc_parameter_collection_to_tex()
     test_json()

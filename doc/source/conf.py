@@ -198,7 +198,7 @@ numpydoc_xref_aliases = {
     "CircuitElement": "DMT.core.circuit.CircuitElement",
     "Circuit": "DMT.core.circuit.Circuit",
     "MCard": "DMT.core.mcard.MCard",
-    "McParameterComposition": "DMT.core.mc_parameter.McParameterComposition",
+    "McParameterCollection": "DMT.core.mc_parameter.McParameterCollection",
     "McParameter": "DMT.core.mc_parameter.McParameter",
     "core": "DMT.core",
     "ngspice": "DMT.ngspice",

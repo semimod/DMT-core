@@ -33,7 +33,7 @@ Author: Mario Krattenmacher | Mario.Krattenmacher@semimod.de
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 import copy
 from collections import OrderedDict
-from DMT.core import create_md5_hash, DutView, McParameterComposition, DutType
+from DMT.core import create_md5_hash, DutView, McParameterCollection, DutType
 from DMT.core.mcard import MCard
 
 
@@ -145,7 +145,7 @@ class DutCircuit(DutView):
         ----------
         modelcard : MCard
         """
-        if isinstance(modelcard, MCard) or isinstance(modelcard, McParameterComposition):
+        if isinstance(modelcard, MCard) or isinstance(modelcard, McParameterCollection):
             self._modelcard = modelcard
             self.inp_header = modelcard
         else:

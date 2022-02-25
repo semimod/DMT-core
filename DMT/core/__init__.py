@@ -23,7 +23,7 @@
 from importlib import util
 import semver
 
-__version__ = semver.VersionInfo(major=1, minor=3, patch=0, prerelease="rc.4")
+__version__ = semver.VersionInfo(major=1, minor=3, patch=0)
 # to get the next version:
 # __version__.next_version(x) - with x = "major", "minor", "patch", "prerelease"
 
@@ -72,7 +72,7 @@ from .naming import get_sub_specifiers
 from .naming import natural_scales
 
 # compact modelling stuff
-from .mc_parameter import McParameter, McParameterComposition
+from .mc_parameter import McParameter, McParameterCollection
 from .utils import memoize
 from .va_file import VAFile
 from .mcard import MCard

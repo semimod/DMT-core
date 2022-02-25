@@ -10,7 +10,7 @@ from DMT.core import (
     resolve_siunitx,
     tex_to_text,
 )
-from DMT.core import McParameter, McParameterComposition
+from DMT.core import McParameter, McParameterCollection
 from DMT.exceptions import NanInfError
 import numpy as np
 import pytest
@@ -148,7 +148,7 @@ def test_memoize_decorator_mc():
     def dummy_function_mc(x, y, mcard):
         return x + y + mcard["a"].value
 
-    mc = McParameterComposition()
+    mc = McParameterCollection()
     mc.add(McParameter("a", value=5.0))
 
     assert dummy_function_mc(1, 1, mc) == 7

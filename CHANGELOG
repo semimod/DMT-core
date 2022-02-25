@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Added ```__version__``` attribute and use it in setup.py
 - Added ```_Excluded``` class to correctly implement the Verilog-AMS standard
 - Added a test case for DMT.verilogae.helpers.get_param_list
+- Added McParameterCollection to replace the deprecated McParameterComposition
 
 ### Changed
 
@@ -22,3 +23,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Move
 
 - Moved the core in its own repository to protect proprietary data in the full repository
+
+### Deprecated
+
+- McParameterComposition is deprecated. Its name can be confusing because of the composition design pattern.
