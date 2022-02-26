@@ -29,9 +29,11 @@ Features:
 
 import logging
 import copy
+from typing import Dict, List, Type, Union
 import numpy as np
 from itertools import product
 from DMT.core import create_md5_hash, specifiers, get_specifier_from_string, SpecifierStr, DataFrame
+from tables import Unknown
 
 
 class SweepDef(object):
@@ -294,7 +296,8 @@ class Sweep(object):
     r"""Creates a sweep.
 
     The following parameters need to be specified in the sweepdef or othervar parameter for every DUT, else an error is raised:
-    - :py:const:`~DMT.core.specifiers.TEMPERATURE` -> device temperature
+
+    * :py:const:`~DMT.core.specifiers.TEMPERATURE`: device or simulation temperature
 
     Parameters
     ----------
@@ -302,7 +305,7 @@ class Sweep(object):
         Name of the sweep.
         Prefix for the simulation folder for this sweep. Just for visuals, sometimes 'VBC0' is nice.
 
-    sweepdef  : list of dicts, optional
+    sweepdef : List[Dict[str, Unknown] | SweepDef], optional
         Definition of a sweep. The following keys MUST be specified for each subsweep: 'var_name','sweep_type'.
         Depending on the sweep type additional keys must be specified:
 
@@ -338,14 +341,14 @@ class Sweep(object):
                 {'var_name':specifiers.VOLTAGE+'E', 'sweep_order':2, 'sweep_type':'CON' , 'value_def':[0]}
             ]
 
-    outputdef  : list of strings, optional
+    outputdef  : List[str], optional
         A list of the variables that shall be computed. Example: [specifiers.CURRENT+'C',specifiers.CURRENT+'B']
 
-    othervar   : dict, optional
+    othervar   : Dict[str, float], optional
         A dict whose 'key':'value' pairs specify variables that do not need to be included in the sweepdef parameter as they should be constants.
         Example: {:py:const:`~DMT.core.specifiers.TEMPERATURE`:300,'w':10}
 
-    SweepDefClass : class, optional
+    SweepDefClass : Type, optional
         From this class the sweep def objects are created and the SweepDefClass checks the sweep type.
         The user can supply subclasses of :class:`~DMT.core.sweep.SweepDef` here to allow custom sweep types.
 
@@ -368,20 +371,27 @@ class Sweep(object):
 
     Attributes
     ----------
-    sweepdef  : list of dicts
+    sweepdef  : List[SweepDef]
         Defines the sweep including variables, sweeptypes and sweeporders.
 
-    outputdef  : list of strings
+    outputdef  : List[str]
         Defines which quantities need to be calculated.
 
-    othervar   : dict
+    othervar   : Dict[str, float]
         Optional variables.
 
     name       : string
         The sweep will be saved as name + hash using this string.
     """
 
-    def __init__(self, name, sweepdef=None, outputdef=None, othervar=None, SweepDefClass=SweepDef):
+    def __init__(
+        self,
+        name: str,
+        sweepdef: List[Dict[str, Unknown] | SweepDef] | None = None,
+        outputdef: List[str] | None = None,
+        othervar: Dict[str, float] | None = None,
+        SweepDefClass: Type = SweepDef,
+    ):
         self.name = name
         self.df = None
 
@@ -418,7 +428,7 @@ class Sweep(object):
 
         Returns
         -------
-        df : DMT.Dataframe()
+        :class:`DMT.core.DataFrame`
             A pandas dataframe object that corresponds to the specified sweep. Values that need to be calculated are filled with numpy.nan .
         """
 
@@ -484,19 +494,16 @@ class Sweep(object):
 
         Returns
         -------
-        sweep: Sweep
+        :class:`DMT.core.Sweep`
             corrected and checked Sweep object.
         """
         # check type_of object variables
         if not isinstance(self.othervar, dict):
             raise IOError(
-                "sweep.othervar needs to be a dict. Example: {"
-                "TEMP"
-                ":300,"
-                "w"
-                ":10,"
-                "l"
-                ":0.25}"
+                "sweep.othervar must to be a dict. Example: {",
+                "TEMP:300,",
+                "w:10,",
+                "l:0.25}",
             )
         if not isinstance(self.outputdef, list):
             raise IOError("sweep.outputdef needs to be a list.")
@@ -601,7 +608,7 @@ class Sweep(object):
 
         Returns
         -------
-        hash  : str
+        str
             MD5 hash that corresponds to this sweep.
         """
         sweep_string = " ".join([str(self.sweepdef), str(self.outputdef), str(self.othervar)])
