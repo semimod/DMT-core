@@ -15,3 +15,11 @@ from .pylatex import CommandInput
 from .pylatex import CommandLabel
 from .pylatex import CommandRef
 from .pylatex import CommandRefRange
+
+## verilogae
+from .verilogae import HICUM_L0
+from .verilogae import HICUM_L2
+from .verilogae import SGP
+
+from .verilogae import get_param_list
+from .verilogae import get_dmt_model
