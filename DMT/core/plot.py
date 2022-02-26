@@ -2706,8 +2706,8 @@ class Plot2YAxis(object):
 def save_or_show(plts, show=True, location=None, **kwargs):
     """Convenience function for either showing or saving an array of DMT plots.
 
-    Input
-    -----
+    Parameters
+    ----------
     plts : [Plot]
         An array of plots
     show : Bool, True

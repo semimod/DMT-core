@@ -3,7 +3,7 @@
 from pathlib import Path
 
 from DMT.core import MCard
-from DMT.VerilogAE import get_param_list
+from DMT.external import get_param_list
 
 
 def calculate_be_capacitance(model, vbe, t_dev, *, cbepar=None, flsh=None, **model_parameters):

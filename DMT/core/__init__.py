@@ -86,8 +86,6 @@ from .plot import save_or_show
 from .plot import Plot2YAxis
 from .plot import COMPARISON_3
 
-from .tikz_postprocess import TikzPostprocess
-
 # Data management and processing
 from .data_processor import DataProcessor
 
