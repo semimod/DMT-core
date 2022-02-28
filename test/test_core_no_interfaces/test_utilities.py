@@ -1,19 +1,11 @@
 """ Testing the DMT core utilities
 """
 from DMT.core import (
-    flatten,
     enumerate_reversed,
-    strictly_increasing,
     resolve_siunitx,
     tex_to_text,
 )
 import numpy as np
-
-
-def test_strictly_increasing():
-    assert strictly_increasing(np.array([0.0, 1.0, 2.0, 3.0]))
-    assert not strictly_increasing(np.array([0.0, 2.0, 1.0, 3.0]))
-    assert not strictly_increasing(np.array([0.0, 1.0, 1.0, 3.0]))
 
 
 def test_enumerate_reversed():
@@ -32,24 +24,6 @@ def test_enumerate_reversed():
 
         assert index == old_index - 1  # iterating reversed
         old_index = index
-
-
-def test_flatten():
-    assert (0, 1, 2, 3) == tuple(flatten((0, (1, 2), 3)))
-    assert (0, 1, 2, 3) == tuple(
-        flatten(
-            (
-                0,
-                (
-                    1,
-                    (
-                        2,
-                        3,
-                    ),
-                ),
-            )
-        )
-    )
 
 
 def test_resolve_siunitx():
@@ -76,12 +50,6 @@ def test_tex_to_text():
 
 
 if __name__ == "__main__":
-    test_nan_inf_decorator()
-    test_vectorize_decorator()
-    test_memoize_decorator()
-    test_memoize_decorator_mc()
-    test_strictly_increasing()
-    test_flatten()
     test_enumerate_reversed()
     test_resolve_siunitx()
     test_tex_to_text()

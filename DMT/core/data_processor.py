@@ -22,7 +22,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 import numpy as np
 import skrf as rf
-from DMT.core import specifiers, set_col_name, sub_specifiers, strictly_increasing
+from DMT.core import specifiers, set_col_name, sub_specifiers
+
+
+def strictly_increasing(L):
+    """checks if given iterable is strictly increasing or not"""
+    return all(x < y for x, y in zip(L, L[1:]))
 
 
 class DataProcessor(object):

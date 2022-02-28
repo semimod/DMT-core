@@ -48,34 +48,6 @@ def print_progress_bar(
     sys.stdout.flush()
 
 
-def is_iterable(arg):
-    """Returns True if the object is iterable
-
-    Source: https://stackoverflow.com/a/36407550/13212532
-
-    """
-    try:
-        _test = (e for e in arg)
-        return True
-    except TypeError:
-        return False
-
-
-def flatten(items):
-    """Yield items from any nested iterable; see Reference https://stackoverflow.com/a/40857703."""
-    for x in items:
-        if not isinstance(x, (str, bytes)) and is_iterable(x):
-            for sub_x in flatten(x):
-                yield sub_x
-        else:
-            yield x
-
-
-def strictly_increasing(L):
-    """checks if given iterable is strictly increasing or not"""
-    return all(x < y for x, y in zip(L, L[1:]))
-
-
 def enumerate_reversed(iterable, start=0, stop=None, step=1):
     """Generator to go through an iterable from back to front with correct indexes without copy of the iterable.
 
