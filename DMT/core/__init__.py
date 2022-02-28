@@ -80,7 +80,7 @@ from .plot import Plot2YAxis
 from .plot import COMPARISON_3
 
 # Data management and processing
-from .data_processor import DataProcessor
+from .data_processor import is_iterable, flatten, strictly_increasing, DataProcessor
 
 from .data_frame import DataFrame
 from .sweep import Sweep, SweepDef

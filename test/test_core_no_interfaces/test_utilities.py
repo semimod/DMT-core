@@ -1,9 +1,34 @@
 """ Testing the DMT core utilities
 """
-from DMT.core import enumerate_reversed
-from DMT.external import resolve_siunitx, tex_to_text,
+from DMT.core import flatten, enumerate_reversed, strictly_increasing
+from DMT.external import resolve_siunitx, tex_to_text
 
 import numpy as np
+
+
+def test_strictly_increasing():
+    assert strictly_increasing(np.array([0.0, 1.0, 2.0, 3.0]))
+    assert not strictly_increasing(np.array([0.0, 2.0, 1.0, 3.0]))
+    assert not strictly_increasing(np.array([0.0, 1.0, 1.0, 3.0]))
+
+
+def test_flatten():
+    assert (0, 1, 2, 3) == tuple(flatten((0, (1, 2), 3)))
+    assert (0, 1, 2, 3) == tuple(
+        flatten(
+            (
+                0,
+                (
+                    1,
+                    (
+                        2,
+                        3,
+                    ),
+                ),
+            )
+        )
+    )
+
 
 def test_enumerate_reversed():
     test_list = ["A", "B", "C", "D"]
@@ -47,6 +72,8 @@ def test_tex_to_text():
 
 
 if __name__ == "__main__":
+    test_strictly_increasing()
+    test_flatten()
     test_enumerate_reversed()
     test_resolve_siunitx()
     test_tex_to_text()

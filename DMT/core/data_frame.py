@@ -29,7 +29,6 @@ import logging
 import copy
 from scipy.optimize import curve_fit
 from DMT.exceptions import UnknownColumnError
-from DMT.core import DataProcessor
 from DMT.core import (
     specifiers_ss_para,
     get_specifier_from_string,
@@ -39,8 +38,9 @@ from DMT.core import (
     set_col_name,
     get_nodes,
     get_sub_specifiers,
+    flatten,
+    DataProcessor,
 )
-from DMT.core.utils import flatten
 import pandas as pd
 
 # pylint: disable = too-many-lines

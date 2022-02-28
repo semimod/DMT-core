@@ -15,11 +15,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Moved DMT.verilogae.helpers into DMT.external.verilogae. THis is more fitting.
 - Moved vectorize, check_nan_inf and memoize to extraction.model
 - Moved SI_UNITS_CONVERTER, resolve_siunitx and tex_to_label from core.utils to external.latex
+- Moved is_iterable, flatten and strictly_increasing to data_processor
 
 ### Removed
 
 - Removed DMT.core.tikz_postprocess. Currently no final implementation and also no integration with pyqtgraph. This feature will return with pyqtgraph integration and better documentation! No major bump as it was not part of test cases.
-- Removed is_iterable, flatten and strictly_increasing
 
 ## [1.3.0] - 2022.02.25
 
