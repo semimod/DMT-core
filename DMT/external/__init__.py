@@ -5,7 +5,15 @@ These are routines and classes which manage the interfaces to other Python packa
 from .os import cd, recursive_copy, slugify
 
 ## build tex
-from .latex import build_tex, build_svg, clean_tex_files, build_png
+from .latex import (
+    build_tex,
+    build_svg,
+    clean_tex_files,
+    build_png,
+    SI_UNITS_CONVERTER,
+    resolve_siunitx,
+    tex_to_text,
+)
 
 ## pylatex classes
 from .pylatex import Tex

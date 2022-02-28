@@ -1,12 +1,9 @@
 """ Testing the DMT core utilities
 """
-from DMT.core import (
-    enumerate_reversed,
-    resolve_siunitx,
-    tex_to_text,
-)
-import numpy as np
+from DMT.core import enumerate_reversed
+from DMT.external import resolve_siunitx, tex_to_text,
 
+import numpy as np
 
 def test_enumerate_reversed():
     test_list = ["A", "B", "C", "D"]

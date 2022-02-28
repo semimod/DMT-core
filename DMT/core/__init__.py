@@ -53,8 +53,6 @@ unit_registry.load_definitions(os.path.join(path_core, "dmt_units.txt"))
 # helper for model equations and mcard memoization
 from .utils import print_progress_bar
 from .utils import enumerate_reversed
-from .utils import resolve_siunitx
-from .utils import tex_to_text
 
 # naming conventions
 from .naming import specifiers

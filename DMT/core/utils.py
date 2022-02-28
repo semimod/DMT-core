@@ -18,7 +18,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 import sys
-import re
 
 
 def print_progress_bar(
@@ -60,9 +59,9 @@ def enumerate_reversed(iterable, start=0, stop=None, step=1):
     start, stop, step : int, optional
         Starting and ending index with step size for the iterable
 
-    Returns
+    Yields
     -------
-    index, value for each element in the iterable.
+    index, value
         index always refers to the true index of the iterable, independent of start or stop!
     """
     if stop is None:
@@ -71,86 +70,3 @@ def enumerate_reversed(iterable, start=0, stop=None, step=1):
     for index, value in enumerate(reversed(iterable[start:stop:step])):
         index = stop - 1 - index
         yield index, value
-
-
-SI_UNITS_CONVERTER = {
-    r"\second": "s",
-    r"\hertz": "Hz",
-    r"\volt": "V",
-    r"\watt": "W",
-    r"\ampere": "A",
-    r"\kelvin": "K",
-    r"\ohm": "Ohm",
-    r"\siemens": "S",
-    r"\farad": "F",
-    r"\coulomb": "C",
-    r"\electronvolt": "eV",
-    r"\meter": "m",
-    r"\metre": "m",
-    r"\per": "inv",
-    r"\square": "sq",
-    r"\cubic": "cu",
-    r"\giga": "G",
-    r"\centi": "c",
-    r"\milli": "m",
-    r"\micro": "u",
-    r"\nano": "n",
-    r"\femto": "f",
-    r"\pico": "p",
-}
-
-
-def resolve_siunitx(label):
-    """This function tries to remove siunitx expressions from given Tex expression."""
-    regex_si = r"\\si({.*?})"
-    regex_SI = r"\\SI({.*?})({.*?})"
-    if "si" in label:
-        pattern = re.compile(regex_si)
-        for match in pattern.findall(label):
-            units = match[1:-1]
-            # todo: resolve unit after unit, then for each unit the scaler (milli and so on), than stuff like per. Only then per can be correctly replaced.
-            for key in SI_UNITS_CONVERTER:
-                units = units.replace(key, SI_UNITS_CONVERTER[key])
-
-            label = label.replace(match, units)
-
-    if "SI" in label:
-        pattern = re.compile(regex_SI)
-        for match_number, match_unit in pattern.findall(label):
-            # match 0 is number
-            number = match_number[1:-1]
-            label = label.replace(match_number, number)
-
-            # match 1 is unit
-            units = match_unit[1:-1]
-            for key in SI_UNITS_CONVERTER:
-                units = units.replace(key, SI_UNITS_CONVERTER[key])
-
-            label = label.replace(match_unit, units)
-
-    if "underline" in label:
-        regex_underline = r"(\\underline{)([^{}]+)(})"
-        pattern = re.compile(regex_underline)
-        for match in pattern.findall(label):
-            label = label.replace(match[0], "")
-            label = label.replace(match[1] + match[2], match[1])
-
-    # drop some tex things that are not understood by pandoc
-    label = label.replace("\\si", "")
-    label = label.replace("\\SI", "")
-    label = label.replace("\\,", " ")
-
-    return label
-
-
-def tex_to_text(tex):
-    """Return a text representation of a tex label."""
-    tex = resolve_siunitx(tex)
-    tex = tex.replace("\\num", "")
-    tex = tex.replace("\\mathrm", "")
-    tex = tex.replace("\\left(", "(")
-    tex = tex.replace("\\right)", ")")
-    tex = tex.replace("{", "")
-    tex = tex.replace("}", "")
-    tex = tex.replace("$", "")
-    return tex

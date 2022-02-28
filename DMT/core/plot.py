@@ -31,8 +31,8 @@ import numpy as np
 from pathlib import Path
 from cycler import cycler
 from colormath.color_objects import sRGBColor
-from DMT.core import tex_to_text, natural_scales, sub_specifiers
-from DMT.external import build_tex, build_svg, clean_tex_files, build_png, slugify
+from DMT.core import natural_scales, sub_specifiers
+from DMT.external import tex_to_text, build_tex, build_svg, clean_tex_files, build_png, slugify
 
 if "PYQTGRAPH_QT_LIB" not in os.environ:  # add PYQTGRAPH_QT_LIB environment variable.
     os.environ["PYQTGRAPH_QT_LIB"] = "PySide2"
