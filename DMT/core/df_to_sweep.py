@@ -21,6 +21,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 from __future__ import annotations
 from typing import Type
+import warnings
 import numpy as np
 
 from DMT.core import Sweep, specifiers, sub_specifiers, DataFrame, SweepDef
@@ -57,6 +58,11 @@ def df_to_sweep(
     -------
     :class:`~DMT.core.sweep.Sweep`
     """
+    warnings.warn(
+        "df_to_sweep is deprecated and will be removed in the next major release.\nUse Sweep.get_sweep in future.\n",
+        category=DeprecationWarning,
+    )
+
     vars_other = {
         specifiers.TEMPERATURE: temperature
     }  # temperature is usually in the dut.data key and not in the df. Additionally it is always constant ?!?

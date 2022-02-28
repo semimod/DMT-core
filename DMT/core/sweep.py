@@ -29,11 +29,305 @@ Features:
 
 import logging
 import copy
-from typing import Dict, List, Type, Union
+from typing import Dict, List, Mapping, Type, Optional
 import numpy as np
 from itertools import product
-from DMT.core import create_md5_hash, specifiers, get_specifier_from_string, SpecifierStr, DataFrame
-from tables import Unknown
+from DMT.core import (
+    create_md5_hash,
+    specifiers,
+    sub_specifiers,
+    get_specifier_from_string,
+    SpecifierStr,
+    DataFrame,
+)
+
+
+def get_sweepdef(
+    data: DataFrame,
+    inner_sweep_voltage: Optional[SpecifierStr] = None,
+    outer_sweep_voltage: Optional[SpecifierStr] = None,
+    decimals_potentials: int = 3,
+):
+    """Given a dataframe, one inner sweep_voltage and one outer sweep voltage, this method tries to create a SweepDefinition that can be used to re-simulate the data.
+
+    Parameters
+    ----------
+    data : DataFrame
+        Frame to extract the sweepdefs from
+    inner_sweep_voltage : SpecifierStr | None, optional
+        A specifier that determiens the inner sweep voltage, by default None
+    outer_sweep_voltage : SpecifierStr | None, optional
+        A specifier that determiens the inner outer voltage, by default None
+    decimals_potentials : int, optional
+        Round the potentials to x number of decimals, by default 3
+
+    Returns
+    -------
+    sweepdef : [{}]
+        A sweep definition that can be used to init a SweepDef.
+
+    Raises
+    ------
+    IOError
+        No forced potentials (or potentials at all) in the columns. Make sure all forced potentials in the columns are SpecifierStr!"
+    IOError
+        The supplied voltages do not define unambiguous sweep conditions for the data.
+    NotImplementedError
+        Either set both or no sweep specifier for now!
+    NotImplementedError
+        If both sweep voltages are set to currents
+
+    """
+    if not data.columns.is_unique:
+        data = data.loc[:, ~data.columns.duplicated()]  # type: ignore
+
+    if inner_sweep_voltage is None and outer_sweep_voltage is None:
+        from_forced = False
+        for col in data.columns:
+            if sub_specifiers.FORCED in col:
+                from_forced = True
+                break  # found one -> do from forced
+
+        potentials_forced = []  # list of forced voltages
+        for col in data.columns:
+            try:
+                if (
+                    (col.specifier == specifiers.VOLTAGE)
+                    and len(col.nodes) == 1
+                    and (not from_forced or (sub_specifiers.FORCED in col))
+                ):  # forced voltages are needed to create sweepdef
+                    potentials_forced.append(col)
+            except AttributeError:  # can only analyze specifiers
+                pass
+
+        if not potentials_forced:
+            raise IOError(
+                "DMT->df_to_sweep: No forced potentials in the columns. Make sure all forced potentials in the columns are SpecifierStr!"
+            )
+
+        # find one potential with only one value and set it as reference potential!
+        potential_common = ""
+        for potential in sorted(
+            potentials_forced, key=lambda x: x.nodes[0]
+        ):  # sort to make sure everytime the same is found.
+            if len(np.unique(np.round(data[potential].to_numpy(), decimals_potentials))) == 1:
+                potential_common = potential  # use this one! Even if more than one would exist.
+                break
+
+        if not potential_common:  # no potential found
+            # did not find anything :(
+            raise IOError(
+                "DMT -> df_to_sweep: The user supplied voltages do not define unambiguous sweep conditions for the transistor. No common reference potential was found."
+            )
+
+        # now we need all sweep potentials with regard to one reference potential or other synced sweeps.
+        potentials_sweep = [
+            potential for potential in set(potentials_forced) if potential != potential_common
+        ]
+
+        # find order of sweeps including V_BC sweeps... (innermost, ..., outermost)
+        count_ops = {}
+        for potential in sorted(potentials_sweep, key=lambda x: x.nodes[0]):
+            # against all other:
+            for potential_other in sorted(potentials_forced, key=lambda x: x.nodes[0]):
+                if potential_other == potential:
+                    continue  # not against self
+
+                if from_forced:
+                    if potential_other + potential.nodes[0] + sub_specifiers.FORCED in count_ops:
+                        continue  # not V_BC and V_CB, only one of those..
+
+                    voltage = potential + potential_other.nodes[0] + sub_specifiers.FORCED
+                else:
+                    if potential_other + potential.nodes[0] in count_ops:
+                        continue  # not V_BC and V_CB, only one of those..
+
+                    voltage = potential + potential_other.nodes[0]
+
+                data.ensure_specifier_column(voltage)
+                values = np.unique(np.round(data[voltage].to_numpy(), decimals_potentials))
+                count_ops[voltage] = len(values)
+
+        for i_voltage, (voltage, _count) in enumerate(
+            sorted(count_ops.items(), key=lambda kv: kv[1])[:-1]
+        ):  # last of the sorted list is the one we don't need
+            data.ensure_specifier_column(voltage)
+            if i_voltage == 0:
+                outer_sweep_voltage = voltage
+            elif i_voltage == 1:
+                inner_sweep_voltage = voltage
+            else:
+                raise OSError("only two stage voltages allowed :(")
+
+    elif inner_sweep_voltage is None or outer_sweep_voltage is None:
+        raise NotImplementedError(
+            "DMT->get_sweepdef: Either set both or no sweep specifier for now!"
+        )
+
+    assert inner_sweep_voltage is not None
+    assert outer_sweep_voltage is not None
+
+    if specifiers.VOLTAGE in inner_sweep_voltage and specifiers.VOLTAGE in outer_sweep_voltage:
+        # classical decision: Efficient short code vs cryptic. Not sure which is better here.
+        # -> try general code: transform voltage definition into appropriate "coordinate" system, where the voltages become independent from each other.
+        potential_one_inner = (
+            specifiers.VOLTAGE + inner_sweep_voltage.nodes[0] + inner_sweep_voltage.sub_specifiers
+        )
+        potential_two_inner = (
+            specifiers.VOLTAGE + inner_sweep_voltage.nodes[1] + inner_sweep_voltage.sub_specifiers
+        )
+
+        potential_one_outer = (
+            specifiers.VOLTAGE + outer_sweep_voltage.nodes[0] + outer_sweep_voltage.sub_specifiers
+        )
+        potential_two_outer = (
+            specifiers.VOLTAGE + outer_sweep_voltage.nodes[1] + outer_sweep_voltage.sub_specifiers
+        )
+
+        # find common potential between voltages and set it as reference potential
+        common_potential = [
+            potential
+            for potential in [potential_one_inner, potential_two_inner]
+            if potential in [potential_one_outer, potential_two_outer]
+        ]
+        if len(common_potential) != 1:
+            raise IOError(
+                "DMT -> Sweep -> get_sweep: the supplied voltages do not define unambiguous sweep conditions for the data."
+            )
+
+        # now we just need two sweeps and one reference potential. wuhu...
+        reference_potential = common_potential[0]
+        inner_sweep_potential = next(
+            potential
+            for potential in [potential_one_inner, potential_two_inner]
+            if potential != reference_potential
+        )
+        outer_sweep_potential = next(
+            potential
+            for potential in [potential_one_outer, potential_two_outer]
+            if potential != reference_potential
+        )
+
+        # find list values for the two swept potentials with respect to the new reference node.
+        outer_sweep_potential_vals = (
+            data[outer_sweep_potential].to_numpy() - data[reference_potential].to_numpy()
+        )
+        outer_sweep_potential_vals = np.round(
+            outer_sweep_potential_vals, decimals=decimals_potentials
+        )
+        outer_sweep_potential_vals = np.unique(outer_sweep_potential_vals)
+
+        inner_sweep_potential_vals = (
+            data[inner_sweep_potential].to_numpy() - data[reference_potential].to_numpy()
+        )
+        inner_sweep_potential_vals = np.unique(inner_sweep_potential_vals)
+
+        # the circuit only allows to sweep VB VC VE, which are forced due to the circuit topology
+        sweepdef = [
+            {
+                "var_name": specifiers.VOLTAGE + reference_potential.nodes[0],
+                "sweep_order": 1,
+                "sweep_type": "CON",
+                "value_def": [0],
+            },
+            {
+                "var_name": specifiers.VOLTAGE + outer_sweep_potential.nodes[0],
+                "sweep_order": 2,
+                "sweep_type": "LIST",
+                "value_def": outer_sweep_potential_vals,
+            },
+            {
+                "var_name": specifiers.VOLTAGE + inner_sweep_potential.nodes[0],
+                "sweep_order": 3,
+                "sweep_type": "LIST",
+                "value_def": inner_sweep_potential_vals,
+            },
+        ]
+    else:
+        if specifiers.CURRENT in inner_sweep_voltage and specifiers.CURRENT in outer_sweep_voltage:
+            # two currents forced
+            raise OSError("Only one forced current at the moment!")
+        if specifiers.CURRENT in inner_sweep_voltage:
+            # one current forced, one voltage
+            inner_sweep_potential_vals = +data[inner_sweep_voltage].to_numpy()
+            reference_potential = specifiers.VOLTAGE + outer_sweep_voltage.nodes[1]
+            outer_sweep_potential_vals = data[outer_sweep_voltage].to_numpy()
+            outer_sweep_potential_vals = np.unique(outer_sweep_potential_vals)
+            sweepdef = [
+                {
+                    "var_name": reference_potential,
+                    "sweep_order": 1,
+                    "sweep_type": "CON",
+                    "value_def": [0],
+                },
+                {
+                    "var_name": specifiers.VOLTAGE + outer_sweep_voltage.nodes[0],
+                    "sweep_order": 2,
+                    "sweep_type": "CON",
+                    "value_def": outer_sweep_potential_vals,
+                },
+                {
+                    "var_name": inner_sweep_voltage,
+                    "sweep_order": 3,
+                    "sweep_type": "LIST",
+                    "value_def": inner_sweep_potential_vals,
+                },
+            ]
+        elif specifiers.CURRENT in outer_sweep_voltage:
+            potential_one_inner = (
+                specifiers.VOLTAGE
+                + inner_sweep_voltage.nodes[0]
+                + inner_sweep_voltage.sub_specifiers
+            )
+            potential_two_inner = (
+                specifiers.VOLTAGE
+                + inner_sweep_voltage.nodes[1]
+                + inner_sweep_voltage.sub_specifiers
+            )
+
+            # find common potential between voltages and set it as reference potential
+            common_potential = [potential_two_inner]
+
+            # now we just need two sweeps and one reference potential. wuhu...
+            reference_potential = common_potential[0]
+            inner_sweep_potential = next(
+                potential
+                for potential in [potential_one_inner, potential_two_inner]
+                if potential != reference_potential
+            )
+
+            outer_sweep_potential_vals = np.unique(data[outer_sweep_voltage].to_numpy())
+
+            inner_sweep_potential_vals = (
+                data[inner_sweep_potential].to_numpy() - data[reference_potential].to_numpy()
+            )
+            inner_sweep_potential_vals = np.unique(inner_sweep_potential_vals)
+
+            # the circuit only allows to sweep VB VC VE, which are forced due to the circuit topology
+            sweepdef = [
+                {
+                    "var_name": specifiers.VOLTAGE + reference_potential.nodes[0],
+                    "sweep_order": 1,
+                    "sweep_type": "CON",
+                    "value_def": [0],
+                },
+                {
+                    "var_name": outer_sweep_voltage,
+                    "sweep_order": 2,
+                    "sweep_type": "CON",
+                    "value_def": outer_sweep_potential_vals,
+                },
+                {
+                    "var_name": specifiers.VOLTAGE + inner_sweep_potential.nodes[0],
+                    "sweep_order": 3,
+                    "sweep_type": "LIST",
+                    "value_def": inner_sweep_potential_vals,
+                },
+            ]
+        else:
+            raise NotImplementedError
+
+    return sweepdef
 
 
 class SweepDef(object):
@@ -387,9 +681,9 @@ class Sweep(object):
     def __init__(
         self,
         name: str,
-        sweepdef: List[Dict[str, Unknown] | SweepDef] | None = None,
+        sweepdef: List[Mapping[str, object] | SweepDef] | None = None,
         outputdef: List[str] | None = None,
-        othervar: Dict[str, float] | None = None,
+        othervar: Mapping[str, float] | None = None,
         SweepDefClass: Type = SweepDef,
     ):
         self.name = name
@@ -629,186 +923,43 @@ class Sweep(object):
             return NotImplemented
 
     @classmethod
-    def get_sweep(cls, data, inner_sweep_voltage, outer_sweep_voltage):
-        """Given a dataframe, one inner sweep_voltage and one outer sweep voltage, this method tries to create a SweepDefinition that can be used to re-simulate the data.
+    def get_sweep_from_dataframe(
+        cls,
+        data: DataFrame,
+        temperature: float | None = None,
+        name: str = "sweep",
+        outputdef: List[str] | None = None,
+        othervar: Dict[str, float] | None = None,
+        SweepDefClass: Type = SweepDef,
+        decimals_potentials: int = 3,
+        **kwargs
+    ):
+        if othervar is None:
+            othervar = {}
+        if temperature is not None:
+            othervar[specifiers.TEMPERATURE] = temperature
 
-        Parameters
-        ----------
-        inner_sweep_voltage : SpecifierStr()
-            A specifier that determiens the inner sweep voltage.
-        outer_sweep_voltage : SpecifierStr()
-            A specifier that determiens the inner outer voltage.
+        if outputdef is None:
+            outputdef = []
 
-        Returns
-        -------
-        sweepdef : [{}]
-            A sweep definition that can be used to init a SweepDef.
+        sweepdefs = get_sweepdef(data, decimals_potentials=decimals_potentials, **kwargs)
 
-        """
-        if not data.columns.is_unique:
-            data = data.loc[:, ~data.columns.duplicated()]
-
-        if specifiers.VOLTAGE in inner_sweep_voltage and specifiers.VOLTAGE in outer_sweep_voltage:
-            # classical decision: Efficient short code vs cryptic. Not sure which is better here.
-            # -> try general code: transform voltage definition into appropriate "coordinate" system, where the voltages become independent from each other.
-            potential_one_inner = (
-                specifiers.VOLTAGE
-                + inner_sweep_voltage.nodes[0]
-                + inner_sweep_voltage.sub_specifiers
-            )
-            potential_two_inner = (
-                specifiers.VOLTAGE
-                + inner_sweep_voltage.nodes[1]
-                + inner_sweep_voltage.sub_specifiers
-            )
-
-            potential_one_outer = (
-                specifiers.VOLTAGE
-                + outer_sweep_voltage.nodes[0]
-                + outer_sweep_voltage.sub_specifiers
-            )
-            potential_two_outer = (
-                specifiers.VOLTAGE
-                + outer_sweep_voltage.nodes[1]
-                + outer_sweep_voltage.sub_specifiers
-            )
-
-            # find common potential between voltages and set it as reference potential
-            common_potential = [
-                potential
-                for potential in [potential_one_inner, potential_two_inner]
-                if potential in [potential_one_outer, potential_two_outer]
-            ]
-            if len(common_potential) != 1:
-                raise IOError(
-                    "DMT -> Sweep -> get_sweep: the supplied voltages do not define unambiguous sweep conditions for the data."
-                )
-
-            # now we just need two sweeps and one reference potential. wuhu...
-            reference_potential = common_potential[0]
-            inner_sweep_potential = next(
-                potential
-                for potential in [potential_one_inner, potential_two_inner]
-                if potential != reference_potential
-            )
-            outer_sweep_potential = next(
-                potential
-                for potential in [potential_one_outer, potential_two_outer]
-                if potential != reference_potential
-            )
-
-            # find list values for the two swept potentials with respect to the new reference node.
-            outer_sweep_potential_vals = (
-                data[outer_sweep_potential].to_numpy() - data[reference_potential].to_numpy()
-            )
-            outer_sweep_potential_vals = np.round(outer_sweep_potential_vals, decimals=3)[0]
-            outer_sweep_potential_vals = np.unique(outer_sweep_potential_vals)
-
-            inner_sweep_potential_vals = (
-                data[inner_sweep_potential].to_numpy() - data[reference_potential].to_numpy()
-            )
-            inner_sweep_potential_vals = np.unique(inner_sweep_potential_vals)
-
-            # the circuit only allows to sweep VB VC VE, which are forced due to the circuit topology
-            sweepdef = [
+        ### grab definition for the frequency, if possible
+        if specifiers.FREQUENCY in data.columns:
+            freq = np.unique(np.round(data[specifiers.FREQUENCY].to_numpy(), decimals_potentials))
+            sweepdefs.append(
                 {
-                    "var_name": specifiers.VOLTAGE + reference_potential.nodes[0],
-                    "sweep_order": 1,
-                    "sweep_type": "CON",
-                    "value_def": [0],
-                },
-                {
-                    "var_name": specifiers.VOLTAGE + outer_sweep_potential.nodes[0],
-                    "sweep_order": 2,
-                    "sweep_type": "CON",
-                    "value_def": outer_sweep_potential_vals,
-                },
-                {
-                    "var_name": specifiers.VOLTAGE + inner_sweep_potential.nodes[0],
-                    "sweep_order": 3,
+                    "var_name": specifiers.FREQUENCY,
+                    "sweep_order": len(sweepdefs) + 1,
                     "sweep_type": "LIST",
-                    "value_def": inner_sweep_potential_vals,
+                    "value_def": freq,
                 },
-            ]
-        else:
-            # one current forced, one voltage
-            if specifiers.CURRENT in inner_sweep_voltage:
-                inner_sweep_potential_vals = +data[inner_sweep_voltage].to_numpy()
-                reference_potential = specifiers.VOLTAGE + outer_sweep_voltage.nodes[1]
-                outer_sweep_potential_vals = data[outer_sweep_voltage].to_numpy()
-                outer_sweep_potential_vals = np.unique(outer_sweep_potential_vals)
-                sweepdef = [
-                    {
-                        "var_name": reference_potential,
-                        "sweep_order": 1,
-                        "sweep_type": "CON",
-                        "value_def": [0],
-                    },
-                    {
-                        "var_name": specifiers.VOLTAGE + outer_sweep_voltage.nodes[0],
-                        "sweep_order": 2,
-                        "sweep_type": "CON",
-                        "value_def": outer_sweep_potential_vals,
-                    },
-                    {
-                        "var_name": inner_sweep_voltage,
-                        "sweep_order": 3,
-                        "sweep_type": "LIST",
-                        "value_def": inner_sweep_potential_vals,
-                    },
-                ]
-            elif specifiers.CURRENT in outer_sweep_voltage:
-                potential_one_inner = (
-                    specifiers.VOLTAGE
-                    + inner_sweep_voltage.nodes[0]
-                    + inner_sweep_voltage.sub_specifiers
-                )
-                potential_two_inner = (
-                    specifiers.VOLTAGE
-                    + inner_sweep_voltage.nodes[1]
-                    + inner_sweep_voltage.sub_specifiers
-                )
+            )
 
-                # find common potential between voltages and set it as reference potential
-                common_potential = [potential_two_inner]
-
-                # now we just need two sweeps and one reference potential. wuhu...
-                reference_potential = common_potential[0]
-                inner_sweep_potential = next(
-                    potential
-                    for potential in [potential_one_inner, potential_two_inner]
-                    if potential != reference_potential
-                )
-
-                outer_sweep_potential_vals = np.unique(data[outer_sweep_voltage].to_numpy())
-
-                inner_sweep_potential_vals = (
-                    data[inner_sweep_potential].to_numpy() - data[reference_potential].to_numpy()
-                )
-                inner_sweep_potential_vals = np.unique(inner_sweep_potential_vals)
-
-                # the circuit only allows to sweep VB VC VE, which are forced due to the circuit topology
-                sweepdef = [
-                    {
-                        "var_name": specifiers.VOLTAGE + reference_potential.nodes[0],
-                        "sweep_order": 1,
-                        "sweep_type": "CON",
-                        "value_def": [0],
-                    },
-                    {
-                        "var_name": outer_sweep_voltage,
-                        "sweep_order": 2,
-                        "sweep_type": "CON",
-                        "value_def": outer_sweep_potential_vals,
-                    },
-                    {
-                        "var_name": specifiers.VOLTAGE + inner_sweep_potential.nodes[0],
-                        "sweep_order": 3,
-                        "sweep_type": "LIST",
-                        "value_def": inner_sweep_potential_vals,
-                    },
-                ]
-            else:
-                raise NotImplementedError
-
-        return sweepdef
+        return cls(
+            name,
+            sweepdef=sweepdefs,
+            outputdef=outputdef,
+            othervar=othervar,
+            SweepDefClass=SweepDefClass,
+        )

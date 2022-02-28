@@ -9,6 +9,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Added
 
 - Documentation for DMT.external library.
+- Added a proper Sweep.get_sweep
+
+### Changed
+
+- Merged df_to_sweep with Sweep.get_sweep to get_sweepdef
 
 ### Move
 
@@ -20,6 +25,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Removed
 
 - Removed DMT.core.tikz_postprocess. Currently no final implementation and also no integration with pyqtgraph. This feature will return with pyqtgraph integration and better documentation! No major bump as it was not part of test cases.
+
+### Deprecated
+
+- core.df_to_sweep is now deprecated (and merge into Sweep.get_sweep)
 
 ## [1.3.0] - 2022.02.25
 

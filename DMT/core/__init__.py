@@ -83,7 +83,7 @@ from .plot import COMPARISON_3
 from .data_processor import is_iterable, flatten, strictly_increasing, DataProcessor
 
 from .data_frame import DataFrame
-from .sweep import Sweep, SweepDef
+from .sweep import Sweep, SweepDef, get_sweepdef
 from .database_manager import DatabaseManager
 from .data_reader import (
     read_data,
@@ -98,7 +98,6 @@ from .data_reader import (
 
 # Simulation management
 from .sim_con import SimCon
-from .df_to_sweep import df_to_sweep
 
 # DutView tree
 from .dut_view import DutView
@@ -111,8 +110,6 @@ from .dut_dummy import DutDummy
 from .dut_circuit import DutCircuit
 
 from .dut_tcad import DutTcad
-
-import tables
 
 # determine which modules are present
 core_exists = True  # always, without DMT is not possible

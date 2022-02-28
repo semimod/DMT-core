@@ -326,7 +326,19 @@ class SpecifierStr(str):
         else:
             return NotImplemented
 
-    def __eq__(self, other):
+    def __eq__(self, other: str | SpecifierStr) -> bool:
+        """Checks if two objects are equal
+
+        Parameters
+        ----------
+        other : str | SpecifierStr
+            Compare to this column name
+
+        Returns
+        -------
+        bool
+            True if equal
+        """
         if isinstance(other, SpecifierStr):
             if self.specifier == other.specifier and self.nodes == other.nodes:
                 # order of subspecifiers does not matter Oo
@@ -345,9 +357,24 @@ class SpecifierStr(str):
                     if self == col_other:
                         return True
         elif other is not None:
-            raise NotImplementedError("Can not compare SpecifierStr to " + type(other))
+            return NotImplemented
 
         return False
+
+    def __contains__(self, other: str | SpecifierStr) -> bool:
+        """String contains
+
+        Parameters
+        ----------
+        other : str | SpecifierStr
+            Other string or specifier which may contains self
+
+        Returns
+        -------
+        bool
+            str(other) in str(self)
+        """
+        return str(other) in str(self)
 
     def __hash__(self):
         return hash(str(self))

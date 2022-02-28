@@ -178,7 +178,7 @@ def read_mdm(filename):
 
     Returns
     -------
-    dataframe : :class:`DMT.core.Dataframe`
+    :class:`DMT.core.Dataframe`
         DMT dataframe representing the mdm data.
     """
     block_data = []
