@@ -52,8 +52,6 @@ unit_registry.load_definitions(os.path.join(path_core, "dmt_units.txt"))
 
 # helper for model equations and mcard memoization
 from .utils import print_progress_bar
-from .utils import check_nan_inf
-from .utils import vectorize
 from .utils import flatten
 from .utils import strictly_increasing
 from .utils import enumerate_reversed
@@ -73,7 +71,6 @@ from .naming import natural_scales
 
 # compact modelling stuff
 from .mc_parameter import McParameter, McParameterCollection
-from .utils import memoize
 from .va_file import VAFile
 from .mcard import MCard
 from .technology import Technology

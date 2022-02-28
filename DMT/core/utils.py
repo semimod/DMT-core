@@ -18,12 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 import sys
-import numpy as np
 import re
-import inspect
-from functools import wraps
-from DMT.exceptions import NanInfError
-from DMT.core.mc_parameter import McParameterCollection
 
 
 def print_progress_bar(
@@ -51,76 +46,6 @@ def print_progress_bar(
         "\r{} : |{}{}| {}%{} {}{}".format(prefix, progress, bar, percentage, balance, suffix, skip)
     )
     sys.stdout.flush()
-
-
-def check_nan_inf(func):
-    @wraps(func)
-    def func_wrapper(*args, **kwargs):
-        func_return = func(*args, **kwargs)
-        if np.isnan(func_return).any() or np.isinf(func_return).any():
-            message = "Method {} returned NaN or Inf".format(func.__name__)
-            bound_args = inspect.signature(func).bind(*args, **kwargs)
-            bound_args.apply_defaults()
-            message = message + r"\n" + str(dict(bound_args.arguments))
-            raise NanInfError(message)
-
-        else:
-            return func_return
-
-    return func_wrapper
-
-
-def vectorize(func):
-    """Slows everything down heavily!!"""
-
-    @wraps(func)
-    def vectorize_wrapper(*args, **kwargs):
-        n_args = len(args)
-        n_kwargs = len(kwargs)
-        if n_args > 32:
-            raise IOError("DMT -> vectorize: Can only vectorize up to 32 args.")
-
-        elif (n_args + n_kwargs) > 32:
-            delta = 32 - n_args  # exclude last delta kwargs
-            func_vectorized = np.vectorize(func, excluded=list(kwargs.keys())[delta - 1 :])
-
-        else:
-            func_vectorized = np.vectorize(func)
-
-        return func_vectorized(*args, **kwargs)
-
-    return vectorize_wrapper
-
-
-def memoize(obj):
-    r"""Decorator that implements memoization for McParameter objects in \*args."""
-    cache = obj.cache = {}
-
-    @wraps(obj)
-    def memoizer(*args, **kwargs):
-        # find mcards
-        mcard = None
-        args_cache = None
-        for i_arg, arg in enumerate(args):
-            if isinstance(arg, McParameterCollection):
-                mcard = arg
-                args_cache = tuple(
-                    [arg_a for i_arg_a, arg_a in enumerate(args) if i_arg_a != i_arg]
-                )
-                break
-
-        if mcard is None:
-            key = str(args) + str(kwargs)
-        else:
-            key = (
-                str(args_cache) + str(kwargs) + mcard.print_parameters()
-            )  # hashing would be better
-
-        if key not in cache:
-            cache[key] = obj(*args, **kwargs)
-        return cache[key]
-
-    return memoizer
 
 
 def is_iterable(arg):
