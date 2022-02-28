@@ -684,9 +684,34 @@ class McParameterCollection(object):
 
     @classmethod
     def load_json(
-        cls, file_path: Union[str, Path], directory_va_file: Union[str, Path] = None
+        cls,
+        file_path: Union[str, Path],
+        directory_va_file: Union[str, Path, None] = None,
+        ignore_checksum: bool = False,
     ) -> McParameterCollection:
-        """Loads the json file, creates the McParameterCollection (or inherited) and adds the McParameters."""
+        """Loads the json file, creates the McParameterCollection (or inherited) and adds the McParameters.
+
+        Parameters
+        ----------
+        file_path : Union[str, Path]
+            Path to the json.
+        directory_va_file : Union[str, Path, None], optional
+            If a relative path to a va_file is set in the modelcard, pass the absolute path to the start folder here, by default None.
+            This can be used to load old json modelcards from before saving the full code with the parameters.
+        ignore_checksum : bool, optional
+            When the code is saved compressed, a checksum is saved with it. If you want to ignore the checksum set this to true, by default False
+
+
+        Returns
+        -------
+        McParameterCollection
+            The loaded collection
+
+        Raises
+        ------
+        IOError
+            If the collection dictionary is not found in the json file.
+        """
         if not isinstance(file_path, Path):
             file_path = Path(file_path)
 
@@ -699,11 +724,18 @@ class McParameterCollection(object):
                 "__McParameterCollection__" in dict_content
                 or "__McParameterComposition__" in dict_content
             ):
-                collection = cls(directory_va_file=directory_va_file, **dict_content)
+                collection = cls(
+                    directory_va_file=directory_va_file,
+                    ignore_checksum=ignore_checksum,
+                    **dict_content,
+                )
                 break
 
         if collection is None:
-            raise IOError("DMT->McParameterCollection: Did not create the collection")
+            raise IOError(
+                "DMT->McParameterCollection: Did not create the collection as no collection dictionary is found in the file.",
+                "Try to create a collection object yourself and the load the parameter json files manually.",
+            )
 
         for dict_content in content:
             if "__McParameter__" in dict_content:

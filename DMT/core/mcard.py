@@ -127,6 +127,9 @@ class MCard(McParameterCollection):
         Path to a Verilog-AMS file *deprecated*
     va_codes : {os.Pathlike: str}
         Dictionary of relative paths and codes -> full VA code structure.
+    ignore_checksum: bool, optional
+        If True, the checksum of the save modelcard json is ignored, defaults to False.
+
     """
 
     def __init__(
@@ -140,6 +143,7 @@ class MCard(McParameterCollection):
         vae_module=None,
         directory_va_file: str | os.PathLike | None = None,
         __MCard__=SEMVER_MCARD_CURRENT,
+        ignore_checksum: bool = False,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -195,7 +199,7 @@ class MCard(McParameterCollection):
         self._va_codes = None
         if va_codes is not None:
             if isinstance(va_codes, dict):
-                self._va_codes = VAFile.import_dict(va_codes)
+                self._va_codes = VAFile.import_dict(va_codes, ignore_checksum=ignore_checksum)
             else:
                 self._va_codes = va_codes
         elif va_file is not None:
@@ -549,22 +553,33 @@ class MCard(McParameterCollection):
         return info_dict
 
     @classmethod
-    def load_json(cls, file_path: Union[str, Path]) -> MCard:
+    def load_json(
+        cls,
+        file_path: Union[str, Path],
+        directory_va_file: Union[str, Path, None] = None,
+        ignore_checksum: bool = False,
+    ) -> MCard:
         """Load json file
 
         Just for type hints etc..
 
         Parameters
         ----------
-        file_path : str or Path
+        file_path : Union[str, Path]
             Path to the json.
+        directory_va_file : Union[str, Path, None], optional
+            If a relative path to a va_file is set in the modelcard, pass the absolute path to the start folder here, by default None.
+            This can be used to load old json modelcards from before saving the full code with the parameters.
+        ignore_checksum : bool, optional
+            When the code is saved compressed, a checksum is saved with it. If you want to ignore the checksum set this to true, by default False
 
         Returns
         -------
         MCard
             Loaded modelcard
         """
-        return super().load_json(file_path)  # type: ignore
+
+        return super().load_json(file_path, directory_va_file=directory_va_file, ignore_checksum=ignore_checksum)  # type: ignore
 
     def get_circuit(self, use_build_in=False, topology=None, **kwargs):
         """Here the modelcard defines it's default simulation circuit.
