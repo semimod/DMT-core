@@ -60,7 +60,7 @@ def enumerate_reversed(iterable, start=0, stop=None, step=1):
         Starting and ending index with step size for the iterable
 
     Yields
-    -------
+    ------
     index, value
         index always refers to the true index of the iterable, independent of start or stop!
     """

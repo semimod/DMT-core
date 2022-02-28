@@ -934,6 +934,30 @@ class Sweep(object):
         decimals_potentials: int = 3,
         **kwargs
     ):
+        """Create a Sweep from a DataFrame
+
+        Parameters
+        ----------
+        data : DataFrame
+            data to create a Sweep from.
+        temperature : float | None, optional
+            Temperature in Kelvin, if not given it must be part of othervar, by default None
+        name : str, optional
+            Name of the sweep to create, by default "sweep"
+        outputdef : List[str] | None, optional
+            outputdef of the new Sweep, by default None
+        othervar : Dict[str, float] | None, optional
+            othervar of the new Sweep, by default None
+        SweepDefClass : Type, optional
+            SweepDefClass for the new sweepdefs, by default SweepDef
+        decimals_potentials : int, optional
+            Round to x number of decimals for potentials and frequencies, by default 3
+
+        Returns
+        -------
+        Sweep
+            Created sweep from the dataframe
+        """
         if othervar is None:
             othervar = {}
         if temperature is not None:

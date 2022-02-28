@@ -98,7 +98,7 @@ def get_dmt_model(vae_module, model_type, version):
 
     This function also adds the needed attributes.
 
-    Parameter
+    Parameters
     ----------
     vae_module : module
         VAE compiled and installed VA-Code

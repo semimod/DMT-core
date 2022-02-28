@@ -128,7 +128,7 @@ dut_sim = DutXyce(
 )
 
 
-sweep = core.df_to_sweep(dut_meas.data[key_saved], temperature=300, from_forced=False)
+sweep = core.Sweep.get_sweep_from_dataframe(dut_meas.data[key_saved], temperature=300)
 
 
 sim_con = core.SimCon()
