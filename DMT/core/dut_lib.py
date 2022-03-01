@@ -729,22 +729,6 @@ class DutLib(object):
             # Deembed DC data if required
         self.is_deembedded_AC = True
 
-    def deembed_AC_internal(self, mcard, method):
-        """Deembed the dut_ref to this dut_lib and save the new dut as dut_internal
-
-        Parameters
-        ----------
-        mcard  : Hl2Mcard
-            A Hicum modelcard that contains accurate values for all external elements of the Hl2 transistor model.
-
-        method : a function
-            A compact model specific routine that has the following signature: method(df, mcard), where df is a dataframe and mcard a modelcard and method returns a df with deembedded data.
-        """
-        if self.dut_ref is None:
-            raise IOError("Library has no reference dut that is suitable for deembedding!")
-
-        self.deembed_dut_AC_internal(self.dut_ref, mcard, method)
-
     def deembed_DC(
         self,
         width_filter,
@@ -1026,40 +1010,6 @@ class DutLib(object):
                     + dut.name
                     + " seems to require deembedding, but not a single suitable key was found."
                 )
-
-    def deembed_dut_AC_internal(self, dut, mc, method):
-        """Checks for all AC measurement data and deduces the internal small signal S Parameters.
-
-        Parameters
-        ----------
-        dut         : DutView
-            A suitable device for internal deembedding.
-        mc          : Hl2MCard
-            Hicum Modelcard that holds accurate values for the external hicum elements.
-        method      : A routine that has the following signature method(df, mc), where df is a dataframe and mc a modelcard and the output is an internally
-                      deembedded dataframe.
-
-        """
-        # count number of keys to deembed
-        n_keys = 0
-        for meas_filter in self.AC_filter_names:
-            for key in dut.data.keys():
-                # check if df needs to be AC deembedded & find O&S structure
-                if re.search(meas_filter, key, re.IGNORECASE):
-                    n_keys = n_keys + 1
-
-        n = 1
-        # Go through all available filters and find dfs matching their values
-        for meas_filter in self.AC_filter_names:
-            for key in dut.data.keys():
-                # check if df needs to be AC deembedded & find O&S structure
-                if re.search(meas_filter, key, re.IGNORECASE):
-                    print_progress_bar(
-                        n, n_keys, prefix="Deembedding internal:", suffix=dut.name, length=50
-                    )
-                    t_dev = dut.get_key_temperature(key)
-                    dut.data[key] = method(dut.data[key], mc, t_dev=t_dev)
-                    n = n + 1
 
     def load_database(self, database_dir, only_meas=True):
         """Loads all DuTs from a given database directory. Does NOT load the data of the duts, they are loaded using run_and_read
