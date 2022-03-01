@@ -281,52 +281,8 @@ class DutMeas(DutView):
 
         """
 
-        def temp_converter_default(key_part):
-            """Default converter from key_part to temperature. Asumes the temperature in the key parts is in Kelvin.
-
-            Parameters
-            ----------
-            key_part : str
-                Key to inspect
-
-            Returns
-            --------
-            temp : float or None
-                If key does not contain a temperature, -1 is returned.
-                If id does contain a temperature, the temperature in Kelvin is returned.
-            """
-            temp = None
-            re_temp = re.search(r"T([0-9p\.]+)K", key_part)
-            if re_temp:
-                try:
-                    # always replace "p" with ".", if it is already with ".", it doesn't matter
-                    temp = round(float(re_temp.group(1).replace("p", ".")), 3)
-                except ValueError:
-                    # if a value error in the except clause happens, try the next key part.
-                    pass
-
-            # alternative:
-            if key_part.startswith("T"):
-                try:
-                    temp = round(float(key_part[1:].replace("p", ".")), 3)
-                except ValueError:
-                    # if a value error in the except clause happens, try the next key part.
-                    pass
-
-            # finally as a last escape: direct conversion :(
-            try:
-                temp = round(float(key_part.replace("p", ".")), 3)
-            except ValueError:
-                # if a value error in the except clause happens, try the next key part.
-                pass
-
-            if temp is None:
-                return -1
-            else:
-                return temp
-
         if temperature_converter is None:
-            temperature_converter = temp_converter_default
+            temperature_converter = self.temp_converter_default
 
         key_parts = list(key_parts)
         for i_key_part, key_part in enumerate(key_parts):
@@ -351,3 +307,47 @@ class DutMeas(DutView):
             key_parts[i_key_part] = "T{:.2f}K".format(temp)
 
         return self.join_key(*key_parts)
+
+    def temp_converter_default(self, key_part):
+        """Default converter from key_part to temperature. Asumes the temperature in the key parts is in Kelvin.
+
+        Parameters
+        ----------
+        key_part : str
+            Key to inspect
+
+        Returns
+        --------
+        temp : float or None
+            If key does not contain a temperature, -1 is returned.
+            If id does contain a temperature, the temperature in Kelvin is returned.
+        """
+        temp = None
+        re_temp = re.search(r"T([0-9p\.]+)K", key_part)
+        if re_temp:
+            try:
+                # always replace "p" with ".", if it is already with ".", it doesn't matter
+                temp = round(float(re_temp.group(1).replace("p", ".")), 3)
+            except ValueError:
+                # if a value error in the except clause happens, try the next key part.
+                pass
+
+        # alternative:
+        if key_part.startswith("T"):
+            try:
+                temp = round(float(key_part[1:].replace("p", ".")), 3)
+            except ValueError:
+                # if a value error in the except clause happens, try the next key part.
+                pass
+
+        # finally as a last escape: direct conversion :(
+        try:
+            temp = round(float(key_part.replace("p", ".")), 3)
+        except ValueError:
+            # if a value error in the except clause happens, try the next key part.
+            pass
+
+        if temp is None:
+            return -1
+        else:
+            return temp

@@ -344,25 +344,27 @@ class DutLib(object):
     ):
         """Read in all files in import_dir into a DutLib object.
 
-        | Read in all devices in the subfolders of a directory.
-        | Data "dut_level" folders apart with respect to import_dir will be stored into one database and one DutView object.
-        | Example folder structure to illustrate this principle:
-        |
-        | Measurement/
-        | Measurement/die1/
-        | Measurement/die1/Device1
-        | Measurement/die1/Device2
-        | Measurement/die2/Device1
-        |
-        | then for importing with this method, import_dir is set to Measurement/ and dut_level is set to 2.
-        | The DutView objects need to be supplied by the callable object (function) dut_filter, which is supplied by the user.
-        | The dut_filter function is called with the DutView's relative path with respect to import dir and shall return a fully initalized DutView object.
+        Read in all devices in the subfolders of a directory.
+
+        Data "dut_level" folders apart with respect to import_dir will be stored into one database and one DutView object.
+        Example folder structure to illustrate this principle::
+
+            Measurement
+            ├───die1
+            |   ├───Device1
+            |   └───Device2
+            └───die2
+                └───Device1
+
+        then for importing with this method, import_dir is set to `Measurement/` and dut_level is set to 2.
+        The DutView objects need to be supplied by the callable object (function) dut_filter, which is supplied by the user.
+        The dut_filter function is called with the DutView's relative path with respect to import dir and shall return a fully initialized DutView object.
 
         Parameters
         ----------
         import_dir       :  string or os.Pathlike
             Path to the directory that contains all dies on a wafer.
-        dut_filter       :  callable object
+        dut_filter       :  callable
             User supplied function that is called with the relative paths dut_level levels below import_dir and returns DutView objects.
         dut_level        :  int
             Subfolder level that contains data of ONE specifid DutView. Files that lie in this level will be put into one database.
@@ -370,6 +372,7 @@ class DutLib(object):
             Called to convert the directory name into a key part.
             If key does not contain a temperature, it should return -1.
             If it does contain a temperature, the temperature in Kelvin should be returned.
+            Defaults to :meth:`~DMT.core.dut_meas.DutMeas.temp_converter_default`
         force            :  bool
             Default = True. If True, databases and duts that have already been imported are overwritten.
         kwargs   :  bool
@@ -450,6 +453,8 @@ class DutLib(object):
 
     def save(self):
         """Save the DutLib to save_dir."""
+        assert self.save_dir is not None
+
         if not os.path.isabs(self.save_dir):
             self._save_dir = os.path.abspath(self.save_dir)
 
@@ -521,6 +526,7 @@ class DutLib(object):
             dut_lib = cpickle.load(handle)
             dut_lib._save_dir = Path(dut_lib.save_dir)  # pylint: disable=protected-access
 
+        save_dir_old = ""
         # need to cast paths? This is needed when the machine is changed -> new absolute paths...
         if (
             lib_directory != dut_lib.save_dir
