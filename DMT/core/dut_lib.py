@@ -26,20 +26,12 @@ import filecmp
 import numpy as np
 from pathlib import Path
 from joblib import Parallel, delayed
-from DMT.core import (
-    DutType,
-    print_progress_bar,
-    specifiers,
-    sub_specifiers,
-    specifiers_ss_para,
-    DATA_CONFIG,
-    DutView,
-)
+from DMT.core import DutType, print_progress_bar, DutView
 from DMT.exceptions import NoOpenDeembeddingDut, NoShortDeembeddingDut
 
 try:
-    from DMT.external.pylatex import SubFile, Tex
-    from pylatex import Section, Subsection, SmallText, Tabular, NoEscape, Center, Figure
+    from DMT.external.pylatex import Tex
+    from pylatex import Section, Subsection, SmallText, Tabular, NoEscape, Center
 except ImportError:
     pass
 

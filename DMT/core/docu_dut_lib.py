@@ -20,6 +20,7 @@
 import copy
 import datetime
 from pathlib import Path
+from typing import Mapping, Sequence
 import numpy as np
 from scipy import interpolate
 from DMT.config import COMMAND_TEX, DATA_CONFIG
@@ -47,11 +48,12 @@ class DocuDutLib(object):
     def plot_all(
         self,
         dut_lib: DutLib,
-        mode=None,
-        devices=None,
-        output_settings=None,
+        target_base_path: str | Path,
+        create_doc: bool,
+        devices: Sequence[Mapping[str, object]] | None = None,
         plot_specs=None,
         show=True,
+        plot_settings=None,
     ):
         """This method generates plots for selected devices in the DutLib in a highly configurable way.
 
@@ -299,7 +301,7 @@ class DocuDutLib(object):
                 },
             },
         }
-        output_settings_defaults = {
+        plot_settings_defaults = {
             "width": "3in",
             "height": "5in",
             "standalone": True,
@@ -307,7 +309,6 @@ class DocuDutLib(object):
             "build": True,
             "mark_repeat": 20,
             "clean": False,  # Remove all files except *.pdf files in plots
-            "create_doc": False,  # Put everything into pdf
         }
 
         plot_spec_defaults = {
@@ -317,23 +318,18 @@ class DocuDutLib(object):
             "no_at": False,  # no at_specifier= in legend
         }
 
-        if plot_specs is None:
-            plot_specs = []
-        if output_settings is None:
-            output_settings = {}
-
         # set defaults
         for plot_spec in plot_specs:
             for key in plot_spec_defaults:
                 if key not in plot_spec.keys():
                     plot_spec[key] = plot_spec_defaults[key]
 
-        for key in output_settings_defaults:
-            if not key in output_settings.keys():
-                output_settings[key] = output_settings_defaults[key]
-
-        if not "base_path" in output_settings.keys():
-            raise IOError("You did not specify a base_path in output_settings dict. Abort.")
+        if plot_settings is None:
+            plot_settings = plot_settings_defaults
+        else:
+            for key in plot_settings_defaults:
+                if not key in plot_settings.keys():
+                    plot_settings[key] = plot_settings[key]
 
         # check plot_spec
         for plot_spec in plot_specs:
@@ -358,22 +354,16 @@ class DocuDutLib(object):
             if not "key" in plot_spec.keys():
                 raise IOError("Database key not specified for plot of type " + plot_type + " .")
 
+            # matching key?
+            if "exact_match" not in plot_spec.keys():
+                plot_spec["exact_match"] = False
+
         # check input
-        if mode is None:
-            raise IOError('"mode" not given in input_settings.')
-        if not "dev_mode" in mode.keys():
-            raise IOError('"dev_mode" not given in input_settings.')
-        if not "plt_mode" in mode.keys():
-            raise IOError('"plt_mode" not given in input_settings.')
 
-        valid_modes = ["sel", "all"]
-        if mode["plt_mode"] not in valid_modes:
-            raise IOError("plt_mode " + mode + " not recognized. Valid: " + str(valid_modes) + " .")
-        if mode["dev_mode"] not in valid_modes:
-            raise IOError("dev_mode " + mode + " not recognized. Valid: " + str(valid_modes) + " .")
-
-        duts = []  # array of DMT Duts
-        if mode["dev_mode"] == "sel":
+        if devices is None:
+            duts = dut_lib.duts
+        else:
+            duts = []  # array of DMT Duts
             for device_specs in devices:
                 for dut in dut_lib:
                     # check all properties of device_spec
@@ -394,8 +384,6 @@ class DocuDutLib(object):
                     if ok:
                         print("Found device " + dut.name + ".")
                         duts.append(dut)
-        else:
-            duts = dut_lib.duts
 
         if len(duts) == 0:
             raise IOError("Found 0 devices.")
@@ -526,13 +514,9 @@ class DocuDutLib(object):
                             if temp != plot_spec[specifiers.TEMPERATURE]:
                                 continue  # key not suitable
 
-                        # matching key?
-                        if "exact_match" not in plot_spec.keys():
-                            plot_spec["exact_match"] = False
-
                         match = False
                         if plot_spec["exact_match"]:
-                            match = plot_spec["key"] == key.split("/")[-1]
+                            match = plot_spec["key"] == dut.split_key(key)[-1]
                         else:
                             match = plot_spec["key"] in key
 
@@ -749,11 +733,15 @@ class DocuDutLib(object):
         if show:
             if len(plts) > 1:
                 for plt in plts[:-1]:
-                    plt.plot_py(show=False)
+                    plt.plot_pyqtgraph(show=False)
 
-            plts[-1].plot_py(show=True)
+            plts[-1].plot_pyqtgraph(show=True)
 
-        base_path = Path(output_settings.pop("base_path"))
+        if isinstance(target_base_path, Path):
+            base_path = target_base_path
+        else:
+            base_path = Path(target_base_path)
+
         for plt in plts:
             plot_path = (
                 base_path / "figs" / plt.dut_name / ("T" + str(plt.temp) + "K") / plt.plot_type
@@ -768,31 +756,26 @@ class DocuDutLib(object):
                     / (plt.plot_type + "rth_" + "{0:1.1f}".format(plt.dut.rth * 1e-3) + "kWperK")
                 )
 
-            if plot_path.exists(plot_path):
+            if plot_path.exists():
                 rmtree(plot_path)
 
             plot_path.mkdir(parents=True, exist_ok=True)
 
             # special output from plot_spec
-            output_settings_tmp = copy.deepcopy(output_settings)
+            plot_settings_tmp = copy.deepcopy(plot_settings)
             for special in ["width", "height"]:
                 try:
-                    output_settings_tmp[special] = plt.plot_spec[special]
+                    plot_settings_tmp[special] = plt.plot_spec[special]
                 except KeyError:
                     continue
 
-            try:
-                output_settings_tmp.pop("create_doc")
-            except KeyError:
-                pass
-
             plt.legend_location = "upper right outer"
-            filename = plt.save_tikz(plot_path, **output_settings_tmp)
+            filename = plt.save_tikz(plot_path, **plot_settings_tmp)
 
             plt.path = plot_path / filename.replace("tex", "pdf")
 
-        destination = base_path / "doc_pdf"
-        if output_settings["create_doc"]:
+        destination = base_path
+        if create_doc:
             dir_source = DATA_CONFIG["directories"]["libautodoc"]
 
             destination.mkdir(parents=True, exist_ok=True)
@@ -849,7 +832,7 @@ class DocuDutLib(object):
                         with doc.create(Subsection("T=" + str(temp) + "K")):
                             for plt in plts_for_this_dut:
                                 if plt.temp == temp:
-                                    # check if plot exists
+                                    # check if plot exists: Why ?
                                     if plt.path.is_file():
                                         doc.append(NoEscape(r"\FloatBarrier "))
                                         with doc.create(Figure(position="ht!")) as _plot:
@@ -858,7 +841,7 @@ class DocuDutLib(object):
                                             )
                                             # _plot.append(CommandInput(arguments=Arguments(plt.path)))
                                             # \includegraphics[scale=0.65]{screenshot.png}
-                                            _plot.add_image('"' + plt.path + '"')
+                                            _plot.add_image('"' + str(plt.path) + '"')
                                             _plot.add_caption(
                                                 NoEscape(
                                                     plot_defaults[dut.dut_type][plt.plot_type][
@@ -873,6 +856,5 @@ class DocuDutLib(object):
             # put into subfile
             plots_tex.append(doc)
 
-            # doc.generate_tex(os.path.join(doc_path, r'libdoc'))
-            lib_tex.generate_tex(destination / "content" / "lib_overview")
-            plots_tex.generate_tex(destination / "content" / "lib_plots")
+            lib_tex.generate_tex(str(destination / "content" / "lib_overview"))
+            plots_tex.generate_tex(str(destination / "content" / "lib_plots"))

@@ -95,7 +95,7 @@ import pkgutil
 
 # measurement data overview report template
 if DATA_CONFIG["directories"]["libautodoc"] is None:
-    package = pkgutil.get_loader("DMT.extraction")
+    package = pkgutil.get_loader("DMT.core")
     if package is not None:
         path_libautodoc_default = Path(package.get_filename()).parent.parent / "libautodoc_template"
         DATA_CONFIG["directories"]["libautodoc"] = path_libautodoc_default.expanduser()

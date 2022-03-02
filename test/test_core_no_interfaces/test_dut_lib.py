@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from DMT.core import DutMeas, DutType, DocuDutLib, DutLib
+from DMT.core import DutMeas, DutType, DocuDutLib, DutLib, specifiers, sub_specifiers
 
 # -->Start main function
 # --->Setup for log
@@ -32,6 +32,7 @@ def create_lib():
                 die="y",
                 width=float(0.25e-6),
                 length=float(0.25e-6),
+                contact_config="CBEBC",
                 name="dut_meas_npn",
                 reference_node="E",
             )
@@ -93,11 +94,14 @@ def create_lib():
             }
         )
 
-    # --->Deembedding only when ac_filter is returned as True
-    lib.deembed_AC(False, False, False)
-    mres = lib.deembed_DC(False, False, False, t_ref=298)
-
-    print(mres)
+    # emulate forced specifiers
+    col_vb = specifiers.VOLTAGE + "B"
+    col_ve = specifiers.VOLTAGE + "E"
+    col_vc = specifiers.VOLTAGE + "C"
+    for key in lib.dut_ref.data.keys():
+        lib.dut_ref.data[key][col_vb + sub_specifiers.FORCED] = lib.dut_ref.data[key][col_vb]
+        lib.dut_ref.data[key][col_vc + sub_specifiers.FORCED] = lib.dut_ref.data[key][col_vc]
+        lib.dut_ref.data[key][col_ve + sub_specifiers.FORCED] = lib.dut_ref.data[key][col_ve]
 
     return lib
 
@@ -109,9 +113,11 @@ def test_docu():
 
     docu.plot_all(
         lib_test,
-        mode={"dev_mode": "all"},
+        Path(__file__).resolve().parent.parent / "tmp" / "docu_dut_lib",
+        True,
+        plot_specs=[{"type": "gummel_vbc", "key": "fgummel"}],
     )
 
 
 if __name__ == "__main__":
-    lib_test = create_lib()
+    lib_test = test_docu()

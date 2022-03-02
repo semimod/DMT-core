@@ -20,14 +20,13 @@
 
 \begin{document}
 
-
 %make figures with
 \setlength\figureheight{4cm}
 \setlength\figurewidth{\textwidth}
 \input{content/deckblatt}
 
 \pagenumbering{roman}
-\setcounter{tocdepth}{2} %für die Anzeige von Unterkapiteln im Inhaltsverzeichnis
+\setcounter{tocdepth}{2}
 \tableofcontents
 \newpage
 
@@ -35,18 +34,15 @@
 \printglossary[type=symbols, nonumberlist, title={List of symbols}]
 \clearpage
 
-%\footnotesize
-%\listoffigures
-%\normalsize
-% Inhalt
 \pagenumbering{arabic}
 
 \subfile{content/introduction.tex}
-%_LIB
-%_NEXT
-\subfile{content/conclusion.tex}
-%_MCARD
+\subfile{content/lib_overview.tex}
+\subfile{content/lib_plots.tex}
 %_TECH
+%_MCARD
+%_COMPARISION
+\subfile{content/conclusion.tex}
 
 \printbibliography %style from header
 
