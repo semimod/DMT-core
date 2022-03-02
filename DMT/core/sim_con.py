@@ -294,16 +294,20 @@ class SimCon(object, metaclass=Singleton):
                 else:
                     add_to_zip(child, rel_to)
 
+        assert self.ssh_client is not None
+        assert self.scp_client is not None
+
         sim_path_on_server = DATA_CONFIG["server"]["simulation_path"]
-        commands = ""
+        commands = []
         # delete possible old directories:
         for sim_to_zip in sims_to_zip:
             sim_folder = sim_to_zip["dut"].get_sim_folder(sim_to_zip["sweep"])
             dut_folder = sim_folder.parts[-2]
             sweep_folder = sim_folder.parts[-1]
-            commands += (
-                "rm -rf " + str(sim_path_on_server / dut_folder / sweep_folder) + "\n"
-            )  # remove to be sure
+            commands.append("rm -rf " + str(sim_path_on_server / dut_folder / sweep_folder))
+
+        for command in commands:
+            self.ssh_client.exec_command(command)
 
         with NamedTemporaryFile() as path_zip:  # dut.get_sim_folder(sweep).relative_to(dut.sim_dir)
             with ZipFile(path_zip, "w") as zip_ref:
@@ -312,25 +316,28 @@ class SimCon(object, metaclass=Singleton):
                         sim_to_zip["dut"].get_sim_folder(sim_to_zip["sweep"]),
                         sim_to_zip["dut"].sim_dir,
                     )
+                    # add "central" VA-Files -.-
+                    if not sim_to_zip["dut"]._copy_va_files:
+                        va_files_dir = sim_to_zip["dut"].sim_dir / "VA_codes"
+                        for vafile in sim_to_zip["dut"]._list_va_file_contents:
+                            dir_code = va_files_dir / vafile.get_tree_hash()
+                            add_to_zip(
+                                dir_code,
+                                sim_to_zip["dut"].sim_dir,
+                            )
 
             # transfer and save name
             self.scp_client.put(path_zip.name, remote_path=str(sim_path_on_server))
             name_zip_file = Path(path_zip.name).name
 
-        # unzip (the reading of stout makes this call non-blocking!)
-        _stdin, _stdout, _stderr = self.ssh_client.exec_command(commands)
-        _mess = str(_stdout.read())
-        _err = str(_stderr.read())
-        if "Argument list too long" in _err:
-            print(
-                "Warning: Failed to delete old simulations on server."
-            )  # may happen, but not so tragic.
-        commands = (
-            "unzip -d " + str(sim_path_on_server) + " " + str(sim_path_on_server / name_zip_file)
+        # unzip
+        # here we should wait for finish
+        _stdin, stdout, _stderr = self.ssh_client.exec_command(
+            "unzip -o -d " + str(sim_path_on_server) + " " + str(sim_path_on_server / name_zip_file)
         )
-        _stdin, _stdout, _stderr = self.ssh_client.exec_command(commands)
-        _mess = str(_stdout.read())
-        _err = str(_stderr.read())
+        stdout.channel.set_combine_stderr(True)
+        output = stdout.readlines()
+
         # delete temp zip on the server
         self.ssh_client.exec_command("rm -f " + str(sim_path_on_server / name_zip_file))
 

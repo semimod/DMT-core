@@ -159,9 +159,6 @@ class DutView(object):
         inp_name=None,
         va_code_filter=None,
     ):
-        if not copy_va_files:
-            raise NotImplementedError("Currently the VA-Files HAVE to be copied.")
-
         self._copy_va_files = copy_va_files
         # files to be copied into simulation directory
         if list_copy is None:
@@ -304,8 +301,13 @@ class DutView(object):
         if self._copy_va_files:
             for vafile in self._list_va_file_contents:
                 vafile.write_files(sim_folder, filter=self.va_code_filter)
-            # for (va_file, va_file_content) in self._list_va_file_contents:
-            #     (sim_folder / va_file).write_text(va_file_content)
+        else:
+            # write the files into a separate folder in simulations/va_files/HASH/
+            va_files_dir = self.sim_dir / "VA_codes"
+            for vafile in self._list_va_file_contents:
+                dir_code = va_files_dir / vafile.get_tree_hash()
+                if not dir_code.is_dir():
+                    vafile.write_files(dir_code, filter=self.va_code_filter)
 
         for data_copy in self.list_copy:
             try:

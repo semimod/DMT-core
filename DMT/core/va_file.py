@@ -21,9 +21,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 from __future__ import annotations
-import re
 import zlib, base64
-from typing import Optional, Union, Callable
+from typing import Union, Callable
 from pathlib import Path
 import verilogae
 
