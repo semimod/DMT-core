@@ -1,0 +1,159 @@
+% DMT
+% Copyright (C) from 2022 SemiMod
+
+% DMT is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation, either version 3 of the License, or
+% (at your option) any later version.
+
+% DMT is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+
+% You should have received a copy of the GNU General Public License
+% along with this program.  If not, see <http://www.gnu.org/licenses/>
+
+\documentclass[english, cd=nocolor, cdfont=off]{tudscrartcl}
+\renewcommand{\autodot}{}
+%\usepackage{selinput} \SelectInputMappings{adieresis={ä},germandbls={ß}}
+
+% font types:
+% times new roman: with serifs
+\usepackage{times}
+%\usepackage{mathptmx}
+\fontfamily{ptm}
+\fontsize{12pt}{15pt}
+\selectfont
+% official TUD fint: opensans:
+%\usepackage[default]{opensans}
+
+% Zeilenumbruch und mehr
+\usepackage[activate]{microtype}
+
+% Zeilenabstand
+\usepackage{setspace}
+\onehalfspacing
+
+% Slashboxes in tables
+\usepackage{diagbox}
+
+%englisch
+\selectlanguage{english}
+
+% Anführungszeichen ,german=quotes
+\usepackage[babel]{csquotes}
+
+% Grafiken
+\usepackage{graphicx}
+\graphicspath{\base/fig/}
+\usepackage{subfiles}
+% Mathematische Textsaetze
+\usepackage{amsmath}
+\usepackage{amssymb}
+\numberwithin{equation}{section}
+\renewcommand{\theequation}{\thesection-\arabic{equation}}
+\usepackage[integrals]{wasysym} % fuer gerades Integralzeichen
+\usepackage{mathtools}
+\usepackage{enumitem}
+% Brüche im Text
+\usepackage{nicefrac}
+% Farben
+\usepackage[dvipsnames]{xcolor}
+
+% Verweise auf Abbildungen und nicht auf Abbildungsunterschriften
+\usepackage[hypcap]{caption}
+
+% für mehrere Grafiken nebeneinander
+\usepackage{subcaption}
+
+% für SI Einheiten locale=EN,
+\usepackage{siunitx}
+\sisetup{range-units=repeat, list-units=repeat, binary-units, exponent-product = \cdot}
+\usepackage{textcomp}
+\DeclareSIUnit[number-unit-product = {}] \spezOhm{\SIUnitSymbolOhm\metre} % ohm metre
+\DeclareSIUnit[number-unit-product = {}] \degC{\degreeCelsius} % degree celcius
+
+\DeclareSIUnit\sq{\ensuremath{\Box}}
+
+% für bessere Tabellen
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{makecell}
+\usepackage{array}
+\newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+
+\usepackage{tikz}
+\usetikzlibrary{external}
+\tikzexternalize[prefix=figures/, mode=list and make] % activate with path figures/
+%using multi core to build pictures
+%https://tex.stackexchange.com/questions/136658/how-to-make-pdflatex-multithreaded-when-shell-escape-is-enabled
+
+\usepackage{pgfplots}
+\pgfplotsset{compat=newest}
+\usetikzlibrary{shapes.geometric}
+%% the following commands are needed for some tikz features
+\usetikzlibrary{plotmarks}
+\usetikzlibrary{arrows.meta}
+\usepgfplotslibrary{patchplots}
+\usepackage{grffile}
+\pgfplotsset{plot coordinates/math parser=false}
+\newlength\figureheight
+\newlength\figurewidth
+\usepackage{tikzscale}
+\usepackage[toc,page]{appendix}
+\usepackage{longtable}
+\usepackage{scrhack}
+\usepackage[export]{adjustbox}
+\usepackage[normalem]{ulem}
+
+% Floatbarrier
+\usepackage[section]{placeins}
+
+% for bibtex
+\usepackage[sorting=none , backend=bibtex, style=ieee, doi=false, url=false]{biblatex}
+\addbibresource{bib.bib}
+
+\graphicspath{{images/}{fig/}}
+
+% acronyms
+\usepackage[acronym, shortcuts, nomain, section=chapter, toc]{glossaries} %
+
+\setglossarystyle{long}
+\setlength\glsdescwidth{.8\textwidth}
+\let\oldac\ac
+\renewcommand{\gls}[1]{%
+	\ifglsused{#1}%
+	{\glsentrylong{#1}}%
+	{\oldac{#1}}%
+}
+\makeglossaries
+\usepackage{stackengine}
+% PDF settings
+\usepackage[
+	pdfauthor={DMT},
+	pdfpagemode=UseOutlines,
+	pdflang=eng,
+]{hyperref}
+\usepackage{cleveref}
+
+\crefname{equation}{Equ.}{Equs.}
+\crefname{figure}{Fig.}{Figs.}
+
+\let\oldref\ref
+\renewcommand{\ref}[1]{(\oldref{#1})}
+
+% bookmark
+\usepackage{bookmark}
+
+\clubpenalty=10000
+\widowpenalty=10000
+\displaywidowpenalty=10000
+
+% colored links in the pdf
+\hypersetup{%
+	colorlinks= true,
+	bookmarksnumbered=true
+}
+
+\glsenablehyper

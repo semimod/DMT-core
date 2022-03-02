@@ -111,6 +111,9 @@ from .dut_circuit import DutCircuit
 
 from .dut_tcad import DutTcad
 
+# docu
+from .docu_dut_lib import DocuDutLib
+
 # determine which modules are present
 core_exists = True  # always, without DMT is not possible
 try:

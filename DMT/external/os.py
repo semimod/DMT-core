@@ -79,6 +79,28 @@ def recursive_copy(src, dst, force=False):
             raise ValueError("DMT->recursive_copy: I do not know this filettype.")
 
 
+def rmtree(root):
+    """rmtree method for Path objects
+
+    Parameters
+    ----------
+    root : str or os.Pathlike
+        Directory to remove
+    """
+    if not isinstance(root, Path):
+        root = Path(root)
+    if not root.exists():
+        return  # nothing to do here -.-
+
+    for p in root.iterdir():
+        if p.is_dir():
+            rmtree(p)
+        else:
+            p.unlink()
+
+    root.rmdir()
+
+
 def slugify(s: str) -> str:
     """https://stackoverflow.com/questions/295135/turn-a-string-into-a-valid-filename
     Normalizes string, converts to lowercase, removes non-alpha characters,

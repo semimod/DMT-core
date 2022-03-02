@@ -20,7 +20,7 @@ setuptools.setup(
     packages=setuptools.find_namespace_packages(include=["DMT.*"]),
     license="GNU GPLv3+",
     classifiers=["Programming Language :: Python :: 3.8", "Operating System :: OS Independent"],
-    package_data={"": ["*.yaml", "*.txt"]},
+    package_data={"": ["*.yaml", "*.txt", "*.tex", "*.bib"]},
     include_package_data=True,
     install_requires=[
         "scipy",
