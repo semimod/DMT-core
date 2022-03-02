@@ -317,7 +317,7 @@ class DutMeas(DutView):
             Key to inspect
 
         Returns
-        --------
+        -------
         temp : float or None
             If key does not contain a temperature, -1 is returned.
             If id does contain a temperature, the temperature in Kelvin is returned.

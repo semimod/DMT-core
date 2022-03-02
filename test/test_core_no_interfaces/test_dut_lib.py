@@ -109,13 +109,21 @@ def create_lib():
 def test_docu():
 
     lib_test = create_lib()
-    docu = DocuDutLib()
+    docu = DocuDutLib(lib_test)
 
-    docu.plot_all(
-        lib_test,
+    docu.generate_docu(
         Path(__file__).resolve().parent.parent / "tmp" / "docu_dut_lib",
-        True,
         plot_specs=[{"type": "gummel_vbc", "key": "fgummel"}],
+        show=True,
+        save_tikz_settings={
+            "width": "3in",
+            "height": "5in",
+            "standalone": True,
+            "svg": False,
+            "build": False,  # not possible in CI/CD
+            "mark_repeat": 20,
+            "clean": False,  # Remove all files except *.pdf files in plots
+        },
     )
 
 
