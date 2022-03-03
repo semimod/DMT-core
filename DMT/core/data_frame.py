@@ -237,7 +237,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
         cmplx_cols = []
         for column in self.columns:  # pylint: disable=not-an-iterable
             # this column contains an explicit real part
-            if self[column].to_numpy().dtype == "cmplx128":
+            if self[column].to_numpy().dtype in ["cmplx128", np.dtype("complex128")]:
                 cmplx_cols.append(column)
 
         # delete unncessary variables

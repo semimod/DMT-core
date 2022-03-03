@@ -123,6 +123,16 @@ def get_dmt_model(vae_module, model_type, version):
     if model_type not in [HICUM_L0, HICUM_L2, SGP]:
         raise IOError("DMT->VerilogAE: Currently only 'HICUM' is supported by VAE+DMT.")
 
+    # temprary fix
+    class VaeStub:
+        pass
+
+    model_patched = VaeStub()
+    model_patched.functions = model.functions
+    model_patched.modelcard = model.modelcard
+    model = model_patched
+    # temprary fix
+
     model.model_type = model_type
     model.version = version
     if "HICUM" in model_type:
