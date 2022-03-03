@@ -20,7 +20,7 @@
 import copy
 import datetime
 from pathlib import Path
-from typing import Dict, List, Mapping, Sequence
+from typing import Dict, List, Mapping, Sequence, Optional, Union
 import numpy as np
 from scipy import interpolate
 from DMT.config import COMMAND_TEX, DATA_CONFIG
@@ -244,7 +244,7 @@ class DocuDutLib(object):
     """
 
     def __init__(
-        self, dut_lib: DutLib, devices: Sequence[Mapping[str, object]] | None = None, date=None
+        self, dut_lib: DutLib, devices: Optional[Sequence[Mapping[str, object]]] = None, date=None
     ):
         self.dut_lib = dut_lib
 
@@ -287,9 +287,9 @@ class DocuDutLib(object):
 
     def generate_docu(
         self,
-        target_base_path: str | Path,
+        target_base_path: Union[str, Path],
         plot_specs: List[Dict],
-        save_tikz_settings: Dict | None = None,
+        save_tikz_settings: Optional[Dict] = None,
         show: bool = False,
     ):
         """Generate the full documentation folder with all plots and files.
@@ -733,7 +733,7 @@ class DocuDutLib(object):
                         self.plts.append(plt)
 
     def generate_all_plots(
-        self, target_base_path: str | Path, save_tikz_settings: Dict | None = None
+        self, target_base_path: Union[str, Path], save_tikz_settings: Optional[Dict] = None
     ):
         """Generates the plot tex and pdf files.
 
@@ -812,7 +812,7 @@ class DocuDutLib(object):
 
             plt.path = plot_path / filename.replace("tex", "pdf")
 
-    def create_documentation(self, target_base_path: str | Path):
+    def create_documentation(self, target_base_path: Union[str, Path]):
         """Generates the other tex files from the template.
 
         The template path from the config is used. The key is::

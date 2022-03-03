@@ -22,7 +22,7 @@
 
 from __future__ import annotations
 import zlib, base64
-from typing import Union, Callable
+from typing import Union, Callable, Optional
 from pathlib import Path
 import verilogae
 
@@ -143,7 +143,7 @@ class VAFile(object):
     def __init__(
         self,
         name: Union[str, Path],
-        files: dict[str, VACode] | None = None,
+        files: Optional[dict[str, VACode]] = None,
         code: Union[str, VACode] = "",
         code_compressed: tuple[str, int] = ("", -1),
         ignore_checksum: bool = False,
@@ -302,7 +302,7 @@ class VAFile(object):
         return VAFile(name=root, files=files)
 
     def write_files(
-        self, path_to_target: Union[str, Path], filter: Callable[[str], str] | None = None
+        self, path_to_target: Union[str, Path], filter: Optional[Callable[[str], str]] = None
     ):
         """Writes the VAFile and all its descendants into the given target path. The file structure is written as read from the "original"
 

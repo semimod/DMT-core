@@ -75,7 +75,7 @@ except ImportError:
     print("DMT->Plot: Failed to import plotting module matplotlib.")
 
 smith_available = True
-try:  # https://github.com/vMeijin/pySmithPlot
+try:  # git+https://github.com/miesli/pySmithPlot
     from smithplot.smithaxes import SmithAxes
     from smithplot import smithhelper
 except ModuleNotFoundError:
@@ -1976,7 +1976,7 @@ class SmithPlot(Plot):
     def __init__(self, *args, **kwargs):
         if not smith_available:
             raise IOError(
-                "DMT.core.Plot -> Pysmithplot is not installed. Try: pip install pysmithplot"
+                "DMT.core.Plot -> Pysmithplot is not installed. Try: pip install git+https://github.com/miesli/pySmithPlot"
             )
         super().__init__(*args, **kwargs)
         self.outer_fig = None  # here the "outer" matplotlib figure reference is stored

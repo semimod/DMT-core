@@ -442,8 +442,8 @@ class DutNgspice(DutCircuit):
         Parameters
         ----------
         temp_def : float or dict
-            | If a single float is given, a constant temperature equal to it will be used.
-            | For a dict, a temperature sweep is added.
+            If a single float is given, a constant temperature equal to it will be used.
+            For a dict, a temperature sweep is added.
         """
         if isinstance(temp_def, (float, int)):
             # single temperature

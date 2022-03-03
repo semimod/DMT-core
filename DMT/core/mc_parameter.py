@@ -41,7 +41,7 @@ from pathlib import Path
 
 import _pickle as cpickle  # type: ignore
 import numpy as np
-from typing import Dict, OrderedDict, Type, Union, List
+from typing import Dict, OrderedDict, Type, Union, List, Optional
 from pint.formatting import siunitx_format_unit
 from pint.errors import UndefinedUnitError
 
@@ -130,9 +130,9 @@ class McParameter(object):
     def __init__(
         self,
         name: str,
-        value: float | int | None = None,
-        minval: float | int | None = None,
-        maxval: float | int | None = None,
+        value: Optional[Union[float, int]] = None,
+        minval: Optional[Union[float, int]] = None,
+        maxval: Optional[Union[float, int]] = None,
         value_type: Type = float,
         inc_min: bool = True,
         inc_max: bool = True,
@@ -260,12 +260,12 @@ class McParameter(object):
         name: str,
         value: Union[float, int],
         __McParameter__: Union[float, str],
-        min: float | int | None = None,
-        max: float | int | None = None,
+        min: Optional[Union[float, int]] = None,
+        max: Optional[Union[float, int]] = None,
         type: str = "",
         inc_min: bool = True,
         inc_max: bool = True,
-        exclude: List[float | int] | None = None,
+        exclude: Optional[List[Union[float, int]]] = None,
         group: str = "",
         unit: str = "",
         description: str = "",
@@ -603,7 +603,7 @@ class McParameterCollection(object):
 
     def __init__(
         self,
-        possible_groups: Dict[str, str] | None = None,
+        possible_groups: Optional[Dict[str, str]] = None,
         __McParameterCollection__: Union[
             VersionInfo, str, float
         ] = SEMVER_MCPARAMETER_Collection_CURRENT,

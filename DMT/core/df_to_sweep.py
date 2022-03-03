@@ -20,7 +20,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 from __future__ import annotations
-from typing import Type
+from typing import Type, Optional
 import warnings
 import numpy as np
 
@@ -30,7 +30,7 @@ from DMT.core import Sweep, specifiers, sub_specifiers, DataFrame, SweepDef
 def df_to_sweep(
     df_to_convert: DataFrame,
     temperature: float = 300.0,
-    name: str | None = None,
+    name: Optional[str] = None,
     from_forced: bool = True,
     SweepDefClass: Type = SweepDef,
     decimals_potentials: int = 3,

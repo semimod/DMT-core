@@ -33,7 +33,7 @@ import ast
 import operator
 import warnings
 from pathlib import Path
-from typing import Union
+from typing import Union, Optional
 from types import ModuleType
 from semver import VersionInfo
 import verilogae
@@ -137,11 +137,11 @@ class MCard(McParameterCollection):
         nodes_list: list[str],
         default_subckt_name: str,
         default_module_name: str,
-        version: str | float = "-",
-        va_file: str | os.PathLike | None = None,
+        version: Union[str, float] = "-",
+        va_file: Optional[Union[str, os.PathLike]] = None,
         va_codes=None,
         vae_module=None,
-        directory_va_file: str | os.PathLike | None = None,
+        directory_va_file: Optional[Union[str, os.PathLike]] = None,
         __MCard__=SEMVER_MCARD_CURRENT,
         ignore_checksum: bool = False,
         **kwargs,

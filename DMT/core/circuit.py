@@ -26,7 +26,7 @@ Later on this can be extended to allow (pseudo-)simulations directly inside DMT.
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 from __future__ import annotations
 import warnings
-from typing import Callable, Iterable
+from typing import Callable, Iterable, Optional, Union, List, Tuple
 from DMT.core import MCard, McParameterCollection
 
 
@@ -59,10 +59,7 @@ class CircuitElement(object):
     Possible element types:
 
     * :py:const:`RESISTANCE`
-    * :py:const:`CAPACITANCE`
-    * :py:const:`INDUCTANCE`
-    * :py:const:`CURRENT`
-    * :py:const:`VOLTAGE`
+    * :py:const:`CAPACITANCE`Sequence
     * :py:const:`SHORT`
     * va_module -> could be a transistor
 
@@ -119,8 +116,8 @@ class CircuitElement(object):
         element_type: str,
         name: str,
         contact_nodes: Iterable[str],
-        parameters: list[tuple[str, str]] | MCard | McParameterCollection = None,
-        method: Callable = None,
+        parameters: Optional[Union[List[Tuple[str, str]], MCard, McParameterCollection]] = None,
+        method: Optional[Callable] = None,
     ):
         if isinstance(parameters, MCard) or isinstance(parameters, McParameterCollection):
             CircuitElement.possible_types.append(parameters.default_module_name)  # type: ignore
@@ -230,7 +227,7 @@ class Circuit(object):
         Either directly the netlist elements as a list of CircuitElements or strings (for equations)
     """
 
-    def __init__(self, circuit_elements: list[str | CircuitElement]):
+    def __init__(self, circuit_elements: List[Union[str, CircuitElement]]):
         if isinstance(circuit_elements, str):
             raise NotImplementedError(
                 "The default circuit has been moved into the corresponding module. Access the circuit from there!"

@@ -15,10 +15,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Merged df_to_sweep with Sweep.get_sweep to get_sweepdef
 - if copy_va_files = False in DutView, the VA-File is copied into a central VA-Codes cache and imported from there using a relative path into the netlist. This way the files are more likely to be cached correctly by the interfaced simulator.
+- For compatibility with python 3.8 and 3.9, do not use | operator for typing.
 
 ### Move
 
-- Moved DMT.verilogae.helpers into DMT.external.verilogae. THis is more fitting.
+- Moved DMT.verilogae.helpers into DMT.external.verilogae. This is more fitting.
 - Moved vectorize, check_nan_inf and memoize to extraction.model
 - Moved SI_UNITS_CONVERTER, resolve_siunitx and tex_to_label from core.utils to external.latex
 - Moved is_iterable, flatten and strictly_increasing to data_processor

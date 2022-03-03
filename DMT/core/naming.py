@@ -326,7 +326,7 @@ class SpecifierStr(str):
         else:
             return NotImplemented
 
-    def __eq__(self, other: str | SpecifierStr) -> bool:
+    def __eq__(self, other: Union[str, SpecifierStr]) -> bool:
         """Checks if two objects are equal
 
         Parameters
@@ -361,7 +361,7 @@ class SpecifierStr(str):
 
         return False
 
-    def __contains__(self, other: str | SpecifierStr) -> bool:
+    def __contains__(self, other: Union[str, SpecifierStr]) -> bool:
         """String contains
 
         Parameters
