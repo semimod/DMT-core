@@ -29,7 +29,7 @@ Features:
 
 import logging
 import copy
-from typing import Dict, List, Mapping, Type, Optional
+from typing import Dict, List, Mapping, Type, Optional, Union
 import numpy as np
 from itertools import product
 from DMT.core import (
@@ -681,9 +681,13 @@ class Sweep(object):
     def __init__(
         self,
         name: str,
-        sweepdef: List[Mapping[str, object] | SweepDef] | None = None,
-        outputdef: List[str] | None = None,
-        othervar: Mapping[str, float] | None = None,
+        # does not work for Python 3.8
+        # sweepdef: Optional[Union[List[Mapping[str, object]], SweepDef]] = None,
+        sweepdef=None,
+        # outputdef: List[str] | None = None,
+        outputdef=None,
+        # othervar: Mapping[str, float] | None = None,
+        othervar=None,
         SweepDefClass: Type = SweepDef,
     ):
         self.name = name
@@ -926,10 +930,13 @@ class Sweep(object):
     def get_sweep_from_dataframe(
         cls,
         data: DataFrame,
-        temperature: float | None = None,
+        # temperature: float | None = None,
+        temperature=None,
         name: str = "sweep",
-        outputdef: List[str] | None = None,
-        othervar: Dict[str, float] | None = None,
+        # outputdef: List[str] | None = None,
+        outputdef=None,
+        # othervar: Dict[str, float] | None = None,
+        othervar=None,
         SweepDefClass: Type = SweepDef,
         decimals_potentials: int = 3,
         **kwargs
