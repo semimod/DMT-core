@@ -1,6 +1,6 @@
 .. _data_frame:
 
-data\_frame module
+DataFrame
 =======================
 
 .. automodule:: DMT.core.data_frame

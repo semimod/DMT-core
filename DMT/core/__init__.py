@@ -23,7 +23,7 @@
 from importlib import util
 import semver
 
-__version__ = semver.VersionInfo(major=1, minor=3, patch=0, prerelease="rc.3")
+__version__ = semver.VersionInfo(major=1, minor=4, patch=0, prerelease="rc.2")
 # to get the next version:
 # __version__.next_version(x) - with x = "major", "minor", "patch", "prerelease"
 
@@ -52,13 +52,7 @@ unit_registry.load_definitions(os.path.join(path_core, "dmt_units.txt"))
 
 # helper for model equations and mcard memoization
 from .utils import print_progress_bar
-from .utils import check_nan_inf
-from .utils import vectorize
-from .utils import flatten
-from .utils import strictly_increasing
 from .utils import enumerate_reversed
-from .utils import resolve_siunitx
-from .utils import tex_to_text
 
 # naming conventions
 from .naming import specifiers
@@ -72,8 +66,7 @@ from .naming import get_sub_specifiers
 from .naming import natural_scales
 
 # compact modelling stuff
-from .mc_parameter import McParameter, McParameterComposition
-from .utils import memoize
+from .mc_parameter import McParameter, McParameterCollection
 from .va_file import VAFile
 from .mcard import MCard
 from .technology import Technology
@@ -86,13 +79,11 @@ from .plot import save_or_show
 from .plot import Plot2YAxis
 from .plot import COMPARISON_3
 
-from .tikz_postprocess import TikzPostprocess
-
 # Data management and processing
-from .data_processor import DataProcessor
+from .data_processor import is_iterable, flatten, strictly_increasing, DataProcessor
 
 from .data_frame import DataFrame
-from .sweep import Sweep, SweepDef
+from .sweep import Sweep, SweepDef, get_sweepdef
 from .database_manager import DatabaseManager
 from .data_reader import (
     read_data,
@@ -107,7 +98,6 @@ from .data_reader import (
 
 # Simulation management
 from .sim_con import SimCon
-from .df_to_sweep import df_to_sweep
 
 # DutView tree
 from .dut_view import DutView
@@ -120,8 +110,6 @@ from .dut_dummy import DutDummy
 from .dut_circuit import DutCircuit
 
 from .dut_tcad import DutTcad
-
-import tables
 
 # determine which modules are present
 core_exists = True  # always, without DMT is not possible

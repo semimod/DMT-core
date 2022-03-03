@@ -2,12 +2,12 @@
 
 Each parameter has a type, unit, boundaries and invalid values (excludes),
 this is taken care of here.
-Usually the user has a group of parameters stored in a Composition.
-The composition exposes methods to manage the group safely. In generall here many copies are used,
-in the exposes methods always deepcopies are returned and set to the composition. This reduces crazy errors, but also need to be handled with care.
+Usually the user has a group of parameters stored in a Collection.
+The collection exposes methods to manage the group safely. In generall here many copies are used,
+in the exposes methods always deepcopies are returned and set to the collection. This reduces crazy errors, but also need to be handled with care.
 
 Additionally parameters can be compared, they are considered equal, if they have the
-same name and value. Also compositions can be compared, they are equal, if they have
+same name and value. Also collections can be compared, they are equal, if they have
 the same parameters and all parameters are equal.
 
 Finally the classes here also add some pretty printing and loading and saving using pickle.
@@ -35,12 +35,13 @@ from __future__ import annotations
 import logging
 import copy
 import json
+import warnings
 from semver import VersionInfo
 from pathlib import Path
 
 import _pickle as cpickle  # type: ignore
 import numpy as np
-from typing import OrderedDict, Type, Union, List, Optional, List
+from typing import Dict, OrderedDict, Type, Union, List
 from pint.formatting import siunitx_format_unit
 from pint.errors import UndefinedUnitError
 
@@ -61,11 +62,11 @@ except ImportError:
     pass
 
 SEMVER_MCPARAMETER_CURRENT = VersionInfo(major=1, minor=0)
-SEMVER_MCPARAMETER_COMPOSITION_CURRENT = VersionInfo(major=1, minor=0)
+SEMVER_MCPARAMETER_Collection_CURRENT = VersionInfo(major=1, minor=0)
 
 
 class McParameter(object):
-    """Objects of this class represent a model card parameter. If you want to store many of them, see McParameterComposition class.
+    """Objects of this class represent a model card parameter. If you want to store many of them, see McParameterCollection class.
 
     Attributes
     ----------
@@ -117,11 +118,11 @@ class McParameter(object):
     -------
     check_bounds(value)
         Check wheather or not value is within the bounds of this parameter.
-    _set_forced(self, value)
+    _set_forced( value)
         Force setting the value. ATTENTION: When used, the boundaries may be set to inf!
-    dict_json(self)
+    dict_json()
         Returns a compact formatted json dump of this parameter
-    load_json( cls, name, value, __McParameter__, min, max, type, inc_min, inc_max, exclude, group, unit, description)
+    load_json(cls, name, value, __McParameter__, min, max, type, inc_min, inc_max, exclude, group, unit, description)
         Creates a McParameter from a dictionary obtained by a json.load.
 
     """
@@ -129,10 +130,10 @@ class McParameter(object):
     def __init__(
         self,
         name: str,
-        value: Union[float, int] = None,
-        minval: Union[float, int] = None,
-        maxval: Union[float, int] = None,
-        value_type=float,
+        value: float | int | None = None,
+        minval: float | int | None = None,
+        maxval: float | int | None = None,
+        value_type: Type = float,
         inc_min: bool = True,
         inc_max: bool = True,
         exclude: Union[List[Union[float, int]], float, int, None] = None,
@@ -259,12 +260,12 @@ class McParameter(object):
         name: str,
         value: Union[float, int],
         __McParameter__: Union[float, str],
-        min: Union[float, int] = None,
-        max: Union[float, int] = None,
+        min: float | int | None = None,
+        max: float | int | None = None,
         type: str = "",
         inc_min: bool = True,
         inc_max: bool = True,
-        exclude: Optional[List[Union[float, int]]] = None,
+        exclude: List[float | int] | None = None,
         group: str = "",
         unit: str = "",
         description: str = "",
@@ -578,9 +579,9 @@ class McParameter(object):
         return NotImplemented
 
 
-class McParameterComposition(object):
+class McParameterCollection(object):
     """
-    This parameter composition has properties which as a single parameter. This way a group of parameters and a single parameter can be treated equally.
+    This parameter collection has properties which as a single parameter. This way a group of parameters and a single parameter can be treated equally.
 
     Attributes
     ----------
@@ -590,13 +591,9 @@ class McParameterComposition(object):
     Parameters
     ----------
     possible_groups : dict[str, str], optional
-        Dictionary of possible groups in this composition, saved as Description: GroupName, by default None
-    __McParameterComposition__ : Union[VersionInfo, str, float], optional
-        Version of the given creation parameters, by default SEMVER_MCPARAMETER_COMPOSITION_CURRENT
-
-    Methods
-    -------
-
+        Dictionary of possible groups in this collection, saved as Description: GroupName, by default None
+    __McParameterCollection__ : Union[VersionInfo, str, float], optional
+        Version of the given creation parameters, by default SEMVER_MCPARAMETER_Collection_CURRENT
 
     Raises
     ------
@@ -606,23 +603,23 @@ class McParameterComposition(object):
 
     def __init__(
         self,
-        possible_groups: dict[str, str] = None,
-        __McParameterComposition__: Union[
+        possible_groups: Dict[str, str] | None = None,
+        __McParameterCollection__: Union[
             VersionInfo, str, float
-        ] = SEMVER_MCPARAMETER_COMPOSITION_CURRENT,
+        ] = SEMVER_MCPARAMETER_Collection_CURRENT,
         **_kwargs,
     ):
-        if not isinstance(__McParameterComposition__, VersionInfo):
+        if not isinstance(__McParameterCollection__, VersionInfo):
             try:
-                __McParameterComposition__ = VersionInfo.parse(__McParameterComposition__)
+                __McParameterCollection__ = VersionInfo.parse(__McParameterCollection__)
             except TypeError:
-                __McParameterComposition__ = VersionInfo.parse(
-                    f"{__McParameterComposition__:1.1f}.0"
+                __McParameterCollection__ = VersionInfo.parse(
+                    f"{__McParameterCollection__:1.1f}.0"
                 )  # if it is a number only MAJOR.MINOR is used
 
-        if __McParameterComposition__ != SEMVER_MCPARAMETER_COMPOSITION_CURRENT:
+        if __McParameterCollection__ != SEMVER_MCPARAMETER_Collection_CURRENT:
             raise NotImplementedError(
-                "DMT->McParameterComposition: Unknown version of composition to create!"
+                "DMT->McParameterCollection: Unknown version of collection to create!"
             )
 
         self._paras: list[McParameter] = list()
@@ -660,13 +657,13 @@ class McParameterComposition(object):
         """Returns a dict with serializeable content for the json file to create. Add the info about the concrete subclass to create here!"""
         return {
             "possible_groups": self.possible_groups,
-            "__McParameterComposition__": str(SEMVER_MCPARAMETER_COMPOSITION_CURRENT),
+            "__McParameterCollection__": str(SEMVER_MCPARAMETER_Collection_CURRENT),
         }  # make versions, so we can introduce compatibility here!
 
     def dump_json(self, file_path, **kwargs):
-        """Writes itself and the parameters in the composition to a file.
+        """Writes itself and the parameters in the collection to a file.
 
-        To manipulate what is written to the file, change :py:method::`DMT.core.mc_parameter.McParameterComposition.dumps_json()`
+        To manipulate what is written to the file, change :py:method::`DMT.core.mc_parameter.McParameterCollection.dumps_json()`
         """
         if not isinstance(file_path, Path):
             file_path = Path(file_path)
@@ -687,55 +684,90 @@ class McParameterComposition(object):
 
     @classmethod
     def load_json(
-        cls, file_path: Union[str, Path], directory_va_file: Union[str, Path] = None
-    ) -> McParameterComposition:
-        """Loads the json file, creates the McParameterComposition (or inherited) and adds the McParameters."""
+        cls,
+        file_path: Union[str, Path],
+        directory_va_file: Union[str, Path, None] = None,
+        ignore_checksum: bool = False,
+    ) -> McParameterCollection:
+        """Loads the json file, creates the McParameterCollection (or inherited) and adds the McParameters.
+
+        Parameters
+        ----------
+        file_path : Union[str, Path]
+            Path to the json.
+        directory_va_file : Union[str, Path, None], optional
+            If a relative path to a va_file is set in the modelcard, pass the absolute path to the start folder here, by default None.
+            This can be used to load old json modelcards from before saving the full code with the parameters.
+        ignore_checksum : bool, optional
+            When the code is saved compressed, a checksum is saved with it. If you want to ignore the checksum set this to true, by default False
+
+
+        Returns
+        -------
+        McParameterCollection
+            The loaded collection
+
+        Raises
+        ------
+        IOError
+            If the collection dictionary is not found in the json file.
+        """
         if not isinstance(file_path, Path):
             file_path = Path(file_path)
 
         with file_path.open("r", encoding="utf8") as file_json:
             content = json.load(file_json)
 
-        composition = None
+        collection = None
         for dict_content in content:
-            if "__McParameterComposition__" in dict_content:
-                composition = cls(directory_va_file=directory_va_file, **dict_content)
+            if (
+                "__McParameterCollection__" in dict_content
+                or "__McParameterComposition__" in dict_content
+            ):
+                collection = cls(
+                    directory_va_file=directory_va_file,
+                    ignore_checksum=ignore_checksum,
+                    **dict_content,
+                )
                 break
 
-        if composition is None:
-            raise IOError("DMT->McParameterComposition: Did not create the composition")
+        if collection is None:
+            raise IOError(
+                "DMT->McParameterCollection: Did not create the collection as no collection dictionary is found in the file.",
+                "Try to create a collection object yourself and the load the parameter json files manually.",
+            )
 
         for dict_content in content:
             if "__McParameter__" in dict_content:
                 try:
-                    composition.add(McParameter.load_json(**dict_content), update=False)
+                    collection.add(McParameter.load_json(**dict_content), update=False)
                 except ParaExistsError:
-                    composition.set(McParameter.load_json(**dict_content), update=False)
+                    collection.set(McParameter.load_json(**dict_content), update=False)
 
-        composition.update_values()
+        collection.update_values()
 
-        return composition
+        return collection
 
     def get(
-        self, parameters: Union[str, McParameter, list[str], tuple[str], McParameterComposition]
-    ) -> Union[McParameter, McParameterComposition]:
-        """Returns a McParameterComposition with copies of all given parameter names.
+        self, parameters: Union[str, McParameter, list[str], tuple[str], McParameterCollection]
+    ) -> Union[McParameter, McParameterCollection]:
+        """Returns a McParameterCollection with copies of all given parameter names.
 
         Parameters
         ----------
-        parameters  : str, iterable(str) or McParameterComposition
+        parameters  : str, iterable(str) or McParameterCollection
 
         Returns
         -------
-        mcard_collection : McParameterComposition
+        mcard_collection : McParameterCollection
 
         Raises
         ------
         KeyError
             If the para was not in self.
         """
-        if isinstance(parameters, (McParameterComposition, list, tuple)):
-            mcard_collection = McParameterComposition()
+        if isinstance(parameters, (McParameterCollection, list, tuple)):
+            mcard_collection = McParameterCollection()
             for para in parameters:
                 mcard_collection.add(self.get(para), update=False)
 
@@ -779,7 +811,7 @@ class McParameterComposition(object):
         KeyError
             If the para was not in self.
         """
-        if isinstance(parameters, McParameterComposition):
+        if isinstance(parameters, McParameterCollection):
             for para in parameters:
                 self.set(para, force=force, update=update)
             return
@@ -974,19 +1006,19 @@ class McParameterComposition(object):
 
         Returns
         -------
-        compostion : McParameterComposition
+        McParameterCollection
         """
         if not isinstance(path, Path):
             path = Path(path)
 
         with path.open("rb") as my_db:
-            composition = cpickle.load(my_db)
+            collection = cpickle.load(my_db)
 
-        return composition
+        return collection
 
     @property
     def name(self):
-        """Returns all names of the parameters in the composition"""
+        """Returns all names of the parameters in the collection"""
         # names = np.chararray(len(self.paras), itemsize=20)
         # for i in range(len(self.paras)):
         #     names[i] = self.paras[i].name
@@ -994,7 +1026,7 @@ class McParameterComposition(object):
 
     @property
     def group(self):
-        """Returns all groups of the parameters in the composition as a set"""
+        """Returns all groups of the parameters in the collection as a set"""
         groups = []
         for para in self._paras:
             try:
@@ -1006,7 +1038,7 @@ class McParameterComposition(object):
 
     @property
     def unit(self):
-        """Returns all units in the composition"""
+        """Returns all units in the collection"""
         units = []
         for para in self._paras:
             try:
@@ -1031,7 +1063,7 @@ class McParameterComposition(object):
         """Sets all values for all Parameters. Value is a list, the children are set in the given order."""
         if len(value) != len(self._paras):
             raise IOError(
-                "The amount of values to set must be the same as the amount of parameters in the composition!"
+                "The amount of values to set must be the same as the amount of parameters in the collection!"
             )
 
         for para, val in zip(self._paras, value):
@@ -1040,18 +1072,18 @@ class McParameterComposition(object):
         self.update_values()
 
     def remove(self, parameters):
-        r"""Removes the given parameter names from the parameter composition.
+        r"""Removes the given parameter names from the parameter collection.
 
         Parameters
         ----------
-        parameters : str, iterable(str), McParameter or McParameterComposition
+        parameters : str, iterable(str), McParameter or McParameterCollection
 
         """
         if isinstance(parameters, (list, tuple)):
             for para in parameters:
                 self.remove(para)
             return
-        elif isinstance(parameters, McParameterComposition):
+        elif isinstance(parameters, McParameterCollection):
             for para in parameters:
                 self.remove(para.name)
             return
@@ -1083,7 +1115,7 @@ class McParameterComposition(object):
         """Sets all minimal values, sets each minimum specifically"""
         if len(min_new) != len(self):
             raise IOError(
-                "The amount of minimum boundaries to set must be the same as the amount of parameters in the composition!"
+                "The amount of minimum boundaries to set must be the same as the amount of parameters in the collection!"
             )
 
         for para, min_a in zip(self._paras, min_new):
@@ -1103,7 +1135,7 @@ class McParameterComposition(object):
         """Sets all maximal values, sets each maximum specifically"""
         if len(max_new) != len(self):
             raise IOError(
-                "The amount of minimum boundaries to set must be the same as the amount of parameters in the composition!"
+                "The amount of minimum boundaries to set must be the same as the amount of parameters in the collection!"
             )
 
         for para, max_a in zip(self._paras, max_new):
@@ -1187,8 +1219,8 @@ class McParameterComposition(object):
         return other.name in self.name
 
     def add(self, paras, index=None, update=True):
-        """Add a parameter to self. This is only allowed, if the parameter name is not already known to the composition."""
-        if isinstance(paras, (McParameterComposition)):
+        """Add a parameter to self. This is only allowed, if the parameter name is not already known to the collection."""
+        if isinstance(paras, (McParameterCollection)):
             if index is None:
                 for para in paras._paras:  # deepcopy is in the McParameter add
                     self.add(para, update=update)
@@ -1214,12 +1246,12 @@ class McParameterComposition(object):
                     self._values[paras.name] = paras.val_type(paras.value)  # type: ignore
         else:
             raise TypeError(
-                "McParameterComposition accepts only McParameter or McParameterComposition!"
+                "McParameterCollection accepts only McParameter or McParameterCollection!"
             )
 
     def __add__(self, other):
-        """Allows appending of two compositions by mc1 + mc2"""
-        if isinstance(other, (McParameter, McParameterComposition)):
+        """Allows appending of two collections by mc1 + mc2"""
+        if isinstance(other, (McParameter, McParameterCollection)):
             mc_return = copy.deepcopy(self)
             mc_return.add(other)
 
@@ -1228,8 +1260,8 @@ class McParameterComposition(object):
             return NotImplemented
 
     def __radd__(self, other):
-        """Called when parameter + composition is used. Here we need to take care of the index!"""
-        if isinstance(other, (McParameter, McParameterComposition)):
+        """Called when parameter + collection is used. Here we need to take care of the index!"""
+        if isinstance(other, (McParameter, McParameterCollection)):
             mc_return = copy.deepcopy(self)
             mc_return.add(other, index=0)  # insert at start
 
@@ -1238,7 +1270,7 @@ class McParameterComposition(object):
             return NotImplemented
 
     def eq_paras(self, other):
-        """Compares the parameters in two McParameterCompositions or subclasses"""
+        """Compares the parameters in two McParameterCollections or subclasses"""
         str_diff_vars = ""
         for para in self.paras:
             try:
@@ -1260,8 +1292,26 @@ class McParameterComposition(object):
 
     def __eq__(self, other):
         """Allows comparing 2 model cards using mc1 == mc2"""
-        if isinstance(other, McParameterComposition):
-            # can only compare to other compositions
+        if isinstance(other, McParameterCollection):
+            # can only compare to other collections
             return self.eq_paras(other)
 
         return NotImplemented
+
+
+class McParameterComposition(McParameterCollection):
+    """Deprecated name for the mc parameter collection"""
+
+    def __init__(
+        self,
+        __McParameterComposition__: Union[
+            VersionInfo, str, float
+        ] = "1.0.0",  # as until now there is only v1.0.0 around we have no issues here.
+        **kwargs,
+    ):
+        warnings.warn(
+            "McParameterComposition is deprecated. It was renamed to McParameterCollection to avoid confusion with the composition design pattern.\nMcParameterCompostion will be deleted in the next major release.",
+            category=DeprecationWarning,
+        )
+
+        super().__init__(**kwargs)

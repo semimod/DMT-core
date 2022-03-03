@@ -1,5 +1,5 @@
-data\_reader module
-====================
+Data reader functions
+=====================
 
 .. automodule:: DMT.core.data_reader
     :members:

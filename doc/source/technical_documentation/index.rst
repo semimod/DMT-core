@@ -1,7 +1,7 @@
 Technical Documentation
 ===============================
 
-In order to ease the use of DMT, some basic examples can be found here:
+This is the full technical documentation about all the classes and functions inside DMT.
 
 .. toctree::
     :maxdepth: 2
@@ -11,3 +11,4 @@ In order to ease the use of DMT, some basic examples can be found here:
     ngspice
     xyce
     hdev
+    external

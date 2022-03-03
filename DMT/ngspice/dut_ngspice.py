@@ -50,7 +50,7 @@ from DMT.core import (
     DataFrame,
     specifiers,
     sub_specifiers,
-    McParameterComposition,
+    McParameterCollection,
 )
 from DMT.core.circuit import VOLTAGE, CURRENT, HICUML2_HBT, SHORT
 
@@ -118,7 +118,7 @@ class DutNgspice(DutCircuit):
             **kwargs,
         )
 
-    def create_inp_header(self, inp_circuit: Union[MCard, McParameterComposition, Circuit]):
+    def create_inp_header(self, inp_circuit: Union[MCard, McParameterCollection, Circuit]):
         """Creates the input header of the given circuit description and returns it.
 
         Parameters
@@ -130,7 +130,7 @@ class DutNgspice(DutCircuit):
         -------
         netlist : str
         """
-        if isinstance(inp_circuit, MCard) or isinstance(inp_circuit, McParameterComposition):
+        if isinstance(inp_circuit, MCard) or isinstance(inp_circuit, McParameterCollection):
             # save the modelcard, in case it was set inderectly via the input header!
             self._modelcard = copy.deepcopy(inp_circuit)
             # generate inp_circuit for netlist generation
@@ -154,7 +154,7 @@ class DutNgspice(DutCircuit):
             try:
                 if (
                     isinstance(inp_circuit, MCard)
-                    or isinstance(inp_circuit, McParameterComposition)
+                    or isinstance(inp_circuit, McParameterCollection)
                     and element.parameters.va_file is not None
                 ):
                     list_va_files.append(element.parameters.va_file)

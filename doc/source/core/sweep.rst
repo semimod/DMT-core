@@ -1,5 +1,7 @@
-sweep module
-============
+.. _sweep:
+
+Sweep definition
+================
 
 .. automodule:: DMT.core.sweep
     :members:

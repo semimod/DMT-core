@@ -51,29 +51,26 @@ class Technology(object):
         self.name = name
         self.scaling_builder = scaling_builder
 
-    @classmethod
-    def print_tex(cls, dut_ref, mcard):
+    def print_tex(self, dut_ref, mcard):
         """Prints a technology description, mainly used for autodocumentation reasons.
 
         Parameters
         ----------
         dut_ref : :class:`~DMT.core.DutView`
             Can be used to obtain tech quanties... (or to generate a TRADICA input file :) )
-        mcard : :class:`~DMT.core.McParameterComposition`
+        mcard : :class:`~DMT.core.McParameterCollection`
             A Modelcard that contains all parameters that are required for scaling, as well as the parameters that shall be scaled.
         """
         doc = Tex()
-        with doc.create(Section("Technology :" + cls.name)):
+        with doc.create(Section("Technology :" + self.name)):
             doc.append("Technology description missing")
         return doc
 
-    @classmethod
-    def get_bib_entries(cls):
+    def get_bib_entries(self):
         """bibliograpy entries of a technology"""
         return ""
 
-    @classmethod
-    def create_mcard_library(cls, lib, mcard, path, dut_type=DutType.npn):
+    def create_mcard_library(self, lib, mcard, path, dut_type=DutType.npn):
         """Creates a file containing model cards for all sizes of duts present in the lib.
 
         Parameters
@@ -85,13 +82,12 @@ class Technology(object):
             Dut types to create model cards for.
         """
 
-    @classmethod
-    def scale_all(cls, mcard, lE0, bE0, nfinger, config):
+    def scale_all(self, mcard, lE0, bE0, nfinger, config):
         """This method receives a Modelcard (that includes relevant scaling parameters such as sheet resistances) and sets the scaled values accordingly.
 
         Parameters
         ----------
-        mcard : :class:`~DMT.core.McParameterComposition`
+        mcard : :class:`~DMT.core.McParameterCollection`
             A Modelcard or McParameterCompositon that contains all parameters that are required for scaling, as well as the parameters that shall be scaled.
         lE0   : float64
             The length of the desired emitter window to be modeled by mcard.
@@ -102,19 +98,18 @@ class Technology(object):
         config : str
             A unique identifier for the configuration.
         """
-        mcard = cls.scale_capacitances(mcard, lE0, bE0, nfinger, config)
-        mcard = cls.scale_resistances(mcard, lE0, bE0, nfinger, config)
-        mcard = cls.scale_currents(mcard, lE0, bE0, nfinger, config)
+        mcard = self.scale_capacitances(mcard, lE0, bE0, nfinger, config)
+        mcard = self.scale_sheet_resistances(mcard, lE0, bE0, nfinger, config)
+        mcard = self.scale_currents(mcard, lE0, bE0, nfinger, config)
 
         return mcard
 
-    @classmethod
-    def scale_currents(cls, mcard, lE0, bE0, nfinger, config):
+    def scale_currents(self, mcard, lE0, bE0, nfinger, config):
         """This method receives a Modelcard (that includes relevant scaling parameters such as sheet resistances) and sets the scaled currents accordingly.
 
         Parameters
         ----------
-        mcard : :class:`~DMT.core.McParameterComposition`
+        mcard : :class:`~DMT.core.McParameterCollection`
             A Modelcard or McParameterCompositon that contains all parameters that are required for scaling, as well as the parameters that shall be scaled.
         lE0   : float64
             The length of the desired emitter window to be modeled by mcard.
@@ -127,13 +122,12 @@ class Technology(object):
         """
         raise NotImplementedError
 
-    @classmethod
-    def scale_capacitances(cls, mcard, lE0, bE0, nfinger, config):
+    def scale_capacitances(self, mcard, lE0, bE0, nfinger, config):
         """This method receives a Modelcard (that includes relevant scaling parameters such as sheet resistances) and sets the scaled capacitances accordingly.
 
         Parameters
         ----------
-        mcard : :class:`~DMT.core.McParameterComposition`
+        mcard : :class:`~DMT.core.McParameterCollection`
             A Modelcard or McParameterCompositon that contains all parameters that are required for scaling, as well as the parameters that shall be scaled.
         lE0   : float64
             The length of the desired emitter window to be modeled by mcard.
@@ -146,14 +140,13 @@ class Technology(object):
         """
         raise NotImplementedError
 
-    @classmethod
-    def scale_sheet_resistances(cls, mcard, lE0, bE0, nfinger, config):
+    def scale_sheet_resistances(self, mcard, lE0, bE0, nfinger, config):
         """This method receives a Modelcard (that includes relevant scaling parameters such as sheet resistances) and sets the scaled resistances accordingly.
 
         Parameters
         ----------
-        mcard : :class:`~DMT.core.McParameterComposition`
-            A Modelcard or McParameterComposition that contains all parameters that are required for scaling, as well as the parameters that shall be scaled.
+        mcard : :class:`~DMT.core.McParameterCollection`
+            A Modelcard or McParameterCollection that contains all parameters that are required for scaling, as well as the parameters that shall be scaled.
         lE0   : float64
             The length of the desired emitter window to be modeled by mcard.
         bE0   : float64
@@ -165,15 +158,14 @@ class Technology(object):
         """
         raise NotImplementedError
 
-    @classmethod
     def scale_modelcard(
-        cls, mcard, lE0, bE0, nfinger, config, lE_drawn_ref=None, bE_drawn_ref=None
+        self, mcard, lE0, bE0, nfinger, config, lE_drawn_ref=None, bE_drawn_ref=None
     ):
         """This method scales a already finished modelcard (no sheet resistances).
 
         Parameters
         ----------
-        mcard : :class:`~DMT.core.McParameterComposition`
+        mcard : :class:`~DMT.core.McParameterCollection`
             A Modelcard or McParameterCompositon that contains all parameters that are required for scaling, as well as the parameters that shall be scaled.
         lE0   : float64
             The length of the desired emitter window to be modeled by mcard.

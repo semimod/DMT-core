@@ -1,5 +1,5 @@
-singleton module
-================
+Singleton pattern
+=================
 
 .. automodule:: DMT.core.singleton
     :members:

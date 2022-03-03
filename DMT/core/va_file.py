@@ -21,7 +21,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 from __future__ import annotations
-import re
 import zlib, base64
 from typing import Union, Callable
 from pathlib import Path
@@ -39,17 +38,24 @@ class VACode(object):  # Storage
         Name of the code file (should include a relative path to the file which includes this one)
     code : str, optional
         Code of the file
+    code_compressed : (str, int), optional
+        Compressed code as loaded from a json modelcard file.
+    ignore_checksum: bool, optional
+        If True, the checksum is ignored, defaults to False.
     """
 
     def __init__(
         self,
         code: str = "",
         code_compressed: tuple[str, int] = ("", -1),
+        ignore_checksum: bool = False,
     ):
         self.code = code
 
         if not self.code and code_compressed[0]:
-            self.decompress_code(code_compressed[0], code_compressed[1])
+            self.decompress_code(
+                code_compressed[0], code_compressed[1], ignore_checksum=ignore_checksum
+            )
 
     def __str__(self) -> str:
         """Some short cuts"""
@@ -79,7 +85,7 @@ class VACode(object):  # Storage
 
     @property
     def code_compressed(self):
-        """[summary]
+        """zlib compressed code for saving in modelcard json files.
 
         Returns
         -------
@@ -91,7 +97,7 @@ class VACode(object):  # Storage
         code = base64.b85encode(code).decode("utf-8")
         return (code, csum)
 
-    def decompress_code(self, code_compressed: str, csum: int):
+    def decompress_code(self, code_compressed: str, csum: int, ignore_checksum: bool = False):
         """Set compressed code to file, will be decompressed and saved in self.code
 
         Parameters
@@ -100,16 +106,24 @@ class VACode(object):  # Storage
             compressed code
         csum : str
             CRC32 check sum loaded from file.
+        ignore_checksum: bool, optional
+            If True, the checksum is ignored, defaults to False.
+
+        Raises
+        ------
+        OSError
+            If the saved checksum and checksum of decompressed code do not match
         """
         code = base64.b85decode(code_compressed.encode("utf-8"))
-        if csum != zlib.crc32(code):
-            print(
-                "MCard load compressed va_codes failed. VA-Codes not loaded, manual reset needed!"
+        if not ignore_checksum and csum != zlib.crc32(code):
+            raise OSError(
+                "Saved checksum and checksum of decompressed code do not match",
+                "MCard load compressed va_codes failed. VA-Codes not loaded, manual reset needed!",
             )  # Raise an error here??
         self.code = zlib.decompress(code).decode("utf-8")
 
 
-class VAFile(object):  # Add Node feature
+class VAFile(object):
     """Tree VA-File for VA-Code. The tree is chosen to correctly mirror possible file structures of multi-file VA-Codes
 
     Parameters
@@ -120,16 +134,19 @@ class VAFile(object):  # Add Node feature
         Dictionary with {file_name: VACode}. One of the keys must be the same as the name, by default None
     code : Union[str, VACode], optional
         Code of the root file, by default ""
-    code_compressed : tuple[str, int], optional
-        [description], by default ("", -1)
+    code_compressed : (str, int), optional
+        Compressed code as loaded from a json modelcard file.
+    ignore_checksum: bool, optional
+        If True, the checksum is ignored, defaults to False.
     """
 
     def __init__(
         self,
         name: Union[str, Path],
-        files: dict[str, VACode] = None,
+        files: dict[str, VACode] | None = None,
         code: Union[str, VACode] = "",
         code_compressed: tuple[str, int] = ("", -1),
+        ignore_checksum: bool = False,
     ):
         self.files: dict[str, VACode] = {}
 
@@ -147,7 +164,9 @@ class VAFile(object):  # Add Node feature
                 else:
                     self.files[self.root] = VACode(code=code)
             elif code_compressed[0]:
-                self.files[self.root] = VACode(code_compressed=code_compressed)
+                self.files[self.root] = VACode(
+                    code_compressed=code_compressed, ignore_checksum=ignore_checksum
+                )
         else:
             self.files = files
 
@@ -256,13 +275,15 @@ class VAFile(object):  # Add Node feature
         return export
 
     @classmethod
-    def import_dict(cls, data_import: dict) -> VAFile:
+    def import_dict(cls, data_import: dict, ignore_checksum: bool = False) -> VAFile:
         """Imports a VAFile inclusive children from a (serialized) dictionary
 
         Parameters
         ----------
         data_import : dict
             [description]
+        ignore_checksum: bool, optional
+            If True, the checksum is ignored, defaults to False.
 
         Returns
         -------
@@ -276,11 +297,13 @@ class VAFile(object):  # Add Node feature
             if isinstance(code, str):
                 files[name] = VACode(code=code)
             else:
-                files[name] = VACode(code_compressed=code)
+                files[name] = VACode(code_compressed=code, ignore_checksum=ignore_checksum)
 
         return VAFile(name=root, files=files)
 
-    def write_files(self, path_to_target: Union[str, Path], filter: Callable[[str], str] = None):
+    def write_files(
+        self, path_to_target: Union[str, Path], filter: Callable[[str], str] | None = None
+    ):
         """Writes the VAFile and all its descendants into the given target path. The file structure is written as read from the "original"
 
         Parameters

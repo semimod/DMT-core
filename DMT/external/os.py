@@ -33,10 +33,8 @@ class cd:
 
     Usage::
 
-    ```
         with cd(dir):
             pass
-    ```
 
     """
 
@@ -55,8 +53,8 @@ class cd:
 def recursive_copy(src, dst, force=False):
     """Recursively copies a full directory to a new destination folder.
 
-    Parameters:
-    -------------
+    Parameters
+    ----------
     src : str or os.Pathlike
         Path to the source folder
     dst : str or os.Pathlike

@@ -20,6 +20,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 from __future__ import annotations
+from typing import Type
+import warnings
 import numpy as np
 
 from DMT.core import Sweep, specifiers, sub_specifiers, DataFrame, SweepDef
@@ -28,9 +30,9 @@ from DMT.core import Sweep, specifiers, sub_specifiers, DataFrame, SweepDef
 def df_to_sweep(
     df_to_convert: DataFrame,
     temperature: float = 300.0,
-    name: str = None,
+    name: str | None = None,
     from_forced: bool = True,
-    SweepDefClass: SweepDef = None,
+    SweepDefClass: Type = SweepDef,
     decimals_potentials: int = 3,
 ):
     """Create a sweepdefinition which simulates the same forced values as the given measurement data frame.
@@ -40,8 +42,9 @@ def df_to_sweep(
     Parameters
     ----------
     df_to_convert : :class:`~DMT.core.data_frame.DataFrame`
+        DataFrame with voltages which define the sweep.
     temperature : float, optional
-        Temperature of the measurement in Kelvin.
+        Temperature of the measurement in Kelvin, defaults to 300.0
     name : str, optional
         Name of the sweep to create. If None, automatic generation of a name is tried.
     from_forced : {True, False}, optional
@@ -55,6 +58,11 @@ def df_to_sweep(
     -------
     :class:`~DMT.core.sweep.Sweep`
     """
+    warnings.warn(
+        "df_to_sweep is deprecated and will be removed in the next major release.\nUse Sweep.get_sweep in future.\n",
+        category=DeprecationWarning,
+    )
+
     vars_other = {
         specifiers.TEMPERATURE: temperature
     }  # temperature is usually in the dut.data key and not in the df. Additionally it is always constant ?!?

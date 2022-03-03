@@ -1,4 +1,4 @@
-circuit module
+Circuit module
 ====================
 
 .. automodule:: DMT.core.circuit

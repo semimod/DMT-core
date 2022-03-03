@@ -25,7 +25,7 @@ Internally all variables and column names which contain a quantity of a specifie
 from __future__ import annotations
 import copy
 import numpy as np
-from typing import Union
+from typing import List, Union
 from pint.formatting import siunitx_format_unit
 from more_itertools import unique_everseen
 from DMT.config import DATA_CONFIG
@@ -83,19 +83,24 @@ class SpecifierStr(str):
     """
 
     specifier: str = ""
-    nodes: list = []
-    sub_specifiers: list = []
+    nodes: List[str] = []
+    sub_specifiers: List[str] = []
 
     # pylint: disable=no-member
-    def __new__(cls, specifier, *nodes, sub_specifiers=None):
+    def __new__(
+        cls,
+        specifier: Union[str, SpecifierStr],
+        *nodes: str,
+        sub_specifiers: Union[List[Union[str, SpecifierStr]], str, SpecifierStr, None] = None,
+    ):
         if not nodes and sub_specifiers is None:
             try:
-                nodes = specifier.nodes
-                sub_specifiers = specifier.sub_specifiers
-                specifier = specifier.specifier
+                nodes = specifier.nodes  # type: ignore
+                sub_specifiers = specifier.sub_specifiers  # type: ignore
+                specifier = specifier.specifier  # type: ignore
             except AttributeError:
                 # revert old state if an Attribute error occurs!
-                nodes = []
+                nodes = ()
                 sub_specifiers = None
 
         # cast to list
@@ -123,12 +128,13 @@ class SpecifierStr(str):
         #     # Not done because parameter sub_specifiers replaces the module attribute
         #     raise SpecifierNotKnown('The sub_specifiers part of a column name can only be one of the following:\n' + str(SUB_SPECIFIERS_STR))
 
-        if nodes and "".join(nodes):
-            nodes = [str(node) for node in nodes]  # string cast :/
+        if nodes and "".join(nodes):  # string cast :/
+            nodes = [str(node) for node in nodes]  # type: ignore
             node_str = "_" + "".join(nodes)
         else:
             node_str = ""
-            nodes = []  # make sure nodes is a list not a tuple
+            nodes = []  # type: ignore
+            # make sure nodes is a list not a tuple
 
         if sub_specifiers:
             sub_specifiers_str = "|" + "|".join(sub_specifiers)
@@ -139,8 +145,8 @@ class SpecifierStr(str):
 
         obj = str.__new__(cls, col_name)
         obj.specifier = str(specifier)
-        obj.nodes = nodes
-        obj.sub_specifiers = sub_specifiers
+        obj.nodes = nodes  # type: ignore
+        obj.sub_specifiers = sub_specifiers  # type: ignore
         return obj
 
     def get_tex_unit(self, scale=1, add="") -> str:
@@ -320,7 +326,19 @@ class SpecifierStr(str):
         else:
             return NotImplemented
 
-    def __eq__(self, other):
+    def __eq__(self, other: str | SpecifierStr) -> bool:
+        """Checks if two objects are equal
+
+        Parameters
+        ----------
+        other : str | SpecifierStr
+            Compare to this column name
+
+        Returns
+        -------
+        bool
+            True if equal
+        """
         if isinstance(other, SpecifierStr):
             if self.specifier == other.specifier and self.nodes == other.nodes:
                 # order of subspecifiers does not matter Oo
@@ -339,9 +357,24 @@ class SpecifierStr(str):
                     if self == col_other:
                         return True
         elif other is not None:
-            raise NotImplementedError("Can not compare SpecifierStr to " + type(other))
+            return NotImplemented
 
         return False
+
+    def __contains__(self, other: str | SpecifierStr) -> bool:
+        """String contains
+
+        Parameters
+        ----------
+        other : str | SpecifierStr
+            Other string or specifier which may contains self
+
+        Returns
+        -------
+        bool
+            str(other) in str(self)
+        """
+        return str(other) in str(self)
 
     def __hash__(self):
         return hash(str(self))
@@ -420,6 +453,7 @@ class GlobalObj(object):
 # HOLY DEFINITION OF DMT NAMING CONVENTIONS #
 #############################################
 class _sub_specifiers(GlobalObj, metaclass=Singleton):
+
     PERIMETER = SpecifierStr("", sub_specifiers="PERI")
     AREA = SpecifierStr("", sub_specifiers="AREA")
     LENGTH = SpecifierStr("", sub_specifiers="LENGTH")
@@ -530,9 +564,14 @@ class _specifiers_ss_para(GlobalObj, metaclass=Singleton):
     SS_PARA_T = SpecifierStr("T")
 
 
-specifiers_ss_para = _specifiers_ss_para()
-specifiers = _specifiers()
-sub_specifiers = _sub_specifiers()
+specifiers_ss_para: _specifiers_ss_para = _specifiers_ss_para()
+"""Small signal parameters known to DMT."""
+
+specifiers: _specifiers = _specifiers()
+"""Specifiers known to DMT. In a written form these would be the variable."""
+
+sub_specifiers: _sub_specifiers = _sub_specifiers()
+"""Sub specifiers known to DMT. In a written form these would be placed in the subscript of a variable."""
 
 specifiers.add_members(DATA_CONFIG["custom_specifiers"])
 sub_specifiers.add_members(DATA_CONFIG["custom_sub_specifiers"])
@@ -547,7 +586,7 @@ SUB_SPECIFIERS_STR = [
 ##################################################
 
 
-def add(self: SpecifierStr, other: Union[SpecifierStr, str, list[Union[str, SpecifierStr]]]):
+def add(self: SpecifierStr, other: Union[SpecifierStr, str, List[Union[str, SpecifierStr]]]):
     """Method is defined later, since we need the SUB_SPECIFIERS_STR list here...thanks python"""
     if isinstance(other, SpecifierStr):
         spec_new = self.specifier + other.specifier
@@ -574,7 +613,7 @@ def add(self: SpecifierStr, other: Union[SpecifierStr, str, list[Union[str, Spec
     elif isinstance(other, list):
         if self.nodes:
             return SpecifierStr(
-                self.specifier, *self.nodes, sub_specifiers=self.sub_specifiers + other
+                self.specifier, *self.nodes, sub_specifiers=self.sub_specifiers + other  # type: ignore
             )
         else:
             return SpecifierStr(self.specifier, *other, sub_specifiers=self.sub_specifiers)

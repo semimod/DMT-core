@@ -1,4 +1,4 @@
-database\_manager module
+DatabaseManager
 ===========================
 
 .. automodule:: DMT.core.database_manager

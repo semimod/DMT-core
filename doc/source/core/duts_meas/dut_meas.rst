@@ -1,4 +1,4 @@
-dut\_meas module
+Measurement DuTs
 =======================
 
 .. automodule:: DMT.core.dut_meas

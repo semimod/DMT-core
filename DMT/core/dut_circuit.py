@@ -10,7 +10,7 @@ A DuT can be supplied using the input_circuit parameter. This parameter can be:
 * List with paths to netlists or strings with netlists, these will be combined into the netlist to simulate.
 
 
-Author: Mario Krattenmacher | Mario.Krattenmacher@tu-dresden.de
+Author: Mario Krattenmacher | Mario.Krattenmacher@semimod.de
 """
 # DMT_core
 # Copyright (C) from 2022  SemiMod
@@ -33,7 +33,7 @@ Author: Mario Krattenmacher | Mario.Krattenmacher@tu-dresden.de
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 import copy
 from collections import OrderedDict
-from DMT.core import create_md5_hash, DutView, McParameterComposition, DutType
+from DMT.core import create_md5_hash, DutView, McParameterCollection, DutType
 from DMT.core.mcard import MCard
 
 
@@ -145,7 +145,7 @@ class DutCircuit(DutView):
         ----------
         modelcard : MCard
         """
-        if isinstance(modelcard, MCard) or isinstance(modelcard, McParameterComposition):
+        if isinstance(modelcard, MCard) or isinstance(modelcard, McParameterCollection):
             self._modelcard = modelcard
             self.inp_header = modelcard
         else:

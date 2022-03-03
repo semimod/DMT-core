@@ -1,6 +1,6 @@
 """ Base class to handle verilog-a modelcards.
 
-Author: Mario Krattenmacher | Mario.Krattenmacher@tu-dresden.de
+Author: Mario Krattenmacher | Mario.Krattenmacher@semimod.de
 Author: Markus Müller       | Markus.Mueller3@tu-dresden.de
 """
 # DMT_core
@@ -31,6 +31,7 @@ import logging
 import scipy.io as sciio
 import ast
 import operator
+import warnings
 from pathlib import Path
 from typing import Union
 from types import ModuleType
@@ -38,7 +39,7 @@ from semver import VersionInfo
 import verilogae
 
 from DMT.core import unit_registry, VAFile
-from DMT.core.mc_parameter import McParameterComposition, McParameter
+from DMT.core.mc_parameter import McParameterCollection, McParameter
 
 
 unit_converter = {
@@ -88,7 +89,7 @@ unit_converter = {
 SEMVER_MCARD_CURRENT = VersionInfo(major=2, minor=1)
 
 
-class MCard(McParameterComposition):
+class MCard(McParameterCollection):
     """DMT class that implements attributes and methods that are common between all ModelCards such as HICUM and BSIM.
 
     Parameters
@@ -126,6 +127,9 @@ class MCard(McParameterComposition):
         Path to a Verilog-AMS file *deprecated*
     va_codes : {os.Pathlike: str}
         Dictionary of relative paths and codes -> full VA code structure.
+    ignore_checksum: bool, optional
+        If True, the checksum of the save modelcard json is ignored, defaults to False.
+
     """
 
     def __init__(
@@ -133,12 +137,13 @@ class MCard(McParameterComposition):
         nodes_list: list[str],
         default_subckt_name: str,
         default_module_name: str,
-        version: Union[str, float] = "-",
-        va_file=None,
+        version: str | float = "-",
+        va_file: str | os.PathLike | None = None,
         va_codes=None,
         vae_module=None,
-        directory_va_file=None,
+        directory_va_file: str | os.PathLike | None = None,
         __MCard__=SEMVER_MCARD_CURRENT,
+        ignore_checksum: bool = False,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -151,8 +156,11 @@ class MCard(McParameterComposition):
 
         if __MCard__ == VersionInfo(major=1, minor=0):
             # try to obtain the VA-Code
-            va_file_path = Path(va_file)
-            if not va_file_path.is_file():
+            if (
+                va_file is not None
+                and not isinstance(va_file, Path)
+                and not Path(va_file).is_file()
+            ):
                 # in Version 1 the code was not part of the MCard. Try to find it...
                 print(
                     "The loaded MCard was from Version 1. The VA-Code was not saved inside of the json-file.  "
@@ -163,17 +171,17 @@ class MCard(McParameterComposition):
                         directory_va_file = Path(directory_va_file)
 
                     if (directory_va_file / va_file).is_file():
-                        print("File found in the folder and will be used!")
+                        print("File found in the given folder and will be used!")
                         va_file = directory_va_file / va_file
                     else:
                         print("File not found in the folder. No VA-Code is set by core!")
-                        va_file = None
+                        va_file = None  # delete file name to escape error while try to load
                 else:
                     print("No directory for the va-file is set. No VA-Code is set by core!")
                     print(
                         "To set the directory use: MCard.load_json(path_to_json, directory_va_file=path_to_directory)"
                     )
-                    va_file = None
+                    va_file = None  # delete file name to escape error while try to load
 
             if vae_module is not None:
                 raise NotImplementedError
@@ -191,7 +199,7 @@ class MCard(McParameterComposition):
         self._va_codes = None
         if va_codes is not None:
             if isinstance(va_codes, dict):
-                self._va_codes = VAFile.import_dict(va_codes)
+                self._va_codes = VAFile.import_dict(va_codes, ignore_checksum=ignore_checksum)
             else:
                 self._va_codes = va_codes
         elif va_file is not None:
@@ -545,22 +553,33 @@ class MCard(McParameterComposition):
         return info_dict
 
     @classmethod
-    def load_json(cls, file_path: Union[str, Path]) -> MCard:
+    def load_json(
+        cls,
+        file_path: Union[str, Path],
+        directory_va_file: Union[str, Path, None] = None,
+        ignore_checksum: bool = False,
+    ) -> MCard:
         """Load json file
 
         Just for type hints etc..
 
         Parameters
         ----------
-        file_path : str or Path
+        file_path : Union[str, Path]
             Path to the json.
+        directory_va_file : Union[str, Path, None], optional
+            If a relative path to a va_file is set in the modelcard, pass the absolute path to the start folder here, by default None.
+            This can be used to load old json modelcards from before saving the full code with the parameters.
+        ignore_checksum : bool, optional
+            When the code is saved compressed, a checksum is saved with it. If you want to ignore the checksum set this to true, by default False
 
         Returns
         -------
         MCard
             Loaded modelcard
         """
-        return super().load_json(file_path)  # type: ignore
+
+        return super().load_json(file_path, directory_va_file=directory_va_file, ignore_checksum=ignore_checksum)  # type: ignore
 
     def get_circuit(self, use_build_in=False, topology=None, **kwargs):
         """Here the modelcard defines it's default simulation circuit.
@@ -640,13 +659,13 @@ class MCard(McParameterComposition):
 
         return NotImplemented
 
-    def load_model_parameters(self, path_to_file, force=True):
+    def load_model(self, path_to_file, force=True):
         """deprecated method, will be removed soon. See load_model_parameters for documentation."""
         warnings.warn(
             "load_model is deprecated and will be renamed in future major releases to load_model_parameters.\n",
             category=DeprecationWarning,
         )
-        self.load_model_parameters(self, path_to_file, force=force)
+        self.load_model_parameters(path_to_file, force=force)
 
     def load_model_parameters(self, path_to_file, force=True):
         """Loads the model from a file
@@ -762,7 +781,7 @@ class MCard(McParameterComposition):
                         parameter_value,
                     )
 
-        elif isinstance(modcard, McParameterComposition):
+        elif isinstance(modcard, McParameterCollection):
             for para in modcard:
                 if not hasattr(para, "group"):
                     para.group = None

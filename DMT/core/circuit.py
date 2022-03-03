@@ -27,7 +27,7 @@ Later on this can be extended to allow (pseudo-)simulations directly inside DMT.
 from __future__ import annotations
 import warnings
 from typing import Callable, Iterable
-from DMT.core import MCard, McParameterComposition
+from DMT.core import MCard, McParameterCollection
 
 
 RESISTANCE = "R"
@@ -119,10 +119,10 @@ class CircuitElement(object):
         element_type: str,
         name: str,
         contact_nodes: Iterable[str],
-        parameters: list[tuple[str, str]] | MCard | McParameterComposition = None,
+        parameters: list[tuple[str, str]] | MCard | McParameterCollection = None,
         method: Callable = None,
     ):
-        if isinstance(parameters, MCard) or isinstance(parameters, McParameterComposition):
+        if isinstance(parameters, MCard) or isinstance(parameters, McParameterCollection):
             CircuitElement.possible_types.append(parameters.default_module_name)  # type: ignore
 
         if isinstance(element_type, str):
@@ -192,7 +192,7 @@ class CircuitElement(object):
                         + str(i_parameter)
                     )
 
-        elif isinstance(parameters, MCard) or isinstance(parameters, McParameterComposition):
+        elif isinstance(parameters, MCard) or isinstance(parameters, McParameterCollection):
             # Allow model cards!
             pass
 

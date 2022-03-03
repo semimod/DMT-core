@@ -1,7 +1,7 @@
 """ Wrapper for nice plots with tikz, pyqtgraph and matplotlib.
 
 Author:
-    Mario Krattenmacher | Mario.Krattenmacher@tu-dresden.de
+    Mario Krattenmacher | Mario.Krattenmacher@semimod.de
     Markus Mueller | Markus.Mueller3@tu-dresden.de
 """
 # DMT_core
@@ -31,8 +31,8 @@ import numpy as np
 from pathlib import Path
 from cycler import cycler
 from colormath.color_objects import sRGBColor
-from DMT.core import tex_to_text, natural_scales, sub_specifiers
-from DMT.external import build_tex, build_svg, clean_tex_files, build_png, slugify
+from DMT.core import natural_scales, sub_specifiers
+from DMT.external import tex_to_text, build_tex, build_svg, clean_tex_files, build_png, slugify
 
 if "PYQTGRAPH_QT_LIB" not in os.environ:  # add PYQTGRAPH_QT_LIB environment variable.
     os.environ["PYQTGRAPH_QT_LIB"] = "PySide2"
@@ -1357,7 +1357,9 @@ class Plot(object):
         legend_to_name=None,
         **kwargs,
     ):
-        """Save plot in directory and return name of the tikz file. The name of the tikz file will be the figure attribute self.num, if not given.
+        """Save plot in directory and return name of the tikz file.
+
+        The name of the tikz file will be the figure attribute self.num, if not given.
 
         Parameters
         ----------
@@ -1366,7 +1368,7 @@ class Plot(object):
         file_name : str, optional
             Set a different file name to create. Default is self.name sluggified, by default None
         width : str, optional
-            Width of the figure, by default "\textwidth"
+            Width of the figure, by default '\\\\textwidth'
         height : str, optional
             Height of the figure, by default None
         mark_repeat : int, optional
@@ -1384,7 +1386,7 @@ class Plot(object):
         clean : bool, optional
             Remove all files except the rendered picture after build, by default False
         fontsize : str, optional
-            [description], by default 'normalsize'.
+            Latex fontsize, by default 'normalsize'.
         svg : bool, optional
             Build the figure to svg (suited for FrameMaker), by default False
         png : bool, optional
@@ -1398,8 +1400,7 @@ class Plot(object):
         legend_location : str, optional
             Change legend location to something different, by default None
         legend_to_name: str, optional
-            If this value is set to a name the legend is saved to a label with the provided name.
-            It is not display inside the plot. Istead it can be printed anywhere in the document with \rec{<<name>>}
+            If this value is set to a name the legend is saved to a label with the provided name. It is not display inside the plot. Instead it can be printed anywhere in the document with '\\\\rec{<<name>>}'
 
         Returns
         -------
@@ -2705,8 +2706,8 @@ class Plot2YAxis(object):
 def save_or_show(plts, show=True, location=None, **kwargs):
     """Convenience function for either showing or saving an array of DMT plots.
 
-    Input
-    -----
+    Parameters
+    ----------
     plts : [Plot]
         An array of plots
     show : Bool, True
