@@ -99,14 +99,12 @@ e.g. for storing measurement data of one wafer.
 A typical use case is loading measurement data generated for a given technology, including specific test structures and transistors.
 
 Circuit and TCAD simulations are started and controlled by the `SimCon` class.
-This class enables to run many simulations in parallel and utilizes the high core count of modern computers (see \autoref{fig:many_simulations}).
+This class enables to run many simulations in parallel and utilizes the high core count of modern computers.
 Each simulation requires one `DutView` object that defines either a circuit or TCAD simulation,
 as well as the definition of a sweep for changing the operating point.
 The definition of sweeps, i.e. the sweep of voltages or currents, is controlled by objects of the `Sweep` class.
 `SimCon` generates a hash for every simulation so that simulations need not be run when the software is called multiple times,
 provided the simulation definition (and therefore the hash) have not changed.
-
-![Using DMT to run many simulations in parallel.\label{fig:many_simulations}](many_simulations.drawio.pdf){width=100%}
 
 Another important class is `MCard`,
 useful for storing the model parameters of compact models that are defined within Verilog-A files.
