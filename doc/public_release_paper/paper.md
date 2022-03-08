@@ -11,7 +11,7 @@ tags:
 authors:
   - name: Mario Krattenmacher^[co-first author] # note this makes a footnote saying 'co-first author'
     orcid: 0000-0003-1274-3429
-    affiliation: "1, 2" 
+    affiliation: "1, 2"
   - name: Markus Müller^[co-first author]
     orcid: 0000-0003-1058-1649
     affiliation: "1, 2"
@@ -49,8 +49,8 @@ The Device Modeling Toolkit (`DMT`) presented here aims to solve these issues. `
 * several abstract base classes useful for implementing new interfaces for various types of simulators and
 * concrete implementations of the abstract base classes for open-source simulators such as Ngspice [@Vogt2022], Xyce [@Keiter2021] or Hdev [@Hdev].
 
-Basic principles of software engineering, such as unit testing, version control and the maintenance of a documentation are adhered to, 
-so that others can also use and contribute to the software. 
+Basic principles of software engineering, such as unit testing, version control and the maintenance of a documentation are adhered to,
+so that others can also use and contribute to the software.
 
 # Summary
 
@@ -58,7 +58,7 @@ so that others can also use and contribute to the software.
 Its Git repository contains documentation, CI jobs that execute unit and integration tests, and create ready to install wheel files.
 This enables a large community of engineers (with sufficient Python knowledge) to install, use and contribute to the software.
 
-In `DMT` data is stored using `DataFrame` objects. 
+In `DMT` data is stored using `DataFrame` objects.
 The `DataFrame` class is a subclass of `pandas.DataFrame` [@McKinney2010], ideally suited for processing and analyzing large amounts of data.
 `DMT` extends this class with several data-processing methods that are particularly useful for electrical quantities such as currents, voltages and charges.
 Some of these methods are based on routines in `scikit-rf` [@Arsenovic2022].
@@ -91,8 +91,7 @@ There are only two necessary steps that need to be implemented for each simulato
 First, a routine for generating the simulator input file must be implemented. Second, an import routine that returns a `DataFrame` from the simulator output must be provided.
 This is illustrated in \autoref{fig:interface}.
 
-![DMT interfacing a circuit simulator and corresponding data flow.\label{fig:interface}](DMT-interface.pdf){width=50%}
-
+![DMT interfacing a circuit simulator and corresponding data flow.\label{fig:interface}](DMT-interface.pdf){width=80%}
 
 Often one needs to handle many different devices, e.g. transistors with different geometries.
 For this purpose the `DutLib` class offers a "container" for `DutView` objects,
@@ -107,7 +106,7 @@ The definition of sweeps, i.e. the sweep of voltages or currents, is controlled 
 `SimCon` generates a hash for every simulation so that simulations need not be run when the software is called multiple times,
 provided the simulation definition (and therefore the hash) have not changed.
 
-![Using DMT to run many simulations in parallel.\label{fig:many_simulations}](many_simulations.drawio.pdf){width=70%}
+![Using DMT to run many simulations in parallel.\label{fig:many_simulations}](many_simulations.drawio.pdf){width=100%}
 
 Another important class is `MCard`,
 useful for storing the model parameters of compact models that are defined within Verilog-A files.
@@ -124,7 +123,7 @@ Finally, `DMT` implements the `Plot` class for displaying electrical data using 
 
 An example plot of a simulated transistor is shown in \autoref{fig:results_1}.
 
-![Transit frequency $f_{\mathrm{T}}$ of a Bipolar transistor.\label{fig:results_1}](F_TJ_C){width=45%}
+![Transit frequency $f_{\mathrm{T}}$ of a Bipolar transistor.\label{fig:results_1}](F_TJ_C.pdf){width=45%}
 
 # Related Publications
 
@@ -150,4 +149,3 @@ This project would not have been possible without our colleagues Dipl.-Ing. Chri
 We particularly acknowledge Wladek Grabinski for his efforts to promote the use of open source software in the semiconductor community.
 
 # References
-
