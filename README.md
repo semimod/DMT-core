@@ -4,8 +4,9 @@
 [![Build Status](https://gitlab.com/dmt-development/dmt-core/badges/main/pipeline.svg)](https://gitlab.com/dmt-development/dmt-core/-/pipelines)
 [![Coverage](https://gitlab.com/dmt-development/dmt-core/-/jobs/artifacts/main/raw/badge_coverage.svg?job=test_DMT)](https://gitlab.com/dmt-development/dmt-core/-/jobs/artifacts/main/file/htmlcov/index.html?job=test_DMT)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![status](https://joss.theoj.org/papers/f9829bb4e4c10b85144b22f888756045/status.svg)](https://joss.theoj.org/papers/f9829bb4e4c10b85144b22f888756045)
 
-<img src="doc/logo/DMT_Logo_wText.png" width="200">
+[![logo](https://gitlab.com/uploads/-/system/project/avatar/33580822/DMT_Logo_wText.png)](https://gitlab.com/uploads/-/system/project/avatar/33580822/DMT_Logo_wText.png)
 
 DeviceModelingToolkit (DMT) is a Python tool targeted at helping modeling engineers extract model parameters, run circuit and TCAD simulations and automate their infrastructure.
 
