@@ -108,7 +108,7 @@ release_to_pip:
     - if: $CI_COMMIT_TAG     # Run this job when a tag is created manually
   script:
     - echo "Running the release job."
-    - release_changelog=$(python3 -c "import re; match = re.search(r"(## \[\d.+?)((## \[)|\Z)", open("DMT_core/CHANGELOG").read(), re.DOTALL); print(match.group(1))") | tee current_changes.md
+    - python3 -c "import re; match = re.search(r'(## \[\d.+?)((## \[)|\Z)', open('CHANGELOG').read(), re.DOTALL); print(match.group(1))" | tee current_changes.md
     # push to pip
     - TWINE_PASSWORD=${PIP_JOB_TOKEN} TWINE_USERNAME=__token__ python -m twine upload --repository-url https://upload.pypi.org/legacy/  dist/*
   release:
