@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased] -
 
+### Added
+
+- Added 3 policies how to handle missing parameters for McParameterCollection.set_values.
+
 ## [1.4.0] - 2022.03.08
 
 ### Added

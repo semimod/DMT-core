@@ -850,7 +850,7 @@ class McParameterCollection(object):
         para.value = value
         self.set(para)
 
-    def set_values(self, dict_parameters, force=False):
+    def set_values(self, dict_parameters, force=False, policy_missing="error"):
         """Sets a dictionary of {'name':value} to the parameters in this collection
 
         Parameters
@@ -859,6 +859,8 @@ class McParameterCollection(object):
             For each parameter, if it is found in self, the given value is set.
         force : boolean, optional
             If True, values are force set.
+        policy_missing : {"error", "ignore", "add"}, optional
+            The policy for missing parameters to set, defaults to "error"
 
         Raises
         ------
@@ -869,14 +871,17 @@ class McParameterCollection(object):
             try:
                 index = self.name.index(name)
             except ValueError as err:
-                # if force:
-                #     para = McParameter(name=name, value=value)
-                #     self.add(para)
-                #     index = self.name.index(name)
-                # else:
-                raise KeyError(
-                    f"The parameter {name:s} is not part of this parameter collection!"
-                ) from err
+                if policy_missing == "ignore":
+                    # nothing to do here
+                    pass
+                elif policy_missing == "add":
+                    para = McParameter(name=name, value=value)
+                    self.add(para)
+                    index = self.name.index(name)
+                else:
+                    raise KeyError(
+                        f"The parameter {name:s} is not part of this parameter collection!"
+                    ) from err
 
             try:
                 self._paras[index].value = value
