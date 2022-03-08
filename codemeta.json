@@ -17,18 +17,23 @@
             "affiliation": "TU Dresden and SemiMod"
         },
         {
-            "@id": "https://orcid.org/my-orcid?orcid=XXXXXXXXXXXXXXXXXXX",
             "@type": "Person",
             "email": "Pascal.Kuthe@semimod.de",
             "name": "Pascal Kuthe",
             "affiliation": "TU Dresden and SemiMod"
+        },
+        {
+            "@type": "Person",
+            "email": "michael.schroeter@tu-dresden.de",
+            "name": "Michael Schroeter",
+            "affiliation": "TU Dresden"
         }
     ],
     "identifier": "http://dx.doi.org/XXXXXXXXXXXXXXXXXXXXXXXXXX",
     "codeRepository": "https://gitlab.com/dmt-development/dmt",
-    "datePublished": "2022-02-04",
-    "dateModified": "2022-02-04",
-    "dateCreated": "2022-02-04",
+    "datePublished": "2022-03-08",
+    "dateModified": "2022-03-08",
+    "dateCreated": "2022-03-08",
     "description": "",
     "keywords": "",
     "license": "GPL-v3-or-later",
