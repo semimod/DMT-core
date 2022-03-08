@@ -46,7 +46,12 @@ To install DMT-core just run in:
 
 .. code:: bash
 
-    python3.10 -m pip install DMT-core --extra-index-url https://__token__:<personal_access_token>@gitlab.com/api/v4/groups/5568716/-/packages/pypi/simple
+    python3.10 -m pip install DMT-core
+
+If a never version is needed, the release candidates can be installed from gitlab directly:
+
+.. code:: bash
+    python3.10 -m pip install DMT-core==1.4.0rc1 --extra-index-url https://gitlab.com/api/v4/groups/5568716/-/packages/pypi/simple
 
 To run this you must register your `personal access token at gitlab <https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html>`__. This installs DMT-core to be used by your project.
 
