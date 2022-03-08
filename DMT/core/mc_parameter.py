@@ -547,12 +547,22 @@ class McParameter(object):
             ("d" in wanted_format)
             or ("e" in wanted_format)
             or ("f" in wanted_format)
-            or ("g" in wanted_format)
+            # or ("g" in wanted_format)
         ):
             if self.value is None:
                 return "-"  # dirty
 
             return f"{self.value:{wanted_format}}"
+        if "g" in wanted_format:
+            if self.value is None:
+                return "-"  # dirty
+
+            if self.val_type == float:
+                return f"{self.value:{wanted_format}}"
+            else:
+                # 10.5g -> 10d
+                wanted_format = wanted_format.split(".")[0] + "d"
+                return f"{self.value:{wanted_format}}"
 
         if "s" in wanted_format:
             return f"{self.name:{wanted_format}}"

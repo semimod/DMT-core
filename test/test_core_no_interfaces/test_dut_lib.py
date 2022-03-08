@@ -114,7 +114,7 @@ def test_docu():
     docu.generate_docu(
         Path(__file__).resolve().parent.parent / "tmp" / "docu_dut_lib",
         plot_specs=[{"type": "gummel_vbc", "key": "fgummel"}],
-        show=True,
+        show=False,  # not possible in CI/CD
         save_tikz_settings={
             "width": "3in",
             "height": "5in",
