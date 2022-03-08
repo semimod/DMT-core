@@ -23,7 +23,7 @@
 from importlib import util
 import semver
 
-__version__ = semver.VersionInfo(major=1, minor=4, patch=0)
+__version__ = semver.VersionInfo(major=1, minor=4, patch=0, prerelease="rc.1")
 # to get the next version:
 # __version__.next_version(x) - with x = "major", "minor", "patch", "prerelease"
 
