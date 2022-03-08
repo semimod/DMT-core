@@ -882,6 +882,7 @@ def getITRSHBT(
     xj_l=None,
     mu_min_a=None,
     mu_min_d=None,
+    beta=None,
 ):
     """Return a DutHdev for ITRS HBTS. Only for SiGe HBTs.
 
@@ -930,6 +931,10 @@ def getITRSHBT(
     if not sat:
         for i, _mob in enumerate(inp["MOB_DEF"]):
             inp["MOB_DEF"][i]["hc_scat_type"] = "default"
+    else:
+        for i, _mob in enumerate(inp["MOB_DEF"]):
+            if inp["MOB_DEF"][i]["valley"] == "x":
+                inp["MOB_DEF"][i]["hc_scat_type"] = "sat"
 
     if mu_min_a is not None:
         # decrease lattice mobility
@@ -942,9 +947,12 @@ def getITRSHBT(
         for l, mob in enumerate(inp["MOB_DEF"]):
             if inp["MOB_DEF"][l]["valley"] == "X":
                 inp["MOB_DEF"][l]["mu_min_d"] = inp["MOB_DEF"][l]["mu_min_d"] * mu_min_d
-    # if te:
-    #     inp["THERMIONIC_EMISSION"] = {}
-    #     inp["THERMIONIC_EMISSION"]["x"] = 32e-9
+
+    if beta is not None:
+        # decrease lattice mobility
+        for l, mob in enumerate(inp["MOB_DEF"]):
+            if inp["MOB_DEF"][l]["valley"] == "X":
+                inp["MOB_DEF"][l]["beta"] = 1.5
 
     inp = turn_off_recombination(inp)
 

@@ -724,6 +724,10 @@ def save_elpa(fname, ELPA, cols, firstline):
 
     fname.parent.mkdir(parents=True, exist_ok=True)
 
+    # make sure we have strings
+    for i, col in enumerate(cols):
+        cols[i] = str(col)
+
     with fname.open("w") as myfile:
         # --> write first line
         firstline = firstline.replace(chr(13), "")
@@ -739,12 +743,19 @@ def save_elpa(fname, ELPA, cols, firstline):
             len_ = len(cols[0])
             t = t + chr(32) * (17 - len_ - lc) + cols[0] + " "
             for i in range(1, len(cols)):
-                len_ = len(cols[i])
-                t = t + chr(32) * (17 - len_) + cols[i] + " "
+                col = cols[i]
+                len_ = len(col)
+                if len_ > 17:
+                    col = col[:17]
+                    len_ = len(col)
+                t = t + chr(32) * (17 - len_) + col + " "
             myfile.write("{0:s}\r\n".format(t[:-1]))
 
         # --> matrix
         ELPA = np.array(ELPA)
+
+        if ELPA.shape[1] == len(cols):
+            ELPA = np.transpose(ELPA)
 
         for ii in range(ELPA.shape[1]):
             for i in range(ELPA.shape[0]):
