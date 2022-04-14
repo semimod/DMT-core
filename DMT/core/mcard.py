@@ -714,7 +714,7 @@ class MCard(McParameterCollection):
             for param_value in re_object:
                 param_value = param_value.split("=")
                 modcard.append((param_value.strip(), float(param_value[1].strip())))
-        elif file_ending == ".lib":
+        elif file_ending == ".lib" or file_ending == "":
             logging.info("Loading model parameters from a TRADICA lib-File: %s", str(path_to_file))
 
             modcard = []

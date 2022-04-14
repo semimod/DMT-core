@@ -681,8 +681,8 @@ class Sweep(object):
     def __init__(
         self,
         name: str,
-        sweepdef: Optional[Union[List[Mapping[str, object]], SweepDef]] = None,
-        outputdef: Optional[List[str]] = None,
+        sweepdef: Optional[List[Union[SweepDef, Mapping[str, object]]]] = None,
+        outputdef: Optional[List[Union[SpecifierStr, str]]] = None,
         othervar: Optional[Mapping[str, float]] = None,
         SweepDefClass: Type = SweepDef,
     ):

@@ -94,7 +94,8 @@ doc/build/
 doc/source/_build/
 
 #logs
-logs
+logs/*
+!logs/.gitkeep
 
 #examples sims
 examples/td_extraction/ext_extraction/sim
