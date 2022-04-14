@@ -41,7 +41,7 @@ class DutView(object):
     ----------
 
     database_dir :  str or None
-        The directory where all the databases of this project are saved. If None, DMT.config.DB_DIR is used.
+        The directory where all the databases of this project are saved. If None, DMT.config.DATA_CONFIG["directories"]["database"] is used.
     name       :  str
         The name of the DutView object, which is used as a prefix for saving the database and the pickled object.
     dut_type   : :class:`~DMT.core.dut_type.DutType`

@@ -75,21 +75,11 @@ try:
 except FileNotFoundError:
     pass
 
-USER_NAME = DATA_CONFIG["user_name"]
-USER_EMAIL = DATA_CONFIG["user_email"]
-""" Name of the DMT user for documentation. """
-
-DIRECTORIES = DATA_CONFIG["directories"]
-for key, str_path in DIRECTORIES.items():
+for key, str_path in DATA_CONFIG["directories"].items():
     try:
-        DIRECTORIES[key] = Path(str_path).expanduser()
+        DATA_CONFIG["directories"][key] = Path(str_path).expanduser()
     except TypeError:
         pass
-
-DATA_CONFIG["directories"] = DIRECTORIES
-
-
-DB_DIR = DIRECTORIES["database"]
 
 import pkgutil
 
@@ -125,3 +115,56 @@ USE_HDF5STORE = DATA_CONFIG["useHDF5Store"]
 
 # DO NOT ADD ANYTHING HERE. JUST DIRECTLY IMPORT DATA_CONFIG INSIDE YOUR MODULE
 # If wanted add documentation here and/or in DMT_config.yaml
+
+
+def print_config(file_path=None):
+    """Prints the current used config either to stdout or into a file
+
+    Parameters
+    ----------
+    file_path : str, optional
+        Path to print the config to, by default None.
+    """
+    if file_path is None:
+        print(DATA_CONFIG)
+    else:
+        yaml.safe_dump(DATA_CONFIG, file_path)
+
+
+from DMT.external.os import recursive_copy
+
+
+def generate_libdoc_template(directory):
+    """Copies the DMT template for the DutLib documentation into the given directory. This allows to change the template according to your needs.
+
+    Parameters
+    ----------
+    directory : str
+        Path to copy to.
+    """
+    if isinstance(directory, Path):
+        destination = directory
+    else:
+        destination = Path(directory)
+
+    destination.mkdir(parents=True, exist_ok=True)
+    recursive_copy(DATA_CONFIG["directories"]["libautodoc"], destination)
+
+
+def export_autodoc_template(directory):
+    """Copies the DMT template for the extraction documentation into the given directory. This allows to change the template according to your needs.
+
+    Only possible if the extraction module is installed!
+
+    Parameters
+    ----------
+    directory : str
+        Path to copy to.
+    """
+    if isinstance(directory, Path):
+        destination = directory
+    else:
+        destination = Path(directory)
+
+    destination.mkdir(parents=True, exist_ok=True)
+    recursive_copy(DATA_CONFIG["directories"]["autodoc"], destination)
