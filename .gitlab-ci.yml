@@ -45,6 +45,8 @@ check_format:
 
 test_DMT:
   stage: test
+  needs:
+    - job: check_format
   script:
     - source /venv/bin/activate
     - pytest --cov=DMT/ test/test_core_no_interfaces/
@@ -80,18 +82,30 @@ test_DMT:
 
 wheel:
   stage: deploy
+  needs:
+    - job: test_DMT
   script:
     - source /venv/bin/activate
     - python3 setup.py sdist bdist_wheel
     - TWINE_PASSWORD=${CI_JOB_TOKEN} TWINE_USERNAME=gitlab-ci-token python -m twine upload --repository-url ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/pypi dist/*
+    - echo "WHEEL_NAME=$(ls dist/*.whl)" >> variables.env
+    - echo "ARCHIV_NAME=$(ls dist/*.gz)" >> variables.env
+  after_script:
+    - echo "JOB_ID=$CI_JOB_ID" >> variables.env
   artifacts:
     paths:
-      - dist/*.whl
+      - dist/{$WHEEL_NAME}
+      - dist/{$ARCHIV_NAME}
+    reports:
+      dotenv: variables.env
+    expire_in: never
   only:
     - main
 
 pages:
   stage: deploy
+  needs:
+    - job: test_DMT
   script:
     - source /venv/bin/activate
     - cd doc ; make html
@@ -104,6 +118,9 @@ pages:
 
 release_to_pip:
   stage: release
+  needs:
+    - job: wheel
+      artifacts: true
   rules:
     - if: $CI_COMMIT_TAG     # Run this job when a tag is created manually
   script:
@@ -114,3 +131,8 @@ release_to_pip:
   release:
     tag_name: $CI_COMMIT_TAG
     description: './current_changes.md'
+    assets:
+      links:
+        - name: "wheel"
+          url: "${CI_PROJECT_URL}/-/jobs/${JOB_ID}/artifacts/file/${WHEEL_NAME}"
+          filepath: "/assets/${WHEEL_NAME}"
