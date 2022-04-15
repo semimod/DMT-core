@@ -36,7 +36,13 @@ import logging
 import copy
 import json
 import warnings
-from semver import VersionInfo
+
+try:
+    from semver.version import Version as VersionInfo
+except ImportError:
+    from semver import VersionInfo
+
+
 from pathlib import Path
 
 import _pickle as cpickle  # type: ignore

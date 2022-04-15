@@ -35,7 +35,12 @@ import warnings
 from pathlib import Path
 from typing import Union, Optional
 from types import ModuleType
-from semver import VersionInfo
+
+try:
+    from semver.version import Version as VersionInfo
+except ImportError:
+    from semver import VersionInfo
+
 import verilogae
 
 from DMT.core import unit_registry, VAFile

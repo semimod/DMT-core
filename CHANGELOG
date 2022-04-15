@@ -8,7 +8,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Added
 
+- added "no ending" to parameter loading in MCard
 - Added 3 policies how to handle missing parameters for McParameterCollection.set_values.
+- Documentation for M1 mac installation
+- logs directory directly in repo using .gitkeep
+
+### Changed
+
+- semver deprecated VersionInfo. Replaced by migration strategy from <https://python-semver.readthedocs.io/en/latest/migration/migratetosemver3.html?highlight=VersionInfo#use-version-instead-of-versioninfo>
+- Sweep creation had a faulty type for sweepdef
 
 ## [1.4.0] - 2022.03.08
 
