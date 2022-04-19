@@ -54,7 +54,7 @@ so that others can also use and contribute to the software.
 
 # Summary
 
-`DMT` is implemented as a toolkit that heavily leverages principles ob object-oriented software design.
+`DMT` is implemented as a toolkit that heavily leverages principles of object-oriented software design.
 Its Git repository contains documentation, CI jobs that execute unit and integration tests, and create ready to install wheel files.
 This enables a large community of engineers (with sufficient Python knowledge) to install, use and contribute to the software.
 
@@ -99,7 +99,7 @@ e.g. for storing measurement data of one wafer.
 A typical use case is loading measurement data generated for a given technology, including specific test structures and transistors.
 
 Circuit and TCAD simulations are started and controlled by the `SimCon` class.
-This class enables to run many simulations in parallel and utilizes the high core count of modern computers.
+This class enables the user to run many simulations in parallel and utilizes the high core count of modern computers.
 Each simulation requires one `DutView` object that defines either a circuit or TCAD simulation,
 as well as the definition of a sweep for changing the operating point.
 The definition of sweeps, i.e. the sweep of voltages or currents, is controlled by objects of the `Sweep` class.

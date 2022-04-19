@@ -18,7 +18,7 @@ After installing python 3.8 or later, simply install the release version using
 
 ```bash
 
-    python3 -m pip install DMT-core
+    python3 -m pip install DMT-core[full]
 
 ```
 

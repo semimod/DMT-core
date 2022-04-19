@@ -1,7 +1,21 @@
 import setuptools
+from itertools import chain
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
+
+EXTRAS_REQUIRE = {
+    "HDF5": ["tables"],
+    "pyqtgraph": ["pyqtgraph"],
+    "matplotlib": ["matplotlib"],
+    "pyside2": ["PySide2"],
+    "pyqt5": ["pyqt5"],
+    "smithplot": ["matplotlib", "pysmithplot@git+https://github.com/miesli/pySmithPlot"],
+    "develop": ["pylint", "black"],
+    "latex": ["pylatex", "pylatexenc"],
+    "remote": ["paramiko", "scp"],
+}
+EXTRAS_REQUIRE["full"] = list(set(chain(*EXTRAS_REQUIRE.values())))
 
 setuptools.setup(
     name="DMT_core",
@@ -28,24 +42,15 @@ setuptools.setup(
         "scikit-rf",
         "reprint",
         "pandas",
-        "numba",
-        "h5py",
-        "tables",
         "joblib",
-        "pyqtgraph",
-        "matplotlib",
-        "pylint",
         "pytest",
-        "pylatex",
-        "pylatexenc",
         "pint",
         "pyyaml",
-        "pypandoc",
         "more_itertools",
-        "paramiko",
-        "scp",
         "colormath",
         "semver",
         "verilogae>=0.9b4",
+        "h5py",
     ],
+    extras_require=EXTRAS_REQUIRE,
 )

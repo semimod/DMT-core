@@ -32,7 +32,7 @@ cache:
 
 before_script:
   - source /venv/bin/activate
-  - pip install -e .
+  - pip install -e .[develop,HDF5,latex,remote]
 
 check_format:
   stage: format
