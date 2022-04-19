@@ -25,8 +25,8 @@ If a technology can use TRADICA, the class :class:`DMT.TRADICA.TechTradica` is r
 from DMT.core.dut_type import DutType
 
 try:
-    from DMT.external.pylatex import Tex
     from pylatex import Section
+    from DMT.external.pylatex import Tex
 except ImportError:
     pass
 

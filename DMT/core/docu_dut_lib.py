@@ -29,8 +29,8 @@ from DMT.core.plot import MIX, PLOT_STYLES, natural_scales, Plot
 from DMT.external.os import recursive_copy, rmtree
 
 try:
-    from DMT.external.pylatex import SubFile, Tex
     from pylatex import Section, Subsection, SmallText, Tabular, NoEscape, Center, Figure
+    from DMT.external.pylatex import SubFile, Tex
 except ImportError:
     pass
 

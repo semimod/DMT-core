@@ -16,13 +16,16 @@ from .latex import (
 )
 
 ## pylatex classes
-from .pylatex import Tex
-from .pylatex import SubFile
-from .pylatex import CommandBase
-from .pylatex import CommandInput
-from .pylatex import CommandLabel
-from .pylatex import CommandRef
-from .pylatex import CommandRefRange
+try:
+    from .pylatex import Tex
+    from .pylatex import SubFile
+    from .pylatex import CommandBase
+    from .pylatex import CommandInput
+    from .pylatex import CommandLabel
+    from .pylatex import CommandRef
+    from .pylatex import CommandRefRange
+except (ImportError, NameError):
+    pass
 
 ## verilogae
 from .verilogae import HICUM_L0

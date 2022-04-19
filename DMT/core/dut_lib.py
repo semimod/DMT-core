@@ -30,8 +30,8 @@ from DMT.core import DutType, print_progress_bar, DutView
 from DMT.exceptions import NoOpenDeembeddingDut, NoShortDeembeddingDut
 
 try:
-    from DMT.external.pylatex import Tex
     from pylatex import Section, Subsection, SmallText, Tabular, NoEscape, Center
+    from DMT.external.pylatex import Tex
 except ImportError:
     pass
 

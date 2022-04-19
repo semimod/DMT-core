@@ -915,7 +915,8 @@ class Plot(object):
 
     def save_png(self, directory):
         """Saves the plot to a png"""
-        self.fig.savefig(os.path.join(directory, self.num + ".png"), format="png", dpi=600)
+        if self.fig is not None:
+            self.fig.savefig(os.path.join(directory, self.num + ".png"), format="png", dpi=600)
 
     def plot_pyqtgraph(
         self,
