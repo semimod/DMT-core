@@ -9,13 +9,14 @@ EXTRAS_REQUIRE = {
     "pyqtgraph": ["pyqtgraph"],
     "matplotlib": ["matplotlib"],
     "pyside2": ["PySide2"],
-    "pyqt5": ["pyqt5"],
+    "pyqt5": ["PyQt5"],
     "smithplot": ["matplotlib", "pysmithplot@git+https://github.com/miesli/pySmithPlot"],
     "develop": ["pylint", "black"],
     "latex": ["pylatex", "pylatexenc"],
     "remote": ["paramiko", "scp"],
 }
 EXTRAS_REQUIRE["full"] = list(set(chain(*EXTRAS_REQUIRE.values())))
+EXTRAS_REQUIRE["full"].remove("PyQt5")  # not always needed
 
 setuptools.setup(
     name="DMT_core",
