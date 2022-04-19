@@ -46,8 +46,12 @@ from DMT.exceptions import SimulationUnsuccessful, SimulationFail
 # import them always -> can become very annoying otherways (if default is False but one dut is remote)
 from tempfile import NamedTemporaryFile
 from zipfile import ZipFile
-import paramiko
-from scp import SCPClient, SCPException
+
+try:
+    import paramiko
+    from scp import SCPClient, SCPException
+except ImportError:
+    pass
 
 
 def upload_progress(filename, size, sent):
