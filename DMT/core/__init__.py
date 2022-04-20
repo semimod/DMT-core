@@ -78,10 +78,10 @@ from .circuit import Circuit, CircuitElement
 
 # plotting
 from .plot import Plot
-from .plot import SmithPlot
 from .plot import save_or_show
-from .plot import Plot2YAxis
 from .plot import COMPARISON_3
+from .plot_smith import SmithPlot
+from .plot_2yaxis import Plot2YAxis
 
 # Data management and processing
 from .data_processor import is_iterable, flatten, strictly_increasing, DataProcessor
