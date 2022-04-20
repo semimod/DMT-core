@@ -379,7 +379,7 @@ class SpecifierStr(str):
     def __hash__(self):
         return hash(str(self))
 
-    def get_pint_unit(self) -> pint.UnitRegistry:
+    def get_pint_unit(self) -> pint.Unit:
         """Declaration of function, to be set later
 
         Returns
@@ -625,7 +625,7 @@ def add(self: SpecifierStr, other: Union[SpecifierStr, str, List[Union[str, Spec
 SpecifierStr.__add__ = add
 
 
-def get_pint_unit(self) -> pint.UnitRegistry:
+def get_pint_unit(self) -> pint.Unit:
     """Return the DMT base unit of this specifier as a pint unit"""
     if sub_specifiers.PHASE.sub_specifiers[0] in self.sub_specifiers:
         return unit_registry.degree
@@ -656,7 +656,7 @@ def get_pint_unit(self) -> pint.UnitRegistry:
         specifiers.NET_DOPING: 1 / unit_registry.meter / unit_registry.meter / unit_registry.meter,
         specifiers.ACCEPTORS: 1 / unit_registry.meter / unit_registry.meter / unit_registry.meter,
         specifiers.DONNORS: 1 / unit_registry.meter / unit_registry.meter / unit_registry.meter,
-    }
+    }  # type: dict[SpecifierStr, pint.Unit]
     try:
         return unit_converter[self.specifier]
     except KeyError as err:

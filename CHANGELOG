@@ -9,6 +9,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Changed
 
 - Cleaned setup.py from unneeded dependencies and also introduces extras_require to allow the different optional installations to work properly.
+- Choosing PySide2 as plot backend without setting the environment variable. The new way is not blocking other backends, if PySide2 is not installed and the variable is unset.
+
+### Fixed
+
+- "bias_val" variable in DutHdev.get_bias_info was unset
+- Some possible runtime errors fixed thanks to pylance linting.
 
 ## [1.5.0-rc.3] - 2022.04.15
 
@@ -44,7 +50,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Moved SI_UNITS_CONVERTER, resolve_siunitx and tex_to_label from core.utils to external.latex
 - Moved is_iterable, flatten and strictly_increasing to data_processor
 
-### Removed
+### Removedand
 
 - Removed DMT.core.tikz_postprocess. Currently no final implementation and also no integration with pyqtgraph. This feature will return with pyqtgraph integration and better documentation! No major bump as it was not part of test cases.
 

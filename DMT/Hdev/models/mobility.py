@@ -165,7 +165,8 @@ def get_mobility(mat, valley, eabs, dop, temp, velo=None):
     grading = 0  # alloy not implemented here
     T_T0 = temp / mat["SEMI"]["temp0"]
 
-    band, mob, semi = None, None, None
+    mob = {}
+    band, semi = None, None
     for band_ in mat["BAND_DEF"]:
         if band_["valley"] == valley:
             band = band_

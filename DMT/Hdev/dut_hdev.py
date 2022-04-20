@@ -28,6 +28,7 @@ import numpy as np
 import pandas as pd
 import logging
 import h5py
+from typing import cast
 
 from DMT.core import (
     DutTcad,
@@ -134,6 +135,7 @@ class DutHdev(DutTcad):
         sweep = copy.deepcopy(sweep)
         """Adds bias blocks to a Hdev heade file (string)"""
         inp_str = self._inp_header
+        inp_str = cast(str, inp_str)
         # find frequency sweep def
         has_f_def = False
         for i, sub_sweep in enumerate(sweep.sweepdef):
@@ -141,7 +143,7 @@ class DutHdev(DutTcad):
                 has_f_def = True
                 break
         if has_f_def:
-            f_def = sweep.sweepdef.pop(i)
+            f_def = sweep.sweepdef.pop(i)  # type: ignore
         sweep.set_values()
         df = sweep.create_df()
         # add T sweep if not specified
@@ -740,14 +742,14 @@ class DutHdev(DutTcad):
                 "cont_name": cont_name,
                 "bias_fun": bias_fun,
             }
-        elif sub_sweep.sweep_type[0:3] == "CON":
-            bias_fun = "'LIN'"  # we convert to list, to support list=1 setting used by DMT in Hdev
+        elif sub_sweep.sweep_type.startswith("CON"):
+            bias_fun = "'TAB'"  # we convert to list, to support list=1 setting used by DMT in Hdev
             bias_info = {
                 "cont_name": cont_name,
                 "bias_fun": bias_fun,
-                "bias_val": [sub_sweep.value_def[0], sub_sweep.value_def[0], len(bias_val)],
+                "bias_val": [sub_sweep.value_def[0]],
             }
-        elif sub_sweep.sweep_type[0:4] == "SYNC":
+        elif sub_sweep.sweep_type.startswith("SYNC"):
             # find master sweep
             for other_sub_sweep in sweep.sweepdef:
                 if other_sub_sweep.var_name == sub_sweep.master_var:
@@ -761,13 +763,13 @@ class DutHdev(DutTcad):
                     dummy = 1
                     break
 
-        elif sub_sweep.sweep_type[0:4] == "LIST":
+        elif sub_sweep.sweep_type.startswith("LIST"):
             bias_fun = "'TAB'"  # we convert to list, to support list=1 setting used by DMT in Hdev
             bias_info = {"cont_name": cont_name, "bias_fun": bias_fun, "bias_val": sub_sweep.values}
         else:
             raise NotImplementedError
 
-        return bias_info
+        return bias_info  # type: ignore
 
     def get_mobility(self, semiconductor, valley, field, temperature, doping, grading):
         if not DutHdev.inited:

@@ -36,6 +36,7 @@ import logging
 import copy
 import json
 import warnings
+from pint import Unit
 
 try:
     from semver.version import Version as VersionInfo
@@ -144,7 +145,7 @@ class McParameter(object):
         inc_max: bool = True,
         exclude: Union[List[Union[float, int]], float, int, None] = None,
         group: str = "",
-        unit=unit_registry.dimensionless,
+        unit: Unit = unit_registry.dimensionless,
         description: str = "",
     ):
 
@@ -273,7 +274,7 @@ class McParameter(object):
         inc_max: bool = True,
         exclude: Optional[List[Union[float, int]]] = None,
         group: str = "",
-        unit: str = "",
+        unit: Union[str, Unit] = "",
         description: str = "",
     ):
         """Creates a McParameter from a dictionary obtained by a json.load."""
@@ -288,10 +289,11 @@ class McParameter(object):
             except KeyError:
                 value_type = type
 
-            try:
-                unit = unit_registry(unit).units
-            except UndefinedUnitError:
-                unit = unit_registry.dimensionless
+            if isinstance(unit, str):
+                try:
+                    unit = unit_registry(unit).units
+                except UndefinedUnitError:
+                    unit = unit_registry.dimensionless
 
             return McParameter(
                 name,
@@ -459,9 +461,9 @@ class McParameter(object):
             self._exclude = []
         else:
             try:
-                self._exclude = [self._val_type(val) for val in new_exclude]
+                self._exclude = [self._val_type(val) for val in new_exclude]  # type: ignore
             except TypeError:
-                self._exclude = [self._val_type(new_exclude)]
+                self._exclude = [self._val_type(new_exclude)]  # type: ignore
 
     def _set_forced(self, value: Union[float, int]):
         """Force setting the value. ATTENTION: When used, the boundaries may be set to inf!"""
@@ -627,7 +629,7 @@ class McParameterCollection(object):
     ):
         if not isinstance(__McParameterCollection__, VersionInfo):
             try:
-                __McParameterCollection__ = VersionInfo.parse(__McParameterCollection__)
+                __McParameterCollection__ = VersionInfo.parse(__McParameterCollection__)  # type: ignore
             except TypeError:
                 __McParameterCollection__ = VersionInfo.parse(
                     f"{__McParameterCollection__:1.1f}.0"
@@ -667,7 +669,7 @@ class McParameterCollection(object):
         """Writes the parameter values into the values dict."""
         self._values = OrderedDict()
         for parameter in self._paras:
-            self._values[parameter.name] = parameter.value
+            self._values[parameter.name] = parameter.value  # type: ignore
 
     def info_json(self, **_kwargs):
         """Returns a dict with serializeable content for the json file to create. Add the info about the concrete subclass to create here!"""
@@ -879,7 +881,7 @@ class McParameterCollection(object):
             except ValueError as err:
                 if policy_missing == "ignore":
                     # nothing to do here
-                    pass
+                    continue
                 elif policy_missing == "add":
                     para = McParameter(name=name, value=value)
                     self.add(para)

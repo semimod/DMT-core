@@ -34,14 +34,23 @@ from colormath.color_objects import sRGBColor
 from DMT.core import natural_scales, sub_specifiers
 from DMT.external import tex_to_text, build_tex, build_svg, clean_tex_files, build_png, slugify
 
-if "PYQTGRAPH_QT_LIB" not in os.environ:  # add PYQTGRAPH_QT_LIB environment variable.
-    os.environ["PYQTGRAPH_QT_LIB"] = "PySide2"
+if "PYQTGRAPH_QT_LIB" not in os.environ:  # user did not choose Backend. Try to force PySide2
+    # OLD: add PYQTGRAPH_QT_LIB environment variable.
+    # os.environ["PYQTGRAPH_QT_LIB"] = "PySide2"
+    # https://pyqtgraph.readthedocs.io/en/latest/how_to_use.html#pyqt-and-pyside
+    try:
+        import PySide2
+    except ImportError:
+        pass
 
 try:
     import pyqtgraph
     from pyqtgraph.Qt import QtCore
 except ImportError:
-    print("DMT->Plot: Failed to import plotting module pyqtgraph.")
+    print(
+        f"DMT->Plot: Failed to import plotting module pyqtgraph with the qt lib {os.environ['PYQTGRAPH_QT_LIB']}. Possible Values are: "
+    )
+
 try:
     import matplotlib
     import matplotlib.pyplot as plt
@@ -284,14 +293,14 @@ class Plot(object):
         if x_label is None and x_specifier is None:
             # try to get x_label from provided plot_name
             # (.+)\((.+)\)
-            self.x_label = "$" + re.search(r"(.+)\((.+)\)", self.name).group(2) + "$"
+            self.x_label = "$" + re.search(r"(.+)\((.+)\)", self.name).group(2) + "$"  # type: ignore
         else:
             self.set_x_label(x_label=x_label, x_specifier=x_specifier, x_scale=x_scale)
 
         if y_label is None and y_specifier is None:
             # try to get y_label from provided plot_name
             # (.+)\((.+)\)
-            self.y_label = "$" + re.search(r"(.+)\((.+)\)", self.name).group(1) + "$"
+            self.y_label = "$" + re.search(r"(.+)\((.+)\)", self.name).group(1) + "$"  # type: ignore
         else:
             self.set_y_label(y_label=y_label, y_specifier=y_specifier, y_scale=y_scale)
 
@@ -796,7 +805,7 @@ class Plot(object):
         # setting the window title using the matplotlib figure manager
         # pylint: disable = protected-access
         fig_manager = matplotlib._pylab_helpers.Gcf.get_fig_manager(self.fig.number)
-        fig_manager.set_window_title(self.name)
+        fig_manager.set_window_title(self.name)  # type: ignore
 
         if font_size is not None:
             matplotlib.rcParams.update({"font.size": font_size})
@@ -946,20 +955,21 @@ class Plot(object):
 
         if Plot.qt_application is None and not only_widget:
             try:
-                Plot.qt_application = pyqtgraph.Qt.QtGui.QApplication([])
+                Plot.qt_application = pyqtgraph.Qt.QtGui.QApplication([])  # type: ignore
             except RuntimeError:
                 Plot.qt_application = "Already started"
 
         self.pw_pg = pyqtgraph.PlotWidget(name=self.name)
+        qt_layout = None
 
         if not only_widget:
             # make own window
-            self.mw_pg = pyqtgraph.Qt.QtGui.QMainWindow()
+            self.mw_pg = pyqtgraph.Qt.QtGui.QMainWindow()  # type: ignore
             self.mw_pg.setWindowTitle(self.num)
             self.mw_pg.resize(*figure_size)
-            cw = pyqtgraph.Qt.QtGui.QWidget()
+            cw = pyqtgraph.Qt.QtGui.QWidget()  # type: ignore
             self.mw_pg.setCentralWidget(cw)
-            qt_layout = pyqtgraph.Qt.QtGui.QVBoxLayout()
+            qt_layout = pyqtgraph.Qt.QtGui.QVBoxLayout()  # type: ignore
             cw.setLayout(qt_layout)
             qt_layout.addWidget(self.pw_pg)
 
@@ -1078,7 +1088,7 @@ class Plot(object):
             x_max_set = np.log10(np.abs(x_max_set + np.finfo(float).eps))
 
         try:
-            self.pw_pg.setXRange(np.real(x_min_set), np.real(x_max_set), padding=padding)
+            self.pw_pg.setXRange(np.real(x_min_set), np.real(x_max_set), padding=padding)  # type: ignore
         except Exception:
             print("Error setting the XRange of PyQtGraph plot with name " + self.name + ".")
 
@@ -1135,12 +1145,12 @@ class Plot(object):
             y_min = np.log10(np.abs(y_min + np.finfo(float).eps))
             y_max = np.log10(np.abs(y_max + np.finfo(float).eps))
         try:
-            self.pw_pg.setYRange(np.real(y_min), np.real(y_max), padding=padding)
+            self.pw_pg.setYRange(np.real(y_min), np.real(y_max), padding=padding)  # type: ignore
         except Exception:
             print("Error setting the YRange of PyQtGraph plot with name " + self.name + ".")
 
         # grid
-        self.pw_pg.getPlotItem().showGrid(True, True)
+        self.pw_pg.getPlotItem().showGrid(True, True)  # type: ignore
 
         if self.mw_pg is not None:
             self.mw_pg.show()
@@ -1148,17 +1158,18 @@ class Plot(object):
         ## Start Qt event loop unless running in interactive mode or using pyside.
         if show:
             if sys.flags.interactive != 1 or not hasattr(pyqtgraph.Qt.QtCore, "PYQT_VERSION"):
-                pyqtgraph.QtGui.QApplication.exec_()
+                pyqtgraph.QtGui.QApplication.exec_()  # type: ignore
 
         if only_widget:
             return self.pw_pg
-        else:
+        elif qt_layout is not None:
             return qt_layout
 
     def show_pyqtgraph(self):
         """Reshows the PyQtGraph main window and startes the Qt event loop"""
-        self.mw_pg.show()
-        pyqtgraph.QtGui.QApplication.exec_()
+        if self.mw_pg is not None:
+            self.mw_pg.show()
+            pyqtgraph.QtGui.QApplication.exec_()  # type: ignore
 
     def _convert_mpl_to_pyqt(self, mpl_style):
         """Returns a corresponding PyQtGraph style for a given matplotlib style.
@@ -1203,11 +1214,11 @@ class Plot(object):
                 if mpl_line in mpl_style:
                     mpl_style = mpl_style.replace(mpl_line, "")
                     kwargs_pen["style"] = {
-                        "--": QtCore.Qt.DashLine,  # dashed
-                        "-.": QtCore.Qt.DashDotLine,  # dashdotted
-                        "-": QtCore.Qt.SolidLine,  # solid
-                        ":": QtCore.Qt.DotLine,  # dotted
-                        " ": QtCore.Qt.NoPen,  # dotted
+                        "--": QtCore.Qt.DashLine,  # type: ignore
+                        "-.": QtCore.Qt.DashDotLine,  # type: ignore
+                        "-": QtCore.Qt.SolidLine,  # type: ignore
+                        ":": QtCore.Qt.DotLine,  #  type: ignore
+                        " ": QtCore.Qt.NoPen,  # type: ignore
                     }[mpl_line]
                     break
 
@@ -1296,11 +1307,11 @@ class Plot(object):
 
         if line_style is not None and line_style:
             kwargs_pen["style"] = {
-                "--": QtCore.Qt.DashLine,  # dashed
-                "-.": QtCore.Qt.DashDotLine,  # dashdotted
-                "-": QtCore.Qt.SolidLine,  # solid
-                ":": QtCore.Qt.DotLine,  # dotted
-                " ": QtCore.Qt.NoPen,  # no li
+                "--": QtCore.Qt.DashLine,  # type: ignore
+                "-.": QtCore.Qt.DashDotLine,  # type: ignore
+                "-": QtCore.Qt.SolidLine,  # type: ignore
+                ":": QtCore.Qt.DotLine,  # type: ignore
+                " ": QtCore.Qt.NoPen,  # type: ignore
             }[line_style]
 
             kwargs_pen["width"] = 2
@@ -2005,7 +2016,8 @@ class SmithPlot(Plot):
 
         path_file = directory / file_name
 
-        self.outer_fig.savefig(path_file)
+        if self.outer_fig is not None:
+            self.outer_fig.savefig(path_file)
 
         return file_name
 
@@ -2079,7 +2091,7 @@ class SmithPlot(Plot):
         # setting the window title using the matplotlib figure manager
         # pylint: disable = protected-access
         fig_manager = matplotlib._pylab_helpers.Gcf.get_fig_manager(self.outer_fig.number)
-        fig_manager.set_window_title(self.name)
+        fig_manager.set_window_title(self.name)  # type: ignore
 
         if font_size is not None:
             matplotlib.rcParams.update({"font.size": font_size})
@@ -2246,7 +2258,7 @@ class Plot2YAxis(object):
         # setting the window title using the matplotlib figure manager
         # pylint: disable = protected-access
         fig_manager = matplotlib._pylab_helpers.Gcf.get_fig_manager(self.fig.number)
-        fig_manager.set_window_title(self.name)
+        fig_manager.set_window_title(self.name)  # type: ignore
 
         if font_size is not None:
             matplotlib.rcParams.update({"font.size": font_size})
