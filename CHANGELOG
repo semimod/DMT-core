@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Cleaned setup.py from unneeded dependencies and also introduces extras_require to allow the different optional installations to work properly.
 - Choosing PySide2 as plot backend without setting the environment variable. The new way is not blocking other backends, if PySide2 is not installed and the variable is unset.
+- Moved Smithplot and Plot2Axis to separate files.
 
 ### Fixed
 

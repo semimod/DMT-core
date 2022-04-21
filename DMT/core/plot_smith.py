@@ -82,16 +82,16 @@ class SmithPlot(Plot):
         super().__init__(*args, **kwargs)
         self.outer_fig = None  # here the "outer" matplotlib figure reference is stored
 
-    def plot_pyqtgraph(*args, **kwargs):
+    def plot_pyqtgraph(self, *args, **kwargs):
         raise NotImplementedError
 
-    def show_pyqtgraph(*args, **kwargs):
+    def show_pyqtgraph(self, *args, **kwargs):
         raise NotImplementedError
 
-    def save_png(*args, **kwargs):
+    def save_png(self, *args, **kwargs):
         raise NotImplementedError
 
-    def save_tikz(*args, **kwargs):
+    def save_tikz(self, *args, **kwargs):
         raise NotImplementedError
 
     def save_pdf(self, directory, width):

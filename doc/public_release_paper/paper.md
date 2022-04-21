@@ -126,19 +126,19 @@ An example plot of a simulated transistor is shown in \autoref{fig:results_1}.
 # Related Publications
 
 `DMT` is used internally by CEDIC staff in research and by SemiMod for commercial purposes. It has also been used by cooperating institutions and companies.
-The project has been used in the following publications:
+The project has been used in the following contexts:
 
-* [@Muller2021]: TCAD simulations and plotting.
-* [@Phillips2021]: Model parameter extraction and TCAD simulation.
-* [@Weimer2021]: Circuit simulations.
-* [@Muller2021a]: Circuit and TCAD simulations.
-* [@Muller2020c]: Model parameter extraction.
+* for circuit simulations [@Weimer2021],
+* for TCAD simulations and plotting [@Muller2021],
+* for circuit and TCAD simulations [@Muller2021a],
+* for model parameter extraction [@Muller2020c] and
+* for model parameter extraction and TCAD simulation [@Phillips2021].
 
-`DMT` has been mentioned in [@Grabinski2019,@Kuthe2020a,@Muller2019a,@Muller2021b].
+As we already introduced the project to investigate the demand, `DMT` has been cited in [@Grabinski2019], [@Kuthe2020a], [@Muller2019a] and [@Muller2021b].
 
 # Related Projects
 
-`DMT` directly uses the [VerilogAE tool](https://man.sr.ht/~dspom/openvaf_doc/verilogae/) [@Kuthe2020a] for accessing all information in Verilog-AMS files.
+`DMT` directly uses the [VerilogAE](https://man.sr.ht/~dspom/openvaf_doc/verilogae/) [@Kuthe2020a] for accessing all information in Verilog-AMS files.
 The TCAD simulator [Hdev](https://gitlab.com/metroid120/hdev_simulator) [@Hdev] uses the class `DutHdev` as its Python interface.
 
 # Acknowledgements
