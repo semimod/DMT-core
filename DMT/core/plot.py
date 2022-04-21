@@ -47,9 +47,7 @@ try:
     import pyqtgraph
     from pyqtgraph.Qt import QtCore
 except ImportError:
-    print(
-        f"DMT->Plot: Failed to import plotting module pyqtgraph with the qt lib {os.environ['PYQTGRAPH_QT_LIB']}. Possible Values are: "
-    )
+    print(f"DMT->Plot: Failed to import plotting module pyqtgraph.")
 
 try:
     import matplotlib
