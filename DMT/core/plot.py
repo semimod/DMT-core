@@ -58,6 +58,8 @@ try:
         "\\usepackage{siunitx}\n",
         "\\DeclareSIUnit\\sq{\\ensuremath{\\Box}}\n",
         "\\DeclareSIUnit\\degC{\\degreeCelsius}\n",
+        "\\DeclareUnicodeCharacter{221E}{$\infty$}\n",
+        "\\DeclareUnicodeCharacter{03A9}{$\Omega$}\n",
     ]
     packages_to_add = []
     str_user_packages = "".join(matplotlib.rcParams["text.latex.preamble"])
@@ -1348,6 +1350,7 @@ class Plot(object):
         fontsize="normalsize",
         svg=False,
         png=False,
+        extension=None,
         nth=1,
         mark_delta=1,
         skip_every=lambda x: x,
@@ -1391,6 +1394,8 @@ class Plot(object):
             Build the figure to svg (suited for FrameMaker), by default False
         png : bool, optional
             Build the figure to png.
+        extension : str, optional
+            Extension for the saved tikz file, if not given extension == "tex".
         skip_every : callable, optional
             Apply this callable to the lines in the plot and only plot what is returned, by default lambda x:x
         n_ticks_x : int, optional
@@ -1444,9 +1449,12 @@ class Plot(object):
                 + "\\pgfplotsset{every axis/.append style={very thick},compat=1.5},\n"
             )
         str_height = "" if height is None else "height=" + height + ",\n"
-        str_width = (
-            "width=0.951*\\figurewidth,\n" if width == "\\textwidth" else "width=" + width + ",\n"
-        )
+        if width is None:
+            str_width = ""
+        elif width == "\\textwidth":
+            str_width = "width=0.951*\\figurewidth,\n"
+        else:
+            str_width = "width=" + width + ",\n"
         str_x_log = "" if self.x_axis_scale == "linear" else "xmode=log,\n"
         str_y_log = "" if self.y_axis_scale == "linear" else "ymode=log,\n"
 
@@ -1681,7 +1689,7 @@ class Plot(object):
             + str_y_ticks
             + "xmajorgrids,\n"
             + "enlargelimits=false,\n"
-            + "scaled ticks=false,\n"
+            + "scaled ticks=true,\n"
             + "ymajorgrids,\n"
             + "x tick style={color=black},\n"
             + "y tick style={color=black},\n"
@@ -1760,10 +1768,14 @@ class Plot(object):
                 + "\\end{document}\n"
             )
 
+        ext_file = ".tex"
+        if extension is not None:
+            ext_file = "." + extension
+
         if file_name is None:
-            file_name = slugify(self.num) + ".tex"
-        elif not file_name.endswith(".tex"):
-            file_name = file_name + ".tex"
+            file_name = slugify(self.num) + ext_file
+        elif not file_name.endswith(ext_file):
+            file_name = file_name + ext_file
 
         path_file = directory / file_name
         path_file.write_text(str_tikz_picture)
@@ -1778,16 +1790,16 @@ class Plot(object):
                 build_svg(path_file, wait=clean)
                 ending_to_keep = ".svg"
             elif png:
-                build_tex(path_file, wait=clean)
+                build_tex(path_file, wait=clean, extension=ext_file)
                 build_png(path_file, wait=clean)
                 ending_to_keep = ".png"
             else:
-                build_tex(path_file, wait=clean)
+                build_tex(path_file, wait=clean, extension=ext_file)
                 ending_to_keep = ".pdf"
 
             if clean:
                 clean_tex_files(
-                    directory, file_name.replace(".tex", ""), keep=(ending_to_keep, ".tex")
+                    directory, file_name.replace(ext_file, ""), keep=(ending_to_keep, ".tex")
                 )
 
         return file_name
@@ -2049,6 +2061,15 @@ class SmithPlot(Plot):
                 "plot.marker.rotate": False,
                 "grid.minor.enable": True,
                 "grid.minor.fancy": False,
+                "plot.marker.default": None,
+                "axes.normalize.label": False,
+            }
+        )
+        plt.rcParams.update(
+            {
+                "font.size": 16,
+                "lines.linewidth": 2,
+                "lines.markersize": 10,
             }
         )
 
@@ -2084,8 +2105,8 @@ class SmithPlot(Plot):
             matplotlib.rcParams.update({"font.size": font_size})
 
         # set the line cycler
-        if not self.ax.lines:  # but only if the lines are empty..
-            self.ax.set_prop_cycle(self._cycler)
+        # if not self.ax.lines:  # but only if the lines are empty..
+        self.ax.set_prop_cycle(self._cycler)
 
         used_labels = []  # for the repeated_labels kw argument of this routine
 
@@ -2475,6 +2496,7 @@ class Plot2YAxis(object):
         file_name=None,
         width="\\textwidth",
         fontsize="normalsize",
+        extension=None,
         height=None,
         mark_repeat=1,
         restrict_left=True,
@@ -2498,10 +2520,14 @@ class Plot2YAxis(object):
             directory = Path(directory)
         os.makedirs(directory, exist_ok=True)
 
+        ext_file = ".tex"
+        if extension is not None:
+            ext_file = "." + extension
+
         if file_name is None:
-            file_name = slugify(self.name) + ".tex"
-        elif not file_name.endswith(".tex"):
-            file_name = file_name + ".tex"
+            file_name = slugify(self.name) + ext_file
+        elif not file_name.endswith(ext_file):
+            file_name = file_name + ext_file
 
         # create tikz files from the subplots
         # change names as these plots will only exists temporarily
@@ -2667,9 +2693,10 @@ class Plot2YAxis(object):
         str_tikz_picture = str_tikz_picture.replace("ymajorgrids", "")
 
         # correct sizes
-        str_tikz_picture = str_tikz_picture.replace(
-            "\\setlength\\figurewidth{60mm}\n", "\\setlength\\figurewidth{" + width + "}\n"
-        )
+        if width is not None:
+            str_tikz_picture = str_tikz_picture.replace(
+                "\\setlength\\figurewidth{60mm}\n", "\\setlength\\figurewidth{" + width + "}\n"
+            )
         if height is not None:
             str_tikz_picture = str_tikz_picture.replace(
                 "\\setlength\\figureheight{60mm}\n", "\\setlength\\figureheight{" + height + "}\n"
@@ -2737,5 +2764,8 @@ def save_or_show(plts, show=True, location=None, **kwargs):
                 plt.name,
                 standalone=False,
                 build=False,
+                extension=r"tikz",
+                width=None,
+                height=None,
                 **kwargs,
             )
