@@ -26,7 +26,7 @@ from pathlib import Path
 from DMT.external.os import cd
 
 
-def build_tex(full_path_to_file, additional_compiler=None, wait=False):
+def build_tex(full_path_to_file, additional_compiler=None, wait=False, extension=None):
     r"""Builds a tex file
 
     Parameters
@@ -38,16 +38,22 @@ def build_tex(full_path_to_file, additional_compiler=None, wait=False):
         For example 'latexmk' looks like: ('latexmk', ['--interaction=nonstopmode', '--shell-escape', '--pdf'])
     wait : Boolean, False
         Wait for the build to complete.
+    extension : None, optional
+        If None, assumed extension of Tex file to build is "tex", else the given string is used. Example: extension="tikz"
     """
     if not isinstance(full_path_to_file, Path):
         full_path_to_file = Path(full_path_to_file)
 
+    ext = ".tex"
+    if extension is not None:
+        ext = "." + extension.replace(".", "")
+
     directory = full_path_to_file.parent
     file_name = full_path_to_file.name
-    if file_name.endswith(".tex"):
+    if file_name.endswith(ext):
         file_name = [file_name]
     else:
-        file_name = [file_name + ".tex"]
+        file_name = [file_name + ext]
 
     with cd(directory):
         compilers = (

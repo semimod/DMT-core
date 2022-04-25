@@ -48,6 +48,8 @@ HICUML0_HBT = "BHT0"
 """ Indicates a bipolar transistor modeled with HICUM/L0 in a circuit. """
 SGP_BJT = "BJT"
 """ Indicates a bipolar transistor modeled with SGP in a circuit. """
+DIODE = "diode"
+""" Indicates a diode in a circuit. """
 
 
 class CircuitElement(object):
@@ -96,6 +98,7 @@ class CircuitElement(object):
         HICUML2_HBT,
         HICUML0_HBT,
         SGP_BJT,
+        DIODE,
         "va_module",
         "pdk",
         '"hbt_n1s"',
