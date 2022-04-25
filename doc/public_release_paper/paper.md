@@ -134,7 +134,7 @@ The project has been used in the following contexts:
 * for model parameter extraction [@Muller2020c] and
 * for model parameter extraction and TCAD simulation [@Phillips2021].
 
-As we already introduced the project to investigate the demand, `DMT` has been cited in [@Grabinski2019], [@Kuthe2020a], [@Muller2019a] and [@Muller2021b].
+As we already introduced the project to investigate the demand, `DMT` has been cited in [@Grabinski2019;@Kuthe2020a;@Muller2019a;@Muller2021b].
 
 # Related Projects
 

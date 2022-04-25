@@ -5,6 +5,9 @@ We will read data, clean it, calculate with the data and then plot.
 from pathlib import Path
 from DMT.core import read_data, specifiers, Plot
 
+# path to static folder:
+path_static = Path(__file__).resolve().parent.parent / "_static"
+
 # some specifiers, they allow consistent access to electrical data
 # all interfaces of DMT adhere to these specifiers!
 col_vbe = specifiers.VOLTAGE + ["B", "E"]
@@ -13,7 +16,7 @@ col_ic = specifiers.CURRENT + "C"
 col_ib = specifiers.CURRENT + "B"
 
 # read data using the given method
-data = read_data(Path(__file__).parent.parent / "_static" / "HBT_vbc.elpa")
+data = read_data(path_static / "HBT_vbc.elpa")
 
 # "clean" the data so we have DMT-specifier in it.
 # This ensure that the read-in data is consistent with the DMT specifiers.
@@ -52,7 +55,7 @@ for _index, vbc, data_vbc in data.iter_unique_col(col_vbc, decimals=3):
 plot.plot_pyqtgraph()
 # save the plot as tikz and build it
 plot.save_tikz(
-    Path(__file__).parent.parent / "_static",
+    path_static,
     standalone=True,
     build=True,
     clean=True,
