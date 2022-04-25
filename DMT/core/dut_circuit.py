@@ -209,7 +209,7 @@ class DutCircuit(DutView):
 
     def scale_modelcard(self):
         """Scales the given modelcard to the actual size of the dut."""
-        if self.technology is None:
+        if self.technology is None or not hasattr(self.technology, "scale_modelcard"):
             self.modelcard = self.modelcard
         else:
             self.modelcard = self.technology.scale_modelcard(

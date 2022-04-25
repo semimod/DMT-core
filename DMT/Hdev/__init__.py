@@ -19,10 +19,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 name = "Hdev"
 
-# models
-from .models.mobility import get_mobility
-from .models.mobility import get_velocity
-
 from .dut_hdev import DutHdev
 from .dut_hdev import getITRSHBT
 from .dut_hdev import hdev_iv_fallback

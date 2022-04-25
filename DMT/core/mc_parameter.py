@@ -165,11 +165,11 @@ class McParameter(object):
                 + " of parameter value is not known! Allowed: int, float."
             )
 
-        if minval is None:
+        if (minval is None) or (minval == -np.inf):
             self._min = -np.inf
         else:
             self._min = self._val_type(minval)
-        if maxval is None:
+        if (maxval is None) or (maxval == np.inf):
             self._max = np.inf
         else:
             self._max = self._val_type(maxval)

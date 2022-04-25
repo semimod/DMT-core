@@ -52,7 +52,7 @@ from DMT.core import (
     sub_specifiers,
     McParameterCollection,
 )
-from DMT.core.circuit import VOLTAGE, CURRENT, HICUML2_HBT, SHORT
+from DMT.core.circuit import VOLTAGE, CURRENT, HICUML2_HBT, SHORT, DIODE
 
 from DMT.exceptions import SimulationUnsuccessful
 
@@ -246,53 +246,53 @@ class DutNgspice(DutCircuit):
         # output def
         # TODO: dirty fix to debug ngspice..
         # this is really messy...
-        device_out = [
-            "temp",
-            "m",
-            "vbe",
-            "vbc",
-            "vce",
-            "vsc",
-            "vbbp",
-            "ic",
-            "ib",
-            "ie",
-            "iavl",
-            "is",
-            "ibei",
-            "ibci",
-            "it",
-            "vbiei",
-            "vbpbi",
-            "vbici",
-            "vciei",
-            "rcx_t",
-            "re_t",
-            "rbi",
-            "rb",
-            "betadc",
-            "gmi",
-            "gms",
-            "rpii",
-            "rpix",
-            "rmui",
-            "rmux",
-            "roi",
-            "cpii",
-            "cpix",
-            "cmui",
-            "cmux",
-            "ccs",
-            "betaac",
-            "crbi",
-            "tf",
-            "ft",
-            "ick",
-            "p",
-            "tk",
-            "dtsh",
-        ]
-        str_netlist += ".save all " + " ".join(["@Q_Q_H[{:s}]".format(out) for out in device_out])
+        # device_out = [
+        #     "temp",
+        #     "m",
+        #     "vbe",
+        #     "vbc",
+        #     "vce",
+        #     "vsc",
+        #     "vbbp",
+        #     "ic",
+        #     "ib",
+        #     "ie",
+        #     "iavl",
+        #     "is",
+        #     "ibei",
+        #     "ibci",
+        #     "it",
+        #     "vbiei",
+        #     "vbpbi",
+        #     "vbici",
+        #     "vciei",
+        #     "rcx_t",
+        #     "re_t",
+        #     "rbi",
+        #     "rb",
+        #     "betadc",
+        #     "gmi",
+        #     "gms",
+        #     "rpii",
+        #     "rpix",
+        #     "rmui",
+        #     "rmux",
+        #     "roi",
+        #     "cpii",
+        #     "cpix",
+        #     "cmui",
+        #     "cmux",
+        #     "ccs",
+        #     "betaac",
+        #     "crbi",
+        #     "tf",
+        #     "ft",
+        #     "ick",
+        #     "p",
+        #     "tk",
+        #     "dtsh",
+        # ]
+        # str_netlist += ".save all " + " ".join(["@Q_Q_H[{:s}]".format(out) for out in device_out])
 
         # ngspice control statement
         str_netlist += "\n\n.control\n"
@@ -859,6 +859,21 @@ class DutNgspice(DutCircuit):
                         + str_type
                         + " level=8\n+ "
                         + str_model_parameters
+                    )
+                elif circuit_element.element_type in [DIODE]:
+                    mcard = circuit_element.parameters
+                    str_instance_parameters = ""
+                    str_model_parameters = ""
+                    str_type = "NPN"
+                    additional_str = ""
+                    for para in sorted(mcard.paras, key=lambda x: (x.group, x.name)):
+                        if para.name == "osdi":
+                            if para - value == 1:
+                                additional_str = " osdi " + circuit_element.name
+                        str_model_parameters += "{0:s}={0:10.10e} ".format(para)
+
+                    str_temp = (
+                        "\n.model dmod " + additional_str + " d( " + str_model_parameters + " )"
                     )
                 else:
                     raise NotImplementedError(

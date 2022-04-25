@@ -21,6 +21,8 @@ Author: Markus Müller
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
+
+# pylint: disable=no-member
 import re
 import copy
 import os
@@ -963,7 +965,4 @@ def getITRSHBT(
         DutType.npn,
         inp,
         reference_node="E",
-        list_copy=os.path.join(
-            "/home/markus/Documents/Gitprojects/dissertation/py_scripts/tsc250_tcad/teledyne_profile.h5"
-        ),
     )
