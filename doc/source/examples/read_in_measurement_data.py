@@ -5,7 +5,7 @@ from pathlib import Path
 from DMT.core import DutLib, DutMeas, DutType
 
 # path to DMT test cases
-path_test = Path("test")
+path_test = Path(__file__).resolve().parent.parent.parent.parent / "test"
 
 
 def dut_filter(dut_name):

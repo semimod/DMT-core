@@ -18,24 +18,19 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
-# dirty: check which modules available
-
-from importlib import util
-
+from pint import UnitRegistry
+from pathlib import Path
 try:
     from semver.version import Version as VersionInfo
 except ImportError:
     from semver import VersionInfo
 
-__version__ = VersionInfo(major=1, minor=5, patch=0, prerelease="rc.4")
+__version__ = VersionInfo(major=1, minor=5, patch=0, prerelease="rc.5")
 # to get the next version:
 # __version__.next_version(x) - with x = "major", "minor", "patch", "prerelease"
 
 name = "core"
 
-import numpy as np
-
-import os
 
 from . import constants
 
@@ -44,15 +39,13 @@ from .singleton import Singleton
 from .hasher import create_md5_hash
 
 # one unit registry for all of DMT
-from pint import UnitRegistry
 
 unit_registry = UnitRegistry()
 from DMT.config import DATA_CONFIG
 
-from pkg_resources import Requirement, resource_filename
 
-path_core = os.path.dirname(os.path.abspath(__file__))
-unit_registry.load_definitions(os.path.join(path_core, "dmt_units.txt"))
+path_core = Path(__file__).resolve().parent
+unit_registry.load_definitions(str(path_core/ "dmt_units.txt"))
 
 # helper for model equations and mcard memoization
 from .utils import print_progress_bar

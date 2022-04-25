@@ -18,10 +18,11 @@ from DMT.core.circuit import (
 
 from DMT.xyce import DutXyce
 
+folder_path = Path(__file__).resolve().parent
 logging.basicConfig(
     level=logging.DEBUG,
     format="%(levelname)s - %(message)s",
-    filename=Path(__file__).resolve().parent.parent.parent / "logs" / "test_xyce_hicum.log",
+    filename=folder_path.parent.parent / "logs" / "test_xyce_hicum.log",
     filemode="w",
 )
 
@@ -177,10 +178,10 @@ def get_dut_build_in():
         ["C", "B", "E", "S", "T"],
         default_module_name="",
         default_subckt_name="",
-        va_file=Path(__file__).resolve().parent / "hicuml2v2p4p0_xyce.va",
+        va_file=folder_path / "hicuml2v2p4p0_xyce.va",
     )
     modelcard.load_model_parameters(
-        Path(__file__).resolve().parent.parent
+        folder_path.parent
         / "test_core_no_interfaces"
         / "test_modelcards"
         / "npn_full.lib",
@@ -204,10 +205,10 @@ def get_dut_va():
         ["C", "B", "E", "S", "T"],
         default_module_name="",
         default_subckt_name="",
-        va_file=Path(__file__).resolve().parent / "hicuml2v2p4p0_xyce.va",
+        va_file=folder_path / "hicuml2v2p4p0_xyce.va",
     )
     modelcard.load_model_parameters(
-        Path(__file__).resolve().parent.parent
+        folder_path.parent
         / "test_core_no_interfaces"
         / "test_modelcards"
         / "npn_full.lib",

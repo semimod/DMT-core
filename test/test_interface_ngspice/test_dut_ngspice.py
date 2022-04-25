@@ -9,11 +9,12 @@ from DMT.core.circuit import Circuit, CircuitElement, RESISTANCE, CAPACITANCE, S
 from DMT.ngspice import DutNgspice
 import numpy as np
 
+folder_path = Path(__file__).resolve().parent
 
 logging.basicConfig(
     level=logging.DEBUG,
     format="%(levelname)s - %(message)s",
-    filename=Path(__file__).resolve().parent.parent.parent / "logs" / "test_ngspice.log",
+    filename=folder_path.parent.parent / "logs" / "test_ngspice.log",
     filemode="w",
 )
 
@@ -168,12 +169,12 @@ def test_ngspice():
         ["C", "B", "E", "S", "T"],
         default_module_name="",
         default_subckt_name="",
-        va_file=Path(__file__).resolve().parent.parent
+        va_file=folder_path.parent
         / "test_core_no_interfaces"
         / "hicumL2V2p4p0_release.va",
     )
     mc_D21.load_model_parameters(
-        Path(__file__).resolve().parent.parent
+        folder_path.parent
         / "test_core_no_interfaces"
         / "test_modelcards"
         / "IHP_ECE704_03_para_D21.mat",

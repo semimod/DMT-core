@@ -7,11 +7,12 @@ from pathlib import Path
 from DMT import config
 from DMT.core import read_data, DataFrame, DatabaseManager
 
+folder_path = Path(__file__).resolve().parent
 
 def test_data_save_load_df():
     db_manager = DatabaseManager()
 
-    df = read_data(Path(__file__).parent / "test_data" / "Spar_vb.mdm")
+    df = read_data(folder_path / "test_data" / "Spar_vb.mdm")
 
     path_tmp = "test/tmp/db_manager/df.p"
     db_manager.save_df(df, path_tmp)
@@ -28,9 +29,9 @@ def test_data_save_load_db_hdf():
     config.USE_HDF5STORE = True
     db_manager = DatabaseManager()
 
-    df_0 = read_data(Path(__file__).parent / "test_data" / "Spar_vb.mdm")
-    df_1 = read_data(Path(__file__).parent / "test_data" / "Spar_vb.mdm")
-    df_2 = read_data(Path(__file__).parent / "test_data" / "Spar_vb.mdm")
+    df_0 = read_data(folder_path / "test_data" / "Spar_vb.mdm")
+    df_1 = read_data(folder_path / "test_data" / "Spar_vb.mdm")
+    df_2 = read_data(folder_path / "test_data" / "Spar_vb.mdm")
 
     # need to clean for db save and load
     nodes = ["B", "C", "E", "S"]
@@ -90,9 +91,9 @@ def test_data_save_load_db_pickle():
     config.USE_HDF5STORE = False
     db_manager = DatabaseManager()
 
-    df_0 = read_data(Path(__file__).parent / "test_data" / "Spar_vb.mdm")
-    df_1 = read_data(Path(__file__).parent / "test_data" / "Spar_vb.mdm")
-    df_2 = read_data(Path(__file__).parent / "test_data" / "Spar_vb.mdm")
+    df_0 = read_data(folder_path / "test_data" / "Spar_vb.mdm")
+    df_1 = read_data(folder_path / "test_data" / "Spar_vb.mdm")
+    df_2 = read_data(folder_path / "test_data" / "Spar_vb.mdm")
 
     # need to clean for db save and load
     nodes = ["B", "C", "E", "S"]
@@ -167,7 +168,7 @@ def test_alternatives():
 def test_pd_frames():
     path_tmp = "test/tmp/db_manager/df.hdf"
     db_manager = DatabaseManager()
-    df_0 = read_data(Path(__file__).parent / "test_data" / "Spar_vb.mdm")
+    df_0 = read_data(folder_path / "test_data" / "Spar_vb.mdm")
     df_0.__class__ = pd.DataFrame
     db = {"df_0": df_0}
 

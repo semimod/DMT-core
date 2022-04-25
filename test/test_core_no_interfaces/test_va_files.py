@@ -6,7 +6,7 @@ from pathlib import Path
 from DMT.core import VAFile
 from DMT.core.va_file import VACode
 
-path_here = Path(__file__).parent
+path_here = Path(__file__).resolve().parent
 path_to_cmc_model = path_here / "test_va_code" / "diode_cmc_160823"
 
 

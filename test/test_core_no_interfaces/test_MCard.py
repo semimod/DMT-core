@@ -13,10 +13,11 @@ from DMT.core.circuit import HICUML2_HBT
 
 from DMT.exceptions import BoundsError, ValueTooLargeError
 
+folder_path = Path(__file__).resolve().parent
 logging.basicConfig(
     level=logging.DEBUG,
     format="%(levelname)s - %(message)s",
-    filename=Path(__file__).resolve().parent.parent.parent / "logs" / "test_mcard_class.log",
+    filename=folder_path.parent.parent / "logs" / "test_mcard_class.log",
     filemode="w",
 )
 
@@ -71,7 +72,7 @@ def test_mcard_load_compare():
         default_subckt_name="",
     )
     mc_D21.load_model_parameters(
-        Path(__file__).resolve().parent / "test_modelcards" / "IHP_ECE704_03_para_D21.mat",
+        folder_path / "test_modelcards" / "IHP_ECE704_03_para_D21.mat",
     )
     mc_N5 = MCard(
         ["C", "B", "E", "S", "T"],
@@ -79,13 +80,13 @@ def test_mcard_load_compare():
         default_subckt_name="",
     )
     mc_N5.load_model_parameters(
-        Path(__file__).resolve().parent / "test_modelcards" / "ITRS_N5.mat",
+        folder_path / "test_modelcards" / "ITRS_N5.mat",
     )
     assert mc_N5 != mc_D21
 
 
 def test_set_va_code():
-    hicum_path = Path(__file__).resolve().parent / "hicumL2V2p4p0_release.va"
+    hicum_path = folder_path / "hicumL2V2p4p0_release.va"
 
     mc = MCard(
         ["A"],
@@ -101,7 +102,7 @@ def test_set_va_code():
     assert set(mc.nodes_list) == {"c", "b", "e", "tnode", "s"}
 
     mc.set_va_codes(
-        Path(__file__).resolve().parent / "test_va_code" / "diode_cmc_160823" / "diode_cmc.va",
+        folder_path / "test_va_code" / "diode_cmc_160823" / "diode_cmc.va",
     )
 
     va_codes_target_names = {
@@ -156,7 +157,7 @@ def test_set_va_code():
 
 def test_read_va_file():
     mc = MCard(
-        ["A"], "Q_HIC", "hicuml2va", va_file=Path(__file__).parent / "hicumL2V2p4p0_release.va"
+        ["A"], "Q_HIC", "hicuml2va", va_file=folder_path / "hicumL2V2p4p0_release.va"
     )
     mc.update_from_vae()  # McHicum(va_file=VA_FILES["L2V2.4.0_release"])
 
@@ -165,7 +166,7 @@ def test_read_va_file():
 
 def test_json():
     mc = MCard(
-        ["A"], "Q_HIC", "hicuml2va", va_file=Path(__file__).parent / "hicumL2V2p4p0_release.va"
+        ["A"], "Q_HIC", "hicuml2va", va_file=folder_path / "hicumL2V2p4p0_release.va"
     )
     mc.set_values({"c10": 3e-15})  # just a little change
 
@@ -181,7 +182,7 @@ def test_json():
     os.remove(file_name)
 
     mc = MCard(
-        ["A"], "Q_HIC", "hicuml2va", va_file=Path(__file__).parent / "hicumL2V2p4p0_release.va"
+        ["A"], "Q_HIC", "hicuml2va", va_file=folder_path / "hicumL2V2p4p0_release.va"
     )
     with pytest.raises(KeyError):
         mc.set_values({"is": 3e-15})  # just a little change
@@ -189,7 +190,7 @@ def test_json():
 
 def test_load_MCard_v1():
     """Load a version 1 model"""
-    file_name = Path(__file__).resolve().parent / "test_modelcards" / "N3_MCard_v1.json"
+    file_name = folder_path / "test_modelcards" / "N3_MCard_v1.json"
     mc_read = MCard.load_json(file_name)
 
     assert mc_read.va_codes is None  # path can not be resolved!

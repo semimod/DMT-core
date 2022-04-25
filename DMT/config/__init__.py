@@ -33,10 +33,10 @@ name = "config"
 
 from pathlib import Path
 import yaml
-import os
+import pkgutil
 
-path_config = os.path.dirname(os.path.abspath(__file__))
-default_config_file = os.path.join(path_config, "DMT_default_config.yaml")
+path_config = Path(__file__).resolve().parent
+default_config_file = path_config / "DMT_default_config.yaml"
 with open(default_config_file) as yaml_data_file:
     DATA_CONFIG = yaml.safe_load(yaml_data_file)
 
@@ -77,29 +77,25 @@ except FileNotFoundError:
 
 for key, str_path in DATA_CONFIG["directories"].items():
     try:
-        DATA_CONFIG["directories"][key] = Path(str_path).expanduser()
+        DATA_CONFIG["directories"][key] = Path(str_path).expanduser().resolve()
     except TypeError:
         pass
 
-import pkgutil
 
 # measurement data overview report template
 if DATA_CONFIG["directories"]["libautodoc"] is None:
-    package = pkgutil.get_loader("DMT.core")
-    if package is not None:
-        path_libautodoc_default = Path(package.get_filename()).parent.parent / "libautodoc_template"
-        DATA_CONFIG["directories"]["libautodoc"] = path_libautodoc_default.expanduser()
+    DATA_CONFIG["directories"]["libautodoc"] = path_config.parent / "libautodoc_template"
 else:
     DATA_CONFIG["directories"]["libautodoc"] = Path(
         DATA_CONFIG["directories"]["libautodoc"]
-    ).expanduser()
+    ).expanduser().resolve()
 
 # xtraction result overview report template
 if DATA_CONFIG["directories"]["autodoc"] is None:
     package = pkgutil.get_loader("DMT.extraction")
     if package is not None:
-        path_autodoc_default = Path(package.get_filename()).parent.parent / "autodoc_template"
-        DATA_CONFIG["directories"]["autodoc"] = Path(path_autodoc_default).expanduser()
+        path_autodoc_default = Path(package.get_filename()).resolve().parent.parent / "autodoc_template"
+        DATA_CONFIG["directories"]["autodoc"] = Path(path_autodoc_default)
 else:
     DATA_CONFIG["directories"]["autodoc"] = Path(DATA_CONFIG["directories"]["autodoc"]).expanduser()
 

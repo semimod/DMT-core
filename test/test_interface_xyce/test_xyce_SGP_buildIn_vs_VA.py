@@ -19,10 +19,11 @@ from DMT.core.circuit import (
 from DMT.xyce import DutXyce
 
 
+folder_path = Path(__file__).resolve().parent
 logging.basicConfig(
     level=logging.DEBUG,
     format="%(levelname)s - %(message)s",
-    filename=Path(__file__).resolve().parent.parent.parent / "logs" / "test_xyce_sgp.log",
+    filename=folder_path.parent.parent / "logs" / "test_xyce_sgp.log",
     filemode="w",
 )
 
@@ -174,11 +175,11 @@ def get_dut_build_in():
         "QSGP1",
         SGP_BJT,
         1.0,
-        va_file=Path(__file__).resolve().parent / "sgp_v1p0.va",
+        va_file=folder_path / "sgp_v1p0.va",
     )
     modelcard.default_module_name = SGP_BJT
     modelcard.get_circuit = types.MethodType(get_circuit, modelcard)
-    modelcard.load_model_parameters(Path(__file__).resolve().parent / "bjt.lib")
+    modelcard.load_model_parameters(folder_path / "bjt.lib")
     return DutXyce(
         None,
         DutType.npn,
@@ -197,10 +198,10 @@ def get_dut_va():
         "QSGP2",
         SGP_BJT,
         1.0,
-        va_file=Path(__file__).resolve().parent / "sgp_v1p0.va",
+        va_file=folder_path / "sgp_v1p0.va",
     )
     modelcard.get_circuit = types.MethodType(get_circuit, modelcard)
-    modelcard.load_model_parameters(Path(__file__).resolve().parent / "bjt.lib")
+    modelcard.load_model_parameters(folder_path / "bjt.lib")
     return DutXyce(
         None,
         DutType.npn,

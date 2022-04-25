@@ -2,12 +2,13 @@ import logging
 from pathlib import Path
 from DMT.core import DutMeas, DutType, DocuDutLib, DutLib, specifiers, sub_specifiers
 
+folder_path = Path(__file__).resolve().parent
 # -->Start main function
 # --->Setup for log
 logging.basicConfig(
     level=logging.DEBUG,
     format="%(levelname)s - %(message)s",
-    filename=Path(__file__).resolve().parent.parent.parent / "logs" / "test_dut_lib.log",
+    filename=folder_path.parent.parent / "logs" / "test_dut_lib.log",
     filemode="w",
 )
 
@@ -48,7 +49,7 @@ def create_lib():
     )
     # --->Add source measurement information in dmt and to duts
     lib.import_directory(
-        import_dir=Path(__file__).parent / "test_data",
+        import_dir=folder_path / "test_data",
         dut_filter=filter_dut,
         dut_level=1,
         force=True,
@@ -67,8 +68,8 @@ def create_lib():
         width=float(0.25e-6),
         length=float(0.25e-6),
     )
-    dut_short.add_data(Path(__file__).parent / "test_data" / "dummy_short_freq.mdm", key="ac")
-    dut_short.add_data(Path(__file__).parent / "test_data" / "short_dc.mdm", key="dc")
+    dut_short.add_data(folder_path / "test_data" / "dummy_short_freq.mdm", key="ac")
+    dut_short.add_data(folder_path / "test_data" / "short_dc.mdm", key="dc")
     dut_open = DutMeas(
         database_dir=Path("test") / "tmp",
         name="dut_open_npn",
@@ -80,7 +81,7 @@ def create_lib():
         width=float(0.25e-6),
         length=float(0.25e-6),
     )
-    dut_open.add_data(Path(__file__).parent / "test_data" / "dummy_open_freq.mdm", key="ac")
+    dut_open.add_data(folder_path / "test_data" / "dummy_open_freq.mdm", key="ac")
     lib.add_duts([dut_short, dut_open])
 
     # --->Clean the names of all dataframes, e.g. VB=>V_B
@@ -112,7 +113,7 @@ def test_docu():
     docu = DocuDutLib(lib_test)
 
     docu.generate_docu(
-        Path(__file__).resolve().parent.parent / "tmp" / "docu_dut_lib",
+        folder_path.parent / "tmp" / "docu_dut_lib",
         plot_specs=[{"type": "gummel_vbc", "key": "fgummel"}],
         show=False,  # not possible in CI/CD
         save_tikz_settings={

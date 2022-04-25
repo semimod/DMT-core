@@ -3,9 +3,10 @@ import pytest
 from pathlib import Path
 from DMT.core import specifiers, sub_specifiers, read_elpa, read_mdm, Sweep, get_sweepdef
 
+folder_path = Path(__file__).resolve().parent
 
 def test_errors():
-    df_elpa = read_elpa(Path(__file__).parent / "HBT_vbc.elpa")
+    df_elpa = read_elpa(folder_path / "HBT_vbc.elpa")
 
     with pytest.raises(IOError):  # sweep is tried created from 2 forced currents
         _sweep = get_sweepdef(
@@ -32,7 +33,7 @@ def test_convert_elpa():
     col_vce_forced = specifiers.VOLTAGE + ["C", "E"] + sub_specifiers.FORCED
     col_vbc_forced = specifiers.VOLTAGE + ["B", "C"] + sub_specifiers.FORCED
 
-    df_elpa = read_elpa(Path(__file__).parent / "HBT_vbc.elpa")
+    df_elpa = read_elpa(folder_path / "HBT_vbc.elpa")
 
     df_elpa[specifiers.VOLTAGE + "B" + sub_specifiers.FORCED] = df_elpa["VBE"]
     df_elpa[specifiers.VOLTAGE + "E" + sub_specifiers.FORCED] = df_elpa["VBE"] * 0
@@ -74,7 +75,7 @@ def test_convert_elpa():
         ]
     )
 
-    df_elpa = read_elpa(Path(__file__).parent / "HBT_vce.elpa")
+    df_elpa = read_elpa(folder_path / "HBT_vce.elpa")
 
     df_elpa[specifiers.VOLTAGE + "B" + sub_specifiers.FORCED] = df_elpa["VBE"]
     df_elpa[specifiers.VOLTAGE + "E" + sub_specifiers.FORCED] = df_elpa["VBE"] * 0
@@ -125,7 +126,7 @@ def test_convert_mdm():
     col_vce_forced = specifiers.VOLTAGE + ["C", "E"] + sub_specifiers.FORCED
     col_vbc_forced = specifiers.VOLTAGE + ["B", "C"] + sub_specifiers.FORCED
     # load test measurements
-    df_mdm = read_mdm(Path(__file__).parent / "test_data" / "Spar_vb.mdm")
+    df_mdm = read_mdm(folder_path / "test_data" / "Spar_vb.mdm")
 
     # correct data format of measurements
     nodes = ["B", "C", "E", "S"]

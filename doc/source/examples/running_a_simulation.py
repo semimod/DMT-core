@@ -7,8 +7,7 @@ from DMT.xyce import DutXyce
 from DMT.ngspice import DutNgspice
 
 # path to DMT test cases
-path_test = Path("test")
-path_test = Path("DMT_core/test")
+path_test = Path(__file__).resolve().parent.parent.parent.parent / "test"
 
 # load a hicum/L2 modelcard library by loading the corresponding *va code.
 modelcard = MCard(
