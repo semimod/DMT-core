@@ -20,6 +20,7 @@
 
 from pint import UnitRegistry
 from pathlib import Path
+
 try:
     from semver.version import Version as VersionInfo
 except ImportError:
@@ -45,7 +46,7 @@ from DMT.config import DATA_CONFIG
 
 
 path_core = Path(__file__).resolve().parent
-unit_registry.load_definitions(str(path_core/ "dmt_units.txt"))
+unit_registry.load_definitions(str(path_core / "dmt_units.txt"))
 
 # helper for model equations and mcard memoization
 from .utils import print_progress_bar

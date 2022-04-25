@@ -181,10 +181,7 @@ def get_dut_build_in():
         va_file=folder_path / "hicuml2v2p4p0_xyce.va",
     )
     modelcard.load_model_parameters(
-        folder_path.parent
-        / "test_core_no_interfaces"
-        / "test_modelcards"
-        / "npn_full.lib",
+        folder_path.parent / "test_core_no_interfaces" / "test_modelcards" / "npn_full.lib",
     )
     modelcard.update_from_vae(remove_old_parameters=True)
     modelcard.get_circuit = types.MethodType(get_circuit, modelcard)
@@ -208,10 +205,7 @@ def get_dut_va():
         va_file=folder_path / "hicuml2v2p4p0_xyce.va",
     )
     modelcard.load_model_parameters(
-        folder_path.parent
-        / "test_core_no_interfaces"
-        / "test_modelcards"
-        / "npn_full.lib",
+        folder_path.parent / "test_core_no_interfaces" / "test_modelcards" / "npn_full.lib",
     )
     modelcard.update_from_vae(remove_old_parameters=True)
     modelcard.get_circuit = types.MethodType(get_circuit, modelcard)

@@ -169,9 +169,7 @@ def test_ngspice():
         ["C", "B", "E", "S", "T"],
         default_module_name="",
         default_subckt_name="",
-        va_file=folder_path.parent
-        / "test_core_no_interfaces"
-        / "hicumL2V2p4p0_release.va",
+        va_file=folder_path.parent / "test_core_no_interfaces" / "hicumL2V2p4p0_release.va",
     )
     mc_D21.load_model_parameters(
         folder_path.parent

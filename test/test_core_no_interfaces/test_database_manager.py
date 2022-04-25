@@ -9,6 +9,7 @@ from DMT.core import read_data, DataFrame, DatabaseManager
 
 folder_path = Path(__file__).resolve().parent
 
+
 def test_data_save_load_df():
     db_manager = DatabaseManager()
 

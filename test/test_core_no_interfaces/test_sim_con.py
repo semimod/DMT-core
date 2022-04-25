@@ -9,6 +9,8 @@ from DMT.core import MCard
 
 
 folder_path = Path(__file__).resolve().parent
+
+
 def test_run_sim():
     """Creates a sweep and a dummy dut to run using the simulation controller."""
     sim_con = SimCon(n_core=4, t_max=5)
@@ -36,9 +38,7 @@ def test_run_sim():
     othervar = {"TEMP": 300, "w": 10, "l": 0.25}
     sweep = Sweep("test_sweep", sweepdef=sweepdef, othervar=othervar)
 
-    mcard = MCard(
-        ["A"], "Q_HIC", "hicuml2va", va_file=folder_path / "hicumL2V2p4p0_release.va"
-    )
+    mcard = MCard(["A"], "Q_HIC", "hicuml2va", va_file=folder_path / "hicumL2V2p4p0_release.va")
     mcard.load_model_parameters(
         folder_path / "test_modelcards" / "IHP_ECE704_03_para_D21.mat",
     )

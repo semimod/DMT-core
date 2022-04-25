@@ -86,15 +86,17 @@ for key, str_path in DATA_CONFIG["directories"].items():
 if DATA_CONFIG["directories"]["libautodoc"] is None:
     DATA_CONFIG["directories"]["libautodoc"] = path_config.parent / "libautodoc_template"
 else:
-    DATA_CONFIG["directories"]["libautodoc"] = Path(
-        DATA_CONFIG["directories"]["libautodoc"]
-    ).expanduser().resolve()
+    DATA_CONFIG["directories"]["libautodoc"] = (
+        Path(DATA_CONFIG["directories"]["libautodoc"]).expanduser().resolve()
+    )
 
 # xtraction result overview report template
 if DATA_CONFIG["directories"]["autodoc"] is None:
     package = pkgutil.get_loader("DMT.extraction")
     if package is not None:
-        path_autodoc_default = Path(package.get_filename()).resolve().parent.parent / "autodoc_template"
+        path_autodoc_default = (
+            Path(package.get_filename()).resolve().parent.parent / "autodoc_template"
+        )
         DATA_CONFIG["directories"]["autodoc"] = Path(path_autodoc_default)
 else:
     DATA_CONFIG["directories"]["autodoc"] = Path(DATA_CONFIG["directories"]["autodoc"]).expanduser()
