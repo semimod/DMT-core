@@ -1,12 +1,15 @@
 """testing the plotting data delivery. Plotting is not possible in the CI...
 """
 import os
+from pathlib import Path
 from DMT.core import read_data, Plot, specifiers
+
+folder_path = Path(__file__).resolve().parent
 
 
 def read_mdm():
-    df = read_data(os.path.join("test", "test_core_no_interfaces", "test_data", "short_freq.mdm"))
-    df = read_data(os.path.join("test", "test_core_no_interfaces", "test_data", "short_dc.mdm"))
+    df = read_data(folder_path / "test_data" / "short_freq.mdm")
+    df = read_data(folder_path / "test_data" / "short_dc.mdm")
 
 
 def test_label_generation():

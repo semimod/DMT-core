@@ -178,9 +178,9 @@ class DutView(object):
             self._database_dir = DATA_CONFIG["directories"]["database"]
         else:
             if isinstance(database_dir, Path):
-                self._database_dir = database_dir.expanduser()
+                self._database_dir = database_dir.expanduser().resolve()
             else:
-                self._database_dir = Path(database_dir).expanduser()
+                self._database_dir = Path(database_dir).expanduser().resolve()
 
         self.dut_type = dut_type
 

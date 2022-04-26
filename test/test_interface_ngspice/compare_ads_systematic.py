@@ -1,19 +1,22 @@
 """ test ngspice vs ADS using a real modelcard in a systematic way.
 """
+import numpy as np
+import copy
 import logging
-import os.path
+from pathlib import Path
 from DMT.core import SimCon, Plot, DutType, Sweep, specifiers, McParameter, sub_specifiers
 from DMT.ngspice import DutNgspice
 from DMT.ADS import DutAds
 from DMT.hl2 import McHicum, Hl2Model, VA_FILES
 
-import numpy as np
-import copy
+
+folder_path = Path(__file__).resolve().parent
+test_path = folder_path.parent
 
 logging.basicConfig(
     level=logging.DEBUG,
     format="%(levelname)s - %(message)s",
-    filename=os.path.join("logs", "test_ADS.log"),
+    filename=folder_path.parent.parent / "logs" / "test_ADS_systematic.log",
     filemode="w",
 )
 
@@ -169,11 +172,7 @@ if __name__ == "__main__":
     show = True  # If True, plot in maptplotlib, else generate Tex
 
     # load a modelcard
-    mc = McHicum(
-        load_model_from_path=os.path.join(
-            "test", "test_interface_ngspice", "hicum_test_modelcard.lib"
-        ),
-    )
+    mc = McHicum(load_model_from_path=folder_path / "hicum_test_modelcard.lib")
 
     mc = mc.get_clean_modelcard()
     mc.set_values(
@@ -591,9 +590,8 @@ if __name__ == "__main__":
         width = "4.5in"
 
         doc = Document()
-        fig_dir = os.path.abspath(
-            os.path.join("test", "test_interface_ngspice", "documentation", "figs")
-        )
+        fig_dir = folder_path / "documentation", "figs"
+
         with doc.create(Section("Comparison ADS/NGspice")):
             doc.append(
                 NoEscape(
@@ -607,9 +605,7 @@ if __name__ == "__main__":
                     )
                     with doc.create(Figure(position="h!")) as _plot:
                         _plot.append(
-                            CommandInput(
-                                arguments=Arguments('"' + os.path.join(fig_dir, plt_name) + '"')
-                            )
+                            CommandInput(arguments=Arguments('"' + str(fig_dir / plt_name) + '"'))
                         )
                         _plot.add_caption(NoEscape(plt.name))
                         _plot.append(
@@ -618,8 +614,4 @@ if __name__ == "__main__":
                             )
                         )
 
-        doc.generate_tex(
-            os.path.join(
-                "test", "test_interface_ngspice", "documentation", "comparison_ngspice_ads"
-            )
-        )
+        doc.generate_tex(folder_path / "documentation" / "comparison_ngspice_ads")

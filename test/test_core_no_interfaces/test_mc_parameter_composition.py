@@ -3,20 +3,21 @@
 import os
 import shutil
 import copy
-import json
 import tempfile
 import pytest
 import numpy as np
+from pathlib import Path
 from DMT.core import unit_registry, McParameter, McParameterCollection
 from DMT.exceptions import (
     BoundsError,
-    ValueAtBoundsError,
     ValueTooLargeError,
-    ValueTooSmallError,
     ValueExcludedError,
     ParaExistsError,
 )
 from DMT.external import Tex
+
+folder_path = Path(__file__).resolve().parent
+test_path = folder_path.parent
 
 
 def test_mc_parameter():
@@ -279,7 +280,7 @@ def test_mc_parameter_collection_file_methods():
     mc_comp_2.add(McParameter("y", value=1, minval=0, maxval=10))
     mc_comp_2.add(McParameter("z", value=1, minval=0, maxval=10))
 
-    shutil.rmtree(os.path.join("test", "tmp", "test_comp"), ignore_errors=True)
+    shutil.rmtree(str(test_path / "tmp" / "test_comp"), ignore_errors=True)
     # save and load
 
     # print part of composition
@@ -289,13 +290,11 @@ def test_mc_parameter_collection_file_methods():
     )
 
     # print to file:
-    mc_comp_2.print_to_file(os.path.join("test", "tmp", "test_comp", "mc_comp_2"), create_dir=True)
+    mc_comp_2.print_to_file(test_path / "tmp" / "test_comp" / "mc_comp_2", create_dir=True)
 
-    with open(os.path.join("test", "tmp", "test_comp", "mc_comp_2.txt"), "r") as comp_file:
-        assert (
-            comp_file.read()
-            == "  x            = 1.00000e+00   y            = 1.00000e+00   z            = 1.00000e+00 \n"
-        )
+    assert (
+        test_path / "tmp" / "test_comp" / "mc_comp_2.txt"
+    ).read_text() == "  x            = 1.00000e+00   y            = 1.00000e+00   z            = 1.00000e+00 \n"
 
 
 def test_mc_parameter_collection_properties():

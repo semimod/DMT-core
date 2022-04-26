@@ -1,5 +1,5 @@
-import os.path
 import pytest
+from pathlib import Path
 from DMT.core import DataFrame
 from DMT.core import (
     specifiers,
@@ -9,6 +9,9 @@ from DMT.core import (
     SpecifierStr,
 )
 from DMT.core import DatabaseManager
+
+folder_path = Path(__file__).resolve().parent
+test_path = folder_path.parent
 
 
 def test_index_objects():
@@ -95,15 +98,15 @@ def column_save_load():
     a = DataFrame({SpecifierStr("V", "B"): [1]})
 
     dbm = DatabaseManager()
-    dbm.save_df(a, os.path.join("test", "tmp", "test_df.p"))
-    b = dbm.load_df(os.path.join("test", "tmp", "test_df.p"))
+    dbm.save_df(a, test_path / "tmp" / "test_df.p")
+    b = dbm.load_df(test_path / "tmp" / "test_df.p")
 
     assert isinstance(a.columns[0], SpecifierStr)
     assert isinstance(b.columns[0], SpecifierStr)
 
     data = {"a": a, "b": b}
-    dbm.save_db(os.path.join("test", "tmp", "test_db.p"), data)
-    data_loaded = dbm.load_db(os.path.join("test", "tmp", "test_db.p"))
+    dbm.save_db(test_path / "tmp" / "test_db.p", data)
+    data_loaded = dbm.load_db(test_path / "tmp" / "test_db.p")
 
     assert isinstance(data_loaded["a"].columns[0], SpecifierStr)
     assert data_loaded["a"].columns[0] == data["a"].columns[0]

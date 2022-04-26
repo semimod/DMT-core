@@ -52,7 +52,8 @@ for _index, vbc, data_vbc in data.iter_unique_col(col_vbc, decimals=3):
     )
 
 # show the plot (DMT has three plotting back-ends: matplotlib, pyqtgraph and tikz)
-plot.plot_pyqtgraph()
+# plot.plot_pyqtgraph()
+plot.plot_py()
 # save the plot as tikz and build it
 plot.save_tikz(
     path_static,

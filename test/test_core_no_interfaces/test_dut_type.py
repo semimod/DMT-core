@@ -1,16 +1,17 @@
 """ Testing the class DMT.core.DutType """
 
 import logging
-import os.path
+from pathlib import Path
 
 # import pytest
 from DMT.core.dut_type import DutType
 
+folder_path = Path(__file__).resolve().parent
 
 logging.basicConfig(
     level=logging.DEBUG,
     format="%(levelname)s - %(message)s",
-    filename=os.path.join("logs", "test_dut_type.log"),
+    filename=folder_path.parent.parent / "logs" / "test_dut_type.log",
     filemode="w",
 )
 

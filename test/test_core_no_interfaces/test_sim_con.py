@@ -9,6 +9,7 @@ from DMT.core import MCard
 
 
 folder_path = Path(__file__).resolve().parent
+test_path = folder_path.parent
 
 
 def test_run_sim():
@@ -43,14 +44,16 @@ def test_run_sim():
         folder_path / "test_modelcards" / "IHP_ECE704_03_para_D21.mat",
     )
 
-    dut = DutDummy("test", "dummy", DutType.npn, mcard, nodes=None, reference_node="E", force=True)
+    dut = DutDummy(
+        test_path, "dummy", DutType.npn, mcard, nodes=None, reference_node="E", force=True
+    )
 
     for _i in range(10):
         sim_con.append_simulation(dut, sweep)
 
     sim_con.run_and_read(force=True)
 
-    os.remove(os.path.join("test", "iv.p"))
+    (test_path / "iv.p").unlink()
 
 
 if __name__ == "__main__":

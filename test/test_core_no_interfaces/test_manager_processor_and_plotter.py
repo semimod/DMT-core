@@ -1,9 +1,9 @@
 import logging
-import os.path
 from pathlib import Path
 from DMT.core import DutMeas, DutType, Plot, DutLib
 
 folder_path = Path(__file__).resolve().parent
+test_path = folder_path.parent
 # -->Start main function
 # --->Setup for log
 logging.basicConfig(
@@ -27,7 +27,7 @@ def test_lib_import():
             return None
         else:
             dut_transistor = DutMeas(
-                database_dir=os.path.join("test", "tmp"),
+                database_dir=test_path / "tmp",
                 dut_type=DutType.npn,
                 force=True,
                 wafer=96,
@@ -42,7 +42,7 @@ def test_lib_import():
 
     # --->Arrange DMT class to dmt
     lib = DutLib(
-        save_dir=os.path.join("test", "tmp"),
+        save_dir=test_path / "tmp",
         force=True,
         AC_filter_names=[("freq_vbc", "ac")],
         DC_filter_names=[("fgummel", "dc")],
@@ -59,7 +59,7 @@ def test_lib_import():
     # %%
     # --->Add the open and short dummies to the lib
     dut_short = DutMeas(
-        database_dir=os.path.join("test", "tmp"),
+        database_dir=test_path / "tmp",
         name="dut_short_npn",
         dut_type=DutType.deem_short_bjt,
         reference_node="E",
@@ -72,7 +72,7 @@ def test_lib_import():
     dut_short.add_data(folder_path / "test_data" / "dummy_short_freq.mdm", key="ac")
     dut_short.add_data(folder_path / "test_data" / "short_dc.mdm", key="dc")
     dut_open = DutMeas(
-        database_dir=os.path.join("test", "tmp"),
+        database_dir=test_path / "tmp",
         name="dut_open_npn",
         dut_type=DutType.deem_open_bjt,
         reference_node="E",
@@ -118,7 +118,7 @@ def test_lib_import_lvl1():
             return None
         else:
             dut_transistor = DutMeas(
-                database_dir=os.path.join("test", "tmp"),
+                database_dir=test_path / "tmp",
                 dut_type=DutType.npn,
                 force=True,
                 wafer=96,
@@ -133,7 +133,7 @@ def test_lib_import_lvl1():
 
     # --->Arrange DMT class to dmt
     lib = DutLib(
-        save_dir=os.path.join("test", "tmp"),
+        save_dir=test_path / "tmp",
         force=True,
         AC_filter_names=[("freq_vbc", "ac")],
         DC_filter_names=[("fgummel", "dc")],
@@ -150,7 +150,7 @@ def test_lib_import_lvl1():
     # %%
     # --->Add the open and short dummies to the lib
     dut_short = DutMeas(
-        database_dir=os.path.join("test", "tmp"),
+        database_dir=test_path / "tmp",
         name="dut_short_npn",
         dut_type=DutType.deem_short_bjt,
         reference_node="E",
@@ -163,7 +163,7 @@ def test_lib_import_lvl1():
     dut_short.add_data(folder_path / "test_data" / "dummy_short_freq.mdm", key="ac")
     dut_short.add_data(folder_path / "test_data" / "short_dc.mdm", key="dc")
     dut_open = DutMeas(
-        database_dir=os.path.join("test", "tmp"),
+        database_dir=test_path / "tmp",
         name="dut_open_npn",
         dut_type=DutType.deem_open_bjt,
         reference_node="E",
