@@ -17,6 +17,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - "bias_val" variable in DutHdev.get_bias_info was unset
 - Some possible runtime errors fixed thanks to pylance linting.
 
+## Deprecated
+
+- The user DMT configuration file will be moved to `$XDG_CONFIG_HOME/DMT/DMT_config.yaml` for linux and MacOS, with defaulting to `~/.config/DMT/DMT_config.yaml`. For Windows, the new default will be `%LOCALAPPDATA%\DMT\DMT_config.yaml`
+
 ## [1.5.0-rc.3] - 2022.04.15
 
 ### Added

@@ -98,20 +98,23 @@ If you want to use such interfaces, you need:
 * the corresponding DMT module
 * the other software
 
-Using other software may require DMT to be configured for your user and also for your current
-working directory.
-The default config file is placed inside the DMT python package (``DMT/config/DMT_default_config.py``) and can be
-copied manually to your ``~/.DMT`` (for Linux) or ``C:\Users\<CurrentUserName>\.DMT`` for windows when installing DMT. In this file you also can check for most of the possible configuration options DMT offers.
-Each DMT module should contain documentation that explains the relevant configuration options.
+Using other software may require DMT to be configured for your user and also for your current working directory. DMT has 3 different configuration file locations: 
 
-In example to use ngspice on a Unix system one needs to type
+* the local config the working directory ``$PWD/DMT_config.yaml``,
+* the user config in 
+  * ``%LOCALAPPDATA%\DMT\DMT_config.yaml`` on Windows or 
+  * ``$XDG_CONFIG_HOME/DMT/DMT_config.yaml`` on Linux and MacOS with ``$XDG_CONFIG_HOME`` defaulting to ``~/.config`` and
+* the default config in the DMT installation directory (for example: ``.../venv/lib/python3.10/site-packages/DMT/config/DMT_config.py``)
+
+In this last file you can check for the possible configuration options DMT offers and also copy the file altogether if needed. Each DMT module should additionally contain documentation that explains the relevant configuration options.
+
+For example to use ngspice on a Unix system the command is
 
 .. code:: bash
 
     ngspice
 
-into the console. This command may be different and needs to be known to DMT.
-If you want to change this command for your user change in ``~/.DMT/DMT_config.yaml``
+If this is different on your machine (for example because the `ngspice` callable is not in your path), you should to change this command for your user or workspace config 
 
 .. code:: yaml
 
@@ -119,19 +122,7 @@ If you want to change this command for your user change in ``~/.DMT/DMT_config.y
         NGSPICE:    ngspice # Command to execute the circuit simulator ngspice.
 
 
-This changes the default bash command to start the software.
-
-Additionally you can add a DMT configuration file ``DMT_config.yaml`` into your working directory.
-The configuration in the working directory will overwrite the user configuration on the home directory and the default configuration.
-This can be usefully if you have different projects on the same user, which need different database directories or custom_specifiers.
-
-DMT always tries to load:
-
-* the default config in the DMT installation directory (for example: ``venv/lib/python3.10/site-packages/DMT/config/DMT_default_config.py``)
-* the user config in ``~/.DMT/DMT_config.yaml``
-* the local config the working directory ``$PWD/DMT_config.yaml``
-
-The default config is overwritten by the existing keys from the user config, which is in turn overwritten by the existing keys from the local config. So if a key is not given in the local config, the user config value is used, if it is given there, if not the default value is employed.
+The configuration in the working directory will overwrite the user configuration on the home directory and the default configuration. This can be usefully if you have different projects on the same user, which need different database directories or custom_specifiers.
 
 More installation details
 ----------------------------

@@ -4,7 +4,7 @@ import pytest
 import numpy as np
 import pandas as pd
 from pathlib import Path
-from DMT import config
+from DMT.config import DATA_CONFIG
 from DMT.core import read_data, DataFrame, DatabaseManager
 
 folder_path = Path(__file__).resolve().parent
@@ -26,8 +26,8 @@ def test_data_save_load_df():
 
 
 def test_data_save_load_db_hdf():
-    temp = config.USE_HDF5STORE
-    config.USE_HDF5STORE = True
+    temp = DATA_CONFIG["useHDF5Store"]
+    DATA_CONFIG["useHDF5Store"] = True
     db_manager = DatabaseManager()
 
     df_0 = read_data(folder_path / "test_data" / "Spar_vb.mdm")
@@ -84,12 +84,12 @@ def test_data_save_load_db_hdf():
     assert np.all(np.isclose(db["df_0"]["V_B"], db_load["df_0"]["V_B"]))
 
     db_manager.del_db(path_tmp)
-    config.USE_HDF5STORE = temp
+    DATA_CONFIG["useHDF5Store"] = temp
 
 
 def test_data_save_load_db_pickle():
-    temp = config.USE_HDF5STORE
-    config.USE_HDF5STORE = False
+    temp = DATA_CONFIG["useHDF5Store"]
+    DATA_CONFIG["useHDF5Store"] = False
     db_manager = DatabaseManager()
 
     df_0 = read_data(folder_path / "test_data" / "Spar_vb.mdm")
@@ -146,7 +146,7 @@ def test_data_save_load_db_pickle():
     assert np.all(np.isclose(db["df_0"]["V_B"], db_load["df_0"]["V_B"]))
 
     db_manager.del_db(path_tmp)
-    config.USE_HDF5STORE = temp
+    DATA_CONFIG["useHDF5Store"] = temp
 
 
 def test_errors():
@@ -183,9 +183,9 @@ def test_pd_frames():
 
 
 if __name__ == "__main__":
-    # test_data_save_load_df()
-    # test_data_save_load_db_hdf()
-    # test_data_save_load_db_pickle()
-    # test_errors()
+    test_data_save_load_df()
+    test_data_save_load_db_hdf()
+    test_data_save_load_db_pickle()
+    test_errors()
     test_alternatives()
-    # test_pd_frames()
+    test_pd_frames()

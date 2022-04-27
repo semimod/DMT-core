@@ -24,6 +24,10 @@ After installing python 3.8 or later, simply install the release version using
 
 For more information have a look at our [install guide](https://dmt-development.gitlab.io/dmt-core/installation/install_dmt.html)
 
+Currently DMT is developed mostly on Ubuntu using Python 3.10. So for the easiest install this is the best supported plattform. 
+If you want or have to use Windows and MacOS there may be more dependency and installation issues, although needed projects we use support these plattforms. Please report these issues to us. In our install guide, we collect guides to solve the already known issues.
+
+
 ### Pull Request Process
 
 1. Ensure any install or build dependencies are removed before the end of the layer when doing a build.

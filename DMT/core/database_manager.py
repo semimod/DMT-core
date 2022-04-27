@@ -32,7 +32,7 @@ import warnings
 import _pickle as cpickle
 from pathlib import Path
 
-from DMT import config
+from DMT.config import DATA_CONFIG
 from DMT.core.data_frame import DataFrame
 from DMT.core.singleton import Singleton
 from DMT.core.naming import SpecifierStr
@@ -84,7 +84,7 @@ class DatabaseManager(object, metaclass=Singleton):
 
         data = {}
 
-        if config.USE_HDF5STORE:
+        if DATA_CONFIG["useHDF5Store"]:
             try:
                 db = pd.io.pytables.HDFStore(
                     str(db_dir.expanduser()), mode="r", complevel=9, complib="zlib"
@@ -156,7 +156,7 @@ class DatabaseManager(object, metaclass=Singleton):
 
             return
 
-        if config.USE_HDF5STORE:
+        if DATA_CONFIG["useHDF5Store"]:
             db = pd.io.pytables.HDFStore(
                 str(db_dir.expanduser()), mode="w", complevel=9, complib="zlib"
             )  # file is created if it does not exist
