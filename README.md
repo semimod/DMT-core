@@ -24,17 +24,12 @@ After installing python 3.8 or later, simply install the release version using
 
 For more information have a look at our [install guide](https://dmt-development.gitlab.io/dmt-core/installation/install_dmt.html)
 
-Currently DMT is developed mostly on Ubuntu using Python 3.10. So for the easiest install this is the best supported plattform. 
+Currently DMT is developed mostly on Ubuntu using Python 3.10. So for the easiest install this is the best supported plattform.
 If you want or have to use Windows and MacOS there may be more dependency and installation issues, although needed projects we use support these plattforms. Please report these issues to us. In our install guide, we collect guides to solve the already known issues.
 
+## Questions, bugs and feature requests
 
-### Pull Request Process
-
-1. Ensure any install or build dependencies are removed before the end of the layer when doing a build.
-2. If necessary add additional documentation to the new features you implemented.
-3. Update the CHANGELOG with your changes and increase the version numbers in the changed files to the new version that this Pull Request would represent. The versioning scheme we use is [SemVer](http://semver.org/).
-4. Update the README.md with details of changes to the interface, this includes new environment variables, exposed ports, useful file locations and container parameters.
-5. You may assign to merge the Pull Request to one of the owners or maintainers to execute the merge.
+If you have any questions or issues regarding DMT, we kindly ask you to contact us. Either mail us directly or open an issue [here](https://gitlab.com/dmt-development/dmt-core/-/issues). There we have prepared [several templates](https://docs.gitlab.com/ee/user/project/description_templates.html#use-the-templates) for the description.
 
 ## Authors
 
@@ -50,11 +45,8 @@ Contact Markus or Mario, if you are interested to join the team permanently.
 
 ### Pull Request Process
 
-1. Ensure any install or build dependencies are removed before the end of the layer when doing a build.
-2. If necessary add additional documentation to the new features you implemented.
-3. Update the CHANGELOG with your changes and increase the version numbers in the changed files to the new version that this Pull Request would represent. The versioning scheme we use is [SemVer](http://semver.org/).
-4. Update the README.md with details of changes to the interface, this includes new environment variables, exposed ports, useful file locations and container parameters.
-5. You may assign to merge the Pull Request to one of the owners or maintainers to execute the merge.
+If you want to supply a new feature, you have implemented in your fork, to DMT, we are looking forward to your [merge request](https://gitlab.com/dmt-development/dmt-core/-/merge_requests/new). There we have a template for the merge request, including a checklist of suggested steps.
+
 
 ## License
 
