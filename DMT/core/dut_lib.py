@@ -373,7 +373,7 @@ class DutLib(object):
             DutViews loaded from the given directory
         """
         if not isinstance(import_dir, Path):
-            import_dir = Path(import_dir)
+            import_dir = Path(import_dir).resolve()
 
         if not callable(dut_filter):
             raise IOError(
@@ -389,8 +389,8 @@ class DutLib(object):
         duts = []
         dut_paths = []
         if dut_level == 0:
-            duts.append(dut_filter(str(import_dir.resolve())))
-            dut_paths.append(import_dir.resolve())
+            duts.append(dut_filter(str(import_dir)))
+            dut_paths.append(import_dir)
         else:
             for child in import_dir.glob("*/" * (dut_level)):  # can be used in windows and linux
                 if child.is_dir():  # only directories are allowed
