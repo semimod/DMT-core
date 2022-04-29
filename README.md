@@ -29,7 +29,11 @@ If you want or have to use Windows and MacOS there may be more dependency and in
 
 ## Questions, bugs and feature requests
 
-If you have any questions or issues regarding DMT, we kindly ask you to contact us. Either mail us directly or open an issue [here](https://gitlab.com/dmt-development/dmt-core/-/issues). There we have prepared [several templates](https://docs.gitlab.com/ee/user/project/description_templates.html#use-the-templates) for the description.
+If you have any questions or issues regarding DMT, we kindly ask you to contact us. Either mail us directly or open an issue [here](https://gitlab.com/dmt-development/dmt-core/-/issues). There we have prepared [several templates](https://docs.gitlab.com/ee/user/project/description_templates.html#use-the-templates) for the description:
+
+* [Questions](https://gitlab.com/dmt-development/dmt-core/-/issues/new?issuable_template=question)
+* [Bug reports](https://gitlab.com/dmt-development/dmt-core/-/issues/new?issuable_template=bug_report)
+* [Feature requests](https://gitlab.com/dmt-development/dmt-core/-/issues/new?issuable_template=feature_request)
 
 ## Authors
 
