@@ -6,12 +6,17 @@
 
 (How one can reproduce the issue - this is very important)
 
+## Environment (please complete the following information):
+ - OS: [e.g. macOS, Linux, Windows]
+ - Python Version: [3.8, 3.9, 3.10]
+ - DMT version [e.g. 1.5.0]
+ - (pip freeze)
+ - Used interface versions: [eg. ngspice-36, ...]
+
 ## Example Project
 
-(If possible, please create an example project here on GitLab.com that exhibits the problematic
-behavior, and link to it here in the bug report.
-If you are using an older version of GitLab, this will also determine whether the bug has been fixed
-in a more recent version)
+(If possible, please create an example project/file that exhibits the problematic
+behavior, and link to it here in the bug report.)
 
 ## What is the current bug behavior?
 
