@@ -46,6 +46,10 @@ def get_circuit(self, use_build_in=False, **kwargs):
     else:
         module_name = self.default_module_name  # should be "bjtn" because vae
 
+    node_emitter = next(f"n_{node.upper()}" for node in self.nodes_list if "E" in node.upper())
+    node_base = next(f"n_{node.upper()}" for node in self.nodes_list if "B" in node.upper())
+    node_collector = next(f"n_{node.upper()}" for node in self.nodes_list if "C" in node.upper())
+
     circuit_elements = []
     # model instance
     circuit_elements.append(
@@ -66,7 +70,7 @@ def get_circuit(self, use_build_in=False, **kwargs):
         rbm = 1e-3
 
     circuit_elements.append(
-        CircuitElement(RESISTANCE, "Rbm", ["n_B_FORCED", "n_B"], parameters=[("R", str(rbm))])
+        CircuitElement(RESISTANCE, "Rbm", ["n_B_FORCED", node_base], parameters=[("R", str(rbm))])
     )
     # shorts for current measurement
     circuit_elements.append(
@@ -78,7 +82,7 @@ def get_circuit(self, use_build_in=False, **kwargs):
     )
     # capacitance since AC already deembeded Rbm
     circuit_elements.append(
-        CircuitElement(CAPACITANCE, "Cbm", ["n_B_FORCED", "n_B"], parameters=[("C", str(1))])
+        CircuitElement(CAPACITANCE, "Cbm", ["n_B_FORCED", node_base], parameters=[("C", str(1))])
     )
 
     # COLLECTOR NODE CONNECTION #############
@@ -96,11 +100,15 @@ def get_circuit(self, use_build_in=False, **kwargs):
         rcm = 1e-3
 
     circuit_elements.append(
-        CircuitElement(RESISTANCE, "Rcm", ["n_C_FORCED", "n_C"], parameters=[("R", str(rcm))])
+        CircuitElement(
+            RESISTANCE, "Rcm", ["n_C_FORCED", node_collector], parameters=[("R", str(rcm))]
+        )
     )
     # capacitance since AC already deembeded Rcm
     circuit_elements.append(
-        CircuitElement(CAPACITANCE, "Ccm", ["n_C_FORCED", "n_C"], parameters=[("C", str(1))])
+        CircuitElement(
+            CAPACITANCE, "Ccm", ["n_C_FORCED", node_collector], parameters=[("C", str(1))]
+        )
     )
     # EMITTER NODE CONNECTION #############
     circuit_elements.append(
@@ -117,11 +125,13 @@ def get_circuit(self, use_build_in=False, **kwargs):
         rem = 1e-3
 
     circuit_elements.append(
-        CircuitElement(RESISTANCE, "Rem", ["n_E_FORCED", "n_E"], parameters=[("R", str(rem))])
+        CircuitElement(
+            RESISTANCE, "Rem", ["n_E_FORCED", node_emitter], parameters=[("R", str(rem))]
+        )
     )
     # capacitance since AC already deembeded Rcm
     circuit_elements.append(
-        CircuitElement(CAPACITANCE, "Cem", ["n_E_FORCED", "n_E"], parameters=[("C", str(1))])
+        CircuitElement(CAPACITANCE, "Cem", ["n_E_FORCED", node_emitter], parameters=[("C", str(1))])
     )
     # add sources and thermal resistance
     circuit_elements.append(
@@ -142,11 +152,15 @@ def get_circuit(self, use_build_in=False, **kwargs):
 
     # metal resistance between contact emitter potential and substrate contact
     if len(self.nodes_list) > 3:
+        node_substrate = next(
+            f"n_{node.upper()}" for node in self.nodes_list if "S" in node.upper()
+        )
+
         circuit_elements.append(
             CircuitElement(
                 SHORT,
                 "I_S",
-                ["n_SX", "n_S"],
+                ["n_SX", node_substrate],
             )
         )
         try:
