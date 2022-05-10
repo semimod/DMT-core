@@ -7,9 +7,11 @@ Installation
 
 In this short document, we will explain how to install DMT and many of its dependencies, including how to connect them to DMT.
 
-This tutorial is written for Unix-users. Most of the command-line commands given herein have very similar windows equivalents and we hope that this tutorial is helpful for both Windows aswell as Unix users. DMT can be run both on Windows and Unix (probably also Mac, but we have not tried that, yet).
+This tutorial is written for Unix-users. Most of the command-line commands given herein have very similar windows equivalents and we hope that this tutorial is helpful for both Windows aswell as Unix users. DMT can be run both on Windows and Unix (probably also Mac, but we have not tried that, yet). DMT is implemented and tested using Ubuntu. So if you are free to choose your OS and are looking for an easy start, we can recommend using this.
 
-Before you get started with DMT, please note that DMT is a high-level project (in terms of programming level abstraction), meaning that it has many dependencies. Additionally, DMT is still in development and if you use DMT be careful when updating to new versions. We try to keep everything backwards compatible as much as possible and also breaking changes will be denoted by a new master version, but this major version increase may happen earlier than you like.
+Before you get started with DMT, please note that DMT is a high-level project (in terms of programming level abstraction), meaning that it has many dependencies. At the end of this page, you may find some installation help for the dependency you want to use. 
+
+Additionally, DMT is still in development and if you use DMT be careful when updating to new versions. We try to keep everything backwards compatible as much as possible and also breaking changes will be denoted by a new master version, but this major version increase may happen earlier than you like.
 
 So before we get started, please:
 
@@ -91,8 +93,7 @@ These are not installed when installing DMT.
 Configuration
 --------------
 
-DMT is a modular, high-level project, that relies heavily on other python packages.
-Furthermore some DMT modules interface to other (possibly proprietary) software such as ADS.
+DMT is a modular, high-level project, that relies heavily on other python packages. Furthermore some DMT modules interface to other (possibly proprietary) software such as ADS.
 If you want to use such interfaces, you need:
 
 * the corresponding DMT module

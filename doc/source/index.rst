@@ -1,4 +1,4 @@
-Introduction
+Welcome
 ===============================
 
 DeviceModelingToolkit (DMT) is a Python package targeted at helping modeling engineers extract model parameters, 
@@ -56,6 +56,15 @@ Open-Source
 The core package of DMT is available for everyone in a `gitlab.com repository <https://gitlab.com/dmt-development/dmt-core>`__ under GPLv3. If you find bugs, want to suggest enhancements or even join the developement team, the repository is the best point to start.
 
 If are interested in other modules, need installation or usage support, or you want to use DMT in your own project contact: info@semimod.de
+
+Questions, bugs and feature requests
+------------------------------------
+
+If you have any questions or issues regarding DMT, we kindly ask you to contact us. Either mail us directly or open an issue <here `https://gitlab.com/dmt-development/dmt-core/-/issues>`__. There we have prepared <several templates `https://docs.gitlab.com/ee/user/project/description_templates.html#use-the-templates>`__ for the description:
+
+* <Questions `https://gitlab.com/dmt-development/dmt-core/-/issues/new?issuable_template=question>`__
+* <Bug reports `https://gitlab.com/dmt-development/dmt-core/-/issues/new?issuable_template=bug_report>`__
+* <Feature requests `https://gitlab.com/dmt-development/dmt-core/-/issues/new?issuable_template=feature_request>`__
 
 
 Overview of Documentation

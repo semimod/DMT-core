@@ -60,15 +60,6 @@ def get_circuit(self):
             VOLTAGE, "V_C", ["n_C_FORCED", "0"], parameters=[("Vdc", "V_C"), ("Vac", "1")]
         )
     )
-
-    # metal resistance between substrate contact and ground
-    circuit_elements.append(
-        CircuitElement(RESISTANCE, "R_S", ["n_S", "0"], parameters=[("R", "0.1")])
-    )
-    # thermal node resistance
-    circuit_elements.append(
-        CircuitElement(RESISTANCE, "R_t", ["n_T", "0"], parameters=[("R", "1e9")])
-    )
     circuit_elements += ["V_B=0", "V_C=0", "ac_switch=0", "V_B_ac=1-ac_switch", "V_C_ac=ac_switch"]
 
     return Circuit(circuit_elements)

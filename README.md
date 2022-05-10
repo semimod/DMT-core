@@ -29,7 +29,11 @@ If you want or have to use Windows and MacOS there may be more dependency and in
 
 ## Questions, bugs and feature requests
 
-If you have any questions or issues regarding DMT, we kindly ask you to contact us. Either mail us directly or open an issue [here](https://gitlab.com/dmt-development/dmt-core/-/issues). There we have prepared [several templates](https://docs.gitlab.com/ee/user/project/description_templates.html#use-the-templates) for the description.
+If you have any questions or issues regarding DMT, we kindly ask you to contact us. Either mail us directly or open an issue [here](https://gitlab.com/dmt-development/dmt-core/-/issues). There we have prepared [several templates](https://docs.gitlab.com/ee/user/project/description_templates.html#use-the-templates) for the description:
+
+* [Questions](https://gitlab.com/dmt-development/dmt-core/-/issues/new?issuable_template=question)
+* [Bug reports](https://gitlab.com/dmt-development/dmt-core/-/issues/new?issuable_template=bug_report)
+* [Feature requests](https://gitlab.com/dmt-development/dmt-core/-/issues/new?issuable_template=feature_request)
 
 ## Authors
 
@@ -46,6 +50,16 @@ Contact Markus or Mario, if you are interested to join the team permanently.
 ### Pull Request Process
 
 If you want to supply a new feature, you have implemented in your fork, to DMT, we are looking forward to your [merge request](https://gitlab.com/dmt-development/dmt-core/-/merge_requests/new). There we have a template for the merge request, including a checklist of suggested steps.
+
+The steps are:
+
+1. Implement the new feature
+2. Add test cases for the new feature with a large coverage
+3. Add new python dependencies to `setup.py`
+4. If a interface is used, add a Dockerfile in which the interfaced software is installed and run the tests inside this Dockerfile
+5. Add additional documentation to the new features you implemented in the code and the documentation.
+6. Format the code using `black`
+7. Update the CHANGELOG with your changes and increase the version numbers in the changed files to the new version that this Pull Request would represent. The versioning scheme we use is [SemVer](http://semver.org/).
 
 
 ## License

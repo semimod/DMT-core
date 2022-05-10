@@ -33,6 +33,12 @@ def get_circuit(self, use_build_in=False, topology="common_emitter", **kwargs):
     circuit : :class:`~DMT.core.circuit.Circuit`
 
     """
+    node_emitter = next(f"n_{node.upper()}" for node in self.nodes_list if "E" in node.upper())
+    node_base = next(f"n_{node.upper()}" for node in self.nodes_list if "B" in node.upper())
+    node_collector = next(f"n_{node.upper()}" for node in self.nodes_list if "C" in node.upper())
+    node_substrate = next(f"n_{node.upper()}" for node in self.nodes_list if "S" in node.upper())
+    node_temperature = next(f"n_{node.upper()}" for node in self.nodes_list if "T" in node.upper())
+
     circuit_elements = []
     # model instance
     circuit_elements.append(
@@ -55,7 +61,9 @@ def get_circuit(self, use_build_in=False, topology="common_emitter", **kwargs):
             rbm = 1e-3
 
         circuit_elements.append(
-            CircuitElement(RESISTANCE, "Rbm", ["n_B_FORCED", "n_B"], parameters=[("R", str(rbm))])
+            CircuitElement(
+                RESISTANCE, "Rbm", ["n_B_FORCED", node_base], parameters=[("R", str(rbm))]
+            )
         )
         # shorts for current measurement
         circuit_elements.append(
@@ -67,7 +75,9 @@ def get_circuit(self, use_build_in=False, topology="common_emitter", **kwargs):
         )
         # capacitance since AC already deembeded Rbm
         circuit_elements.append(
-            CircuitElement(CAPACITANCE, "Cbm", ["n_B_FORCED", "n_B"], parameters=[("C", str(1))])
+            CircuitElement(
+                CAPACITANCE, "Cbm", ["n_B_FORCED", node_base], parameters=[("C", str(1))]
+            )
         )
 
         # COLLECTOR NODE CONNECTION #############
@@ -85,11 +95,15 @@ def get_circuit(self, use_build_in=False, topology="common_emitter", **kwargs):
             rcm = 1e-3
 
         circuit_elements.append(
-            CircuitElement(RESISTANCE, "Rcm", ["n_C_FORCED", "n_C"], parameters=[("R", str(rcm))])
+            CircuitElement(
+                RESISTANCE, "Rcm", ["n_C_FORCED", node_collector], parameters=[("R", str(rcm))]
+            )
         )
         # capacitance since AC already deembeded Rcm
         circuit_elements.append(
-            CircuitElement(CAPACITANCE, "Ccm", ["n_C_FORCED", "n_C"], parameters=[("C", str(1))])
+            CircuitElement(
+                CAPACITANCE, "Ccm", ["n_C_FORCED", node_collector], parameters=[("C", str(1))]
+            )
         )
         # EMITTER NODE CONNECTION #############
         circuit_elements.append(
@@ -106,11 +120,15 @@ def get_circuit(self, use_build_in=False, topology="common_emitter", **kwargs):
             rem = 1e-3
 
         circuit_elements.append(
-            CircuitElement(RESISTANCE, "Rem", ["n_E_FORCED", "n_E"], parameters=[("R", str(rem))])
+            CircuitElement(
+                RESISTANCE, "Rem", ["n_E_FORCED", node_emitter], parameters=[("R", str(rem))]
+            )
         )
         # capacitance since AC already deembeded Rcm
         circuit_elements.append(
-            CircuitElement(CAPACITANCE, "Cem", ["n_E_FORCED", "n_E"], parameters=[("C", str(1))])
+            CircuitElement(
+                CAPACITANCE, "Cem", ["n_E_FORCED", node_emitter], parameters=[("C", str(1))]
+            )
         )
         # add sources and thermal resistance
         circuit_elements.append(
@@ -129,7 +147,7 @@ def get_circuit(self, use_build_in=False, topology="common_emitter", **kwargs):
                 CircuitElement(
                     SHORT,
                     "I_S",
-                    ["n_SX", "n_S"],
+                    ["n_SX", node_substrate],
                 )
             )
             try:
@@ -141,7 +159,9 @@ def get_circuit(self, use_build_in=False, topology="common_emitter", **kwargs):
             )
         if len(self.nodes_list) > 4:
             circuit_elements.append(
-                CircuitElement(RESISTANCE, "R_t", ["n_T", "0"], parameters=[("R", "1e9")])
+                CircuitElement(
+                    RESISTANCE, "R_t", [node_temperature, "0"], parameters=[("R", "1e9")]
+                )
             )
         circuit_elements += [
             "V_B=0",
@@ -316,19 +336,21 @@ if __name__ == "__main__":
         df.ensure_specifier_column(col_vbc, ports=dut.nodes)
         df.ensure_specifier_column(col_vce, ports=dut.nodes)
 
-        for _index, vbc, data in df.iter_unique_col(col_vce, decimals=3):
+        for _index, vce, data in df.iter_unique_col(col_vce, decimals=3):
             data = data[np.isclose(data[specifiers.FREQUENCY], 100)]
 
             plt_gummel.add_data_set(
                 np.real(data[col_vbe].to_numpy()),
                 np.real(data[col_ic].to_numpy()),
-                label=dut_name + " $V_{{BC}} = {0:1.2f} V$".format(data[col_vbc].to_numpy()[0]),
+                label=dut_name + " $V_{{CE}} = {0:1.2f} V$".format(np.real(vce)),
             )
             plt_ib.add_data_set(
                 np.real(data[col_vbe].to_numpy()),
                 np.real(data[col_ib].to_numpy()),
-                label=dut_name + " $V_{{BC}} = {0:1.2f} V$".format(data[col_vbc].to_numpy()[0]),
+                label=dut_name + " $V_{{CE}} = {0:1.2f} V$".format(np.real(vce)),
             )
 
-    plt_ib.plot_pyqtgraph(show=False)
-    plt_gummel.plot_pyqtgraph(show=True)
+    # plt_ib.plot_pyqtgraph(show=False)
+    # plt_gummel.plot_pyqtgraph(show=True)
+    plt_ib.plot_py(show=False, use_tex=True)
+    plt_gummel.plot_py(show=True, use_tex=False)
