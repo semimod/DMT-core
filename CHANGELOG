@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased] -
 
+### Added
+
+- Issue and pull request templates and better descriptions
+- Added more installation help in the documentation
+
 ### Changed
 
 - Cleaned setup.py from unneeded dependencies and also introduces extras_require to allow the different optional installations to work properly.
@@ -16,6 +21,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - "bias_val" variable in DutHdev.get_bias_info was unset
 - Some possible runtime errors fixed thanks to pylance linting.
+- Hdevpy linting errors
+- pathlib.Path is always resolved before calling parent. Fixes #5
 
 ## Deprecated
 
