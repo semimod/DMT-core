@@ -1,4 +1,4 @@
-Introduction
+Welcome
 ===============================
 
 DeviceModelingToolkit (DMT) is a Python package targeted at helping modeling engineers extract model parameters, 
