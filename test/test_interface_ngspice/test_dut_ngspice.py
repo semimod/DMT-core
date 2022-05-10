@@ -336,19 +336,21 @@ if __name__ == "__main__":
         df.ensure_specifier_column(col_vbc, ports=dut.nodes)
         df.ensure_specifier_column(col_vce, ports=dut.nodes)
 
-        for _index, vbc, data in df.iter_unique_col(col_vce, decimals=3):
+        for _index, vce, data in df.iter_unique_col(col_vce, decimals=3):
             data = data[np.isclose(data[specifiers.FREQUENCY], 100)]
 
             plt_gummel.add_data_set(
                 np.real(data[col_vbe].to_numpy()),
                 np.real(data[col_ic].to_numpy()),
-                label=dut_name + " $V_{{BC}} = {0:1.2f} V$".format(data[col_vbc].to_numpy()[0]),
+                label=dut_name + " $V_{{CE}} = {0:1.2f} V$".format(np.real(vce)),
             )
             plt_ib.add_data_set(
                 np.real(data[col_vbe].to_numpy()),
                 np.real(data[col_ib].to_numpy()),
-                label=dut_name + " $V_{{BC}} = {0:1.2f} V$".format(data[col_vbc].to_numpy()[0]),
+                label=dut_name + " $V_{{CE}} = {0:1.2f} V$".format(np.real(vce)),
             )
 
-    plt_ib.plot_pyqtgraph(show=False)
-    plt_gummel.plot_pyqtgraph(show=True)
+    # plt_ib.plot_pyqtgraph(show=False)
+    # plt_gummel.plot_pyqtgraph(show=True)
+    plt_ib.plot_py(show=False, use_tex=True)
+    plt_gummel.plot_py(show=True, use_tex=False)

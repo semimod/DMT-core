@@ -55,7 +55,7 @@ try:
     import matplotlib._pylab_helpers
     import matplotlib.ticker as ticker
 
-    matplotlib.rcParams["text.usetex"] = True
+    # matplotlib.rcParams["text.usetex"] = True
 
     # rc params spec
     packages = [
@@ -755,6 +755,7 @@ class Plot(object):
         figure_size=None,
         sub_plot=(1, 1, 1),
         repeated_labels=False,
+        use_tex=True,
     ):
         """Plots using matplotlib.pyplot, without IPython shell. If plot is displayed, the python session is halted.
 
@@ -780,6 +781,8 @@ class Plot(object):
         -----
         ..todo: Interactive Mode.
         """
+        matplotlib.rcParams["text.usetex"] = use_tex
+
         # get the figure
         self.fig = plt.figure(num=self.num, figsize=figure_size)
         if self.fig.axes and sub_plot == (1, 1, 1):
@@ -816,7 +819,11 @@ class Plot(object):
             if self.y_axis_scale == "log":
                 y = abs(y)
 
-            label = dict_line["label"]
+            if use_tex:
+                label = dict_line["label"]
+            else:
+                label = tex_to_text(dict_line["label"])
+
             if label in used_labels:
                 label = None
             else:
@@ -870,8 +877,13 @@ class Plot(object):
             self.ax.legend(loc="upper right", frameon=self.legend_frame)
         else:
             self.ax.legend(loc=self.legend_location, frameon=self.legend_frame)
-        self.ax.set_xlabel(self.x_label)
-        self.ax.set_ylabel(self.y_label)
+
+        if use_tex:
+            self.ax.set_xlabel(self.x_label)
+            self.ax.set_ylabel(self.y_label)
+        else:
+            self.ax.set_xlabel(tex_to_text(self.x_label))
+            self.ax.set_ylabel(tex_to_text(self.y_label))
 
         # set scale and limits
         self.ax.set_xscale(self.x_axis_scale)

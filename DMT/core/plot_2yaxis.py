@@ -26,14 +26,12 @@ Author:
 import os
 import numpy as np
 from pathlib import Path
-from DMT.external import build_tex, build_svg, clean_tex_files, build_png, slugify
+from DMT.external import build_tex, build_svg, clean_tex_files, build_png, slugify, tex_to_text
 
 try:
     import matplotlib
     import matplotlib.pyplot as plt
     import matplotlib._pylab_helpers
-
-    matplotlib.rcParams["text.usetex"] = True
 
     # rc params spec
     packages = [
@@ -86,9 +84,17 @@ class Plot2YAxis(object):
         self.lines_right = []
 
     def plot_py(
-        self, show=True, font_size=None, allowGrid=False, tight_layout=True, figure_size=None
+        self,
+        show=True,
+        font_size=None,
+        allowGrid=False,
+        tight_layout=True,
+        figure_size=None,
+        use_tex=True,
     ):
         """Plots the 2 axis plot with the same arguments as the usual plot class"""
+        matplotlib.rcParams["text.usetex"] = use_tex
+
         # get a new figure
         self.fig = plt.figure(num=self.name, figsize=figure_size)
         print("init 2 axis figure with name " + self.name + r"\n")
@@ -130,7 +136,10 @@ class Plot2YAxis(object):
             if self.plot_left.y_axis_scale == "log":
                 y = np.abs(y)
 
-            label = dict_line["label"]
+            if use_tex:
+                label = dict_line["label"]
+            else:
+                label = tex_to_text(dict_line["label"])
 
             if "style" in dict_line and dict_line["style"] is not None:
                 try:
@@ -178,8 +187,12 @@ class Plot2YAxis(object):
             self.lines_left.append(line)
 
         # labels
-        self.ax_left.set_xlabel(self.plot_left.x_label)
-        self.ax_left.set_ylabel(self.plot_left.y_label)
+        if use_tex:
+            self.ax_left.set_xlabel(self.plot_left.x_label)
+            self.ax_left.set_ylabel(self.plot_left.y_label)
+        else:
+            self.ax_left.set_xlabel(tex_to_text(self.plot_left.x_label))
+            self.ax_left.set_ylabel(tex_to_text(self.plot_left.y_label))
 
         # set scale and limits
         self.ax_left.set_xscale(self.plot_left.x_axis_scale)
@@ -210,7 +223,10 @@ class Plot2YAxis(object):
             if self.plot_right.y_axis_scale == "log":
                 y = np.abs(y)
 
-            label = dict_line["label"]
+            if use_tex:
+                label = dict_line["label"]
+            else:
+                label = tex_to_text(dict_line["label"])
             x_left = self.ax_left.get_xlim()[0] - 1
             y_left = self.ax_left.get_ylim()[0] - 1
 
@@ -273,7 +289,10 @@ class Plot2YAxis(object):
             self.lines_right.append(line)
 
         # labels (only y label needed)
-        self.ax_right.set_ylabel(self.plot_right.y_label)
+        if use_tex:
+            self.ax_right.set_ylabel(self.plot_right.y_label)
+        else:
+            self.ax_right.set_ylabel(tex_to_text(self.plot_right.y_label))
 
         # set scale and limits (only y label needed)
         self.ax_right.set_yscale(self.plot_right.y_axis_scale)

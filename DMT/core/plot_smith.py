@@ -28,14 +28,12 @@ import os
 import numpy as np
 from pathlib import Path
 from DMT.core.plot import Plot
-from DMT.external import slugify
+from DMT.external import slugify, tex_to_text
 
 try:
     import matplotlib
     import matplotlib.pyplot as plt
     import matplotlib._pylab_helpers
-
-    matplotlib.rcParams["text.usetex"] = True
 
     # rc params spec
     packages = [
@@ -119,6 +117,7 @@ class SmithPlot(Plot):
         figure_size=None,
         sub_plot=(1, 1, 1),
         repeated_labels=False,
+        use_tex=True,
     ):
         """Plots using matplotlib.pyplot, without IPython shell. If plot is displayed, the python session is halted.
 
@@ -144,6 +143,7 @@ class SmithPlot(Plot):
         -----
         ..todo: Interactive Mode.
         """
+        matplotlib.rcParams["text.usetex"] = use_tex
         # default params
         SmithAxes.update_scParams(
             {
@@ -214,7 +214,11 @@ class SmithPlot(Plot):
             if self.y_axis_scale == "log":
                 y = abs(y)
 
-            label = dict_line["label"]
+            if use_tex:
+                label = dict_line["label"]
+            else:
+                label = tex_to_text(dict_line["label"])
+
             if label in used_labels:
                 label = None
             else:
@@ -277,6 +281,7 @@ class SmithPlot(Plot):
             self.ax.legend(loc="upper right", frameon=self.legend_frame)
         else:
             self.ax.legend(loc=self.legend_location, frameon=self.legend_frame)
+
         # self.ax.set_xlabel(self.x_label)
         # self.ax.set_ylabel(self.y_label)
 
