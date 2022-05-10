@@ -11,12 +11,14 @@ The essence is
 
 .. code-block:: Dockerfile
 
-    FROM archlinux:latest
+    FROM archlinux:base-20220501.0.54834
+
+    RUN groupadd -r ${APP_USER} && useradd --no-log-init -r -m -g ${APP_USER} ${APP_USER}
 
     RUN pacman -Syyu --noconfirm
-    RUN Xyce -h
 
     RUN pacman -S --noconfirm --needed cmake pkgconfig git python-pip python sudo base-devel \
+        freetype2 libglvnd \
         python-setuptools python-wheel \
         python-pandas \
         python-pytables \
@@ -27,8 +29,10 @@ The essence is
     RUN pacman -S --noconfirm --needed ngspice && yes | pacman -Scc
     RUN pacman -S --noconfirm --needed texlive-most && yes | pacman -Scc
 
-    RUN python -m pip install pytables
-    RUN python setup.py install
+    COPY . /dmt
+
+    RUN cd /dmt && pip install .[full]
+
 
 For this help, the sadly not fully working Xyce simulator is removed. ngspice is installed and works great, so circuit simulations are easily possible.
 
@@ -37,5 +41,5 @@ To run this container in the local DMT folder use:
 .. code-block:: bash
 
     docker build -t dmt:latest .
-    docker run -it -u $(id -u):$(id -g) -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix -v $PWD:/dmt dmt:latest python FILE_TO_RUN.py
+    docker run -it -u $(id -u):$(id -g) -e DISPLAY=$DISPLAY -w /dmt -v /tmp/.X11-unix:/tmp/.X11-unix dmt:latest python RELATIV_PATH_TO_FILE_TO_RUN.py
 
