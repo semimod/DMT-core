@@ -63,6 +63,7 @@ try:
         "\\usepackage{mathtools}\n",
         "\\usepackage{amssymb}\n",
         "\\usepackage{siunitx}\n",
+        "\\sisetup{range-units=repeat, list-units=repeat, binary-units, exponent-product = \\cdot, print-unity-mantissa=false}\n",
         "\\DeclareSIUnit\\sq{\\ensuremath{\\Box}}\n",
         "\\DeclareSIUnit\\degC{\\degreeCelsius}\n",
         "\\DeclareUnicodeCharacter{221E}{$\infty$}\n",
@@ -1751,6 +1752,7 @@ class Plot(object):
             str_tikz_picture = (
                 "\\documentclass[class=IEEEtran]{standalone}\n"
                 + "\\usepackage{tikz,amsmath,siunitx}\n"
+                + "\\sisetup{range-units=repeat, list-units=repeat, binary-units, exponent-product = \\cdot, print-unity-mantissa=false}\n"
                 + "\\usetikzlibrary{arrows,snakes,backgrounds,patterns,matrix,shapes,fit,calc,shadows,plotmarks}\n"
                 + "\\usepackage[graphics,tightpage,active]{preview}\n"
                 + "\\usepackage{pgfplots}\n"

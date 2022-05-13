@@ -41,6 +41,7 @@ try:
         "\\usepackage{mathtools}\n",
         "\\usepackage{amssymb}\n",
         "\\usepackage{siunitx}\n",
+        "\\sisetup{range-units=repeat, list-units=repeat, binary-units, exponent-product = \\cdot, print-unity-mantissa=false}\n",
         "\\DeclareSIUnit\\sq{\\ensuremath{\\Box}}\n",
         "\\DeclareSIUnit\\degC{\\degreeCelsius}\n",
     ]
@@ -327,6 +328,7 @@ class Plot2YAxis(object):
         fontsize="normalsize",
         height=None,
         mark_repeat=1,
+        extension=None,
         restrict_left=True,
         restrict_right=True,
         hide_second_ticks=False,
@@ -348,10 +350,14 @@ class Plot2YAxis(object):
             directory = Path(directory)
         os.makedirs(directory, exist_ok=True)
 
+        ext_file = ".tex"
+        if extension is not None:
+            ext_file = "." + extension
+
         if file_name is None:
-            file_name = slugify(self.name) + ".tex"
-        elif not file_name.endswith(".tex"):
-            file_name = file_name + ".tex"
+            file_name = slugify(self.name) + ext_file
+        elif not file_name.endswith(ext_file):
+            file_name = file_name + ext_file
 
         # create tikz files from the subplots
         # change names as these plots will only exists temporarily
@@ -372,6 +378,7 @@ class Plot2YAxis(object):
             mark_repeat=mark_repeat,
             standalone=standalone,
             restrict=restrict_left,
+            extension=extension
         )
         file_tikz_right = self.plot_right.save_tikz(
             directory,
@@ -380,6 +387,7 @@ class Plot2YAxis(object):
             mark_repeat=mark_repeat,
             standalone=standalone,
             restrict=restrict_right,
+            extension=extension
         )
 
         # open, read and delete the tikz files
@@ -517,9 +525,10 @@ class Plot2YAxis(object):
         str_tikz_picture = str_tikz_picture.replace("ymajorgrids", "")
 
         # correct sizes
-        str_tikz_picture = str_tikz_picture.replace(
-            "\\setlength\\figurewidth{60mm}\n", "\\setlength\\figurewidth{" + width + "}\n"
-        )
+        if width is not None:
+            str_tikz_picture = str_tikz_picture.replace(
+                "\\setlength\\figurewidth{60mm}\n", "\\setlength\\figurewidth{" + width + "}\n"
+            )
         if height is not None:
             str_tikz_picture = str_tikz_picture.replace(
                 "\\setlength\\figureheight{60mm}\n", "\\setlength\\figureheight{" + height + "}\n"
@@ -547,7 +556,7 @@ class Plot2YAxis(object):
 
             if clean:
                 clean_tex_files(
-                    directory, file_name.replace(".tex", ""), keep=(ending_to_keep, ".tex")
+                    directory, file_name.replace(ext_file, ""), keep=(ending_to_keep, ext_file)
                 )
 
         return file_name
