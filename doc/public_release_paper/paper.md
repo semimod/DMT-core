@@ -49,7 +49,7 @@ The Device Modeling Toolkit (`DMT`) presented here aims to solve these issues. `
 * several abstract base classes for implementing new interfaces to various types of simulators 
 * concrete implementations of the abstract base classes for open-source simulators such as Ngspice [@Vogt2022], Xyce [@Keiter2021] or Hdev [@Hdev].
 
-Basic principles of software engineering, such as unit testing, version control and documentation are adhered to,
+`DMT`-based simulations allow data generation, workflow implementation and visualization to be be implemented in a single file, allowing for cooperate more effectively and more reproducible research [@Stodden2016]. In addition, basic principles of software engineering, such as unit testing, version control, and documentation are adhered to,
 so that others can also use and contribute to the software.
 
 # Summary
