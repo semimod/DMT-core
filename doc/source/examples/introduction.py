@@ -127,6 +127,16 @@ dut_sim = DutXyce(
     reference_node="E",
 )
 
+# from DMT.ngspice import DutNgspice
+
+# dut_sim = DutNgspice(
+#     None,
+#     core.DutType.npn,
+#     modelcard,
+#     nodes="B,C,E",
+#     reference_node="E",
+# )
+
 
 sweep = core.Sweep.get_sweep_from_dataframe(dut_meas.data[key_saved], temperature=300)
 
@@ -204,6 +214,10 @@ plt_ic.plot_pyqtgraph(show=False)
 plt_y21.plot_pyqtgraph(show=False)
 plt_ft.plot_pyqtgraph(show=True)
 
-plt_ic.save_tikz(path_data, standalone=True, build=True, clean=True, width="3in")
-plt_y21.save_tikz(path_data, standalone=True, build=True, clean=True, width="3in")
-plt_ft.save_tikz(path_data, standalone=True, build=True, clean=True, width="3in")
+# plt_ic.plot_py(show=False, use_tex=False)
+# plt_y21.plot_py(show=False, use_tex=False)
+# plt_ft.plot_py(show=True, use_tex=False)
+
+# plt_ic.save_tikz(path_data, standalone=True, build=True, clean=True, width="3in")
+# plt_y21.save_tikz(path_data, standalone=True, build=True, clean=True, width="3in")
+# plt_ft.save_tikz(path_data, standalone=True, build=True, clean=True, width="3in")

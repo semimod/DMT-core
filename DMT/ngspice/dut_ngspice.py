@@ -52,7 +52,7 @@ from DMT.core import (
     sub_specifiers,
     McParameterCollection,
 )
-from DMT.core.circuit import VOLTAGE, CURRENT, HICUML2_HBT, SHORT, DIODE
+from DMT.core.circuit import SGP_BJT, VOLTAGE, CURRENT, HICUML2_HBT, SHORT, DIODE
 
 from DMT.exceptions import SimulationUnsuccessful
 
@@ -790,11 +790,11 @@ class DutNgspice(DutCircuit):
         str
             Netlist line
         """
-        if len(circuit_element.name) != 3:
-            raise OSError(
-                "To enable data_reader.read_ADS_bin, all element names have to be 3 characters long. Given was: "
-                + circuit_element.name
-            )
+        # if len(circuit_element.name) != 3:
+        #     raise OSError(
+        #         "To enable data_reader.read_ADS_bin, all element names have to be 3 characters long. Given was: "
+        #         + circuit_element.name
+        #     )
 
         # map dmt circuit element_type to ngspice element types
         # only those that differ between DMT definiton and NGspice definition are listed here
@@ -803,6 +803,8 @@ class DutNgspice(DutCircuit):
             CURRENT: "I",
             "hicumL2va": "Q",
             HICUML2_HBT: "Q",
+            SGP_BJT: "Q",
+            "bjtn": "Q",
         }
         if circuit_element.element_type in element_types.keys():
             element_type = element_types[circuit_element.element_type]
@@ -817,19 +819,8 @@ class DutNgspice(DutCircuit):
         else:
             element_type = circuit_element.element_type
 
-        additional_str = ""
-        if element_type == "Q":
-            additional_str = "hicum_va"
-
-        str_netlist = (
-            element_type
-            + "_"
-            + circuit_element.name
-            + " "
-            + " ".join(circuit_element.contact_nodes)
-            + " "
-            + additional_str
-            + " "
+        str_netlist = f"{element_type}_{circuit_element.name} " + " ".join(
+            circuit_element.contact_nodes
         )
         if circuit_element.parameters is not None:
             if isinstance(circuit_element.parameters, MCard):
@@ -854,11 +845,30 @@ class DutNgspice(DutCircuit):
                         # dirty to allow debugging ngspice
                         str_model_parameters += "{0:s}={1:10.10e} ".format(key, val)
                     str_temp = (
-                        str_instance_parameters
-                        + "\n.model hicum_va "
-                        + str_type
-                        + " level=8\n+ "
-                        + str_model_parameters
+                        f"hicum_va {str_instance_parameters}\n"  # we should count here somehow the models
+                        + f".model hicum_va {str_type} level=8\n"
+                        + f"+ {str_model_parameters}"
+                    )
+                elif circuit_element.element_type in [SGP_BJT, "bjtn"]:
+                    mcard = circuit_element.parameters
+                    str_instance_parameters = ""
+                    str_model_parameters = ""
+                    str_type = "NPN"
+                    for para in sorted(mcard.paras, key=lambda x: (x.group, x.name)):
+                        if para.name == "type":
+                            str_type = "NPN" if (para.value == 1) else "PNP"
+                        elif para.name in []:  # here all instance parameters
+                            str_instance_parameters += "{0:s}={0:10.10e} ".format(para)
+                        else:  # here all model parameters
+                            str_model_parameters += "{0:s}={0:10.10e} ".format(para)
+
+                    for (key, val) in self.initial_conditions.items():
+                        # dirty to allow debugging ngspice
+                        str_model_parameters += "{0:s}={1:10.10e} ".format(key, val)
+                    str_temp = (
+                        f"QMOD {str_instance_parameters}\n"  # we should count here somehow the models
+                        + f".model QMOD {str_type} level=1\n"
+                        + f"+ {str_model_parameters}"
                     )
                 elif circuit_element.element_type in [DIODE]:
                     mcard = circuit_element.parameters
@@ -872,14 +882,10 @@ class DutNgspice(DutCircuit):
                                 additional_str = " osdi " + circuit_element.name
                         str_model_parameters += "{0:s}={0:10.10e} ".format(para)
 
-                    str_temp = (
-                        "\n.model dmod " + additional_str + " d( " + str_model_parameters + " )"
-                    )
+                    str_temp = f"\n.model dmod {additional_str} d( {str_model_parameters} )"  # we should count here somehow the models
                 else:
                     raise NotImplementedError(
-                        "The element type "
-                        + circuit_element.element_type
-                        + " is not implemented for ngspice.",
+                        f"The element type {circuit_element.element_type} is not implemented for ngspice.",
                         "Check the ngspice manual if this type needs special treatment and implement it accordingly.",
                     )
             else:
@@ -887,6 +893,10 @@ class DutNgspice(DutCircuit):
                 for (para, value) in circuit_element.parameters:
                     if para in ["C", "R", "L"]:  # rename according to ngspice manual
                         str_temp.append(value)
+                    elif para in ["Vdc", "Vac"] and not isinstance(
+                        value, float
+                    ):  # just leave voltages from lines, as ngpsice directly changes the sources and not the parameters
+                        pass
                     else:
                         str_temp.append(para + "=" + value)
 
@@ -915,7 +925,7 @@ class DutNgspice(DutCircuit):
             str_temp = ""
 
         str_netlist = str_netlist.replace("IS", "I_")
-        return str_netlist + str_temp + "\n"
+        return str_netlist + " " + str_temp + "\n"
 
     def join(self, dfs):
         """Join DC and AC dataframes into one dataframe"""

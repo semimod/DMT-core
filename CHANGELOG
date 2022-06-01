@@ -10,6 +10,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Issue and pull request templates and better descriptions
 - Added more installation help in the documentation
+- ngspice now allows SGP BJTs
+- use_tex parameter for Plot.plot_py() to turn off LaTeX use
 
 ### Changed
 

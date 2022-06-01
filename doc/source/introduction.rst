@@ -4,7 +4,7 @@ Introduction
 =============
 
 This page provides a brief introduction on the basic workflow and classes used in ``DMT``.
-The focus of this guide is the ``core`` (:ref:`DMT.core <dmt_core>`). module of DMT, the only publicly available module at this time.
+The focus of this guide is the ``core`` (:ref:`DMT.core <dmt_core>`). Module of DMT, the only publicly available module at this time.
 The goal of this intro is to compare measured data to simulation results of a
 Spice-Gummel-Poon compact model.
 
@@ -24,10 +24,10 @@ The source code of this example is available in the Gitlab repository
 Read Measurement Data
 ---------------------
 
-First, lets import measurement data from a  ``.csv``-File. The file has the following structure and represents
+First, lets import measurement data from a ``.csv``-File. The file has the following structure and represents
 typical measurement data of a bipolar transistor at 300 K in common-emitter configuration.
 At each DC operation point an AC-data at two frequencies is available.
-Pay attention to the the inconsistent naming of the columns.
+Pay attention to the inconsistent naming of the columns.
 Keeping the names of electrical quantities consistent is an issue that is handled by DMT during read-in, as will be shown next.
 
 .. csv-table:: Measurement data at 300 K
@@ -57,7 +57,7 @@ All ``DataFrame`` objects corresponding to a DUT can be accessed using a key tha
 
 As mentioned earlier, the data columns of the measurement data need to be converted to a unified format, so that it can be used within
 the software in a unified way.
-The clean up the data-columns, the code below is used.
+To clean up the data-columns, the code below is used.
 
 .. code-block:: python
 
@@ -78,7 +78,7 @@ After cleaning up, the data has the following columns:
         dtype='object'
      )
 
-The  ``SpecifierStr`` objects are displayed and can be used exactly like regular strings but have some useful attributes and methods.
+The ``SpecifierStr`` objects are displayed and can be used exactly like regular strings but have some useful attributes and methods.
 The Y-parameters are translated to "standardized" Y-parameters that use the node names of the DUT instead of numeric indices, as the parameters
 would else depend on the contact configuration of the DUT as a two-port during measurement.
 Later, we will demonstrate the generation of ``SpecifierStr`` objects.
@@ -89,7 +89,7 @@ Preparing a Simulation
 For running a simulation of an BJT different things are needed:
 
 * a circuit simulator,
-* a compact model (either build-in to the simulator or as Verilog-A code),
+* a compact model (either built-in to the simulator or as Verilog-A code),
 * model parameters,
 * a circuit definition,
 * and finally operation point definitions (temperature, applied voltages and frequencies).
@@ -108,7 +108,7 @@ First, we read-in the model as defined in a Verilog-A source file:
 
 The ``MCard`` object now holds some information on the compact model, amongst which is
 the subcircuit name of the model and the location of its Verilog-A code.
-Using `verilogae <https://man.sr.ht/~dspom/openvaf_doc/verilogae/>`__ the model source file is read and its model parameters
+Using `verilogae <https://man.sr.ht/~dspom/openvaf_doc/verilogae/>`__ the model source file is read, and its model parameters
 are collected.
 
 Usually the model parameters of a given technology are stored in separate files, which can also be read-in with ``DMT``.
@@ -123,7 +123,7 @@ There are two options
 
     * define a circuit explicitly
 
-    * overwrite the  abstract ``MCard.get_circuit`` method and pass the modelcard directly into our simulator interface.
+    * overwrite the abstract ``MCard.get_circuit`` method and pass the modelcard directly into our simulator interface.
 
 Here, we will use the second option.
 The ``MCard.get_circuit`` method is abstract so that one may create subclasses representing compact models that are used often.
@@ -238,6 +238,21 @@ The circuit is represented by another DUT object that corresponding to the circu
         nodes="C,B,E",
         reference_node="E",
     )
+
+Alternatively, you may use a different simulator. The target of DMT is that all simulators can be used interchangeable, but as the feature set of the simulators differ, not every interface supports all DUTs. If you encounter a case, where a simulation does not work, please write an issue including the code <here `https://gitlab.com/dmt-development/dmt-core/-/issues/new?issuable_template=feature_request>`__.
+For the example here, ngspice could be used:
+
+.. code-block:: python
+    from DMT.ngspice import DutNgspice
+    dut_sim = DutNgspice(
+        None,
+        core.DutType.npn,
+        modelcard,
+        nodes="B,C,E",
+        reference_node="E",
+    )
+
+
 
 This object uses the ``get_circuit`` method that we have defined previously for the modelcard for
 generating a circuit.
@@ -379,7 +394,19 @@ To have a look at the plots we can use different back-ends. ``pyqtgraph`` is the
     plt_y21.plot_pyqtgraph(show=False)
     plt_ft.plot_pyqtgraph(show=True)
 
-Additionally it is quite easy to export the plots ready for documentations or scientific publications:
+Alternatively, ``matplotlib`` is implemented:
+
+.. code-block:: python
+
+    plt_ic.plot_py(show=False, use_tex=True)
+    plt_y21.plot_py(show=False, use_tex=True)
+    plt_ft.plot_py(show=True, use_tex=True)
+
+``matplotlib`` is generally slower but more powerful and more widely used. To make the plots prettier, DMT uses LaTeX for the labels and legends. This can be turned off by
+
+
+
+Additionally, it is quite easy to export the plots ready for documentations or scientific publications:
 
 .. code-block:: python
 
