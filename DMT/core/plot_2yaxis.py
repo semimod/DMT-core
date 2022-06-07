@@ -397,7 +397,7 @@ class Plot2YAxis(object):
             mark_repeat=mark_repeat,
             standalone=standalone,
             restrict=restrict_left,
-            extension=extension
+            extension=extension,
         )
         file_tikz_right = self.plot_right.save_tikz(
             directory,
@@ -406,7 +406,7 @@ class Plot2YAxis(object):
             mark_repeat=mark_repeat,
             standalone=standalone,
             restrict=restrict_right,
-            extension=extension
+            extension=extension,
         )
 
         # open, read and delete the tikz files
