@@ -1422,13 +1422,10 @@ class DataFrame(DataProcessor, pd.DataFrame):
             )
 
         try:
-            df_short_deem = copy.deepcopy(
-                df_short
-            )  # create a new object, else the df_short will deembed itself with every call of this method!
+            # create a new object, else the df_short will deembed itself with every call of this method!
+            df_short_deem = copy.deepcopy(df_short)
             self = self.deembed_open(df_open, ports, times=times)
-            df_short_deem = df_short_deem.deembed_open(
-                df_open, ports
-            )  # here times=1 since they have equal number
+            df_short_deem = df_short_deem.deembed_open(df_open, ports)
             self = self.deembed_short(df_short_deem, ports, times=times)
         except ValueError:
             raise ValueError
@@ -1610,8 +1607,8 @@ class DataFrame(DataProcessor, pd.DataFrame):
         para_values = np.zeros((n_freq, n_port, n_port), dtype=np.complex128)
         for i in range(n_port):
             for j in range(n_port):
-                para_values[:, i, j] = self[
-                    SpecifierStr(para_avail.upper(), list_ports[i], list_ports[j])
+                para_values[:, i, j] = self.loc[
+                    :, SpecifierStr(para_avail.upper(), list_ports[i], list_ports[j])
                 ]
 
         # we found some parameters, however not the desired ones. Try converting
@@ -1710,7 +1707,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
 
         # put values in col of self
         self.loc[:, specifiers.TRANSIT_FREQUENCY] = self.processor.calc_ft(
-            self[specifiers.FREQUENCY], s_para_values, "S"
+            self.loc[:, specifiers.FREQUENCY], s_para_values, "S"
         )
         return self
 
