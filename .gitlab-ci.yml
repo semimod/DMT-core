@@ -88,17 +88,12 @@ wheel:
     - source /venv/bin/activate
     - python3 setup.py sdist bdist_wheel
     - TWINE_PASSWORD=${CI_JOB_TOKEN} TWINE_USERNAME=gitlab-ci-token python -m twine upload --repository-url ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/pypi dist/*
-    - echo "WHEEL_NAME=$(ls dist/*.whl)" >> variables.env
-    - echo "ARCHIV_NAME=$(ls dist/*.gz)" >> variables.env
-  after_script:
-    - echo "JOB_ID=$CI_JOB_ID" >> variables.env
+    - echo "WHEEL_NAME=$(ls dist/*.whl)"
+    - echo "ARCHIV_NAME=$(ls dist/*.gz)"
   artifacts:
     paths:
-      - dist/{$WHEEL_NAME}
-      - dist/{$ARCHIV_NAME}
-    reports:
-      dotenv: variables.env
-    expire_in: never
+      - $WHEEL_NAME
+      - $ARCHIV_NAME
   only:
     - main
 
@@ -118,21 +113,26 @@ pages:
 
 release_to_pip:
   stage: release
-  needs:
-    - job: wheel
-      artifacts: true
+  only:
+    - main
   rules:
     - if: $CI_COMMIT_TAG     # Run this job when a tag is created manually
   script:
-    - echo "Running the release job."
+    - source /venv/bin/activate
+    - python3 setup.py sdist bdist_wheel
     - python3 -c "import re; match = re.search(r'(## \[\d.+?)((## \[)|\Z)', open('CHANGELOG').read(), re.DOTALL); print(match.group(1))" | tee current_changes.md
     # push to pip
     - TWINE_PASSWORD=${PIP_JOB_TOKEN} TWINE_USERNAME=__token__ python -m twine upload --repository-url https://upload.pypi.org/legacy/  dist/*
+    - WHEEL_NAME=$basename ($(ls dist/*.whl))
+  artifacts:
+    paths:
+      - dist/$WHEEL_NAME
+    expire_in: never
   release:
     tag_name: $CI_COMMIT_TAG
     description: './current_changes.md'
     assets:
       links:
         - name: "wheel"
-          url: "${CI_PROJECT_URL}/-/jobs/${JOB_ID}/artifacts/file/${WHEEL_NAME}"
+          url: "${CI_PROJECT_URL}/-/jobs/${CI_JOB_ID}/artifacts/file/${WHEEL_NAME}"
           filepath: "/assets/${WHEEL_NAME}"
