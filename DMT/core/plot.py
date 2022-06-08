@@ -747,7 +747,7 @@ class Plot(object):
         for y_a, label_a in zip(y, label):
             self.add_data_set(x, y_a, label=label_a)
 
-    def plot_py( 
+    def plot_py(
         self,
         show=True,
         font_size=None,
