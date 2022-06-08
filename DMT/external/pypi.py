@@ -1,4 +1,3 @@
-#!/usr/bin/python3
 """ DMT interaction with pypi
 """
 # DMT_core
@@ -62,7 +61,7 @@ if __name__ == "__main__":
         default=".whl",
         required=False,
     )
-    parser.parse_args()
+    args = parser.parse_args()
 
-    file_link = get_pypi_url()
+    file_link = get_pypi_url(package=args.package, version=args.version, pattern=args.pattern)
     print(file_link)
