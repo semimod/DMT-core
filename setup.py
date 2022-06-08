@@ -10,7 +10,7 @@ EXTRAS_REQUIRE = {
     "matplotlib": ["matplotlib"],
     "pyside2": ["PySide2"],
     "pyqt5": ["PyQt5"],
-    "smithplot": ["matplotlib", "pysmithplot@git+https://github.com/miesli/pySmithPlot"],
+    "smithplot": ["matplotlib", "pysmithplot-3.10"],
     "develop": ["pylint", "black"],
     "latex": ["pylatex", "pylatexenc"],
     "remote": ["paramiko", "scp"],
@@ -20,7 +20,7 @@ EXTRAS_REQUIRE["full"].remove("PyQt5")  # not always needed
 
 setuptools.setup(
     name="DMT_core",
-    version="1.6.0",  # obtain by start DMT.core.__init__.py interactive and grab the next version
+    version="1.6.1-rc.1",  # obtain by start DMT.core.__init__.py interactive and grab the next version
     author="M.Mueller, M.Krattenmacher",
     author_email="markus.mueller@semimod.de, mario.krattenmacher@semimod.de",
     description="Device Modeling Toolkit Core",

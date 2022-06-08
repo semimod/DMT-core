@@ -60,7 +60,7 @@ except ImportError:
     print("DMT->Plot: Failed to import plotting module matplotlib.")
 
 smith_available = True
-try:  # git+https://github.com/miesli/pySmithPlot
+try:
     from smithplot.smithaxes import SmithAxes
     from smithplot import smithhelper
 except ModuleNotFoundError:
