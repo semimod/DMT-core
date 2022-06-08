@@ -123,16 +123,12 @@ release_to_pip:
     # push to pip
     - echo "$PIP_JOB_TOKEN"
     - TWINE_PASSWORD="$PIP_JOB_TOKEN" TWINE_USERNAME=__token__ python -m twine upload --verbose --repository-url https://upload.pypi.org/legacy/  dist/*
-    - WHEEL_NAME=$basename ($(ls dist/*.whl))
-  artifacts:
-    paths:
-      - dist/$WHEEL_NAME
-    expire_in: never
+    - WHEEL_LINK=$(./DMT/external/pypi.py) 
   release:
     tag_name: $CI_COMMIT_TAG
     description: './current_changes.md'
     assets:
       links:
         - name: "wheel"
-          url: "${CI_PROJECT_URL}/-/jobs/${CI_JOB_ID}/artifacts/file/${WHEEL_NAME}"
-          filepath: "/assets/${WHEEL_NAME}"
+          url: "${WHEEL_LINK}"
+          filepath: "/assets/DMT_core.whl"

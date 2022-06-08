@@ -1,7 +1,7 @@
 # DMT_core
 # Copyright (C) from 2022  SemiMod
 # Copyright (C) until 2021  Markus Müller, Mario Krattenmacher and Pascal Kuthe
-# <https://gitlab.com/dmt-development/dmt-device>
+# <https://gitlab.com/dmt-development/dmt-core>
 #
 # This file is part of DMT_core.
 #
@@ -26,7 +26,7 @@ try:
 except ImportError:
     from semver import VersionInfo
 
-__version__ = VersionInfo(major=1, minor=6, patch=1, prerelease="rc.1")
+__version__ = VersionInfo(major=1, minor=6, patch=1, prerelease="rc.2")
 # to get the next version:
 # __version__.next_version(x) - with x = "major", "minor", "patch", "prerelease"
 

@@ -15,7 +15,7 @@ Finally the classes here also add some pretty printing and loading and saving us
 # DMT_core
 # Copyright (C) from 2022  SemiMod
 # Copyright (C) until 2021  Markus Müller, Mario Krattenmacher and Pascal Kuthe
-# <https://gitlab.com/dmt-development/dmt-device>
+# <https://gitlab.com/dmt-development/dmt-core>
 #
 # This file is part of DMT_core.
 #
