@@ -26,7 +26,7 @@ try:
 except ImportError:
     from semver import VersionInfo
 
-__version__ = VersionInfo(major=1, minor=6, patch=1, prerelease="rc.3")
+__version__ = VersionInfo(major=1, minor=6, patch=1, prerelease="rc.4")
 # to get the next version:
 # __version__.next_version(x) - with x = "major", "minor", "patch", "prerelease"
 
