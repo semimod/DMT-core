@@ -77,8 +77,9 @@ test_DMT:
       - htmlcov
       - badge_coverage.svg
     reports:
-      coverage_format: cobertura
-      path: coverage.xml
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
   only:
     - main
     - pre-main
