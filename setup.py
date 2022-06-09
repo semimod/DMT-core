@@ -20,7 +20,7 @@ EXTRAS_REQUIRE["full"].remove("PyQt5")  # not always needed
 
 setuptools.setup(
     name="DMT_core",
-    version="1.6.1-rc.6",  # obtain by start DMT.core.__init__.py interactive and grab the next version
+    version="1.6.1-rc.7",  # obtain by start DMT.core.__init__.py interactive and grab the next version
     author="M.Mueller, M.Krattenmacher",
     author_email="markus.mueller@semimod.de, mario.krattenmacher@semimod.de",
     description="Device Modeling Toolkit Core",
