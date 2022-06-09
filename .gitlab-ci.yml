@@ -130,6 +130,8 @@ wheel_to_pypi:
 release_job:
   image: registry.gitlab.com/gitlab-org/release-cli
   stage: release
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^version_/
   needs:
     - job: wheel_to_pypi
   script:
