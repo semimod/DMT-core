@@ -18,6 +18,7 @@ stages:
   - format
   - test
   - deploy
+  - create_release
   - release
 
 # Pip's cache doesn't store the python packages
@@ -81,7 +82,7 @@ test_DMT:
     - main
     - pre-main
 
-wheel:
+wheel_to_gitlab:
   stage: deploy
   needs:
     - job: test_DMT
@@ -112,27 +113,28 @@ pages:
   only:
     - main
 
-release_to_pip:
-  stage: release
+wheel_to_pypi:
+  stage: create_release
   rules:
-    - if: $CI_COMMIT_TAG     # Run this job when a tag is created manually
+    - if: $CI_COMMIT_TAG =~ /^version_/
   script:
     - source /venv/bin/activate
     - python3 setup.py sdist bdist_wheel
     - python3 -c "import re; match = re.search(r'(## \[\d.+?)((## \[)|\Z)', open('CHANGELOG').read(), re.DOTALL); print(match.group(1))" | tee current_changes.md
     # push to pip
-    - echo "$PIP_JOB_TOKEN"
     - TWINE_PASSWORD="$PIP_JOB_TOKEN" TWINE_USERNAME=__token__ python -m twine upload --verbose --repository-url https://upload.pypi.org/legacy/  dist/*
+  artifacts:
+    paths:
+      - current_changes.md
+
+release_job:
+  image: registry.gitlab.com/gitlab-org/release-cli
+  stage: release
+  needs:
+    - job: wheel_to_pypi
+  script:
     - WHEEL_LINK=$(python3 DMT/external/pypi.py) 
-    # get release-cli
-    - curl "https://gitlab.com/api/v4/projects/gitlab-org%2Frelease-cli/packages/generic/release-cli/latest/release-cli-linux-amd64" --output release-cli
-    - chmod +x ./release-cli
-    - PATH="$CWD:$PATH"
-  release:
-    tag_name: $CI_COMMIT_TAG
-    description: './current_changes.md'
-    assets:
-      links:
-        - name: "wheel"
-          url: "${WHEEL_LINK}"
-          filepath: "/assets/DMT_core.whl"
+    - >
+      release-cli create --name release-branch-$CI_JOB_ID --description current_changes.md
+      --tag-name $CI_COMMIT_TAG --ref $CI_COMMIT_SHA
+      --assets-link '{"name":"wheel","url":"${WHEEL_LINK}","link_type":"other","filepath":"/assets/DMT_core.whl"}'
