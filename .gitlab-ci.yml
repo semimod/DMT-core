@@ -13,6 +13,7 @@ image: registry.gitlab.com/dmt-development/dmt:latest
 # only cache local items.
 variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  WHEEL_LINK: ""
 
 stages:
   - format
@@ -31,10 +32,6 @@ cache:
     - .cache/pip
     - venv/
 
-before_script:
-  - source /venv/bin/activate
-  - pip install -e .[develop,HDF5,latex,remote]
-
 check_format:
   stage: format
   script:
@@ -51,6 +48,7 @@ test_DMT:
     - job: check_format
   script:
     - source /venv/bin/activate
+    - pip install -e .[develop,HDF5,latex,remote]
     - pytest --cov=DMT/ test/test_core_no_interfaces/
     - pytest --cov=DMT/ --cov-append test/test_interface_ngspice/test_*.py
     - pytest --cov=DMT/ --cov-append test/test_interface_xyce/test_*.py
@@ -69,7 +67,7 @@ test_DMT:
     # run many test
     - python HdevPy/scripts/run_tests.py
     - cd ..
-    - pytest --cov-report term-missing --cov-report html --cov=DMT/ --cov-append test/test_interface_hdev/test_*.py | tee coverage_report.txt
+    - pytest --cov-report term-missing --cov-report html --cov-report xml --cov=DMT/ --cov-append test/test_interface_hdev/test_*.py | tee coverage_report.txt
     - coverage=$(python3 -c "import re; match = ''; match=re.search(r'TOTAL.+?([0-9]+)%', open('coverage_report.txt').read()); print(match.group(1))")
     - anybadge -l coverage -v $coverage -f badge_coverage.svg coverage
   coverage: "/TOTAL.+?([0-9]+)%/"
@@ -78,6 +76,9 @@ test_DMT:
       - coverage_report.txt
       - htmlcov
       - badge_coverage.svg
+    reports:
+      coverage_format: cobertura
+      path: coverage.xml
   only:
     - main
     - pre-main
@@ -88,6 +89,7 @@ wheel_to_gitlab:
     - job: test_DMT
   script:
     - source /venv/bin/activate
+    - pip install -e .[develop,HDF5,latex,remote]
     - python3 setup.py sdist bdist_wheel
     - TWINE_PASSWORD="$CI_JOB_TOKEN" TWINE_USERNAME=gitlab-ci-token python -m twine upload --verbose --repository-url ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/pypi dist/*
     - echo "WHEEL_NAME=$(ls dist/*.whl)"
@@ -105,6 +107,7 @@ pages:
     - job: test_DMT
   script:
     - source /venv/bin/activate
+    - pip install -e .[develop,HDF5,latex,remote]
     - cd doc ; make html
     - mv build/html/ ../public/
   artifacts:
@@ -119,13 +122,17 @@ wheel_to_pypi:
     - if: $CI_COMMIT_TAG =~ /^version_/
   script:
     - source /venv/bin/activate
+    - pip install -e .[develop,HDF5,latex,remote]
     - python3 setup.py sdist bdist_wheel
     - python3 -c "import re; match = re.search(r'(## \[\d.+?)((## \[)|\Z)', open('CHANGELOG').read(), re.DOTALL); print(match.group(1))" | tee current_changes.md
     # push to pip
     - TWINE_PASSWORD="$PIP_JOB_TOKEN" TWINE_USERNAME=__token__ python -m twine upload --verbose --repository-url https://upload.pypi.org/legacy/  dist/*
+    - echo "WHEEL_LINK=$(python3 DMT/external/pypi.py)" >> wheel_to_pypi.env
   artifacts:
     paths:
       - current_changes.md
+    reports:
+      dotenv: wheel_to_pypi.env
 
 release_job:
   image: registry.gitlab.com/gitlab-org/release-cli
@@ -133,7 +140,6 @@ release_job:
   needs:
     - job: wheel_to_pypi
   script:
-    - WHEEL_LINK=$(python3 DMT/external/pypi.py) 
     - >
       release-cli create --name release-branch-$CI_JOB_ID --description current_changes.md
       --tag-name $CI_COMMIT_TAG --ref $CI_COMMIT_SHA
