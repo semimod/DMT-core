@@ -64,9 +64,9 @@ RUN cd /home/Trilinos_build && cmake \
 RUN cd /home/Trilinos_build && make && make install
 
 # xyce
-RUN cd /home && curl -L -O https://github.com/Xyce/Xyce/archive/refs/tags/Release-7.5.0.tar.gz
-RUN cd /home && tar xzf Xyce-7.5.0.tar.gz && mkdir Xyce_build
-RUN cd /home/Xyce_build && /home/Xyce-7.5.0/configure \
+RUN cd /home && curl -L -O https://xyce.sandia.gov/files/xyce/Xyce-7.5.tar.gz
+RUN cd /home && tar xzf Xyce-7.5.tar.gz && mkdir Xyce_build
+RUN cd /home/Xyce_build && /home/Xyce-7.5/configure \
     CXXFLAGS="-O3" \
     ARCHDIR="/home/local/" \
     CPPFLAGS="-I/usr/include/suitesparse" \
@@ -107,5 +107,15 @@ RUN . venv/bin/activate && pip install numba pyqtgraph matplotlib PySide2 cycler
 RUN . venv/bin/activate && pip install git+https://github.com/SuperKogito/sphinxcontrib-pdfembed
 RUN . venv/bin/activate && pip install python-levenshtein fuzzywuzzy verilogae twine
 
-# more Python dependencies add on bottom to not disturb the build chain
+# runtime version of Hdev
+RUN git clone https://gitlab.com/metroid120/hdev_simulator.git && cd hdev_simulator/HdevPy && pip install -e .
+RUN cd /home/local/bin && wget "https://gitlab.com/metroid120/hdev_simulator/-/jobs/artifacts/master/raw/builddir_docker/hdev?job=build:linux" -O hdev && chmod +x hdev
+# installed version of pip
+COPY . /dmt/
+RUN . venv/bin/activate && cd /dmt && pip install -e .[full]
 
+# apply read-write rights to some files inside the container for everyone 
+RUN chmod --recursive a+rw /dmt 
+RUN chmod --recursive a+rw /venv 
+RUN chmod --recursive a+rw /home/local/bin 
+# more Python dependencies add on bottom to not disturb the build chain

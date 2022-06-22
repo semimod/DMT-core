@@ -1,0 +1,20 @@
+#! /bin/bash
+
+# make sure to configure DMT using a local config and local save paths. For example:
+# DMT_config.yaml:
+# directories:
+#     simulation: ./DMT_simulation_results/ 
+#     database:   ./DMT_databases/ 
+
+docker run --rm -ti \
+    --env="DISPLAY" \
+    --user "$(id -u)":"$(id -g)" \
+    --volume="/etc/group:/etc/group:ro" \
+    --volume="/etc/passwd:/etc/passwd:ro" \
+    --volume="/etc/shadow:/etc/shadow:ro" \
+    --volume="/etc/sudoers.d:/etc/sudoers.d:ro" \
+    --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
+    --volume "${PWD}":/tmp \
+    --workdir=/tmp \
+    registry.gitlab.com/dmt-development/dmt-core:latest /bin/bash -c ". /venv/bin/activate; python3 $1"
+

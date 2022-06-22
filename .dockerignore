@@ -1,0 +1,5 @@
+logs
+doc
+DMT_core.egg-info
+.gitlab
+.pytest_cache
