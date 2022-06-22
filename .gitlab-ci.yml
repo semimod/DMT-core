@@ -120,7 +120,7 @@ pages:
 wheel_to_pypi:
   stage: create_release
   rules:
-    - if: $CI_COMMIT_TAG =~ /^version_/
+    - if: $CI_COMMIT_TAG =~ /^Version/
   script:
     - source /venv/bin/activate
     - pip install -e .[develop,HDF5,latex,remote]
