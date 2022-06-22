@@ -139,13 +139,13 @@ release_job:
   image: registry.gitlab.com/gitlab-org/release-cli
   stage: release
   rules:
-    - if: $CI_COMMIT_TAG =~ /^version_/
+    - if: $CI_COMMIT_TAG =~ /^Version/
   needs:
     - job: wheel_to_pypi
   script:
     - echo $WHEEL_LINK
     - cat current_changes.md
     - >
-      release-cli create --name release-branch-$CI_JOB_ID --description current_changes.md
+      release-cli create --name $CI_COMMIT_TAG --description current_changes.md
       --tag-name $CI_COMMIT_TAG --ref $CI_COMMIT_SHA
       --assets-link "{\"name\":\"wheel\",\"url\":\"${WHEEL_LINK}\",\"link_type\":\"other\",\"filepath\":\"/assets/DMT_core.whl\"}" 
