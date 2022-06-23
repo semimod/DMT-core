@@ -25,11 +25,9 @@ check_format:
       when: manual
   script:
     - black --check --diff -v .
-  only:
-    - main
-    - pre-main
 
 test_DMT:
+  image: registry.gitlab.com/dmt-development/dmt-core:base
   stage: test
   rules:
     - if: $CI_COMMIT_BRANCH =~ /main/
@@ -38,7 +36,6 @@ test_DMT:
   needs:
     - job: check_format
   script:
-    - source /venv/bin/activate
     - pip install --force-reinstall -e .[develop,HDF5,latex,remote]
     - pytest --cov=DMT/ test/test_core_no_interfaces/
     - pytest --cov=DMT/ --cov-append test/test_interface_ngspice/test_*.py
@@ -73,14 +70,13 @@ test_DMT:
         path: coverage.xml
 
 wheel_to_gitlab:
+  image: registry.gitlab.com/dmt-development/dmt-core:base
   stage: deploy
   rules:
     - if: $CI_COMMIT_BRANCH =~ /main/
   needs:
     - job: test_DMT
   script:
-    - source /venv/bin/activate
-    - pip install --force-reinstall -e .[develop,HDF5,latex,remote]
     - python3 setup.py sdist bdist_wheel
     - TWINE_PASSWORD="$CI_JOB_TOKEN" TWINE_USERNAME=gitlab-ci-token python -m twine upload --verbose --repository-url ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/pypi dist/*
     - echo "WHEEL_NAME=$(ls dist/*.whl)"
@@ -91,13 +87,13 @@ wheel_to_gitlab:
       - $ARCHIV_NAME
 
 pages:
+  image: registry.gitlab.com/dmt-development/dmt-core:base
   stage: deploy
   rules:
     - if: $CI_COMMIT_BRANCH =~ /main/
   needs:
     - job: test_DMT
   script:
-    - source /venv/bin/activate
     - pip install --force-reinstall -e .[develop,HDF5,latex,remote]
     - cd doc ; make html
     - mv build/html/ ../public/
@@ -106,12 +102,11 @@ pages:
       - public
 
 wheel_to_pypi:
+  image: registry.gitlab.com/dmt-development/dmt-core:base
   stage: create_release
   rules:
     - if: $CI_COMMIT_TAG =~ /^version_/
   script:
-    - source /venv/bin/activate
-    - pip install --force-reinstall -e .[develop,HDF5,latex,remote]
     - python3 setup.py sdist bdist_wheel
     - python3 -c "import re; match = re.search(r'(## \[\d.+?)((## \[)|\Z)', open('CHANGELOG').read(), re.DOTALL); print(match.group(1))" | tee current_changes.md
     # push to pip
@@ -131,9 +126,21 @@ release_job:
   needs:
     - job: wheel_to_pypi
   script:
-    - echo $WHEEL_LINK
-    - cat current_changes.md
     - >
       release-cli create --name $CI_COMMIT_TAG --description current_changes.md
       --tag-name $CI_COMMIT_TAG --ref $CI_COMMIT_SHA
       --assets-link "{\"name\":\"wheel\",\"url\":\"${WHEEL_LINK}\",\"link_type\":\"other\",\"filepath\":\"/assets/DMT_core.whl\"}" 
+  
+build_container:
+  image: docker:20.10.17
+  stage: release
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^Version/
+  needs:
+    - job: wheel_to_pypi
+  services:
+    - docker:dind
+  script:
+    # create container
+    - docker build -t registry.gitlab.com/dmt-development/dmt-core:full .
+    - docker tag registry.gitlab.com/dmt-development/dmt-core:full registry.gitlab.com/dmt-development/dmt-core:$CI_COMMIT_TAG
