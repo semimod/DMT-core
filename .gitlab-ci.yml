@@ -141,6 +141,14 @@ build_container:
   services:
     - docker:dind
   script:
-    # create container
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker build -t $IMAGE_TAG .
+    - docker push $IMAGE_TAG
+  script:
+    - docker login $CI_REGISTRY_USER --username $CI_REGISTRY_PASSWORD  $CI_REGISTRY
+    # build container
     - docker build -t registry.gitlab.com/dmt-development/dmt-core:full .
     - docker tag registry.gitlab.com/dmt-development/dmt-core:full registry.gitlab.com/dmt-development/dmt-core:$CI_COMMIT_TAG
+    # push
+    - docker push registry.gitlab.com/dmt-development/dmt-core:full
+    - docker push registry.gitlab.com/dmt-development/dmt-core:$CI_COMMIT_TAG
