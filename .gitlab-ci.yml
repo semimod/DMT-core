@@ -105,7 +105,7 @@ wheel_to_pypi:
   image: registry.gitlab.com/dmt-development/dmt-core:base
   stage: create_release
   rules:
-    - if: $CI_COMMIT_TAG =~ /^version_/
+    - if: $CI_COMMIT_TAG =~ /^Version/
   script:
     - python3 setup.py sdist bdist_wheel
     - python3 -c "import re; match = re.search(r'(## \[\d.+?)((## \[)|\Z)', open('CHANGELOG').read(), re.DOTALL); print(match.group(1))" | tee current_changes.md
