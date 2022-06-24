@@ -53,7 +53,7 @@ test_DMT:
     # now create the DMT simulation directory
     - mkdir -p ~/.DMT/simulation_results
     # run many test
-    - python HdevPy/scripts/run_tests.py
+    - python3 HdevPy/scripts/run_tests.py
     - cd ..
     - pytest --cov-report term-missing --cov-report html --cov-report xml --cov=DMT/ --cov-append test/test_interface_hdev/test_*.py | tee coverage_report.txt
     - coverage=$(python3 -c "import re; match = ''; match=re.search(r'TOTAL.+?([0-9]+)%', open('coverage_report.txt').read()); print(match.group(1))")
