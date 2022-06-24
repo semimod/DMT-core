@@ -130,8 +130,7 @@ COPY --from=BUILD_DEPS /home/local /home/local
 ENV PATH="/home/local/bin:${PATH}"
 
 
-# latex ( https://gitlab.com/islandoftex/images/texlive/-/blob/master/Dockerfile )
-COPY --from=registry.gitlab.com/islandoftex/images/texlive /usr/local/texlive /usr/local/texlive
+COPY --from=texlive/texlive:latest /usr/local/texlive/ /usr/local/texlive/
 RUN echo "Set PATH to $PATH" && \
     $(find /usr/local/texlive -name tlmgr) path add && \
     # pregenerate caches as per #3; overhead is < 5 MB which does not really
@@ -144,14 +143,14 @@ RUN echo "Set PATH to $PATH" && \
     cp "$(find /usr/local/texlive -name texlive-fontconfig.conf)" /etc/fonts/conf.d/09-texlive-fonts.conf && \
     fc-cache -fsv; 
 
-RUN \
-    # test the installation
-    latex --version && printf '\n' && \
-    biber --version && printf '\n'
+# RUN \
+#     # test the installation
+#     latex --version && printf '\n' && \
+#     biber --version && printf '\n'
 
-# pip
-RUN pip install --upgrade pip
-RUN pip install setuptools scipy numpy scikit-rf reprint pandas h5py tables cython sphinx_rtd_theme pylint pylatex pylatexenc pint pytest pytest-cov sphinx numpydoc pypandoc anybadge twine numba pyqtgraph matplotlib PySide2 cycler pyyaml joblib more_itertools paramiko scp colormath semver black
-RUN pip install python-levenshtein fuzzywuzzy verilogae==0.9b4 git+https://github.com/SuperKogito/sphinxcontrib-pdfembed
+# # pip
+# RUN pip install --upgrade pip
+# RUN pip install setuptools scipy numpy scikit-rf reprint pandas h5py tables cython sphinx_rtd_theme pylint pylatex pylatexenc pint pytest pytest-cov sphinx numpydoc pypandoc anybadge twine numba pyqtgraph matplotlib PySide2 cycler pyyaml joblib more_itertools paramiko scp colormath semver black
+# RUN pip install python-levenshtein fuzzywuzzy verilogae==0.9b4 git+https://github.com/SuperKogito/sphinxcontrib-pdfembed
 
 # more Python dependencies add on bottom to not disturb the build chain

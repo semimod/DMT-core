@@ -6,6 +6,7 @@
 DMT_config.yaml
 # but make sure the global config is in the repository!
 !DMT/config/DMT_config.yaml
+!docker/DMT_config.yaml
 
 ### Python ###
 # Byte-compiled / optimized / DLL files
