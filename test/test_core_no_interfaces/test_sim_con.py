@@ -39,7 +39,12 @@ def test_run_sim():
     othervar = {"TEMP": 300, "w": 10, "l": 0.25}
     sweep = Sweep("test_sweep", sweepdef=sweepdef, othervar=othervar)
 
-    mcard = MCard(["A"], "Q_HIC", "hicuml2va", va_file=folder_path / "test_va_code"/"hicuml2"/"hicumL2V2p4p0_release.va")
+    mcard = MCard(
+        ["A"],
+        "Q_HIC",
+        "hicuml2va",
+        va_file=folder_path / "test_va_code" / "hicuml2" / "hicumL2V2p4p0_release.va",
+    )
     mcard.load_model_parameters(
         folder_path / "test_modelcards" / "IHP_ECE704_03_para_D21.mat",
     )
