@@ -36,7 +36,7 @@ test_DMT:
   needs:
     - job: check_format
   script:
-    - pip install -e .[develop,HDF5,latex,remote]
+    - pip install --upgrade --upgrade-strategy eager -e .[develop,HDF5,latex,remote]
     - pytest --cov=DMT/ test/test_core_no_interfaces/
     - pytest --cov=DMT/ --cov-append test/test_interface_ngspice/test_*.py
     - pytest --cov=DMT/ --cov-append test/test_interface_xyce/test_*.py
@@ -78,7 +78,7 @@ wheel_to_gitlab:
     - job: test_DMT
   script:
     - python3 setup.py sdist bdist_wheel
-    - TWINE_PASSWORD="$CI_JOB_TOKEN" TWINE_USERNAME=gitlab-ci-token python -m twine upload --verbose --repository-url ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/pypi dist/*
+    - TWINE_PASSWORD="$CI_JOB_TOKEN" TWINE_USERNAME=gitlab-ci-token python3 -m twine upload --verbose --repository-url ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/pypi dist/*
     - echo "WHEEL_NAME=$(ls dist/*.whl)"
     - echo "ARCHIV_NAME=$(ls dist/*.gz)"
   artifacts:
@@ -110,7 +110,7 @@ wheel_to_pypi:
     - python3 setup.py sdist bdist_wheel
     - python3 -c "import re; match = re.search(r'(## \[\d.+?)((## \[)|\Z)', open('CHANGELOG').read(), re.DOTALL); print(match.group(1))" | tee current_changes.md
     # push to pip
-    - TWINE_PASSWORD="$PIP_JOB_TOKEN" TWINE_USERNAME=__token__ python -m twine upload --verbose --repository-url https://upload.pypi.org/legacy/  dist/*
+    - TWINE_PASSWORD="$PIP_JOB_TOKEN" TWINE_USERNAME=__token__ python3 -m twine upload --verbose --repository-url https://upload.pypi.org/legacy/  dist/*
     - echo "WHEEL_LINK=$(python3 DMT/external/pypi.py)" >> wheel_to_pypi.env
   artifacts:
     paths:

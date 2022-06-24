@@ -42,6 +42,7 @@ def test_vae_module():
         "type",
         "rth",
         "dt",
+        "flcomp",
     }
 
 
@@ -79,6 +80,7 @@ def test_custom_fct():
         "cbepar",
         "zep",
         "dt",
+        "flcomp",
     }
 
 
