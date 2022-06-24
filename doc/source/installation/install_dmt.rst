@@ -5,9 +5,71 @@
 Installation
 =============
 
+To use DMT there are two main ways: Docker or install to virtual environment. In this short intro, we will touch both. The two ways have their own advantages and drawbacks:
+
+.. table:: Comparison Docker and virtual environment 
+
+    +-------------+-----------------+
+    | Docker   | Virtual environment |
+    +-------------+-----------------+
+    | Easy install | Complex install |
+    | Fixed interfaces only | Own interfaces |
+    | Exchange of data between host and guest | No data exchange needed |
+    | No debugging | Direct debugging |
+    +-------------+-----------------+
+
+Of course, for each drawback there is a workaround, but the basic difference stays.
+
+So the recommendation is, if you want to test DMT and see if it suits you, choose docker. But if you want to change the code of DMT or develop more interfaces/modules, then we recommend installing the code in editor mode from your own fork. Somewhere in the middle between these, is the option to install the official pypi release.
+
+Use the docker container
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+This is quite straight forward:
+
+.. code:: bash
+    docker login registry.gitlab.com
+
+Then the example bash script in `docker/dmt` can be used to execute Python scripts which call DMT. 
+
+Installing container dependencies
+---------------------------------
+
+If you want to install more programs or Python packages into this container, we recommend creating your own container. The Dockerfile would start like this:
+
+.. code:: Dockerfile
+    FROM registry.gitlab.com/dmt-development/dmt-core:full
+
+    ...
+
+Build and tag this file with your own name. Then change the `docker/dmt` bash script to use the new container accordingly.
+
+Exchange data
+-------------
+
+Per default, the bash script mounts the local folder into the container under `/pwd` and hence all data inside the current working path is available there. If you only use local paths (also for the simulation data and reports), the borders between host and guest are transparent. Be aware, that inside the container the user `dmt_user` (id: 1000, group: 1000) is used. So if you have a different id, change the script accordingly. It may look like this (untested):
+
+.. code:: bash
+    chmod a+rw -r . # either here
+    docker run --rm -ti \
+        --env="DISPLAY" \
+        --user 1000:1000 \
+        --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
+        --volume "${PWD}":/pwd \
+        --workdir=/pwd \
+        registry.gitlab.com/dmt-development/dmt-core:full "python3 $@; chmod a+rw -r ." # or here
+
+Either before or after the run, everyone gets read/write access to the data inside the folder. Depending on your use case, you may restrict the exchange to one direction or special folders. 
+
+If you tested and verified/improved the script, please report this to us!
+
+
+Install the python package
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 In this short document, we will explain how to install DMT and many of its dependencies, including how to connect them to DMT.
 
-This tutorial is written for Unix-users. Most of the command-line commands given herein have very similar windows equivalents and we hope that this tutorial is helpful for both Windows aswell as Unix users. DMT can be run both on Windows and Unix (probably also Mac, but we have not tried that, yet). DMT is implemented and tested using Ubuntu. So if you are free to choose your OS and are looking for an easy start, we can recommend using this.
+This tutorial is written for Unix-users. Most of the command-line commands given herein have very similar windows equivalents, and we hope that this tutorial is helpful for both Windows and Unix users. DMT can be run both on Windows and Unix (probably also Mac, but we have not tried that, yet). DMT is implemented and tested using Ubuntu. So if you are free to choose your OS and are looking for an easy start, we can recommend using this.
 
 Before you get started with DMT, please note that DMT is a high-level project (in terms of programming level abstraction), meaning that it has many dependencies. At the end of this page, you may find some installation help for the dependency you want to use. 
 
@@ -50,7 +112,7 @@ To install DMT-core just run in:
 
     python3.10 -m pip install DMT-core[full]
 
-If a never version is needed, the release candidates can be installed from gitlab directly:
+If a newer version is needed, the release candidates can be installed from gitlab directly:
 
 .. code:: bash
 

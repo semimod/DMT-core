@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased] - 
 
+### Added
+
+- Added local and full docker container for DMT-core. It is build in 3 steps
+    - Builder: Builds ngspice, adms, trilinos and xyce
+    - Base: copys from builder, texlive and installs only necessary runtime and python environment
+    - full or Version_XX: Includes the latest or respective DMT install
+- dmt example bash script which uses the docker container to run a python/dmt script.
+
 ### Fixed
 
 - CI Release name
