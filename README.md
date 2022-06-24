@@ -12,9 +12,11 @@ DeviceModelingToolkit (DMT) is a Python tool targeted at helping modeling engine
 
 See the [DMT-website](https://dmt-development.gitlab.io/dmt-core/index.html) for further information.
 
-## Installation
+## Usage
 
-After installing python 3.8 or later, simply install the release version using
+### Installation to virtual environment
+
+After installing python 3.8 or later, create a virtual environment and install the release version using
 
 ```bash
 
@@ -22,10 +24,16 @@ After installing python 3.8 or later, simply install the release version using
 
 ```
 
-For more information have a look at our [install guide](https://dmt-development.gitlab.io/dmt-core/installation/install_dmt.html)
+For more information have a look at our [installation guide](https://dmt-development.gitlab.io/dmt-core/installation/install_dmt.html)
 
-Currently DMT is developed mostly on Ubuntu using Python 3.10. So for the easiest install this is the best supported plattform.
-If you want or have to use Windows and MacOS there may be more dependency and installation issues, although needed projects we use support these plattforms. Please report these issues to us. In our install guide, we collect guides to solve the already known issues.
+Currently, DMT is developed mostly on Ubuntu using Python 3.10. So for the easiest install this is the best supported platform.
+If you want or have to use Windows and MacOS there may be more dependency and installation issues, although needed projects we use support these platforms. Please report these issues to us. In our installation guide, we collect guides to solve the already known issues.
+
+### Full docker container
+
+DMT is tested inside a docker container and this container can be used to run python/DMT scripts locally on your machine. See `docker/dmt` for an example bash script to run a file. Notice the configuration, this is needed so that simulation results and read measurement files persist on your host machine and do not vanish each time the container is closed. 
+
+For more information have a look at our [docker guide](https://dmt-development.gitlab.io/dmt-core/installation/install_dmt.html)
 
 ## Questions, bugs and feature requests
 
