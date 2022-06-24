@@ -189,7 +189,11 @@ def test_ngspice():
         ["C", "B", "E", "S", "T"],
         default_module_name="",
         default_subckt_name="",
-        va_file=folder_path.parent / "test_core_no_interfaces" / "hicumL2V2p4p0_release.va",
+        va_file=folder_path.parent
+        / "test_core_no_interfaces"
+        / "test_va_code"
+        / "hicuml2"
+        / "hicumL2V2p4p0_release.va",
     )
     mc_D21.load_model_parameters(
         folder_path.parent
@@ -350,7 +354,7 @@ if __name__ == "__main__":
                 label=dut_name + " $V_{{CE}} = {0:1.2f} V$".format(np.real(vce)),
             )
 
-    # plt_ib.plot_pyqtgraph(show=False)
-    # plt_gummel.plot_pyqtgraph(show=True)
-    plt_ib.plot_py(show=False, use_tex=True)
-    plt_gummel.plot_py(show=True, use_tex=False)
+    plt_ib.plot_pyqtgraph(show=False)
+    plt_gummel.plot_pyqtgraph(show=True)
+    # plt_ib.plot_py(show=False, use_tex=True)
+    # plt_gummel.plot_py(show=True, use_tex=False)

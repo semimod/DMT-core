@@ -848,6 +848,9 @@ class Calculator(ast.NodeVisitor):
     def visit_Num(self, node):
         return node.n
 
+    def visit_Constant(self, node):
+        return node.n
+
     def visit_Expr(self, node):
         return self.visit(node.value)
 

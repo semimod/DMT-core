@@ -1,8 +1,3 @@
-# This file is a template, and might need editing before it works on your project.
-# Official language image. Look for the different tagged releases at:
-# https://hub.docker.com/r/library/python/tags/
-image: registry.gitlab.com/dmt-development/dmt:latest
-
 #to run this locally:
 #login to container registry
 #>docker login registry.gitlab.com
@@ -12,7 +7,6 @@ image: registry.gitlab.com/dmt-development/dmt:latest
 # Change pip's cache directory to be inside the project directory since we can
 # only cache local items.
 variables:
-  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
   WHEEL_LINK: ""
 
 stages:
@@ -22,33 +16,27 @@ stages:
   - create_release
   - release
 
-# Pip's cache doesn't store the python packages
-# https://pip.pypa.io/en/stable/reference/pip_install/#caching
-#
-# If you want to also cache the installed packages, you have to install
-# them in a virtualenv and cache it as well.
-cache:
-  paths:
-    - .cache/pip
-    - venv/
-
 check_format:
+  image: registry.gitlab.com/dmt-development/dmt-core:base
   stage: format
+  rules:
+    - if: $CI_COMMIT_BRANCH =~ /main/
+    - if: $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
+      when: manual
   script:
-    - echo "$PIP_JOB_TOKEN"
-    - source /venv/bin/activate
     - black --check --diff -v .
-  only:
-    - main
-    - pre-main
 
 test_DMT:
+  image: registry.gitlab.com/dmt-development/dmt-core:base
   stage: test
+  rules:
+    - if: $CI_COMMIT_BRANCH =~ /main/
+    - if: $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
+      when: manual
   needs:
     - job: check_format
   script:
-    - source /venv/bin/activate
-    - pip install -e .[develop,HDF5,latex,remote]
+    - pip install --upgrade --upgrade-strategy eager -e .[develop,HDF5,latex,remote]
     - pytest --cov=DMT/ test/test_core_no_interfaces/
     - pytest --cov=DMT/ --cov-append test/test_interface_ngspice/test_*.py
     - pytest --cov=DMT/ --cov-append test/test_interface_xyce/test_*.py
@@ -65,7 +53,7 @@ test_DMT:
     # now create the DMT simulation directory
     - mkdir -p ~/.DMT/simulation_results
     # run many test
-    - python HdevPy/scripts/run_tests.py
+    - python3 HdevPy/scripts/run_tests.py
     - cd ..
     - pytest --cov-report term-missing --cov-report html --cov-report xml --cov=DMT/ --cov-append test/test_interface_hdev/test_*.py | tee coverage_report.txt
     - coverage=$(python3 -c "import re; match = ''; match=re.search(r'TOTAL.+?([0-9]+)%', open('coverage_report.txt').read()); print(match.group(1))")
@@ -80,54 +68,49 @@ test_DMT:
       coverage_report:
         coverage_format: cobertura
         path: coverage.xml
-  only:
-    - main
-    - pre-main
 
 wheel_to_gitlab:
+  image: registry.gitlab.com/dmt-development/dmt-core:base
   stage: deploy
+  rules:
+    - if: $CI_COMMIT_BRANCH =~ /main/
   needs:
     - job: test_DMT
   script:
-    - source /venv/bin/activate
-    - pip install -e .[develop,HDF5,latex,remote]
     - python3 setup.py sdist bdist_wheel
-    - TWINE_PASSWORD="$CI_JOB_TOKEN" TWINE_USERNAME=gitlab-ci-token python -m twine upload --verbose --repository-url ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/pypi dist/*
+    - TWINE_PASSWORD="$CI_JOB_TOKEN" TWINE_USERNAME=gitlab-ci-token python3 -m twine upload --verbose --repository-url ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/pypi dist/*
     - echo "WHEEL_NAME=$(ls dist/*.whl)"
     - echo "ARCHIV_NAME=$(ls dist/*.gz)"
   artifacts:
     paths:
       - $WHEEL_NAME
       - $ARCHIV_NAME
-  only:
-    - main
 
 pages:
+  image: registry.gitlab.com/dmt-development/dmt-core:base
   stage: deploy
+  rules:
+    - if: $CI_COMMIT_BRANCH =~ /main/
   needs:
     - job: test_DMT
   script:
-    - source /venv/bin/activate
     - pip install -e .[develop,HDF5,latex,remote]
     - cd doc ; make html
     - mv build/html/ ../public/
   artifacts:
     paths:
       - public
-  only:
-    - main
 
 wheel_to_pypi:
+  image: registry.gitlab.com/dmt-development/dmt-core:base
   stage: create_release
   rules:
     - if: $CI_COMMIT_TAG =~ /^Version/
   script:
-    - source /venv/bin/activate
-    - pip install -e .[develop,HDF5,latex,remote]
     - python3 setup.py sdist bdist_wheel
     - python3 -c "import re; match = re.search(r'(## \[\d.+?)((## \[)|\Z)', open('CHANGELOG').read(), re.DOTALL); print(match.group(1))" | tee current_changes.md
     # push to pip
-    - TWINE_PASSWORD="$PIP_JOB_TOKEN" TWINE_USERNAME=__token__ python -m twine upload --verbose --repository-url https://upload.pypi.org/legacy/  dist/*
+    - TWINE_PASSWORD="$PIP_JOB_TOKEN" TWINE_USERNAME=__token__ python3 -m twine upload --verbose --repository-url https://upload.pypi.org/legacy/  dist/*
     - echo "WHEEL_LINK=$(python3 DMT/external/pypi.py)" >> wheel_to_pypi.env
   artifacts:
     paths:
@@ -143,9 +126,25 @@ release_job:
   needs:
     - job: wheel_to_pypi
   script:
-    - echo $WHEEL_LINK
-    - cat current_changes.md
     - >
       release-cli create --name $CI_COMMIT_TAG --description current_changes.md
       --tag-name $CI_COMMIT_TAG --ref $CI_COMMIT_SHA
       --assets-link "{\"name\":\"wheel\",\"url\":\"${WHEEL_LINK}\",\"link_type\":\"other\",\"filepath\":\"/assets/DMT_core.whl\"}" 
+  
+build_container:
+  image: docker:20.10.17
+  stage: release
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^Version/
+  needs:
+    - job: wheel_to_pypi
+  services:
+    - docker:dind
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    # build container
+    - docker build -t registry.gitlab.com/dmt-development/dmt-core:full .
+    - docker tag registry.gitlab.com/dmt-development/dmt-core:full registry.gitlab.com/dmt-development/dmt-core:$CI_COMMIT_TAG
+    # push
+    - docker push registry.gitlab.com/dmt-development/dmt-core:full
+    - docker push registry.gitlab.com/dmt-development/dmt-core:$CI_COMMIT_TAG

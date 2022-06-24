@@ -1,20 +1,16 @@
-FROM archlinux:base-20220501.0.54834
+FROM registry.gitlab.com/dmt-development/dmt-core:base 
 
-RUN pacman -Syyu --noconfirm
+# runtime version of Hdev
+RUN git clone https://gitlab.com/metroid120/hdev_simulator.git && cd hdev_simulator/HdevPy && pip install -e .
 
-RUN pacman -S --noconfirm --needed cmake pkgconfig git python-pip python sudo base-devel \
-    freetype2 libglvnd \
-    python-setuptools python-wheel \
-    python-pandas \
-    python-pytables \
-    python-matplotlib python-pint \
-    python-pyqtgraph bc \
-    && yes | pacman -Scc
+RUN apt-get update \
+    && apt-get -y install \
+    wget
 
-RUN pacman -S --noconfirm --needed ngspice && yes | pacman -Scc
-RUN pacman -S --noconfirm --needed texlive-most && yes | pacman -Scc
+RUN cd /home/local/bin && wget "https://gitlab.com/metroid120/hdev_simulator/-/jobs/artifacts/master/raw/builddir_docker/hdev?job=build:linux" -O hdev && chmod +x hdev
+# installed version of pip
+COPY . /dmt/
+RUN cd /dmt && mkdir logs && pip install  --upgrade --upgrade-strategy eager -e .[full]
 
-COPY . /dmt
-
-RUN cd /dmt && pip install .[full]
-
+# apply read-write rights to some files inside the container for everyone 
+RUN chmod --recursive a+rw /dmt && chmod --recursive a+rw /home/local/bin 
