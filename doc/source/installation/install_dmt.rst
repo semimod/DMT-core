@@ -7,16 +7,19 @@ Installation
 
 To use DMT there are two main ways: Docker or install to virtual environment. In this short intro, we will touch both. The two ways have their own advantages and drawbacks:
 
-.. table:: Comparison Docker and virtual environment 
++------------------------------------------+--------------------------+
+| Docker                                   | Virtual environment      |
++==========================================+==========================+
+| Easy install                             | Complex install          |
++------------------------------------------+--------------------------+
+| Fixed interfaces only                    | Own interfaces           |
++------------------------------------------+--------------------------+
+| Exchange of data between host and guest  | No data exchange needed  |
++------------------------------------------+--------------------------+
+| No debugging                             | Direct debugging         |
++------------------------------------------+--------------------------+
 
-    +-------------+-----------------+
-    | Docker   | Virtual environment |
-    +-------------+-----------------+
-    | Easy install | Complex install |
-    | Fixed interfaces only | Own interfaces |
-    | Exchange of data between host and guest | No data exchange needed |
-    | No debugging | Direct debugging |
-    +-------------+-----------------+
+
 
 Of course, for each drawback there is a workaround, but the basic difference stays.
 
@@ -28,6 +31,7 @@ Use the docker container
 This is quite straight forward:
 
 .. code:: bash
+
     docker login registry.gitlab.com
 
 Then the example bash script in `docker/dmt` can be used to execute Python scripts which call DMT. 
@@ -38,6 +42,7 @@ Installing container dependencies
 If you want to install more programs or Python packages into this container, we recommend creating your own container. The Dockerfile would start like this:
 
 .. code:: Dockerfile
+
     FROM registry.gitlab.com/dmt-development/dmt-core:full
 
     ...
@@ -50,6 +55,7 @@ Exchange data
 Per default, the bash script mounts the local folder into the container under `/pwd` and hence all data inside the current working path is available there. If you only use local paths (also for the simulation data and reports), the borders between host and guest are transparent. Be aware, that inside the container the user `dmt_user` (id: 1000, group: 1000) is used. So if you have a different id, change the script accordingly. It may look like this (untested):
 
 .. code:: bash
+
     chmod a+rw -r . # either here
     docker run --rm -ti \
         --env="DISPLAY" \
