@@ -14,6 +14,7 @@ from DMT.core.circuit import HICUML2_HBT
 from DMT.exceptions import BoundsError, ValueTooLargeError
 
 folder_path = Path(__file__).resolve().parent
+hicum_path = folder_path / "test_va_code" / "hicuml2" / "hicumL2V2p4p0_release.va"
 logging.basicConfig(
     level=logging.DEBUG,
     format="%(levelname)s - %(message)s",
@@ -86,7 +87,6 @@ def test_mcard_load_compare():
 
 
 def test_set_va_code():
-    hicum_path = folder_path / "hicumL2V2p4p0_release.va"
 
     mc = MCard(
         ["A"],
@@ -156,14 +156,14 @@ def test_set_va_code():
 
 
 def test_read_va_file():
-    mc = MCard(["A"], "Q_HIC", "hicuml2va", va_file=folder_path / "hicumL2V2p4p0_release.va")
+    mc = MCard(["A"], "Q_HIC", "hicuml2va", va_file=hicum_path)
     mc.update_from_vae()  # McHicum(va_file=VA_FILES["L2V2.4.0_release"])
 
     assert len(mc) == 136
 
 
 def test_json():
-    mc = MCard(["A"], "Q_HIC", "hicuml2va", va_file=folder_path / "hicumL2V2p4p0_release.va")
+    mc = MCard(["A"], "Q_HIC", "hicuml2va", va_file=hicum_path)
     mc.set_values({"c10": 3e-15})  # just a little change
 
     file_name = "test_json_mchicum.json"
@@ -177,7 +177,7 @@ def test_json():
 
     os.remove(file_name)
 
-    mc = MCard(["A"], "Q_HIC", "hicuml2va", va_file=folder_path / "hicumL2V2p4p0_release.va")
+    mc = MCard(["A"], "Q_HIC", "hicuml2va", va_file=hicum_path)
     with pytest.raises(KeyError):
         mc.set_values({"is": 3e-15})  # just a little change
 

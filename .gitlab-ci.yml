@@ -36,7 +36,7 @@ test_DMT:
   needs:
     - job: check_format
   script:
-    - pip install --force-reinstall -e .[develop,HDF5,latex,remote]
+    - pip install -e .[develop,HDF5,latex,remote]
     - pytest --cov=DMT/ test/test_core_no_interfaces/
     - pytest --cov=DMT/ --cov-append test/test_interface_ngspice/test_*.py
     - pytest --cov=DMT/ --cov-append test/test_interface_xyce/test_*.py
@@ -44,7 +44,7 @@ test_DMT:
     # Hdev:
     - git clone https://gitlab.com/metroid120/hdev_simulator.git
     - cd hdev_simulator/HdevPy #HdevPy depends on DMT_core and therefore is installed here
-    - pip install --force-reinstall -e .
+    - pip install -e .
     - cd ..
     # download the executable and put it into path
     - wget "https://gitlab.com/metroid120/hdev_simulator/-/jobs/artifacts/master/raw/builddir_docker/hdev?job=build:linux" -O hdev
@@ -94,7 +94,7 @@ pages:
   needs:
     - job: test_DMT
   script:
-    - pip install --force-reinstall -e .[develop,HDF5,latex,remote]
+    - pip install -e .[develop,HDF5,latex,remote]
     - cd doc ; make html
     - mv build/html/ ../public/
   artifacts:
