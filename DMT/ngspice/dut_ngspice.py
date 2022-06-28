@@ -802,6 +802,7 @@ class DutNgspice(DutCircuit):
             VOLTAGE: "V",
             CURRENT: "I",
             "hicumL2va": "Q",
+            "hicumL2_test": "Q",
             HICUML2_HBT: "Q",
             SGP_BJT: "Q",
             "bjtn": "Q",
@@ -826,7 +827,7 @@ class DutNgspice(DutCircuit):
             if isinstance(circuit_element.parameters, MCard):
                 str_temp = "+ "
 
-                if circuit_element.element_type in ["hicumL2va", HICUML2_HBT]:
+                if circuit_element.element_type in ["hicumL2va", HICUML2_HBT, "hicumL2_test"]:
                     mcard = circuit_element.parameters
                     str_instance_parameters = ""
                     str_model_parameters = ""
