@@ -12,6 +12,10 @@ variables:
 include:
   - template: Security/Dependency-Scanning.gitlab-ci.yml
 
+dependency_scanning:
+  before_script:
+    - pip install --upgrade --upgrade-strategy eager -e .[develop,HDF5,latex,remote]
+
 stages:
   - format
   - test
