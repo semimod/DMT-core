@@ -308,7 +308,8 @@ class DutNgspice(DutCircuit):
         df = tmp_sweep.create_df()
         ac = True
         if not specifiers.FREQUENCY in df.columns:
-            ac = False
+            # ac = False
+            df[specifiers.FREQUENCY] = 1e9
 
         # from ngspice manual
         # .ac dec nd fstart fstop-
@@ -316,9 +317,9 @@ class DutNgspice(DutCircuit):
         # .ac lin np fstart fstop
 
         # find the AC sweep definition
+        ac_statements = []
         if ac:
             for swd in sweepdefs:
-                ac_statements = []
                 if swd.var_name == specifiers.FREQUENCY:
                     swd_type = swd.sweep_type
                     swd_value_def = swd.value_def
@@ -345,9 +346,13 @@ class DutNgspice(DutCircuit):
                     else:
                         raise NotImplementedError
 
-            # remove all but one frequency from DF. We can then laer put the "ac_statement" behind every DC point.
+            # remove all but one frequency from DF. We can then later put the "ac_statement" behind every DC point.
             freqs = df[specifiers.FREQUENCY]
             df = df[df[specifiers.FREQUENCY] == freqs[0]]
+
+        if not ac_statements:
+            ac_statements.append("ac dec 1 {0:2.5e} {0:2.5e} \n".format(1e9))
+
         # # #try to cast the analysis into a dc sweep ... convergence -> need to iterate over DMT sweepdef
         # if not ac:
         #     n_lin = 0

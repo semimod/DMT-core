@@ -553,7 +553,18 @@ class DutXyce(DutCircuit):
         )  # TODO add outputdef ?!?
 
         # AC simulation
-        if swd_ac is not None:
+        if swd_ac is None:
+            str_netlist += "* AC simulation\n"
+            str_netlist += ".AC DATA=TAB_FREQUENCIES \n"
+            str_netlist += ".DATA TAB_FREQUENCIES \n"
+            str_netlist += "+ FREQ \n"
+            str_netlist += (
+                "+ " + " ".join(f"{val:.6g}" for val in [1e9]) + " \n"
+            )  # always to a 1GHz AC
+            str_netlist += ".ENDDATA \n"
+            str_netlist += "* AC output definition\n"
+            str_netlist += ".PRINT AC FORMAT=CSV FILE=AC.csv V(*) I(*) \n"
+        else:
             str_netlist += "* AC simulation\n"
             str_netlist += ".AC DATA=TAB_FREQUENCIES \n"
             str_netlist += ".DATA TAB_FREQUENCIES \n"
@@ -561,9 +572,7 @@ class DutXyce(DutCircuit):
             str_netlist += "+ " + " ".join(f"{val:.6g}" for val in swd_ac.values) + " \n"
             str_netlist += ".ENDDATA \n"
             str_netlist += "* AC output definition\n"
-            str_netlist += ".PRINT AC FORMAT=CSV FILE=AC.csv V(*) I(*) \n"  # TODO add outputdef ?!?
-        else:
-            raise NotImplementedError("Untested")
+            str_netlist += ".PRINT AC FORMAT=CSV FILE=AC.csv V(*) I(*) \n"
 
         # end simulation and log it
         str_netlist += "\n.END\n"

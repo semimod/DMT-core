@@ -9,6 +9,9 @@
 variables:
   WHEEL_LINK: ""
 
+include:
+  - template: Security/Dependency-Scanning.gitlab-ci.yml
+
 stages:
   - format
   - test

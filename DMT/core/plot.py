@@ -55,7 +55,7 @@ try:
     import matplotlib._pylab_helpers
     import matplotlib.ticker as ticker
 
-    # matplotlib.rcParams["text.usetex"] = True
+    matplotlib.rcParams["text.usetex"] = True
 
     # rc params spec
     packages = [
