@@ -8,14 +8,6 @@
 # only cache local items.
 variables:
   WHEEL_LINK: ""
-
-include:
-  - template: Jobs/Dependency-Scanning.gitlab-ci.yml
-
-dependency_scanning:
-  before_script:
-    - pip install --user --upgrade --upgrade-strategy eager -e .[develop,HDF5,latex,remote]
-
 stages:
   - format
   - test
@@ -32,6 +24,14 @@ check_format:
       when: manual
   script:
     - black --check --diff -v .
+
+include:
+  - template: Jobs/Dependency-Scanning.gitlab-ci.yml
+
+dependency_scanning:
+  before_script:
+    - pip install --user --upgrade --upgrade-strategy eager -e .[develop,HDF5,latex,remote]
+
 
 test_DMT:
   image: registry.gitlab.com/dmt-development/dmt-core:base
