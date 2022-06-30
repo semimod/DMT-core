@@ -700,7 +700,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
             col_complex = SpecifierStr(
                 specifier,
                 *nodes,
-                sub_specifiers=sub_specifiers_in_col - sub_specifiers.REAL,
+                sub_specifiers=sub_specifiers_in_col - sub_specifiers.REAL.sub_specifiers,
             )
             self.ensure_specifier_column(col_complex, ports=ports)
             self[col] = np.real(self[col_complex].to_numpy())
@@ -711,7 +711,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
             col_complex = SpecifierStr(
                 specifier,
                 *nodes,
-                sub_specifiers=sub_specifiers_in_col - sub_specifiers.IMAG,
+                sub_specifiers=sub_specifiers_in_col - sub_specifiers.IMAG.sub_specifiers,
             )
             self.ensure_specifier_column(col_complex, ports=ports)
             self[col] = np.imag(self[col_complex].to_numpy())
@@ -722,7 +722,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
             col_complex = SpecifierStr(
                 specifier,
                 *nodes,
-                sub_specifiers=sub_specifiers_in_col - sub_specifiers.MAG,
+                sub_specifiers=sub_specifiers_in_col - sub_specifiers.MAG.sub_specifiers,
             )
             self.ensure_specifier_column(col_complex, ports=ports)
             self[col] = np.abs(self[col_complex].to_numpy())
@@ -733,7 +733,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
             col_complex = SpecifierStr(
                 specifier,
                 *nodes,
-                sub_specifiers=sub_specifiers_in_col - sub_specifiers.PHASE,
+                sub_specifiers=sub_specifiers_in_col - sub_specifiers.PHASE.sub_specifiers,
             )
             self.ensure_specifier_column(col_complex, ports=ports)
             self[col] = np.angle(self[col_complex].to_numpy())

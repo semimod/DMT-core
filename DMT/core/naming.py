@@ -620,7 +620,7 @@ def add(self: SpecifierStr, other: Union[SpecifierStr, str, List[Union[str, Spec
                 self.specifier, *self.nodes, other, sub_specifiers=self.sub_specifiers
             )  # @Mario we should discuss this
 
-    elif isinstance(other, (list, set)):
+    elif isinstance(other, (list, set, frozenset)):
         if self.nodes:
             return SpecifierStr(
                 self.specifier, *self.nodes, sub_specifiers=self.sub_specifiers | set(other)  # type: ignore

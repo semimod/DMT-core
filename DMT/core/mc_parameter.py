@@ -561,6 +561,7 @@ class McParameter(object):
                 return "-"  # dirty
 
             return f"{self.value:{wanted_format}}"
+
         if "g" in wanted_format:
             if self.value is None:
                 return "-"  # dirty
@@ -569,7 +570,8 @@ class McParameter(object):
                 return f"{self.value:{wanted_format}}"
             else:
                 # 10.5g -> 10d
-                wanted_format = wanted_format.split(".")[0] + "d"
+                wanted_format = wanted_format.replace("g", "d")
+
                 return f"{self.value:{wanted_format}}"
 
         if "s" in wanted_format:
