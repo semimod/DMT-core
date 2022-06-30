@@ -25,14 +25,6 @@ check_format:
   script:
     - black --check --diff -v .
 
-include:
-  - template: Jobs/Dependency-Scanning.gitlab-ci.yml
-
-dependency_scanning:
-  before_script:
-    - pip install --user --upgrade --upgrade-strategy eager -e .[develop,HDF5,latex,remote]
-
-
 test_DMT:
   image: registry.gitlab.com/dmt-development/dmt-core:base
   stage: test
@@ -107,6 +99,22 @@ pages:
   artifacts:
     paths:
       - public
+  
+sbom:
+  image: registry.gitlab.com/dmt-development/dmt-core:base
+  stage: deploy
+  rules:
+    - if: $CI_COMMIT_BRANCH =~ /main/
+  needs:
+    - job: test_DMT
+  script:
+     - pip install --upgrade --upgrade-strategy eager -e .[develop,HDF5,latex,remote]
+     - pip install cyclonedx-bom
+     - cyclonedx-bom -e
+  artifacts:
+    paths:
+      - cyclonedx.xml
+ 
 
 wheel_to_pypi:
   image: registry.gitlab.com/dmt-development/dmt-core:base

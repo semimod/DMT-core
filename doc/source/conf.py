@@ -13,17 +13,18 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
 import os
+from DMT.core import __version__ as ver
 
 # -- Project information -----------------------------------------------------
 
 project = "DMT - Device Modeling Toolkit"
-copyright = "2018, M. Mueller and M. Krattenmacher"
+copyright = "2022, M. Mueller and M. Krattenmacher"
 author = "M. Mueller and M. Krattenmacher"
 
 # The short X.Y version
-version = "1.3"
+version = f"{ver.major}.{ver.minor}"
 # The full version, including alpha/beta/rc tags
-release = "1.3.0"
+release = str(ver)
 
 
 # -- General configuration ---------------------------------------------------
