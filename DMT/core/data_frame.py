@@ -642,7 +642,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
         KeyError
             If the column does not exist.
         """
-        col = set_col_name(specifier, *nodes, sub_specifiers=sub_specifiers)
+        col = SpecifierStr(specifier, *nodes, sub_specifiers=sub_specifiers)
         if str(col) in self.columns:  # pylint: disable=unsupported-membership-test
             return col
 
@@ -687,7 +687,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
         """
         if not self.columns.is_unique:
             self = self.loc[:, ~self.columns.duplicated()]
-        col = set_col_name(specifier, *nodes, sub_specifiers=sub_specifiers_to_ensure)
+        col = SpecifierStr(specifier, *nodes, sub_specifiers=sub_specifiers_to_ensure)
         if col in self.columns and not force:  # pylint: disable=unsupported-membership-test
             return
 
@@ -696,22 +696,21 @@ class DataFrame(DataProcessor, pd.DataFrame):
         sub_specifiers_in_col = col.sub_specifiers
 
         if (
-            sub_specifiers.REAL.sub_specifiers[0] in sub_specifiers_in_col
+            sub_specifiers.REAL.sub_specifiers <= sub_specifiers_in_col
         ):  # catch them here before we enter the switch case below. This way we do not need to care about this below.
-            col_complex = set_col_name(
+            col_complex = SpecifierStr(
                 specifier,
                 *nodes,
-                sub_specifiers=[
-                    spec for spec in sub_specifiers_in_col if spec != sub_specifiers.REAL[1:]
-                ],
+                sub_specifiers=sub_specifiers_in_col - sub_specifiers.REAL,
             )
             self.ensure_specifier_column(col_complex, ports=ports)
             self[col] = np.real(self[col_complex].to_numpy())
 
         elif (
-            sub_specifiers.IMAG.sub_specifiers[0] in sub_specifiers_in_col
+            sub_specifiers.IMAG.sub_specifiers <= sub_specifiers_in_col
         ):  # [1:] to cut off the | for a correct string compare
-            col_complex = set_col_name(
+            #### TODO
+            col_complex = SpecifierStr(
                 specifier,
                 *nodes,
                 sub_specifiers=[
@@ -722,8 +721,9 @@ class DataFrame(DataProcessor, pd.DataFrame):
             self[col] = np.imag(self[col_complex].to_numpy())
             return
         elif (
-            sub_specifiers.MAG.sub_specifiers[0] in sub_specifiers_in_col
+            sub_specifiers.MAG.sub_specifiers <= sub_specifiers_in_col
         ):  # [1:] to cut off the | for a correct string compare
+            #### TODO
             col_complex = set_col_name(
                 specifier,
                 *nodes,
@@ -735,8 +735,9 @@ class DataFrame(DataProcessor, pd.DataFrame):
             self[col] = np.abs(self[col_complex].to_numpy())
 
         elif (
-            sub_specifiers.PHASE.sub_specifiers[0] in sub_specifiers_in_col
+            sub_specifiers.PHASE.sub_specifiers <= sub_specifiers_in_col
         ):  # [1:] to cut off the | for a correct string compare
+            #### TODO
             col_complex = set_col_name(
                 specifier,
                 *nodes,
@@ -787,7 +788,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
                     'DMT -> DataFrame -> ensure_specifier_column: Calculation of a capacitance requires the specification of the "ports" keyword argument.'
                 )
             if any(
-                sub_specifier_poa.sub_specifiers[0] in sub_specifiers_in_col
+                sub_specifier_poa.sub_specifiers <= sub_specifiers_in_col
                 for sub_specifier_poa in [
                     sub_specifiers.PERIMETER,
                     sub_specifiers.AREA,

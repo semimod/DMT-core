@@ -354,7 +354,7 @@ class Plot(object):
         if x_label is not None:
             self.x_label = x_label
         elif x_specifier is not None:
-            if sub_specifiers.PHASE.sub_specifiers[0] in x_specifier:
+            if sub_specifiers.PHASE in x_specifier:
                 self.x_scale = 1
 
             self.x_label = x_specifier.to_label(

@@ -65,6 +65,9 @@ def test_specifier_texts():
     assert (
         specifiers.VOLTAGE + "B" + [sub_specifiers.FORCED, sub_specifiers.AREA] == "V_B|AREA|FORCED"
     )  # order of sub_specifiers does not matter
+    assert (
+        specifiers.VOLTAGE + "B" + {sub_specifiers.AREA, sub_specifiers.FORCED} == "V_B|AREA|FORCED"
+    )  # can also be a set
     assert specifiers.VOLTAGE + "B" + sub_specifiers.FORCED == "V_B|FORCED"
     assert specifiers.VOLTAGE + sub_specifiers.FORCED == "V|FORCED"
 
@@ -83,7 +86,13 @@ def test_specifier_from_string():
     assert get_specifier_from_string("BETA").specifier == "BETA"
     assert get_specifier_from_string("V_BE", nodes=["B", "E"]).specifier == "V"
     assert get_specifier_from_string("V_BE", nodes=["B", "E"]).nodes[1] == "E"
-    assert get_specifier_from_string("V_BE|FORCED", nodes=["B", "E"]).sub_specifiers[0] == "FORCED"
+    assert sub_specifiers.FORCED in get_specifier_from_string("V_BE|FORCED", nodes=["B", "E"])
+    assert (
+        sub_specifiers.FORCED.sub_specifiers
+        <= get_specifier_from_string("V_BE|FORCED", nodes=["B", "E"]).sub_specifiers
+    )
+    # frozenset comparisions
+    # https://www.geeksforgeeks.org/sets-in-python/
 
     assert specifiers.FREQUENCY == "FREQ"
     assert set_col_name(specifiers.FREQUENCY) == "FREQ"
