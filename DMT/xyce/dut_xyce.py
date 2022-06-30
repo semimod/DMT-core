@@ -781,11 +781,12 @@ class DutXyce(DutCircuit):
             # join the real and imaginary to values
             for i_col, col in enumerate(df.columns):
                 try:
-                    if sub_specifiers.REAL.sub_specifiers[0] in col.sub_specifiers:
-                        col_complex = SpecifierStr(col.specifier) + col.nodes
-                        for sub_spec in col.sub_specifiers:
-                            if sub_spec != sub_specifiers.REAL.sub_specifiers[0]:
-                                col_complex += sub_spec
+                    if sub_specifiers.REAL in col:
+                        col_complex = SpecifierStr(
+                            col.specifier,
+                            *col.nodes,
+                            sub_specifiers=col.sub_specifiers - sub_specifiers.REAL.sub_specifiers,
+                        )
                         col_imag = col_complex + sub_specifiers.IMAG
                         df[col_complex] = df[col] + 1j * df[col_imag]
                         df.drop(columns=[col, col_imag], inplace=True)
@@ -850,11 +851,7 @@ class DutXyce(DutCircuit):
             cols_dc = [col for col in df_dc.columns if col not in [col_ac_switch]]
 
             # find the row pairs with same forced dc, temp and frequency
-            cols_filter = [
-                col
-                for col in cols_dc
-                if sub_specifiers.FORCED.sub_specifiers[0] in col.sub_specifiers
-            ]
+            cols_filter = [col for col in cols_dc if sub_specifiers.FORCED in col]
             cols_filter.append(specifiers.TEMPERATURE)
             cols_filter.append(specifiers.FREQUENCY)
 

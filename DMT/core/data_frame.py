@@ -35,7 +35,6 @@ from DMT.core import (
     specifiers,
     SpecifierStr,
     sub_specifiers,
-    set_col_name,
     get_nodes,
     get_sub_specifiers,
     flatten,
@@ -709,13 +708,10 @@ class DataFrame(DataProcessor, pd.DataFrame):
         elif (
             sub_specifiers.IMAG.sub_specifiers <= sub_specifiers_in_col
         ):  # [1:] to cut off the | for a correct string compare
-            #### TODO
             col_complex = SpecifierStr(
                 specifier,
                 *nodes,
-                sub_specifiers=[
-                    spec for spec in sub_specifiers_in_col if spec != sub_specifiers.IMAG[1:]
-                ],
+                sub_specifiers=sub_specifiers_in_col - sub_specifiers.IMAG,
             )
             self.ensure_specifier_column(col_complex, ports=ports)
             self[col] = np.imag(self[col_complex].to_numpy())
@@ -723,13 +719,10 @@ class DataFrame(DataProcessor, pd.DataFrame):
         elif (
             sub_specifiers.MAG.sub_specifiers <= sub_specifiers_in_col
         ):  # [1:] to cut off the | for a correct string compare
-            #### TODO
-            col_complex = set_col_name(
+            col_complex = SpecifierStr(
                 specifier,
                 *nodes,
-                sub_specifiers=[
-                    spec for spec in sub_specifiers_in_col if spec != sub_specifiers.MAG[1:]
-                ],
+                sub_specifiers=sub_specifiers_in_col - sub_specifiers.MAG,
             )
             self.ensure_specifier_column(col_complex, ports=ports)
             self[col] = np.abs(self[col_complex].to_numpy())
@@ -737,13 +730,10 @@ class DataFrame(DataProcessor, pd.DataFrame):
         elif (
             sub_specifiers.PHASE.sub_specifiers <= sub_specifiers_in_col
         ):  # [1:] to cut off the | for a correct string compare
-            #### TODO
-            col_complex = set_col_name(
+            col_complex = SpecifierStr(
                 specifier,
                 *nodes,
-                sub_specifiers=[
-                    spec for spec in sub_specifiers_in_col if spec != sub_specifiers.PHASE[1:]
-                ],
+                sub_specifiers=sub_specifiers_in_col - sub_specifiers.PHASE,
             )
             self.ensure_specifier_column(col_complex, ports=ports)
             self[col] = np.angle(self[col_complex].to_numpy())
@@ -940,7 +930,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
             )
 
         # create specifier for the new voltage
-        col = set_col_name(specifiers.VOLTAGE, *nodes, sub_specifiers=voltage_sub_specifiers)
+        col = SpecifierStr(specifiers.VOLTAGE, *nodes, sub_specifiers=voltage_sub_specifiers)
 
         # init specifiers for the potentials
         potential_0 = SpecifierStr(
@@ -1587,9 +1577,9 @@ class DataFrame(DataProcessor, pd.DataFrame):
         columns = self.columns
         for node in ports_n:
             # check if full set of this parameter is here for this node
-            col_0 = set_col_name(para_avail.upper(), port_1, node)
-            col_1 = set_col_name(para_avail.upper(), node, port_1)
-            col_2 = set_col_name(para_avail.upper(), node, node)
+            col_0 = SpecifierStr(para_avail.upper(), port_1, node)
+            col_1 = SpecifierStr(para_avail.upper(), node, port_1)
+            col_2 = SpecifierStr(para_avail.upper(), node, node)
 
             # did not check for node[i], node[j] on purpose, because node[j] may be not part of the full set..
             if (
@@ -1894,38 +1884,26 @@ class DataFrame(DataProcessor, pd.DataFrame):
         # get values
         s_para_values = self.get_ss_para("S", port_1, port_2)
 
+        sp_cbe = specifiers.CAPACITANCE + ["B", "E"]
+
         # put values in col of self
         pd.options.mode.chained_assignment = (
             None  # default='warn' , Markus: This should not warn here.
         )
         if port_1 == "B" and port_2 == "C":
-            self[
-                set_col_name(specifiers.CAPACITANCE, "B", "E")
-            ] = self.processor.calc_cap_shunt_port_1(self["FREQ"], s_para_values, "S")
+            self[sp_cbe] = self.processor.calc_cap_shunt_port_1(self["FREQ"], s_para_values, "S")
         elif port_1 == "C" and port_2 == "B":
-            self[
-                set_col_name(specifiers.CAPACITANCE, "B", "E")
-            ] = self.processor.calc_cap_shunt_port_2(self["FREQ"], s_para_values, "S")
+            self[sp_cbe] = self.processor.calc_cap_shunt_port_2(self["FREQ"], s_para_values, "S")
         elif port_1 == "B" and port_2 == "E":
-            self[
-                set_col_name(specifiers.CAPACITANCE, "B", "E")
-            ] = self.processor.calc_cap_series_thru(self["FREQ"], s_para_values, "S")
+            self[sp_cbe] = self.processor.calc_cap_series_thru(self["FREQ"], s_para_values, "S")
         elif port_1 == "E" and port_2 == "B":
-            self[
-                set_col_name(specifiers.CAPACITANCE, "B", "E")
-            ] = self.processor.calc_cap_series_thru(self["FREQ"], s_para_values, "S")
+            self[sp_cbe] = self.processor.calc_cap_series_thru(self["FREQ"], s_para_values, "S")
         elif port_1 == "E" and port_2 == "C":  # common base
-            self[
-                set_col_name(specifiers.CAPACITANCE, "B", "E")
-            ] = self.processor.calc_cap_shunt_port_1(self["FREQ"], s_para_values, "S")
+            self[sp_cbe] = self.processor.calc_cap_shunt_port_1(self["FREQ"], s_para_values, "S")
         elif port_1 == "E" and port_2 == "C":  # common base
-            self[
-                set_col_name(specifiers.CAPACITANCE, "B", "E")
-            ] = self.processor.calc_cap_shunt_port_2(self["FREQ"], s_para_values, "S")
+            self[sp_cbe] = self.processor.calc_cap_shunt_port_2(self["FREQ"], s_para_values, "S")
         elif port_1 == "C" and port_2 == "E":  # common base
-            self[
-                set_col_name(specifiers.CAPACITANCE, "B", "E")
-            ] = self.processor.calc_cap_shunt_port_1(self["FREQ"], s_para_values, "S")
+            self[sp_cbe] = self.processor.calc_cap_shunt_port_1(self["FREQ"], s_para_values, "S")
         else:
             raise NotImplementedError(
                 "DMT -> DataFrame -> calc_cbe: transistor configuration not implemented."
@@ -1949,7 +1927,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
         pd.options.mode.chained_assignment = (
             None  # default='warn' , Markus: This should not warn here.
         )
-        self[set_col_name(specifiers.CAPACITANCE, "C", "E")] = self.processor.calc_cap_shunt_port_2(
+        self[specifiers.CAPACITANCE + ["C", "E"]] = self.processor.calc_cap_shunt_port_2(
             self["FREQ"], s_para_values, "S"
         )
         pd.options.mode.chained_assignment = "warn"
@@ -1966,31 +1944,21 @@ class DataFrame(DataProcessor, pd.DataFrame):
         # get values
         s_para_values = self.get_ss_para("S", port_1, port_2)
 
+        sp_cbc = specifiers.CAPACITANCE + ["B", "C"]
+
         # put values in col of self
         if port_1 == "B" and port_2 == "C":
-            self[
-                set_col_name(specifiers.CAPACITANCE, "B", "C")
-            ] = self.processor.calc_cap_series_thru(self["FREQ"], s_para_values, "S")
+            self[sp_cbc] = self.processor.calc_cap_series_thru(self["FREQ"], s_para_values, "S")
         elif port_1 == "C" and port_2 == "B":
-            self[
-                set_col_name(specifiers.CAPACITANCE, "B", "C")
-            ] = self.processor.calc_cap_series_thru(self["FREQ"], s_para_values, "S")
+            self[sp_cbc] = self.processor.calc_cap_series_thru(self["FREQ"], s_para_values, "S")
         elif port_1 == "B" and port_2 == "E":
-            self[
-                set_col_name(specifiers.CAPACITANCE, "B", "C")
-            ] = self.processor.calc_cap_shunt_port_1(self["FREQ"], s_para_values, "S")
+            self[sp_cbc] = self.processor.calc_cap_shunt_port_1(self["FREQ"], s_para_values, "S")
         elif port_1 == "E" and port_2 == "B":
-            self[
-                set_col_name(specifiers.CAPACITANCE, "B", "C")
-            ] = self.processor.calc_cap_shunt_port_2(self["FREQ"], s_para_values, "S")
+            self[sp_cbc] = self.processor.calc_cap_shunt_port_2(self["FREQ"], s_para_values, "S")
         elif port_1 == "C" and port_2 == "E":
-            self[
-                set_col_name(specifiers.CAPACITANCE, "B", "C")
-            ] = self.processor.calc_cap_shunt_port_1(self["FREQ"], s_para_values, "S")
+            self[sp_cbc] = self.processor.calc_cap_shunt_port_1(self["FREQ"], s_para_values, "S")
         elif port_1 == "E" and port_2 == "C":
-            self[
-                set_col_name(specifiers.CAPACITANCE, "B", "C")
-            ] = self.processor.calc_cap_shunt_port_2(self["FREQ"], s_para_values, "S")
+            self[sp_cbc] = self.processor.calc_cap_shunt_port_2(self["FREQ"], s_para_values, "S")
         else:
             raise NotImplementedError(
                 "DMT -> DataFrame -> calc_cbe: transistor configuration not implemented."
@@ -2006,8 +1974,8 @@ class DataFrame(DataProcessor, pd.DataFrame):
             Dataframe that contains the DC current amplficiation I_C/I_B
         """
         # put values in col of self
-        col_ic = set_col_name(specifiers.CURRENT, "C")
-        col_ib = set_col_name(specifiers.CURRENT, "B")
+        col_ic = specifiers.CURRENT + "C"
+        col_ib = specifiers.CURRENT + "B"
         self[specifiers.DC_CURRENT_AMPLIFICATION] = self.processor.calc_beta(
             self[col_ic], self[col_ib]
         )
