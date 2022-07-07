@@ -612,10 +612,11 @@ class DutView(object):
     def get_data(self, key="iv", sweep=None):
         """Return data stored in the DutView's data.
 
-        | One needs to specify either:
-        | - key      : The data stored under the path key in the dut's database is returned.
-        | - sweep    : Get the data from this sweep. If none, key must be a valid key for the database.
-        | - sweep+key: Return the data stored as self.get_sweep_key(sweep)+'/'+key from the dut's database.
+        One needs to specify either:
+
+        - key      : The data stored under the path key in the dut's database is returned.
+        - sweep    : Get the data from this sweep. If none, key must be a valid key for the database.
+        - sweep+key: Return the data stored as self.get_sweep_key(sweep)+'/'+key from the dut's database.
 
         Parameters
         ----------

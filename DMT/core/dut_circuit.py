@@ -85,9 +85,9 @@ class DutCircuit(DutView):
             self.simulator_options = OrderedDict(sorted(simulator_options.items()))
 
         if get_circuit_arguments is None:
-            self.get_circuit_arguments = {}
+            self.get_circuit_arguments = OrderedDict()
         else:
-            self.get_circuit_arguments = get_circuit_arguments
+            self.get_circuit_arguments = OrderedDict(sorted(get_circuit_arguments.items()))
 
         # save for later use
         self._inp_circuit = None

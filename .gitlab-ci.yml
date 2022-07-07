@@ -72,7 +72,7 @@ wheel_to_gitlab:
   image: registry.gitlab.com/dmt-development/dmt-core:base
   stage: deploy
   rules:
-    - if: $CI_COMMIT_BRANCH =~ /main/
+    - if: $CI_COMMIT_BRANCH == "main"
   needs:
     - job: test_DMT
   script:
@@ -89,7 +89,7 @@ pages:
   image: registry.gitlab.com/dmt-development/dmt-core:base
   stage: deploy
   rules:
-    - if: $CI_COMMIT_BRANCH =~ /main/
+    - if: $CI_COMMIT_BRANCH == "main"
   needs:
     - job: test_DMT
   script:
@@ -104,7 +104,7 @@ sbom:
   image: registry.gitlab.com/dmt-development/dmt-core:base
   stage: deploy
   rules:
-    - if: $CI_COMMIT_BRANCH =~ /main/
+    - if: $CI_COMMIT_BRANCH == "main"
   needs:
     - job: test_DMT
   script:

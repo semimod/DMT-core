@@ -348,16 +348,14 @@ class SpecifierStr(str):
         if isinstance(other, SpecifierStr):
             if self.specifier == other.specifier and self.nodes == other.nodes:
                 # order of subspecifiers does not matter Oo -> can not since these are sets
-                if self.sub_specifiers == other.sub_specifiers:
-                    return True
+                return self.sub_specifiers == other.sub_specifiers
         elif isinstance(other, str):
             if str(self) == other:
                 return True
             else:
                 col_other = get_specifier_from_string(other, nodes=self.nodes)
                 if isinstance(col_other, SpecifierStr):  # here also the order does not matter -.-
-                    if self == col_other:
-                        return True
+                    return self == col_other
         elif other is not None:
             return NotImplemented
 
@@ -376,7 +374,32 @@ class SpecifierStr(str):
         bool
             str(other) in str(self)
         """
-        return str(other) in str(self)
+        if isinstance(other, SpecifierStr):
+            if other.specifier and not other.nodes and not other.sub_specifiers:
+                if self.specifier == other.specifier:
+                    return True
+            elif not other.specifier and other.nodes and not other.sub_specifiers:
+                if all(node in self.nodes for node in other.nodes):
+                    return True
+            elif not other.specifier and not other.nodes and other.sub_specifiers:
+                if other.sub_specifiers <= self.sub_specifiers:
+                    return True
+
+            return False
+
+        elif isinstance(other, str):
+            if str(self) == other:
+                return True
+            else:
+                col_other = get_specifier_from_string(other, nodes=self.nodes)
+                if isinstance(col_other, SpecifierStr):
+                    return col_other in self
+
+        elif other is not None:
+            return NotImplemented
+
+        # return str(other) in str(self)
+        return False
 
     def __hash__(self):
         return hash(str(self))

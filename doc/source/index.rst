@@ -34,14 +34,19 @@ If you make this investment, the potential gains are
 
 If you have used our framework for research purposes, please cite us with:
 
-TODO
-
 .. code:: tex
-
-    @misc{DMT,
-    author = {M. Krattenmacher, M. Mueller and M. Schroeter},
-    title = {DMT - {Device-Modeling-Toolkit}},
-    howpublished = {https://www.iee.et.tu-dresden.de/iee/eb/eb_home.html}
+    @ARTICLE{DMT2022,
+    title     = "{DMT-core}: A python toolkit for semiconductor device engineers",
+    author    = "Krattenmacher, Mario and M{\"u}ller, Markus and Kuthe, Pascal
+                and Schr{\"o}ter, Michael",
+    journal   = "J. Open Source Softw.",
+    publisher = "The Open Journal",
+    volume    =  7,
+    number    =  75,
+    pages     = "4298",
+    month     =  jul,
+    year      =  2022,
+    copyright = "http://creativecommons.org/licenses/by/4.0/"
     }
 
 Currently DMT is developed at `SemiMod <https://semimod.de/>`__, by:

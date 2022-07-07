@@ -1087,8 +1087,8 @@ class Plot(object):
 
         if self.x_axis_scale == "log":
             # also doing this in case of log for the data itself
-            x_min_set = np.log10(np.abs(x_min_set + np.finfo(float).eps))
-            x_max_set = np.log10(np.abs(x_max_set + np.finfo(float).eps))
+            x_min_set = np.log10(np.abs(x_min_set + np.finfo(float).tiny))
+            x_max_set = np.log10(np.abs(x_max_set + np.finfo(float).tiny))
 
         try:
             self.pw_pg.setXRange(np.real(x_min_set), np.real(x_max_set), padding=padding)  # type: ignore
@@ -1145,8 +1145,8 @@ class Plot(object):
 
         if self.y_axis_scale == "log":
             # also doing this in case of log for the data itself
-            y_min = np.log10(np.abs(y_min + np.finfo(float).eps))
-            y_max = np.log10(np.abs(y_max + np.finfo(float).eps))
+            y_min = np.log10(np.abs(y_min + np.finfo(float).tiny))
+            y_max = np.log10(np.abs(y_max + np.finfo(float).tiny))
         try:
             self.pw_pg.setYRange(np.real(y_min), np.real(y_max), padding=padding)  # type: ignore
         except Exception:

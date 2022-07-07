@@ -627,7 +627,7 @@ class McParameterCollection(object):
         __McParameterCollection__: Union[
             VersionInfo, str, float
         ] = SEMVER_MCPARAMETER_Collection_CURRENT,
-        **_kwargs,
+        **kwargs,
     ):
         if not isinstance(__McParameterCollection__, VersionInfo):
             try:
@@ -649,6 +649,12 @@ class McParameterCollection(object):
             self.possible_groups = {}
         else:
             self.possible_groups = possible_groups
+
+        for key in kwargs:
+            warnings.warn(
+                f"{type(self)} was created with the remaining kwarg {key}={kwargs[key]}",
+                category=RuntimeWarning,
+            )
 
     @property
     def paras(self):
