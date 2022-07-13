@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
     - full or Version_XX: Includes the latest or respective DMT install
 - dmt example bash script which uses the docker container to run a python/dmt script.
 - Generating CycloneDX SBOM from the container
+- Added a RuntimeWarning when loading a parameter for a MCard which is out of bounds.
 
 ### Changed
 
