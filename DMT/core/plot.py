@@ -170,6 +170,16 @@ _DICT_COLORS_MPL = {
     "y": "yellow",
     "k": "black",
     "w": "white",
+    "#006400": "#006400",  # darkgreen
+    "#00008b": "#00008b",  # darkblue
+    "#b03060": "#b03060",  # maroon3
+    "#ff0000": "#ff0000",  # red
+    "#9467bd": "#9467bd",  # yellow -> replaced by violett/brown combo
+    "#deb887": "#deb887",  # curlywood
+    "#00ff00": "#00ff00",  # lime
+    "#00ffff": "#00ffff",  # aqua
+    "#ff00ff": "#ff00ff",  # fuchsia
+    "#6495ed": "#6495ed",  # cornflower
 }
 
 
@@ -1201,7 +1211,7 @@ class Plot(object):
         }
 
         if mpl_style:
-            for mpl_color in _DICT_COLORS_MPL:
+            for mpl_color in sorted(_DICT_COLORS_MPL, key=len, reverse=True):
                 if mpl_color in mpl_style:
                     kwargs_pen["color"] = mpl_color
                     kwargs_pen["width"] = 2
@@ -1903,7 +1913,7 @@ class Plot(object):
         pgf_marker = ""  # is a default case needed ?
 
         if mpl_style:
-            for mpl_color in _DICT_COLORS_MPL:
+            for mpl_color in sorted(_DICT_COLORS_MPL, key=len, reverse=True):
                 if mpl_color in mpl_style:
                     pgf_color = "color=" + _DICT_COLORS_MPL[mpl_color] + ", "
                     mpl_style = mpl_style.replace(mpl_color, "")
