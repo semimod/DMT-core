@@ -51,13 +51,9 @@ class SweepDef(object):
     sweep_type : str
         Which type of sweep is performed for this variable
     sweep_order : int, optional
-        Position of the sweep.
+        Position in the sweep.
     value_def : float, list or np.array, optional
         The needed variables depending on the sweep type.
-    master : :class:`~DMT.core.naming.SpecifierStr` or :class:`~DMT.core.sweep.SweepDef`, optional
-        Master sweep for synced sweeps.
-    offset : float64, :class:`~DMT.core.naming.SpecifierStr` or :class:`~DMT.core.sweep.SweepDef`, optional
-        Offset value for synced sweeps, can also be a variable, which is sweeped in a different SweepDef.
     sync : :class:`~DMT.core.naming.SpecifierStr` or :class:`~DMT.core.sweep.SweepDef`, optional
         Synced 'slave' sweep.
     """
@@ -288,3 +284,148 @@ class SweepDef(object):
                 for i_col in range(self.values.shape[0]):
                     self.values[i_col, :] = self.master.values + self.offset.values[i_col]
                 self.values = np.concatenate(self.values)
+
+
+class SweepDefConst(SweepDef):
+    """Constant sweep definition
+
+    Parameters
+    ----------
+    var_name : SpecifierStr
+        Variable name
+    value_def : Union[int, float]
+        Value for the variable
+    sweep_order : int, optional
+        Position in the sweep.
+    """
+
+    def __init__(
+        self,
+        var_name: SpecifierStr,
+        value_def: Union[int, float],
+        sweep_order: Optional[int] = None,
+    ):
+        super().__init__(
+            var_name=var_name,
+            sweep_type="CON",
+            sweep_order=sweep_order,
+            value_def=value_def,
+        )
+
+
+class SweepDefLinear(SweepDef):
+    """Linear sweep definition
+
+    Parameters
+    ----------
+    var_name : SpecifierStr
+        Variable name
+    value_def : Union[int, float]
+        Values for the linear sweepdef. Must have 3 Elements: np.linspace(self.value_def[0], self.value_def[1], self.value_def[2], dtype=np.float64)
+
+    sweep_order : int, optional
+        Position in the sweep.
+    """
+
+    def __init__(
+        self,
+        var_name: SpecifierStr,
+        value_def: Union[Tuple, List, np.array],
+        sweep_order: Optional[int] = None,
+    ):
+        super().__init__(
+            var_name=var_name,
+            sweep_type="LIN",
+            sweep_order=sweep_order,
+            value_def=value_def,
+        )
+
+
+class SweepDefLog(SweepDef):
+    """Logarithmic sweep definition
+
+    Parameters
+    ----------
+    var_name : SpecifierStr
+        Variable name
+    value_def : Union[int, float]
+        Values for the logarithmic sweepdef. Must have 3 Elements: np.logspace(self.value_def[0], self.value_def[1], self.value_def[2], dtype=np.float64)
+
+    sweep_order : int, optional
+        Position in the sweep.
+    """
+
+    def __init__(
+        self,
+        var_name: SpecifierStr,
+        value_def: Union[Tuple, List, np.array],
+        sweep_order: Optional[int] = None,
+    ):
+        super().__init__(
+            var_name=var_name,
+            sweep_type="LOG",
+            sweep_order=sweep_order,
+            value_def=value_def,
+        )
+
+
+class SweepDefList(SweepDef):
+    """List or table sweep definition
+
+    Parameters
+    ----------
+    var_name : SpecifierStr
+        Variable name
+    value_def : Union[int, float]
+        Values for the variable.
+
+    sweep_order : int, optional
+        Position in the sweep.
+    """
+
+    def __init__(
+        self,
+        var_name: SpecifierStr,
+        value_def: Union[Tuple, List, np.array],
+        sweep_order: Optional[int] = None,
+    ):
+        super().__init__(
+            var_name=var_name,
+            sweep_type="LIST",
+            sweep_order=sweep_order,
+            value_def=value_def,
+        )
+
+
+class SweepDefSync(SweepDef):
+    """Synchronized sweep definition
+
+    Parameters
+    ----------
+    var_name : SpecifierStr
+        Variable name
+    value_def : Union[int, float]
+        Values for the variable.
+    master : SpecifierStr
+        Master sweep variable.
+    offset : Union[int, float, SpecifierStr]
+        Offset value for the sweeps or a variable name, which is sweeped in a different SweepDef.
+
+    sweep_order : int, optional
+        Position in the sweep.
+    """
+
+    def __init__(
+        self,
+        var_name: SpecifierStr,
+        master: SpecifierStr,
+        offset: Union[int, float, SpecifierStr],
+        sweep_order: Optional[int] = None,
+    ):
+        super().__init__(
+            var_name=var_name,
+            sweep_type="SYNC",
+            sweep_order=sweep_order,
+            master=master,
+            offset=offset,
+        )
