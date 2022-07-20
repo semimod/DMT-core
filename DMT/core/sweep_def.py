@@ -52,7 +52,7 @@ class SweepDef(object):
         Which type of sweep is performed for this variable
     sweep_order : int, optional
         Position in the sweep.
-    value_def : float, list or np.array, optional
+    value_def : List or np.array, optional
         The needed variables depending on the sweep type.
     sync : :class:`~DMT.core.naming.SpecifierStr` or :class:`~DMT.core.sweep.SweepDef`, optional
         Synced 'slave' sweep.
@@ -63,7 +63,7 @@ class SweepDef(object):
         var_name: SpecifierStr,
         sweep_type: str,
         sweep_order: Optional[int] = None,
-        value_def: Optional[Union[int, float, Tuple, List, np.array]] = None,
+        value_def: Optional[Union[List, np.array]] = None,
         master: Optional[SpecifierStr] = None,
         offset: Optional[Union[int, float, SpecifierStr]] = None,
         sync: Optional[Union[SpecifierStr, SweepDef]] = None,
@@ -302,14 +302,17 @@ class SweepDefConst(SweepDef):
     def __init__(
         self,
         var_name: SpecifierStr,
-        value_def: Union[int, float],
+        value_def: Union[int, float, List, np.array],
         sweep_order: Optional[int] = None,
     ):
+        if isinstance(value_def, (int, float)):
+            value_def = [value_def]
+
         super().__init__(
             var_name=var_name,
             sweep_type="CON",
             sweep_order=sweep_order,
-            value_def=value_def,
+            value_def=np.asarray(value_def),
         )
 
 
