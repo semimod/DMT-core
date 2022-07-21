@@ -435,19 +435,21 @@ class Sweep(object):
                 else:
                     self.sweepdef.append(SweepDefClass(**swd))
 
+        # variables that need to be calculated by the simulator
         if outputdef is None:
             self.outputdef = []
         else:
-            self.outputdef = copy.deepcopy(
-                outputdef
-            )  # variables that need to be calculated by the simulator
+            # cast and copy to be save
+            # sort to save some repeatings
+            self.outputdef = sorted(list(copy.deepcopy(outputdef)))
 
         if othervar is None:
             self.othervar = {}
         else:
-            self.othervar = copy.deepcopy(
-                othervar
-            )  # optional variables such as name of creator, date ...
+            # optional variables such as temperature
+            # copy to be save
+            # sort to save some repeatings
+            self.othervar = dict(sorted(copy.deepcopy(othervar).items(), key=lambda ele: ele[0]))
 
         if self.sweepdef != []:
             self.check_sweep()
