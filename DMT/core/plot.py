@@ -308,7 +308,7 @@ class Plot(object):
         self._cycler = cycler("linestyle", "-")  # just set a cycler so pylance is ok...
         self.set_cycler(style)
 
-        self.lines = []
+        # self.lines = []
 
         # only init the data list, it is filled later
         # use add_data_set to do so
@@ -881,7 +881,7 @@ class Plot(object):
                         + " for line with label "
                         + str(label)
                     ) from err
-            self.lines.append(line)
+            # self.lines.append(line)
 
         # labels and legend
         if self.legend_location in ["upper right outer", "right mid"]:  # not supported here
@@ -1915,7 +1915,17 @@ class Plot(object):
         if mpl_style:
             for mpl_color in sorted(_DICT_COLORS_MPL, key=len, reverse=True):
                 if mpl_color in mpl_style:
-                    pgf_color = "color=" + _DICT_COLORS_MPL[mpl_color] + ", "
+                    if mpl_color.startswith("#"):
+                        try:
+                            # is it already there?
+                            pgf_color = "color=color" + str(colors.index(mpl_color)) + ", "
+                        except ValueError:
+                            # if not add it
+                            pgf_color = "color=color" + str(len(colors)) + ", "
+                            colors.append(colors)
+                    else:
+                        pgf_color = "color=" + _DICT_COLORS_MPL[mpl_color] + ", "
+
                     mpl_style = mpl_style.replace(mpl_color, "")
                     break
 

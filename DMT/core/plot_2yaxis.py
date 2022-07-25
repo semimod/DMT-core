@@ -81,8 +81,8 @@ class Plot2YAxis(object):
         self.ax_left = None
         self.ax_right = None
 
-        self.lines_left = []
-        self.lines_right = []
+        # self.lines_left = []
+        # self.lines_right = []
 
     def plot_py(
         self,
@@ -185,7 +185,7 @@ class Plot2YAxis(object):
                         + " for line with label "
                         + str(label)
                     ) from err
-            self.lines_left.append(line)
+            # self.lines_left.append(line)
 
         # labels
         if use_tex:
@@ -287,7 +287,7 @@ class Plot2YAxis(object):
                         + " for line with label "
                         + str(label)
                     ) from err
-            self.lines_right.append(line)
+            # self.lines_right.append(line)
 
         # labels (only y label needed)
         if use_tex:
