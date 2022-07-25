@@ -34,7 +34,15 @@ setuptools.setup(
     },
     packages=setuptools.find_namespace_packages(include=["DMT.*"]),
     license="GNU GPLv3+",
-    classifiers=["Programming Language :: Python :: 3.8", "Operating System :: OS Independent"],
+    classifiers=[
+        "License :: OSI Approved :: GNU Affero General Public License v3",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Operating System :: OS Independent",
+        "Topic :: Scientific/Engineering :: Electronic Design Automation (EDA)",
+    ],
     package_data={"": ["*.yaml", "*.txt", "*.tex", "*.bib"]},
     include_package_data=True,
     install_requires=[
