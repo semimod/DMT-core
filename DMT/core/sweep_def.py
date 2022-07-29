@@ -323,8 +323,14 @@ class SweepDefLinear(SweepDef):
     ----------
     var_name : SpecifierStr
         Variable name
-    value_def : Union[int, float]
+    value_def : Union[int, float], optional
         Values for the linear sweepdef. Must have 3 Elements: np.linspace(self.value_def[0], self.value_def[1], self.value_def[2], dtype=np.float64)
+    start : [float, int], optional
+        Start value for np.linspace (always included)
+    stop : float, int], optional
+        Stop value for np.linspace (always included)
+    steps : int, optional
+        Number of steps for np.linspace
 
     sweep_order : int, optional
         Position in the sweep.
@@ -333,9 +339,14 @@ class SweepDefLinear(SweepDef):
     def __init__(
         self,
         var_name: SpecifierStr,
-        value_def: Union[Tuple, List, np.array],
+        value_def: Optional[Union[Tuple, List, np.array]] = None,
+        start: Optional[Union[float, int]] = None,
+        stop: Optional[Union[float, int]] = None,
+        steps: Optional[int] = None,
         sweep_order: Optional[int] = None,
     ):
+        if value_def is None:
+            value_def = np.array([start, stop, steps])
         super().__init__(
             var_name=var_name,
             sweep_type="LIN",
@@ -351,8 +362,14 @@ class SweepDefLog(SweepDef):
     ----------
     var_name : SpecifierStr
         Variable name
-    value_def : Union[int, float]
+    value_def : Union[int, float], optional
         Values for the logarithmic sweepdef. Must have 3 Elements: np.logspace(self.value_def[0], self.value_def[1], self.value_def[2], dtype=np.float64)
+    start : [float, int], optional
+        Start value for np.logspace (always included)
+    stop : float, int], optional
+        Stop value for np.logspace (always included)
+    steps : int, optional
+        Number of steps for np.logspace
 
     sweep_order : int, optional
         Position in the sweep.
@@ -361,9 +378,14 @@ class SweepDefLog(SweepDef):
     def __init__(
         self,
         var_name: SpecifierStr,
-        value_def: Union[Tuple, List, np.array],
+        value_def: Optional[Union[Tuple, List, np.array]] = None,
+        start: Optional[Union[float, int]] = None,
+        stop: Optional[Union[float, int]] = None,
+        steps: Optional[int] = None,
         sweep_order: Optional[int] = None,
     ):
+        if value_def is None:
+            value_def = np.array([start, stop, steps])
         super().__init__(
             var_name=var_name,
             sweep_type="LOG",

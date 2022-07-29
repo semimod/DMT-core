@@ -48,6 +48,8 @@ HICUML0_HBT = "BHT0"
 """ Indicates a bipolar transistor modeled with HICUM/L0 in a circuit. """
 SGP_BJT = "BJT"
 """ Indicates a bipolar transistor modeled with SGP in a circuit. """
+AHBT = "AgilentHBT"
+""" Indicates a bipolar transistor modeled with AHBT in a circuit. """
 DIODE = "diode"
 """ Indicates a diode in a circuit. """
 
