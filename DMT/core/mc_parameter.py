@@ -151,7 +151,7 @@ class McParameter(object):
 
         if not isinstance(name, str):
             raise IOError("DMT -> McParameter: Parameter name not a string.")
-        self.name = name
+        self.name = name.lower()  # always lower case...
         self.inc_min = inc_min
         self.inc_max = inc_max
         if value_type == int:
