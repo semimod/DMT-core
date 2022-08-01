@@ -1172,7 +1172,7 @@ class McParameterCollection(object):
         for para, max_a in zip(self._paras, max_new):
             para.max = max_a
 
-    def print_tex(self):
+    def print_tex(self, pretext="The final modelcard is summarized in the table below:"):
         """Prints a modelcard as a tex table using PyLaTeX"""
         # try to clean first
         try:
@@ -1187,9 +1187,11 @@ class McParameterCollection(object):
         doc = Tex()
         # Generate data table
         with doc.create(Section("Modelcard")):
-            doc.append("The final modelcard is summarized in the table below:")
+            doc.append(pretext)
             with doc.create(
-                LongTable("l S s", width=3, booktabs=True)
+                LongTable(
+                    NoEscape(r"l S >{\collectcell\unit}l<{\endcollectcell}"), width=3, booktabs=True
+                )
             ) as data_table:  # pylatex does not count s S columns from siunitx
                 data_table.add_hline()
                 data_table.add_row(["parameter name", NoEscape("{value}"), NoEscape("{unit}")])
