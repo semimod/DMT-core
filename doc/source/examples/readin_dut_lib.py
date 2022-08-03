@@ -59,15 +59,15 @@ def filter_dut(dut_name):
     length = re.search(r"_l([\dp]+)u_", dut_path.name, re.MULTILINE).group(1)
     length = float(length.replace("p", ".")) * 1e-6
     dut_type = DutType.n_mos if "nfet" in dut_name else DutType.p_mos
-    multiplication_factor = re.search(r"_m([\d]+)\(", dut_path.name, re.MULTILINE).group(1)
-    multiplication_factor = int(multiplication_factor)
+    multiplication_factor = int(re.search(r"_m([\d]+)\(", dut_path.name, re.MULTILINE).group(1))
+    module_name = int(re.search(r"\((\d+)_", dut_path.name, re.MULTILINE).group(1))
 
     dut = DutMeas(
         database_dir=path_to_dmt_core / "test" / "tmp",
         dut_type=dut_type,
         force=True,
         wafer="MPW-5",
-        die="x",
+        die=module_name,
         width=width,
         length=length,
         contact_config="SGD",
