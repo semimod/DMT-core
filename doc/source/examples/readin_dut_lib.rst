@@ -14,9 +14,9 @@ The code
 The generated files
 -------------------
 
-.. figure:: /_static/readin_dut_lib/IDVG.png
+.. figure:: /_static/readin_dut_lib/length_0_dot_50um_IDVG.png
 
-.. literalinclude:: /_static/readin_dut_lib/IDVG.tex
+.. literalinclude:: /_static/readin_dut_lib/length_0_dot_50um_IDVG.tex
     :language: latex
     :linenos:
-    :caption: IDVG.tex with legend in 3 columns (manually)
+    :caption: length_0_dot_50um_IDVG.tex

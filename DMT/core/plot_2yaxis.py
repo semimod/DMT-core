@@ -309,8 +309,10 @@ class Plot2YAxis(object):
             "right mid",
         ]:  # not supported in matplotlib
             self.ax_left.legend(loc="upper right", frameon=self.legend_frame)
+            self.ax_right.legend(loc="upper right", frameon=self.legend_frame)
         else:
             self.ax_left.legend(loc=self.legend_location, frameon=self.legend_frame)
+            self.ax_right.legend(loc=self.legend_location, frameon=self.legend_frame)
 
         if allowGrid:
             # Don't allow the axis to be on top of your data

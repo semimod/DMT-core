@@ -732,6 +732,11 @@ class SimCon(object, metaclass=Singleton):
                     + " > sim.log &"
                 )
             )
+            ## useful for debugging:
+            # for line in iter(_stdout.readline, ""):
+            #     print(line, end="")
+            # for line in iter(_stderr.readline, ""):
+            #     print(line, end="")
             return -1
         else:
             _stdin, stdout, _stderr = self.ssh_client.exec_command(

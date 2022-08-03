@@ -1,6 +1,8 @@
 # DMTs default config
 user_name:      USER # user name. Used for autodoc
 user_email:     mail #
+docu_topic:     topic #
+company:        COMPANY #
 progress_minimal: no # if no: Show Simulation Information Info for each simulation, if yes: show only total Progress (good when starting hundreds of simulations)
 directories:
     simulation: ~/.DMT/simulation_results/ # All simulations are saved here.

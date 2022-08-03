@@ -21,6 +21,7 @@ try:
     from .pylatex import SubFile
     from .pylatex import CommandBase
     from .pylatex import CommandInput
+    from .pylatex import CommandInputTikz
     from .pylatex import CommandLabel
     from .pylatex import CommandRef
     from .pylatex import CommandRefRange

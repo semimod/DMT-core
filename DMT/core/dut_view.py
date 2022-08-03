@@ -153,6 +153,7 @@ class DutView(object):
         length=None,
         nfinger=None,
         contact_config=None,
+        flavor=None,
         ac_ports=None,
         reference_node=None,
         nodes=None,
@@ -233,6 +234,7 @@ class DutView(object):
 
         self.technology = technology
         self.contact_config = contact_config
+        self.flavor = flavor
         self.width = width
         self.length = length
         self.nfinger = nfinger
