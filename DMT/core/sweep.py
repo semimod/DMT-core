@@ -426,33 +426,70 @@ class Sweep(object):
 
         if SweepDefClass is None:
             SweepDefClass = SweepDef
+        self.SweepDefClass = SweepDefClass
 
-        self.sweepdef = []
+        self._sweepdef = []
         if sweepdef is not None:
-            for swd in sweepdef:
-                if isinstance(swd, SweepDefClass):
-                    self.sweepdef.append(copy.deepcopy(swd))
-                else:
-                    self.sweepdef.append(SweepDefClass(**swd))
+            self.sweepdef = sweepdef
 
         # variables that need to be calculated by the simulator
-        if outputdef is None:
-            self.outputdef = []
-        else:
-            # cast and copy to be save
-            # sort to save some repeatings
-            self.outputdef = sorted(list(copy.deepcopy(outputdef)))
+        self._outputdef = []
+        if outputdef is not None:
+            self.outputdef = outputdef
 
-        if othervar is None:
-            self.othervar = {}
-        else:
+        self._othervar = {}
+        if othervar is not None:
+            self.othervar = othervar
+
+        if self._sweepdef != []:
+            self.check_sweep()
+
+    @property
+    def sweepdef(self):
+        return self._sweepdef
+
+    @sweepdef.setter
+    def sweepdef(self, sweepdef_new):
+        self._sweepdef = []
+        for swd in sweepdef_new:
+            if isinstance(swd, self.SweepDefClass):
+                self._sweepdef.append(copy.deepcopy(swd))
+            else:
+                self._sweepdef.append(self.SweepDefClass(**swd))
+
+    @property
+    def othervar(self):
+        return self._othervar
+
+    @othervar.setter
+    def othervar(self, othervar_new):
+        if isinstance(othervar_new, dict):
             # optional variables such as temperature
             # copy to be save
             # sort to save some repeatings
-            self.othervar = dict(sorted(copy.deepcopy(othervar).items(), key=lambda ele: ele[0]))
+            self._othervar = dict(
+                sorted(copy.deepcopy(othervar_new).items(), key=lambda ele: ele[0])
+            )
+        else:
+            raise IOError(
+                "sweep.othervar must to be a dict. Example: {",
+                "TEMP:300,",
+                "w:10,",
+                "l:0.25}",
+            )
 
-        if self.sweepdef != []:
-            self.check_sweep()
+    @property
+    def outputdef(self):
+        return self._outputdef
+
+    @outputdef.setter
+    def outputdef(self, outputdef_new):
+        if isinstance(outputdef_new, list):
+            # cast and copy to be save
+            # sort to save some repeatings
+            self._outputdef = sorted(list(copy.deepcopy(outputdef_new)))
+        else:
+            raise IOError("sweep.outputdef needs to be a list.")
 
     def create_df(self):
         """Fill the dataframe according to the sweepdefinition
@@ -528,16 +565,6 @@ class Sweep(object):
         :class:`DMT.core.Sweep`
             corrected and checked Sweep object.
         """
-        # check type_of object variables
-        if not isinstance(self.othervar, dict):
-            raise IOError(
-                "sweep.othervar must to be a dict. Example: {",
-                "TEMP:300,",
-                "w:10,",
-                "l:0.25}",
-            )
-        if not isinstance(self.outputdef, list):
-            raise IOError("sweep.outputdef needs to be a list.")
 
         # correct sweeporder------------------------------------
         if any([swd.sweep_order is None for swd in self.sweepdef]):

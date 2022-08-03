@@ -1,5 +1,6 @@
 import pytest
 import pandas as pd
+import numpy as np
 from DMT.core import Sweep, specifiers
 from DMT.core.sweep_def import (
     SweepDef,
@@ -9,6 +10,17 @@ from DMT.core.sweep_def import (
     SweepDefSync,
     SweepDefList,
 )
+
+sp_temp = specifiers.TEMPERATURE
+sp_freq = specifiers.FREQUENCY
+sp_ft = specifiers.TRANSIT_FREQUENCY
+sp_vb = specifiers.VOLTAGE + "B"
+sp_vcb = specifiers.VOLTAGE + ["C", "B"]
+sp_vbc = specifiers.VOLTAGE + ["B", "C"]
+sp_vc = specifiers.VOLTAGE + "C"
+sp_ve = specifiers.VOLTAGE + "E"
+sp_ic = specifiers.CURRENT + "C"
+sp_ib = specifiers.CURRENT + "B"
 
 
 def test_dc_sweep():
@@ -45,27 +57,31 @@ def test_dc_sweep():
         sweep.create_df()
     )  # we can also create the sweep's dataframe, where the output variables are Nans.
 
-    assert sweep.get_hash() == "d69c143ecebb6eb45618ff9ea45f0602"
+    df.ensure_specifier_column(sp_vbc)
+    assert len(df) == 11
+    assert df[sp_vc].round(3).unique() == np.array([1])
+    assert np.allclose(df[sp_vb], np.linspace(0, 1, 11))
 
 
 def test_sync_sweep():
+
     # VBC = 0.1
     sweepdef = [
         {
-            "var_name": specifiers.VOLTAGE + "B",
+            "var_name": sp_vb,
             "sweep_order": 1,
             "sweep_type": "LIN",
             "value_def": [0, 1, 11],
         },
         {
-            "var_name": specifiers.VOLTAGE + "C",
+            "var_name": sp_vc,
             "sweep_order": 1,
             "sweep_type": "SYNC",
-            "master": "V_B",
+            "master": sp_vb,
             "offset": 0.1,
         },
         {
-            "var_name": specifiers.VOLTAGE + "E",
+            "var_name": sp_ve,
             "sweep_order": 2,
             "sweep_type": "CON",
             "value_def": [0],
@@ -76,20 +92,11 @@ def test_sync_sweep():
     sweep = Sweep("dummy_2", sweepdef=sweepdef, outputdef=outputdef, othervar=othervar)
     df = sweep.create_df()
 
-    sweep_hash = sweep.get_hash()
-    # print(sweep_hash)
-
-    assert sweep_hash == "4829b7d95a4f0347ea966c2b795655e3"  # always the same...
-
-    sp_temp = specifiers.TEMPERATURE
-    sp_freq = specifiers.FREQUENCY
-    sp_ft = specifiers.TRANSIT_FREQUENCY
-    sp_vb = specifiers.VOLTAGE + "B"
-    sp_vbc = specifiers.VOLTAGE + ["B", "C"]
-    sp_vc = specifiers.VOLTAGE + "C"
-    sp_ve = specifiers.VOLTAGE + "E"
-    sp_ic = specifiers.CURRENT + "C"
-    sp_ib = specifiers.CURRENT + "B"
+    df.ensure_specifier_column(sp_vbc)
+    assert len(df) == 11
+    assert df[sp_vbc].round(3).unique() == np.array([-0.1])
+    assert np.allclose(df[sp_vb], np.linspace(0, 1, 11))
+    assert np.allclose(df[sp_vc], np.linspace(0.1, 1.1, 11))
 
     list_vbc = [0.5, 0.0, -0.5]
     sws_gummel = []
@@ -135,28 +142,28 @@ def test_sync_sweep():
 def test_ac_sweep():
     # create a sweep with a sweeped offset variable
     sweepdef = [
-        {"var_name": "FREQ", "sweep_order": 4, "sweep_type": "LOG", "value_def": [8, 9, 2]},
+        {"var_name": sp_freq, "sweep_order": 4, "sweep_type": "LOG", "value_def": [8, 9, 2]},
         {
-            "var_name": specifiers.VOLTAGE + "B",
+            "var_name": sp_vb,
             "sweep_order": 3,
             "sweep_type": "LIN",
             "value_def": [0, 1, 3],
         },
         {
-            "var_name": specifiers.VOLTAGE + "C",
+            "var_name": sp_vc,
             "sweep_order": 3,
             "sweep_type": "SYNC",
-            "master": specifiers.VOLTAGE + "B",
-            "offset": specifiers.VOLTAGE + ["C", "B"],
+            "master": sp_vb,
+            "offset": sp_vcb,
         },
         {
-            "var_name": specifiers.VOLTAGE + ["C", "B"],
+            "var_name": sp_vcb,
             "sweep_order": 2,
             "sweep_type": "LIST",
             "value_def": [-0, -0.2, -0.3],
         },
         {
-            "var_name": specifiers.VOLTAGE + "E",
+            "var_name": sp_ve,
             "sweep_order": 1,
             "sweep_type": "CON",
             "value_def": [0],
@@ -165,8 +172,15 @@ def test_ac_sweep():
     outputdef = [specifiers.CURRENT + "C", specifiers.CURRENT + "B"]
     othervar = {"TEMP": 300, "w": 10, "l": 0.25}
     sweep = Sweep("gummel", sweepdef=sweepdef, outputdef=outputdef, othervar=othervar)
+    df = sweep.create_df()
 
-    assert sweep.get_hash() == "0ea6e203d20934c20516238f85efb744"
+    df.ensure_specifier_column(sp_vbc)
+    assert len(df) == 18
+    assert np.allclose(df[sp_vbc].round(3).unique(), np.array([0.0, 0.2, 0.3]))
+    assert np.allclose(df[sp_vb].round(3).unique(), np.array([0.0, 0.5, 1.0]))
+    assert np.allclose(
+        df[sp_vc].round(3).unique(), np.array([0.0, 0.5, 1.0, -0.2, 0.3, 0.8, -0.3, 0.2, 0.7])
+    )
 
 
 def test_sweepdef_errors():
@@ -327,9 +341,9 @@ def test_sweep_temp():
 
 
 if __name__ == "__main__":
-    # test_dc_sweep()
+    test_dc_sweep()
     test_sync_sweep()
-    # test_ac_sweep()
-    # test_sweepdef_errors()
-    # test_sweep_swd()
-    # test_sweep_temp()
+    test_ac_sweep()
+    test_sweepdef_errors()
+    test_sweep_swd()
+    test_sweep_temp()

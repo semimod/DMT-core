@@ -30,7 +30,8 @@ from DMT.external.os import recursive_copy, rmtree
 
 try:
     from pylatex import Section, Subsection, SmallText, Tabular, NoEscape, Center, Figure
-    from DMT.external.pylatex import SubFile, Tex
+    from pylatex.base_classes import Arguments
+    from DMT.external.pylatex import SubFile, Tex, CommandInput, CommandLabel
 except ImportError:
     pass
 
@@ -219,6 +220,54 @@ PLOT_DEFAULTS = {
             "rth": 3e3,
         },
     },
+    DutType.n_mos: {
+        "id(vg)": {
+            "x_log": False,
+            "y_log": False,
+            "at": [specifiers.VOLTAGE + ["D"], specifiers.VOLTAGE + ["B"]],
+            "quantity_x": specifiers.VOLTAGE + ["G"],
+            "quantity_y": specifiers.CURRENT + ["D"],
+            "legend_location": "upper left",
+            "y_limits": (None, None),
+            "x_limits": (None, None),
+            "tex": r"Gummel  $I_{\mathrm{D}}(V_{\mathrm{G}})@V_{\mathrm{D}}$.",
+        },
+        "id(vd)": {
+            "x_log": False,
+            "y_log": False,
+            "at": [specifiers.VOLTAGE + ["G"], specifiers.VOLTAGE + ["B"]],
+            "quantity_x": specifiers.VOLTAGE + ["D"],
+            "quantity_y": specifiers.CURRENT + ["D"],
+            "legend_location": "upper left",
+            "y_limits": (None, None),
+            "x_limits": (None, None),
+            "tex": r"Gummel  $I_{\mathrm{D}}(V_{\mathrm{D}})@V_{\mathrm{G}}$.",
+        },
+    },
+    DutType.p_mos: {
+        "id(vg)": {
+            "x_log": False,
+            "y_log": False,
+            "at": [specifiers.VOLTAGE + ["D"], specifiers.VOLTAGE + ["B"]],
+            "quantity_x": specifiers.VOLTAGE + ["G"],
+            "quantity_y": specifiers.CURRENT + ["D"],
+            "legend_location": "upper left",
+            "y_limits": (None, None),
+            "x_limits": (None, None),
+            "tex": r"Gummel  $I_{\mathrm{D}}(V_{\mathrm{G}})@V_{\mathrm{D}}$.",
+        },
+        "id(vd)": {
+            "x_log": False,
+            "y_log": False,
+            "at": [specifiers.VOLTAGE + ["G"], specifiers.VOLTAGE + ["B"]],
+            "quantity_x": specifiers.VOLTAGE + ["D"],
+            "quantity_y": specifiers.CURRENT + ["D"],
+            "legend_location": "upper left",
+            "y_limits": (None, None),
+            "x_limits": (None, None),
+            "tex": r"Gummel  $I_{\mathrm{D}}(V_{\mathrm{D}})@V_{\mathrm{G}}$.",
+        },
+    },
 }
 
 
@@ -259,7 +308,7 @@ class DocuDutLib(object):
                     for device_spec, val in device_specs.items():
                         if isinstance(val, str):
                             dut_property = getattr(dut, device_spec)
-                            if dut_property != val:
+                            if not val in dut_property:
                                 ok = False
                         elif isinstance(val, float):
                             dut_property = getattr(dut, device_spec)
@@ -496,7 +545,10 @@ class DocuDutLib(object):
                         y_label=y_label,
                         legend_location=legend_location,
                     )
-                    plt.dut_name = dut.name
+                    plt.dut_name = (
+                        dut.name
+                        + f"w{dut.width*1e6:.2f}um_l{dut.length*1e6:.2f}um_{len(self.plts)}"
+                    )
                     plt.plot_type = plot_type
                     plt.dut = dut
                     plt.temp = temp
@@ -895,14 +947,13 @@ class DocuDutLib(object):
                                             NoEscape(r"\setlength\figurewidth{\textwidth}")
                                         )
                                         # _plot.append(CommandInput(arguments=Arguments(plt.path)))
-                                        # \includegraphics[scale=0.65]{screenshot.png}
                                         _plot.add_image('"' + str(plt.path) + '"')
                                         _plot.add_caption(
                                             NoEscape(
                                                 PLOT_DEFAULTS[dut.dut_type][plt.plot_type]["tex"]
                                             )
                                         )
-                                        # _plot.append(CommandLabel(arguments=Arguments(fig_name)))
+                                        # _plot.append(CommandLabel(arguments=Argument(plt.dut_name + plt.)))
 
                                     doc.append(NoEscape(r"\FloatBarrier "))
 
