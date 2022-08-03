@@ -1178,8 +1178,8 @@ class DutLib(object):
     def toTex(self):
         """This function generates a TeX representation of a DutLib.
 
-        | This function generates a section with the title "Measured Devices"
-        | For each DutType a table is generated that summarizes the available device dimensions for this DutType.
+        This function generates a section with the title "Measured Devices"
+        For each DutType a table is generated that summarizes the available device dimensions for this DutType.
         """
         doc = Tex()
         with doc.create(Section("Measured Devices")):

@@ -35,6 +35,7 @@ If you make this investment, the potential gains are
 If you have used our framework for research purposes, please cite us with:
 
 .. code:: tex
+
     @ARTICLE{DMT2022,
         title     = "{DMT-core: A Python Toolkit for Semiconductor Device Engineers}",
         author    = {Mario Krattenmacher and Markus M{\"u}ller and Pascal Kuthe and Michael Schr{\"o}ter},

@@ -14,3 +14,4 @@ There every argument and function is documented.
     basic_data_handling
     running_a_simulation
     read_in_measurement_data
+    readin_dut_lib
