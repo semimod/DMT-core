@@ -151,6 +151,7 @@ class CommandInput(CommandBase):
         Package("inputenc", options="utf8"),
     ]
 
+
 class CommandInputTikz(CommandBase):
     """This command can be used to input .tikz files."""
 

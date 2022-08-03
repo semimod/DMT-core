@@ -783,12 +783,32 @@ class DutHdev(DutTcad):
             for i in range(len(doping)):
                 if doping[i] > 0:
                     mob[i] = hdev_py.get_mobility_py(
-                        semiconductor, valley, float(field), 1, 1, 1, temperature, 0, doping[i], 0, grading
+                        semiconductor,
+                        valley,
+                        float(field),
+                        1,
+                        1,
+                        1,
+                        temperature,
+                        0,
+                        doping[i],
+                        0,
+                        grading,
                     )
                     # def get_mobility_py(semi_name     ,valley,f       , ec_l, ec_r, dim, t, dens, don, acc,  grad):
                 else:
                     mob[i] = hdev_py.get_mobility_py(
-                        semiconductor, valley, float(field), 1, 1, 1, temperature, 0, 0, -doping[i], grading
+                        semiconductor,
+                        valley,
+                        float(field),
+                        1,
+                        1,
+                        1,
+                        temperature,
+                        0,
+                        0,
+                        -doping[i],
+                        grading,
                     )
         else:
             mob = np.zeros_like(field)
@@ -800,7 +820,17 @@ class DutHdev(DutTcad):
                     # def get_mobility_py(semi_name     ,valley,f       , ec_l, ec_r, dim, t, dens, don, acc,  grad):
                 else:
                     mob[i] = hdev_py.get_mobility_py(
-                        semiconductor, valley, field[i], 1, 1, 1, temperature, 0, 0, -doping, grading
+                        semiconductor,
+                        valley,
+                        field[i],
+                        1,
+                        1,
+                        1,
+                        temperature,
+                        0,
+                        0,
+                        -doping,
+                        grading,
                     )
 
         return mob
@@ -864,8 +894,7 @@ class DutHdev(DutTcad):
                     }
                 )
                 n = n + 1
-        outputdef = [
-        ]
+        outputdef = []
         othervar = {"TEMP": 300}
         sweep = Sweep("gummel", sweepdef=sweepdef, outputdef=outputdef, othervar=othervar)
         inp_str = self.make_input(sweep)
@@ -874,7 +903,10 @@ class DutHdev(DutTcad):
         inp_file = open(path_sim, "w+")
         inp_file.write(inp_str)
         inp_file.close()
-        shutil.copyfile(os.path.join(DATA_CONFIG["directories"]["simulation"], "bias.h5"), os.path.join("/home/markus/Documents/Gitprojects/dissertation/bias.h5"))
+        shutil.copyfile(
+            os.path.join(DATA_CONFIG["directories"]["simulation"], "bias.h5"),
+            os.path.join("/home/markus/Documents/Gitprojects/dissertation/bias.h5"),
+        )
         hdev_py.init(inp_file.name)
 
     def scale_modelcard(self, *_args, **_kwargs):

@@ -1198,17 +1198,25 @@ class DutLib(object):
                         configs = list(set(configs))  # cast to unique
                         for config in configs:
                             if config is None:
-                                str_flavor = "" if flavor is None else  " and flavor " + str(flavor).replace("_", r"\_")
+                                str_flavor = (
+                                    ""
+                                    if flavor is None
+                                    else " and flavor " + str(flavor).replace("_", r"\_")
+                                )
                                 doc.append(
                                     NoEscape(
                                         "Measurements for devices of type "
-                                        + str(dut_type) 
+                                        + str(dut_type)
                                         + str_flavor
                                         + " are available with the following geometries:"
                                     )
                                 )
                             else:
-                                str_flavor = "" if flavor is None else  ", flavor " + str(flavor).replace("_", r"\_")
+                                str_flavor = (
+                                    ""
+                                    if flavor is None
+                                    else ", flavor " + str(flavor).replace("_", r"\_")
+                                )
                                 doc.append(
                                     NoEscape(
                                         "Measurements for devices with device type "
@@ -1227,7 +1235,9 @@ class DutLib(object):
                                     [
                                         dut
                                         for dut in self
-                                        if dut.dut_type == dut_type and dut.contact_config == config and dut.flavor == flavor
+                                        if dut.dut_type == dut_type
+                                        and dut.contact_config == config
+                                        and dut.flavor == flavor
                                     ]
                                 )
                             )
