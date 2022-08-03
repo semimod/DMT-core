@@ -15,6 +15,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - dmt example bash script which uses the docker container to run a python/dmt script.
 - Generating CycloneDX SBOM from the container
 - Added a RuntimeWarning when loading a parameter for a MCard which is out of bounds.
+- Added a mdm-reader test case for SkywaterPDK raw measurement data
+- Added an example to the docu how to read and handle the SkywaterPDK raw data in a DutLib
 
 ### Changed
 
@@ -22,6 +24,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - format and test stages of the CI pipeline are done for reg-ex "main" (so incl. "pre-main"), the following only for "main"
 - `SpecifierStr.sub_specifiers` are now `frozenset` instead of a list. This fixes the order issue and at the same time improves readability when testing.
 - `SpecifierStr.__contains__` now properly testing containement without the shortcut using string casts.
+- The DMT.core.Sweep attributes are now proteced by setters and getters to ensure types.
 
 ### Fixed
 
