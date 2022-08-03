@@ -1,6 +1,26 @@
 import pytest
+import pandas as pd
+import numpy as np
 from DMT.core import Sweep, specifiers
-from DMT.core.sweep import SweepDef
+from DMT.core.sweep_def import (
+    SweepDef,
+    SweepDefConst,
+    SweepDefLinear,
+    SweepDefLog,
+    SweepDefSync,
+    SweepDefList,
+)
+
+sp_temp = specifiers.TEMPERATURE
+sp_freq = specifiers.FREQUENCY
+sp_ft = specifiers.TRANSIT_FREQUENCY
+sp_vb = specifiers.VOLTAGE + "B"
+sp_vcb = specifiers.VOLTAGE + ["C", "B"]
+sp_vbc = specifiers.VOLTAGE + ["B", "C"]
+sp_vc = specifiers.VOLTAGE + "C"
+sp_ve = specifiers.VOLTAGE + "E"
+sp_ic = specifiers.CURRENT + "C"
+sp_ib = specifiers.CURRENT + "B"
 
 
 def test_dc_sweep():
@@ -37,27 +57,31 @@ def test_dc_sweep():
         sweep.create_df()
     )  # we can also create the sweep's dataframe, where the output variables are Nans.
 
-    assert sweep.get_hash() == "d69c143ecebb6eb45618ff9ea45f0602"
+    df.ensure_specifier_column(sp_vbc)
+    assert len(df) == 11
+    assert df[sp_vc].round(3).unique() == np.array([1])
+    assert np.allclose(df[sp_vb], np.linspace(0, 1, 11))
 
 
 def test_sync_sweep():
+
     # VBC = 0.1
     sweepdef = [
         {
-            "var_name": specifiers.VOLTAGE + "B",
+            "var_name": sp_vb,
             "sweep_order": 1,
             "sweep_type": "LIN",
             "value_def": [0, 1, 11],
         },
         {
-            "var_name": specifiers.VOLTAGE + "C",
+            "var_name": sp_vc,
             "sweep_order": 1,
             "sweep_type": "SYNC",
-            "master": "V_B",
+            "master": sp_vb,
             "offset": 0.1,
         },
         {
-            "var_name": specifiers.VOLTAGE + "E",
+            "var_name": sp_ve,
             "sweep_order": 2,
             "sweep_type": "CON",
             "value_def": [0],
@@ -68,37 +92,78 @@ def test_sync_sweep():
     sweep = Sweep("dummy_2", sweepdef=sweepdef, outputdef=outputdef, othervar=othervar)
     df = sweep.create_df()
 
-    sweep_hash = sweep.get_hash()
-    # print(sweep_hash)
+    df.ensure_specifier_column(sp_vbc)
+    assert len(df) == 11
+    assert df[sp_vbc].round(3).unique() == np.array([-0.1])
+    assert np.allclose(df[sp_vb], np.linspace(0, 1, 11))
+    assert np.allclose(df[sp_vc], np.linspace(0.1, 1.1, 11))
 
-    assert sweep_hash == "4829b7d95a4f0347ea966c2b795655e3"  # always the same...
+    list_vbc = [0.5, 0.0, -0.5]
+    sws_gummel = []
+    df_gummel_sep = []
+    for vbc in list_vbc:
+        sws_gummel.append(
+            Sweep(
+                f"gummel_vbc_{vbc:.1f}",
+                sweepdef=[
+                    SweepDefConst(sp_ve, [0], sweep_order=0),
+                    SweepDefLinear(sp_vb, [0.8, 1.0, 41], sweep_order=1),
+                    SweepDefSync(sp_vc, sp_vb, vbc, sweep_order=1),
+                    SweepDefLog(sp_freq, [9, 10, 5], sweep_order=2),
+                ],
+                outputdef=[],
+                othervar={sp_temp: 300},
+            )
+        )
+        df_gummel_sep.append(sws_gummel[-1].create_df())
+
+    df_gummel_sep = pd.concat(df_gummel_sep)
+
+    sw_gummel = Sweep(
+        "gummel",
+        sweepdef=[
+            SweepDefConst(sp_ve, 0, sweep_order=0),
+            SweepDefList(sp_vbc, list_vbc, sweep_order=2),
+            SweepDefLinear(sp_vb, [0.8, 1.0, 41], sweep_order=2),
+            SweepDefSync(sp_vc, sp_vb, sp_vbc, sweep_order=2),
+            SweepDefLog(sp_freq, [9, 10, 5], sweep_order=3),
+        ],
+        outputdef=[],
+        othervar={sp_temp: 300},
+    )
+    df_gummel = sw_gummel.create_df()
+    df_gummel.drop(columns=sp_vbc, inplace=True)
+
+    # compare the dataframes -> should be equal
+    for row_gummel, row_gummel_sep in zip(df_gummel.iterrows(), df_gummel_sep.iterrows()):
+        assert all(row_gummel[1] == row_gummel_sep[1])
 
 
 def test_ac_sweep():
     # create a sweep with a sweeped offset variable
     sweepdef = [
-        {"var_name": "FREQ", "sweep_order": 4, "sweep_type": "LOG", "value_def": [8, 9, 2]},
+        {"var_name": sp_freq, "sweep_order": 4, "sweep_type": "LOG", "value_def": [8, 9, 2]},
         {
-            "var_name": specifiers.VOLTAGE + "B",
+            "var_name": sp_vb,
             "sweep_order": 3,
             "sweep_type": "LIN",
             "value_def": [0, 1, 3],
         },
         {
-            "var_name": specifiers.VOLTAGE + "C",
+            "var_name": sp_vc,
             "sweep_order": 3,
             "sweep_type": "SYNC",
-            "master": specifiers.VOLTAGE + "B",
-            "offset": specifiers.VOLTAGE + ["C", "B"],
+            "master": sp_vb,
+            "offset": sp_vcb,
         },
         {
-            "var_name": specifiers.VOLTAGE + ["C", "B"],
+            "var_name": sp_vcb,
             "sweep_order": 2,
             "sweep_type": "LIST",
             "value_def": [-0, -0.2, -0.3],
         },
         {
-            "var_name": specifiers.VOLTAGE + "E",
+            "var_name": sp_ve,
             "sweep_order": 1,
             "sweep_type": "CON",
             "value_def": [0],
@@ -107,8 +172,15 @@ def test_ac_sweep():
     outputdef = [specifiers.CURRENT + "C", specifiers.CURRENT + "B"]
     othervar = {"TEMP": 300, "w": 10, "l": 0.25}
     sweep = Sweep("gummel", sweepdef=sweepdef, outputdef=outputdef, othervar=othervar)
+    df = sweep.create_df()
 
-    assert sweep.get_hash() == "0ea6e203d20934c20516238f85efb744"
+    df.ensure_specifier_column(sp_vbc)
+    assert len(df) == 18
+    assert np.allclose(df[sp_vbc].round(3).unique(), np.array([0.0, 0.2, 0.3]))
+    assert np.allclose(df[sp_vb].round(3).unique(), np.array([0.0, 0.5, 1.0]))
+    assert np.allclose(
+        df[sp_vc].round(3).unique(), np.array([0.0, 0.5, 1.0, -0.2, 0.3, 0.8, -0.3, 0.2, 0.7])
+    )
 
 
 def test_sweepdef_errors():
@@ -269,9 +341,9 @@ def test_sweep_temp():
 
 
 if __name__ == "__main__":
-    # test_dc_sweep()
-    # test_sync_sweep()
-    # test_ac_sweep()
-    # test_sweepdef_errors()
-    # test_sweep_swd()
+    test_dc_sweep()
+    test_sync_sweep()
+    test_ac_sweep()
+    test_sweepdef_errors()
+    test_sweep_swd()
     test_sweep_temp()

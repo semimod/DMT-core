@@ -20,7 +20,7 @@ EXTRAS_REQUIRE["full"].remove("PyQt5")  # not always needed
 
 setuptools.setup(
     name="DMT_core",
-    version="1.7.0-rc.3",  # obtain by start DMT.core.__init__.py interactive and grab the next version
+    version="1.7.0-rc.4",  # obtain by start DMT.core.__init__.py interactive and grab the next version
     author="M.Mueller, M.Krattenmacher",
     author_email="markus.mueller@semimod.de, mario.krattenmacher@semimod.de",
     description="Device Modeling Toolkit Core",
@@ -34,7 +34,15 @@ setuptools.setup(
     },
     packages=setuptools.find_namespace_packages(include=["DMT.*"]),
     license="GNU GPLv3+",
-    classifiers=["Programming Language :: Python :: 3.8", "Operating System :: OS Independent"],
+    classifiers=[
+        "License :: OSI Approved :: GNU Affero General Public License v3",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Operating System :: OS Independent",
+        "Topic :: Scientific/Engineering :: Electronic Design Automation (EDA)",
+    ],
     package_data={"": ["*.yaml", "*.txt", "*.tex", "*.bib"]},
     include_package_data=True,
     install_requires=[

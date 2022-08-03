@@ -14,10 +14,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
     - full or Version_XX: Includes the latest or respective DMT install
 - dmt example bash script which uses the docker container to run a python/dmt script.
 - Generating CycloneDX SBOM from the container
+- Added a RuntimeWarning when loading a parameter for a MCard which is out of bounds.
+
+### Changed
+
+- Correct Bibtex to cite for the published paper.
+- format and test stages of the CI pipeline are done for reg-ex "main" (so incl. "pre-main"), the following only for "main"
+- `SpecifierStr.sub_specifiers` are now `frozenset` instead of a list. This fixes the order issue and at the same time improves readability when testing.
+- `SpecifierStr.__contains__` now properly testing containement without the shortcut using string casts.
 
 ### Fixed
 
 - CI Release name
+
+## Deprecated
+
+- DMT.core.naming.set_col_name deprecated as SpecifierStr creation is much better documented.
 
 ## [1.6.2] - 2022.06.14
 

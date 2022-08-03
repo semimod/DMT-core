@@ -183,7 +183,6 @@ def read_mdm(filename):
     """
     block_data = []
     index_data = 0
-    iccap_Vars = {}
 
     # open mdm for reading
     with open(filename, "r") as mdmfile:

@@ -170,6 +170,16 @@ _DICT_COLORS_MPL = {
     "y": "yellow",
     "k": "black",
     "w": "white",
+    "#006400": "#006400",  # darkgreen
+    "#00008b": "#00008b",  # darkblue
+    "#b03060": "#b03060",  # maroon3
+    "#ff0000": "#ff0000",  # red
+    "#9467bd": "#9467bd",  # yellow -> replaced by violett/brown combo
+    "#deb887": "#deb887",  # curlywood
+    "#00ff00": "#00ff00",  # lime
+    "#00ffff": "#00ffff",  # aqua
+    "#ff00ff": "#ff00ff",  # fuchsia
+    "#6495ed": "#6495ed",  # cornflower
 }
 
 
@@ -298,7 +308,7 @@ class Plot(object):
         self._cycler = cycler("linestyle", "-")  # just set a cycler so pylance is ok...
         self.set_cycler(style)
 
-        self.lines = []
+        # self.lines = []
 
         # only init the data list, it is filled later
         # use add_data_set to do so
@@ -354,7 +364,7 @@ class Plot(object):
         if x_label is not None:
             self.x_label = x_label
         elif x_specifier is not None:
-            if sub_specifiers.PHASE.sub_specifiers[0] in x_specifier:
+            if sub_specifiers.PHASE in x_specifier:
                 self.x_scale = 1
 
             self.x_label = x_specifier.to_label(
@@ -392,7 +402,7 @@ class Plot(object):
         if y_label is not None:
             self.y_label = y_label
         elif y_specifier is not None:
-            if sub_specifiers.PHASE.sub_specifiers[0] in y_specifier:
+            if sub_specifiers.PHASE in y_specifier:
                 self.y_scale = 1
 
             self.y_label = y_specifier.to_label(
@@ -871,7 +881,7 @@ class Plot(object):
                         + " for line with label "
                         + str(label)
                     ) from err
-            self.lines.append(line)
+            # self.lines.append(line)
 
         # labels and legend
         if self.legend_location in ["upper right outer", "right mid"]:  # not supported here
@@ -1087,8 +1097,8 @@ class Plot(object):
 
         if self.x_axis_scale == "log":
             # also doing this in case of log for the data itself
-            x_min_set = np.log10(np.abs(x_min_set + np.finfo(float).eps))
-            x_max_set = np.log10(np.abs(x_max_set + np.finfo(float).eps))
+            x_min_set = np.log10(np.abs(x_min_set + np.finfo(float).tiny))
+            x_max_set = np.log10(np.abs(x_max_set + np.finfo(float).tiny))
 
         try:
             self.pw_pg.setXRange(np.real(x_min_set), np.real(x_max_set), padding=padding)  # type: ignore
@@ -1145,8 +1155,8 @@ class Plot(object):
 
         if self.y_axis_scale == "log":
             # also doing this in case of log for the data itself
-            y_min = np.log10(np.abs(y_min + np.finfo(float).eps))
-            y_max = np.log10(np.abs(y_max + np.finfo(float).eps))
+            y_min = np.log10(np.abs(y_min + np.finfo(float).tiny))
+            y_max = np.log10(np.abs(y_max + np.finfo(float).tiny))
         try:
             self.pw_pg.setYRange(np.real(y_min), np.real(y_max), padding=padding)  # type: ignore
         except Exception:
@@ -1201,7 +1211,7 @@ class Plot(object):
         }
 
         if mpl_style:
-            for mpl_color in _DICT_COLORS_MPL:
+            for mpl_color in sorted(_DICT_COLORS_MPL, key=len, reverse=True):
                 if mpl_color in mpl_style:
                     kwargs_pen["color"] = mpl_color
                     kwargs_pen["width"] = 2
@@ -1903,9 +1913,19 @@ class Plot(object):
         pgf_marker = ""  # is a default case needed ?
 
         if mpl_style:
-            for mpl_color in _DICT_COLORS_MPL:
+            for mpl_color in sorted(_DICT_COLORS_MPL, key=len, reverse=True):
                 if mpl_color in mpl_style:
-                    pgf_color = "color=" + _DICT_COLORS_MPL[mpl_color] + ", "
+                    if mpl_color.startswith("#"):
+                        try:
+                            # is it already there?
+                            pgf_color = "color=color" + str(colors.index(mpl_color)) + ", "
+                        except ValueError:
+                            # if not add it
+                            pgf_color = "color=color" + str(len(colors)) + ", "
+                            colors.append(colors)
+                    else:
+                        pgf_color = "color=" + _DICT_COLORS_MPL[mpl_color] + ", "
+
                     mpl_style = mpl_style.replace(mpl_color, "")
                     break
 

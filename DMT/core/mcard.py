@@ -779,6 +779,11 @@ class MCard(McParameterCollection):
                     self.add(McParameter(parameter_name, value=parameter_value))
                 except ValueError:
                     # if force==False and parameter value is out of bounds -> do not set the value...
+                    warnings.warn(
+                        f"DMT->MCard: The parameter {parameter_name} was not loaded from {path_to_file} since the value {parameter_value} was out of bounds.",
+                        category=RuntimeWarning,
+                    )
+
                     logging.info(
                         "DMT->MCard: The parameter %s was not loaded from %s since the value %f was out of bounds.",
                         parameter_name,
@@ -803,6 +808,19 @@ class MCard(McParameterCollection):
                         self.set_values({parameter_name: parameter_value}, force=force)
                     except KeyError:
                         self.add(McParameter(parameter_name, value=parameter_value))
+                    except ValueError:
+                        # if force==False and parameter value is out of bounds -> do not set the value...
+                        warnings.warn(
+                            f"DMT->MCard: The parameter {parameter_name} was not loaded from {path_to_file} since the value {parameter_value} was out of bounds.",
+                            category=RuntimeWarning,
+                        )
+
+                        logging.info(
+                            "DMT->MCard: The parameter %s was not loaded from %s since the value %f was out of bounds.",
+                            parameter_name,
+                            path_to_file,
+                            parameter_value,
+                        )
         else:
             raise OSError(
                 "Loading from file worked, but I do not know how to handle the loaded content of type "

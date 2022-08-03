@@ -26,7 +26,7 @@ try:
 except ImportError:
     from semver import VersionInfo
 
-__version__ = VersionInfo(major=1, minor=7, patch=0, prerelease="rc.3")  # , prerelease="rc.1"
+__version__ = VersionInfo(major=1, minor=7, patch=0, prerelease="rc.4")  # , prerelease="rc.1"
 # to get the next version:
 # __version__.next_version(x) - with x = "major", "minor", "patch", "prerelease"
 
@@ -81,7 +81,8 @@ from .plot_2yaxis import Plot2YAxis
 from .data_processor import is_iterable, flatten, strictly_increasing, DataProcessor
 
 from .data_frame import DataFrame
-from .sweep import Sweep, SweepDef, get_sweepdef
+from .sweep_def import SweepDef
+from .sweep import Sweep, get_sweepdef
 from .database_manager import DatabaseManager
 from .data_reader import (
     read_data,
