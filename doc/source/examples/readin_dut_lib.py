@@ -1,16 +1,16 @@
 """ Reading the skywater130 data into a DMT DutLib
 
-This is a large example how to read in the full skywater130 pdk measurement data into a DMT DutLib. Then the processing can go on in Python as you like. Feel free to use this example as a starting point.
+This large example shows how to read in all the skywater130 pdk measurement data into a DMT DutLib object. The data processing can also be done in Python. Feel free to use this example as a starting point for bulk reading of data.
 
-Before you can use this data, you have to check out the measurement data repository from:
+Before you can use this data, you have to clone the measurement data repository from:
 https://github.com/google/skywater-pdk-sky130-raw-data
 
-This example is used for the inital data from July 2022
+This example is used for the initial Skywater 130 data from July 2022.
 
-The file structure of the Skywater PDK does not fit to the DMT structure. DMT wants 1 folder per Device, in the raw data there is one folder per device type.
-Here its easier to restructure the raw data. We will have a look onto the demand for different structures and how to implement into DutLib.import_directory, for now this is the faster and easier solution.
+The file structure of the Skywater PDK does not fit directly to the DMT structure. DMT assumes that 1 folder holds data of one physical device. 
+Since this is not the case for the skywater data, we will have to rearrange the measurement data. 
 
-So, in the first step the raw data is sorted for DMT.
+So, in the first step the raw data is sorted so that every folder holds data for one physical device.
 
 """
 import shutil
@@ -20,10 +20,11 @@ from pathlib import Path
 from DMT.core import DutMeas, DutType, DocuDutLib, DutLib, specifiers, sub_specifiers, Plot
 
 path_to_dmt_core = Path(__file__).resolve().parent.parent.parent.parent
+# assume Skywater data is at this location relative to DMT-core:
 path_to_git = path_to_dmt_core.parent.parent / "skywater-pdk-sky130-raw-data-main"
 path_to_cells = path_to_git / "sky130_fd_pr" / "cells"
 
-# this is the sorting
+# sort the measurement data files into folders using shutil
 for child in path_to_cells.glob("*/" * (2)):
     if (
         child.is_file()
@@ -34,23 +35,23 @@ for child in path_to_cells.glob("*/" * (2)):
         shutil.move(child, target_folder / child.name)
 
 
-# Create a DutLib
+# Create a DutLib object that stores measurement data
 lib_save_dir = path_to_dmt_core / "test" / "tmp" / "skywater130_lib"
 lib = DutLib(save_dir=lib_save_dir, force=True)
 
-# to import all data at once, DutLib offers the import_directory method. This method needs a custom filter function to create the correct DutViews.
+# to import all data at once, DutLib offers the import_directory method. This method needs a custom filter function to create the correct DutViews that store device-related information.
 def filter_dut(dut_name):
-    """Create the DutViews from the different folder names
+    """Create DutView objects from the different folder names.
 
     Parameters
     ----------
     dut_name : str
-        Path to the dut folder
+        Path to the dut folder.
 
     Returns
     -------
     DMT.core.DutView
-        DutView which should represent the data inside the folder
+        DutView which should represent the device represented by a folder of measurements.
     """
     dut_path = Path(dut_name)
     dut_name = dut_path.parent.name
@@ -61,6 +62,7 @@ def filter_dut(dut_name):
     dut_type = DutType.n_mos if "nfet" in dut_name else DutType.p_mos
     multiplication_factor = re.search(r"_m([\d]+)\(", dut_path.name, re.MULTILINE).group(1)
     multiplication_factor = int(multiplication_factor)
+    contacts = re.search(r"_m[\d]+\((.+)", dut_path.name, re.MULTILINE).group(1)
 
     dut = DutMeas(
         database_dir=path_to_dmt_core / "test" / "tmp",
@@ -75,11 +77,12 @@ def filter_dut(dut_name):
         reference_node="S",
         ndevices=multiplication_factor,
     )
+    dut.contact_info = contacts.replace("_"," ")
 
     return dut
 
 
-# to correctly key the different measurements, the temperature_converter function can be used:
+# To correctly assign each measurement a key in the database, the temperature_converter function is passed to import_directory for generating keys:
 def key_generator(key_part):
     """The intended use is to allow different ways of temperature notice in the measurement name/key.
 
@@ -144,30 +147,43 @@ sp_ig = specifiers.CURRENT + ["G"]
 sp_ib = specifiers.CURRENT + ["B"]
 sp_id = specifiers.CURRENT + ["D"]
 
-plot = Plot("ID(VG)", x_specifier=sp_vg, y_specifier=sp_id)
 
-for dut in lib:
-    if "nfet_01v8" in dut.name:
-        df = dut.data["T300.00K/IDVG"]
-        df = df[np.isclose(df[sp_vb], 0)]
-        df = df[np.isclose(df[sp_vd], 1.8)]
+# Now we plot all data of the "nfet_01v8" devices, one plot for every unique device length
+device_name = "nfet_01v8"
+plots = []
+lengths = np.unique([dut.length for dut in lib if dut.name == device_name])
+lengths = [0.5e-6]
 
-        plot.add_data_set(
-            df[sp_vg],
-            df[sp_id],
-            label=f"w={dut.width*1e6:.2f}um, l={dut.length*1e6:.2f}um",
-        )
+for l_i in lengths:
+    plot = Plot(f"length_{l_i*1e6:.2f}um_ID(VG)", x_specifier=sp_vg, y_label="Id(mA/um)", y_scale=1e3/1e6)
+    for dut in lib:
+        if dut.name == device_name and np.isclose(dut.length, l_i):# and np.isclose(dut.width, 0.42e-6):
+            df = dut.data["T300.00K/IDVG"]
+            df = df[np.isclose(df[sp_vb], 0)]
+            df = df[np.isclose(df[sp_vd], 1.8)]
 
-plot.plot_pyqtgraph()
+            plot.add_data_set(
+                df[sp_vg],
+                df[sp_id]/dut.width,
+                label=f"w={dut.width*1e6:.2f}um, {dut.contact_info}",
+            )
 
-# plot.save_tikz(
-#     Path(__file__).parent.parent / "_static" / "readin_dut_lib",
-#     standalone=True,
-#     build=True,
-#     clean=True,
-#     width="6in",
-#     legend_location="upper right outer",
-# )
+    plots.append(plot)
+
+# for plt in plots[:-1]:
+#     plt.plot_py(show=False)
+
+# plots[-1].plot_py(show=True)
+
+
+plots[-1].save_tikz(
+    Path(__file__).parent.parent / "_static" / "readin_dut_lib",
+    standalone=True,
+    build=True,
+    clean=True,
+    width="6in",
+    legend_location="upper right outer",
+)
 
 
 # To get a pdf with all information about the measurements DocuDutLib can be used:
