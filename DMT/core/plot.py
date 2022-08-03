@@ -2028,6 +2028,9 @@ def save_or_show(plts, show=True, location=None, **kwargs):
     kwargs : {}
         Additional arguments that are passed to the save_tikz routine.
     """
+    if len(plts) == 0:
+        return
+
     if show:
         for plt in plts[:-1]:
             plt.plot_py(show=False)

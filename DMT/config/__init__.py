@@ -71,12 +71,12 @@ except FileNotFoundError:
         user_config = Path.home() / ".DMT" / "DMT_config.yaml"
         with user_config.open() as yaml_data_file:
             data_user = yaml.safe_load(yaml_data_file)
-        warnings.warn(
-            "The DMT user configuration file is moved. The new paths are:",
-            "Windows: %LOCALAPPDATA%\DMT\DMT_config.yaml",
-            "Linux and MacOS: $XDG_CONFIG_HOME/DMT/DMT_config.yaml, defaulting to ~/.config/DMT/DMT_config.yaml",
-            category=DeprecationWarning,
-        )
+        # warnings.warn(
+        #     "The DMT user configuration file is moved. The new paths are:",
+        #     "Windows: %LOCALAPPDATA%\DMT\DMT_config.yaml",
+        #     "Linux and MacOS: $XDG_CONFIG_HOME/DMT/DMT_config.yaml, defaulting to ~/.config/DMT/DMT_config.yaml",
+        #     category=DeprecationWarning,
+        # )
     except FileNotFoundError:
         pass
 
