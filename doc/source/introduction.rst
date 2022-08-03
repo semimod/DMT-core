@@ -243,6 +243,7 @@ Alternatively, you may use a different simulator. The target of DMT is that all 
 For the example here, ngspice could be used:
 
 .. code-block:: python
+
     from DMT.ngspice import DutNgspice
     dut_sim = DutNgspice(
         None,

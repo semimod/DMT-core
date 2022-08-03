@@ -39,8 +39,6 @@ lib_save_dir = path_to_dmt_core / "test" / "tmp" / "skywater130_lib"
 lib = DutLib(save_dir=lib_save_dir, force=True)
 
 # to import all data at once, DutLib offers the import_directory method. This method needs a custom filter function to create the correct DutViews.
-
-
 def filter_dut(dut_name):
     """Create the DutViews from the different folder names
 
@@ -83,6 +81,29 @@ def filter_dut(dut_name):
 
 # to correctly key the different measurements, the temperature_converter function can be used:
 def key_generator(key_part):
+    """The intended use is to allow different ways of temperature notice in the measurement name/key.
+
+    Each part is there for one folder level.
+    So usually we encounter: DEVICE_FOLDER/XXTEMPXX/measurement_name
+
+    Here this function is used to rename ALL measurements to the 2 possibilities shown in the code.
+
+    Parameters
+    ----------
+    key_part : str
+        The part of the key which may contain the temperature
+
+    Returns
+    -------
+    float or str
+        Should return -1 if no temperature is obtained and otherwise the temperature in Kelvin
+        If a string is returned, this is used as the current key-part.
+
+    Raises
+    ------
+    NotImplementedError
+        In case, new measurements have different structures.
+    """
     if "IDVG" in key_part:
         return "T300.00K/IDVG"
     elif "IDVD" in key_part:
@@ -101,11 +122,11 @@ lib.import_directory(
     temperature_converter=key_generator,
 )
 
-# Clean the data to enfoce specifier columns
+# Clean the data to use specifier columns
 for dut_a in lib:
     dut_a.clean_data()
 
-lib.dut_ref = lib.duts[0]  # does not matter currently
+lib.dut_ref = lib.duts[0]  # does not matter currently but needed for saving and documentation
 
 # The data is now read for further use
 # to save just use:
@@ -123,28 +144,34 @@ sp_ig = specifiers.CURRENT + ["G"]
 sp_ib = specifiers.CURRENT + ["B"]
 sp_id = specifiers.CURRENT + ["D"]
 
-sp_jd = specifiers.CURRENT_DENSITY + ["D"]
-
-plot = Plot(
-    "JD(VG)",
-    x_specifier=sp_vg,
-    y_specifier=sp_jd,
-)
+plot = Plot("ID(VG)", x_specifier=sp_vg, y_specifier=sp_id)
 
 for dut in lib:
     if "nfet_01v8" in dut.name:
         df = dut.data["T300.00K/IDVG"]
         df = df[np.isclose(df[sp_vb], 0)]
         df = df[np.isclose(df[sp_vd], 1.8)]
-        df[sp_jd] = df[sp_id] / dut.length / dut.width
 
         plot.add_data_set(
-            df[sp_vg], df[sp_jd], label=f"w={dut.width*1e6:.2f}um, l={dut.length*1e6:.2f}um"
+            df[sp_vg],
+            df[sp_id],
+            label=f"w={dut.width*1e6:.2f}um, l={dut.length*1e6:.2f}um",
         )
 
 plot.plot_pyqtgraph()
 
+# plot.save_tikz(
+#     Path(__file__).parent.parent / "_static" / "readin_dut_lib",
+#     standalone=True,
+#     build=True,
+#     clean=True,
+#     width="6in",
+#     legend_location="upper right outer",
+# )
+
+
 # To get a pdf with all information about the measurements DocuDutLib can be used:
+# Be aware that this feature is currently in a early state and feedback/improvemend suggestions are very welcome.
 docu = DocuDutLib(lib, devices=[{"name": "esd_nfet_01v8"}])
 docu.generate_docu(
     lib_save_dir.parent / "docu_skywater130_raw",
