@@ -61,6 +61,8 @@ def filter_dut(dut_name):
     length = re.search(r"_l([\dp]+)u_", dut_path.name, re.MULTILINE).group(1)
     length = float(length.replace("p", ".")) * 1e-6
     dut_type = DutType.n_mos if "nfet" in dut_name else DutType.p_mos
+    multiplication_factor = re.search(r"_m([\d]+)\(", dut_path.name, re.MULTILINE).group(1)
+    multiplication_factor = int(multiplication_factor)
 
     dut = DutMeas(
         database_dir=path_to_dmt_core / "test" / "tmp",
@@ -71,8 +73,9 @@ def filter_dut(dut_name):
         width=width,
         length=length,
         contact_config="SGD",
-        name=dut_name,
+        name=dut_path.parent.name,
         reference_node="S",
+        ndevices=multiplication_factor,
     )
 
     return dut
@@ -102,13 +105,14 @@ lib.import_directory(
 for dut_a in lib:
     dut_a.clean_data()
 
+lib.dut_ref = lib.duts[0]  # does not matter currently
+
 # The data is now read for further use
 # to save just use:
 # lib.save()
 # to load in a different script:
 # lib = DutLib.load(lib_save_dir)
 
-# To get a pdf with all information about the measurements DocuDutLib can be used:
 
 # Here we will plot JD(VG) for VB = 0, VD=1.8 for all nfet 01v8
 sp_vg = specifiers.VOLTAGE + ["G"]
@@ -128,7 +132,7 @@ plot = Plot(
 )
 
 for dut in lib:
-    if dut.name == "nfet_01v8":
+    if "nfet_01v8" in dut.name:
         df = dut.data["T300.00K/IDVG"]
         df = df[np.isclose(df[sp_vb], 0)]
         df = df[np.isclose(df[sp_vd], 1.8)]
@@ -139,3 +143,25 @@ for dut in lib:
         )
 
 plot.plot_pyqtgraph()
+
+# To get a pdf with all information about the measurements DocuDutLib can be used:
+docu = DocuDutLib(lib, devices=[{"name": "esd_nfet_01v8"}])
+docu.generate_docu(
+    lib_save_dir.parent / "docu_skywater130_raw",
+    plot_specs=[
+        {"type": "id(vg)", "key": "IDVG", "dut_type": DutType.n_mos},
+        {"type": "id(vg)", "key": "IDVG", "dut_type": DutType.p_mos},
+        {"type": "id(vd)", "key": "IDVD", "dut_type": DutType.n_mos},
+        {"type": "id(vd)", "key": "IDVD", "dut_type": DutType.p_mos},
+    ],
+    show=False,
+    save_tikz_settings={
+        "width": "3in",
+        "height": "5in",
+        "standalone": True,
+        "svg": False,
+        "build": True,
+        "mark_repeat": 20,
+        "clean": True,  # Remove all files except *.pdf files in plots
+    },
+)
