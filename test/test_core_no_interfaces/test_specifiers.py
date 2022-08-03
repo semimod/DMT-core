@@ -1,5 +1,5 @@
-import os.path
 import pytest
+from pathlib import Path
 from DMT.core import DataFrame
 from DMT.core import (
     specifiers,
@@ -9,6 +9,9 @@ from DMT.core import (
     SpecifierStr,
 )
 from DMT.core import DatabaseManager
+
+folder_path = Path(__file__).resolve().parent
+test_path = folder_path.parent
 
 
 def test_index_objects():
@@ -62,6 +65,9 @@ def test_specifier_texts():
     assert (
         specifiers.VOLTAGE + "B" + [sub_specifiers.FORCED, sub_specifiers.AREA] == "V_B|AREA|FORCED"
     )  # order of sub_specifiers does not matter
+    assert (
+        specifiers.VOLTAGE + "B" + {sub_specifiers.AREA, sub_specifiers.FORCED} == "V_B|AREA|FORCED"
+    )  # can also be a set
     assert specifiers.VOLTAGE + "B" + sub_specifiers.FORCED == "V_B|FORCED"
     assert specifiers.VOLTAGE + sub_specifiers.FORCED == "V|FORCED"
 
@@ -80,7 +86,13 @@ def test_specifier_from_string():
     assert get_specifier_from_string("BETA").specifier == "BETA"
     assert get_specifier_from_string("V_BE", nodes=["B", "E"]).specifier == "V"
     assert get_specifier_from_string("V_BE", nodes=["B", "E"]).nodes[1] == "E"
-    assert get_specifier_from_string("V_BE|FORCED", nodes=["B", "E"]).sub_specifiers[0] == "FORCED"
+    assert sub_specifiers.FORCED in get_specifier_from_string("V_BE|FORCED", nodes=["B", "E"])
+    assert (
+        sub_specifiers.FORCED.sub_specifiers
+        <= get_specifier_from_string("V_BE|FORCED", nodes=["B", "E"]).sub_specifiers
+    )
+    # frozenset comparisions
+    # https://www.geeksforgeeks.org/sets-in-python/
 
     assert specifiers.FREQUENCY == "FREQ"
     assert set_col_name(specifiers.FREQUENCY) == "FREQ"
@@ -95,15 +107,15 @@ def column_save_load():
     a = DataFrame({SpecifierStr("V", "B"): [1]})
 
     dbm = DatabaseManager()
-    dbm.save_df(a, os.path.join("test", "tmp", "test_df.p"))
-    b = dbm.load_df(os.path.join("test", "tmp", "test_df.p"))
+    dbm.save_df(a, test_path / "tmp" / "test_df.p")
+    b = dbm.load_df(test_path / "tmp" / "test_df.p")
 
     assert isinstance(a.columns[0], SpecifierStr)
     assert isinstance(b.columns[0], SpecifierStr)
 
     data = {"a": a, "b": b}
-    dbm.save_db(os.path.join("test", "tmp", "test_db.p"), data)
-    data_loaded = dbm.load_db(os.path.join("test", "tmp", "test_db.p"))
+    dbm.save_db(test_path / "tmp" / "test_db.p", data)
+    data_loaded = dbm.load_db(test_path / "tmp" / "test_db.p")
 
     assert isinstance(data_loaded["a"].columns[0], SpecifierStr)
     assert data_loaded["a"].columns[0] == data["a"].columns[0]

@@ -1,7 +1,7 @@
 """ test ADS simulation and plotting of output data.
 """
 import time
-import os.path
+from pathlib import Path
 import logging
 import numpy as np
 from DMT.core import SimCon, specifiers, DutType, Sweep, Plot, sub_specifiers
@@ -14,10 +14,13 @@ sim_ads = True
 show = True
 force = False
 
+folder_path = Path(__file__).resolve().parent
+test_path = folder_path.parent
+
 logging.basicConfig(
     level=logging.DEBUG,
     format="%(levelname)s - %(message)s",
-    filename=os.path.join("logs", "test_ADS_many_sweeps.log"),
+    filename=folder_path.parent.parent / "logs" / "test_ADS_many_sweeps.log",
     filemode="w",
 )
 
@@ -25,10 +28,15 @@ logging.basicConfig(
 def compare_ngspice_many_sweeps():
     # get HICUM model
     mc_D21 = McHicum(
-        va_file=os.path.join("test", "hicumL2V2p4p0_release.va"),
-        load_model_from_path=os.path.join(
-            "test", "test_core_no_interfaces", "test_modelcards", "IHP_ECE704_03_para_D21.mat"
-        ),
+        va_file=test_path
+        / "test_core_no_interfaces"
+        / "test_va_code"
+        / "hicuml2"
+        / "hicumL2V2p4p0_release.va",
+        load_model_from_path=test_path
+        / "test_core_no_interfaces"
+        / "test_modelcards"
+        / "IHP_ECE704_03_para_D21.mat",
     )
     mc_D21.va_file = VA_FILES["L2V2.4.0_internal"]
     mc_D21.remove(["betcbar", "ibexs", "mbex", "rx", "version"])
@@ -310,7 +318,7 @@ if __name__ == "__main__":
         for plt in plts:
             plt.legend_location = "upper right outer"
             plt.save_tikz(
-                os.path.join("test/tmp"),
+                test_path / "tmp",
                 "ngspice_plot_" + plt.name,
                 standalone=True,
                 build=True,

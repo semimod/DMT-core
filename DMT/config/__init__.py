@@ -2,9 +2,9 @@
 
 Collects the config from 3 different locations:
 
-* Local script directory. (DMT_config.yaml)
-* User's home directory (~/.DMT/DMT_config.yaml)
-* DMT package installation directory (DMT_config.yaml)
+* Local script directory (DMT_config.yaml).
+* User's home directory (%LOCALAPPDATA%\DMT\DMT_config.yaml or $XDG_CONFIG_HOME/DMT/DMT_config.yaml with $XDG_CONFIG_HOME defaulting to ~/.config) and
+* DMT package installation directory (DMT/config/DMT_config.yaml)
 
 They are all read and finally taken in the order given here. This means that anything given in the local directory overwrites all others.
 
@@ -12,7 +12,7 @@ They are all read and finally taken in the order given here. This means that any
 # DMT_core
 # Copyright (C) from 2022  SemiMod
 # Copyright (C) until 2021  Markus Müller, Mario Krattenmacher and Pascal Kuthe
-# <https://gitlab.com/dmt-development/dmt-device>
+# <https://gitlab.com/dmt-development/dmt-core>
 #
 # This file is part of DMT_core.
 #
@@ -31,21 +31,56 @@ They are all read and finally taken in the order given here. This means that any
 
 name = "config"
 
-from pathlib import Path
-import yaml
 import os
+import platform
+import pkgutil
+import warnings
+import yaml
+from pathlib import Path
 
-path_config = os.path.dirname(os.path.abspath(__file__))
-default_config_file = os.path.join(path_config, "DMT_default_config.yaml")
+# dmt default config
+path_config = Path(__file__).resolve().parent
+default_config_file = path_config / "DMT_config.yaml"
 with open(default_config_file) as yaml_data_file:
     DATA_CONFIG = yaml.safe_load(yaml_data_file)
 
+# dmt user config
+data_user = {}
+
+if platform.system() == "Windows":
+    user_config = Path(os.getenv("LOCALAPPDATA")).expanduser()
+elif platform.system() == "Linux":
+    user_config = Path(
+        os.getenv("XDG_CONFIG_HOME") if os.getenv("XDG_CONFIG_HOME", False) else "~/.config"
+    ).expanduser()
+elif platform.system() == "Darwin":
+    user_config = Path(
+        os.getenv("XDG_CONFIG_HOME") if os.getenv("XDG_CONFIG_HOME", False) else "~/.config"
+    ).expanduser()
+else:
+    raise OSError(
+        f"Unknown platform:{platform.system()}. Currently only Windows, Linux and MacOS are recognized"
+    )
+
+user_config = user_config / "DMT" / "DMT_config.yaml"
 try:
-    user_config = Path.home() / ".DMT" / "DMT_config.yaml"
-    # with open(os.path.expanduser(os.path.join('~', '.DMT', 'DMT_config.yaml'))) as yaml_data_file:
     with user_config.open() as yaml_data_file:
         data_user = yaml.safe_load(yaml_data_file)
+except FileNotFoundError:
+    try:
+        user_config = Path.home() / ".DMT" / "DMT_config.yaml"
+        with user_config.open() as yaml_data_file:
+            data_user = yaml.safe_load(yaml_data_file)
+        warnings.warn(
+            "The DMT user configuration file is moved. The new paths are:",
+            "Windows: %LOCALAPPDATA%\DMT\DMT_config.yaml",
+            "Linux and MacOS: $XDG_CONFIG_HOME/DMT/DMT_config.yaml, defaulting to ~/.config/DMT/DMT_config.yaml",
+            category=DeprecationWarning,
+        )
+    except FileNotFoundError:
+        pass
 
+if data_user:
     for key, value in DATA_CONFIG.items():
         if key in data_user.keys():
             if hasattr(DATA_CONFIG[key], "update"):
@@ -55,9 +90,8 @@ try:
                     DATA_CONFIG[key] = DATA_CONFIG[key] + data_user[key]
                 else:
                     DATA_CONFIG[key] = data_user[key]
-except FileNotFoundError:
-    pass
 
+# finally workspace path
 try:
     local_config = Path("DMT_config.yaml")
     with local_config.open() as yaml_data_file:
@@ -77,29 +111,27 @@ except FileNotFoundError:
 
 for key, str_path in DATA_CONFIG["directories"].items():
     try:
-        DATA_CONFIG["directories"][key] = Path(str_path).expanduser()
+        DATA_CONFIG["directories"][key] = Path(str_path).expanduser().resolve()
     except TypeError:
         pass
 
-import pkgutil
 
 # measurement data overview report template
 if DATA_CONFIG["directories"]["libautodoc"] is None:
-    package = pkgutil.get_loader("DMT.core")
-    if package is not None:
-        path_libautodoc_default = Path(package.get_filename()).parent.parent / "libautodoc_template"
-        DATA_CONFIG["directories"]["libautodoc"] = path_libautodoc_default.expanduser()
+    DATA_CONFIG["directories"]["libautodoc"] = path_config.parent / "libautodoc_template"
 else:
-    DATA_CONFIG["directories"]["libautodoc"] = Path(
-        DATA_CONFIG["directories"]["libautodoc"]
-    ).expanduser()
+    DATA_CONFIG["directories"]["libautodoc"] = (
+        Path(DATA_CONFIG["directories"]["libautodoc"]).expanduser().resolve()
+    )
 
 # xtraction result overview report template
 if DATA_CONFIG["directories"]["autodoc"] is None:
     package = pkgutil.get_loader("DMT.extraction")
     if package is not None:
-        path_autodoc_default = Path(package.get_filename()).parent.parent / "autodoc_template"
-        DATA_CONFIG["directories"]["autodoc"] = Path(path_autodoc_default).expanduser()
+        path_autodoc_default = (
+            Path(package.get_filename()).resolve().parent.parent / "autodoc_template"
+        )
+        DATA_CONFIG["directories"]["autodoc"] = Path(path_autodoc_default)
 else:
     DATA_CONFIG["directories"]["autodoc"] = Path(DATA_CONFIG["directories"]["autodoc"]).expanduser()
 
@@ -109,9 +141,6 @@ COMMANDS = DATA_CONFIG["commands"]
 
 COMMAND_TEX = (DATA_CONFIG["commands"]["TEX"], DATA_CONFIG["commands"]["TEXARGS"])
 """ TEX build command """
-
-USE_HDF5STORE = DATA_CONFIG["useHDF5Store"]
-""" Saves data as HDF5 Databases, if False, pickle is used. """
 
 # DO NOT ADD ANYTHING HERE. JUST DIRECTLY IMPORT DATA_CONFIG INSIDE YOUR MODULE
 # If wanted add documentation here and/or in DMT_config.yaml

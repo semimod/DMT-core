@@ -6,7 +6,7 @@ Author: Markus Müller       | Markus.Mueller3@tu-dresden.de
 # DMT_core
 # Copyright (C) from 2022  SemiMod
 # Copyright (C) until 2021  Markus Müller, Mario Krattenmacher and Pascal Kuthe
-# <https://gitlab.com/dmt-development/dmt-device>
+# <https://gitlab.com/dmt-development/dmt-core>
 #
 # This file is part of DMT_core.
 #
@@ -779,6 +779,11 @@ class MCard(McParameterCollection):
                     self.add(McParameter(parameter_name, value=parameter_value))
                 except ValueError:
                     # if force==False and parameter value is out of bounds -> do not set the value...
+                    warnings.warn(
+                        f"DMT->MCard: The parameter {parameter_name} was not loaded from {path_to_file} since the value {parameter_value} was out of bounds.",
+                        category=RuntimeWarning,
+                    )
+
                     logging.info(
                         "DMT->MCard: The parameter %s was not loaded from %s since the value %f was out of bounds.",
                         parameter_name,
@@ -803,6 +808,19 @@ class MCard(McParameterCollection):
                         self.set_values({parameter_name: parameter_value}, force=force)
                     except KeyError:
                         self.add(McParameter(parameter_name, value=parameter_value))
+                    except ValueError:
+                        # if force==False and parameter value is out of bounds -> do not set the value...
+                        warnings.warn(
+                            f"DMT->MCard: The parameter {parameter_name} was not loaded from {path_to_file} since the value {parameter_value} was out of bounds.",
+                            category=RuntimeWarning,
+                        )
+
+                        logging.info(
+                            "DMT->MCard: The parameter %s was not loaded from %s since the value %f was out of bounds.",
+                            parameter_name,
+                            path_to_file,
+                            parameter_value,
+                        )
         else:
             raise OSError(
                 "Loading from file worked, but I do not know how to handle the loaded content of type "
@@ -846,6 +864,9 @@ class Calculator(ast.NodeVisitor):
         return self._BinaryOP_MAP[type(node.op)](left, right)
 
     def visit_Num(self, node):
+        return node.n
+
+    def visit_Constant(self, node):
         return node.n
 
     def visit_Expr(self, node):

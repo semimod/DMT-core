@@ -4,7 +4,53 @@ All changes of DMT starting from version 1.3.0 will be documented in this file. 
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] -
+## [Unreleased] - 
+
+### Added
+
+- Added local and full docker container for DMT-core. It is build in 3 steps
+    - Builder: Builds ngspice, adms, trilinos and xyce
+    - Base: copys from builder, texlive and installs only necessary runtime and python environment
+    - full or Version_XX: Includes the latest or respective DMT install
+- dmt example bash script which uses the docker container to run a python/dmt script.
+- Generating CycloneDX SBOM from the container
+- Added a RuntimeWarning when loading a parameter for a MCard which is out of bounds.
+
+### Changed
+
+- Correct Bibtex to cite for the published paper.
+- format and test stages of the CI pipeline are done for reg-ex "main" (so incl. "pre-main"), the following only for "main"
+- `SpecifierStr.sub_specifiers` are now `frozenset` instead of a list. This fixes the order issue and at the same time improves readability when testing.
+- `SpecifierStr.__contains__` now properly testing containement without the shortcut using string casts.
+
+### Fixed
+
+- CI Release name
+
+## Deprecated
+
+- DMT.core.naming.set_col_name deprecated as SpecifierStr creation is much better documented.
+
+## [1.6.2] - 2022.06.14
+
+### Fixed
+
+- double entry in the paper bib file.
+
+## [1.6.1] - 2022.06.14
+
+### Fixed
+
+- gitlab CI buildchain
+
+## [1.6.0] - 2022.06.07
+
+### Added
+
+- Issue and pull request templates and better descriptions
+- Added more installation help in the documentation
+- ngspice now allows SGP BJTs
+- use_tex parameter for Plot.plot_py() to turn off LaTeX use
 
 ### Changed
 
@@ -16,6 +62,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - "bias_val" variable in DutHdev.get_bias_info was unset
 - Some possible runtime errors fixed thanks to pylance linting.
+- Hdevpy linting errors
+- pathlib.Path is always resolved before calling parent. Fixes #5
+- pandas setting with copy
+- plot siunitx
+## Deprecated
+
+- The user DMT configuration file will be moved to `$XDG_CONFIG_HOME/DMT/DMT_config.yaml` for linux and MacOS, with defaulting to `~/.config/DMT/DMT_config.yaml`. For Windows, the new default will be `%LOCALAPPDATA%\DMT\DMT_config.yaml`
 
 ## [1.5.0-rc.3] - 2022.04.15
 

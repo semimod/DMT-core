@@ -2,12 +2,14 @@ import logging
 from pathlib import Path
 from DMT.core import DutMeas, DutType, DocuDutLib, DutLib, specifiers, sub_specifiers
 
+folder_path = Path(__file__).resolve().parent
+test_path = folder_path.parent
 # -->Start main function
 # --->Setup for log
 logging.basicConfig(
     level=logging.DEBUG,
     format="%(levelname)s - %(message)s",
-    filename=Path(__file__).resolve().parent.parent.parent / "logs" / "test_dut_lib.log",
+    filename=folder_path.parent.parent / "logs" / "test_dut_lib.log",
     filemode="w",
 )
 
@@ -25,7 +27,7 @@ def create_lib():
             return None
         else:
             dut_transistor = DutMeas(
-                database_dir=Path("test") / "tmp",
+                database_dir=test_path / "tmp",
                 dut_type=DutType.npn,
                 force=True,
                 wafer=96,
@@ -41,14 +43,14 @@ def create_lib():
 
     # --->Arrange DMT class to dmt
     lib = DutLib(
-        save_dir=Path("test") / "tmp",
+        save_dir=test_path / "tmp",
         force=True,
         AC_filter_names=[("freq_vbc", "ac")],
         DC_filter_names=[("fgummel", "dc")],
     )
     # --->Add source measurement information in dmt and to duts
     lib.import_directory(
-        import_dir=Path(__file__).parent / "test_data",
+        import_dir=folder_path / "test_data",
         dut_filter=filter_dut,
         dut_level=1,
         force=True,
@@ -57,7 +59,7 @@ def create_lib():
 
     # --->Add the open and short dummies to the lib
     dut_short = DutMeas(
-        database_dir=Path("test") / "tmp",
+        database_dir=test_path / "tmp",
         name="dut_short_npn",
         dut_type=DutType.deem_short_bjt,
         reference_node="E",
@@ -67,10 +69,10 @@ def create_lib():
         width=float(0.25e-6),
         length=float(0.25e-6),
     )
-    dut_short.add_data(Path(__file__).parent / "test_data" / "dummy_short_freq.mdm", key="ac")
-    dut_short.add_data(Path(__file__).parent / "test_data" / "short_dc.mdm", key="dc")
+    dut_short.add_data(folder_path / "test_data" / "dummy_short_freq.mdm", key="ac")
+    dut_short.add_data(folder_path / "test_data" / "short_dc.mdm", key="dc")
     dut_open = DutMeas(
-        database_dir=Path("test") / "tmp",
+        database_dir=test_path / "tmp",
         name="dut_open_npn",
         dut_type=DutType.deem_open_bjt,
         reference_node="E",
@@ -80,7 +82,7 @@ def create_lib():
         width=float(0.25e-6),
         length=float(0.25e-6),
     )
-    dut_open.add_data(Path(__file__).parent / "test_data" / "dummy_open_freq.mdm", key="ac")
+    dut_open.add_data(folder_path / "test_data" / "dummy_open_freq.mdm", key="ac")
     lib.add_duts([dut_short, dut_open])
 
     # --->Clean the names of all dataframes, e.g. VB=>V_B
@@ -112,7 +114,7 @@ def test_docu():
     docu = DocuDutLib(lib_test)
 
     docu.generate_docu(
-        Path(__file__).resolve().parent.parent / "tmp" / "docu_dut_lib",
+        folder_path.parent / "tmp" / "docu_dut_lib",
         plot_specs=[{"type": "gummel_vbc", "key": "fgummel"}],
         show=False,  # not possible in CI/CD
         save_tikz_settings={

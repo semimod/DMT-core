@@ -41,7 +41,7 @@ save_elpa(fname, ELPA, cols, firstline)
 # DMT_core
 # Copyright (C) from 2022  SemiMod
 # Copyright (C) until 2021  Markus Müller, Mario Krattenmacher and Pascal Kuthe
-# <https://gitlab.com/dmt-development/dmt-device>
+# <https://gitlab.com/dmt-development/dmt-core>
 #
 # This file is part of DMT_core.
 #
@@ -183,7 +183,6 @@ def read_mdm(filename):
     """
     block_data = []
     index_data = 0
-    iccap_Vars = {}
 
     # open mdm for reading
     with open(filename, "r") as mdmfile:

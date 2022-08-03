@@ -1,7 +1,7 @@
 # DMT_core
 # Copyright (C) from 2022  SemiMod
 # Copyright (C) until 2021  Markus Müller, Mario Krattenmacher and Pascal Kuthe
-# <https://gitlab.com/dmt-development/dmt-device>
+# <https://gitlab.com/dmt-development/dmt-core>
 #
 # This file is part of DMT_core.
 #
@@ -178,9 +178,9 @@ class DutView(object):
             self._database_dir = DATA_CONFIG["directories"]["database"]
         else:
             if isinstance(database_dir, Path):
-                self._database_dir = database_dir.expanduser()
+                self._database_dir = database_dir.expanduser().resolve()
             else:
-                self._database_dir = Path(database_dir).expanduser()
+                self._database_dir = Path(database_dir).expanduser().resolve()
 
         self.dut_type = dut_type
 
@@ -612,10 +612,11 @@ class DutView(object):
     def get_data(self, key="iv", sweep=None):
         """Return data stored in the DutView's data.
 
-        | One needs to specify either:
-        | - key      : The data stored under the path key in the dut's database is returned.
-        | - sweep    : Get the data from this sweep. If none, key must be a valid key for the database.
-        | - sweep+key: Return the data stored as self.get_sweep_key(sweep)+'/'+key from the dut's database.
+        One needs to specify either:
+
+        - key      : The data stored under the path key in the dut's database is returned.
+        - sweep    : Get the data from this sweep. If none, key must be a valid key for the database.
+        - sweep+key: Return the data stored as self.get_sweep_key(sweep)+'/'+key from the dut's database.
 
         Parameters
         ----------

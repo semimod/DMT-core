@@ -1,13 +1,14 @@
+from pathlib import Path
 from DMT.hl2 import McHicum, VA_FILES
 from DMT.ADS import DutAds
 from DMT.ngspice import DutNgspice
 from DMT.core import Sweep, specifiers, SimCon, DutType, sub_specifiers, Plot
-import os
+
+folder_path = Path(__file__).resolve().parent
+test_path = folder_path.parent
 
 if __name__ == "__main__":
-    mc = McHicum(
-        load_model_from_path=os.path.join("test", "test_interface_ngspice", "dietmar_full_sh.lib"),
-    )
+    mc = McHicum(load_model_from_path=folder_path / "dietmar_full_sh.lib")
     mc.va_file = VA_FILES["L2V2.4.0_internal"]
     mc.set_values(
         {

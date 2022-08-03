@@ -1,6 +1,14 @@
 import pytest
+import pandas as pd
 from DMT.core import Sweep, specifiers
-from DMT.core.sweep import SweepDef
+from DMT.core.sweep_def import (
+    SweepDef,
+    SweepDefConst,
+    SweepDefLinear,
+    SweepDefLog,
+    SweepDefSync,
+    SweepDefList,
+)
 
 
 def test_dc_sweep():
@@ -72,6 +80,56 @@ def test_sync_sweep():
     # print(sweep_hash)
 
     assert sweep_hash == "4829b7d95a4f0347ea966c2b795655e3"  # always the same...
+
+    sp_temp = specifiers.TEMPERATURE
+    sp_freq = specifiers.FREQUENCY
+    sp_ft = specifiers.TRANSIT_FREQUENCY
+    sp_vb = specifiers.VOLTAGE + "B"
+    sp_vbc = specifiers.VOLTAGE + ["B", "C"]
+    sp_vc = specifiers.VOLTAGE + "C"
+    sp_ve = specifiers.VOLTAGE + "E"
+    sp_ic = specifiers.CURRENT + "C"
+    sp_ib = specifiers.CURRENT + "B"
+
+    list_vbc = [0.5, 0.0, -0.5]
+    sws_gummel = []
+    df_gummel_sep = []
+    for vbc in list_vbc:
+        sws_gummel.append(
+            Sweep(
+                f"gummel_vbc_{vbc:.1f}",
+                sweepdef=[
+                    SweepDefConst(sp_ve, [0], sweep_order=0),
+                    SweepDefLinear(sp_vb, [0.8, 1.0, 41], sweep_order=1),
+                    SweepDefSync(sp_vc, sp_vb, vbc, sweep_order=1),
+                    SweepDefLog(sp_freq, [9, 10, 5], sweep_order=2),
+                ],
+                outputdef=[],
+                othervar={sp_temp: 300},
+            )
+        )
+        df_gummel_sep.append(sws_gummel[-1].create_df())
+
+    df_gummel_sep = pd.concat(df_gummel_sep)
+
+    sw_gummel = Sweep(
+        "gummel",
+        sweepdef=[
+            SweepDefConst(sp_ve, 0, sweep_order=0),
+            SweepDefList(sp_vbc, list_vbc, sweep_order=2),
+            SweepDefLinear(sp_vb, [0.8, 1.0, 41], sweep_order=2),
+            SweepDefSync(sp_vc, sp_vb, sp_vbc, sweep_order=2),
+            SweepDefLog(sp_freq, [9, 10, 5], sweep_order=3),
+        ],
+        outputdef=[],
+        othervar={sp_temp: 300},
+    )
+    df_gummel = sw_gummel.create_df()
+    df_gummel.drop(columns=sp_vbc, inplace=True)
+
+    # compare the dataframes -> should be equal
+    for row_gummel, row_gummel_sep in zip(df_gummel.iterrows(), df_gummel_sep.iterrows()):
+        assert all(row_gummel[1] == row_gummel_sep[1])
 
 
 def test_ac_sweep():
@@ -270,8 +328,8 @@ def test_sweep_temp():
 
 if __name__ == "__main__":
     # test_dc_sweep()
-    # test_sync_sweep()
+    test_sync_sweep()
     # test_ac_sweep()
     # test_sweepdef_errors()
     # test_sweep_swd()
-    test_sweep_temp()
+    # test_sweep_temp()

@@ -1,4 +1,4 @@
-Introduction
+Welcome
 ===============================
 
 DeviceModelingToolkit (DMT) is a Python package targeted at helping modeling engineers extract model parameters, 
@@ -22,32 +22,55 @@ DMT is applied in several industry research projects and has matured such that i
 people that know how to work with large software projects. It is not a GUI tool, but a framework that 
 requires you to look at examples, test-cases and software documentation in order to build 
 your own scripts. 
-Achieving better usability for engineers that do not have the time or skills to dive into such a project is not one of our current goals.
+Achieving better usability for engineers that do not have the time or skills to dive into such a project is not one of our current main goals. DMT is a very high level toolkit and has many optional dependencies. One has to invest a serious amount of time to the steep learning curve of a python, wanted interface and finally output (like plotting or writing reports) at the same time. This investment will pay of in the long run, as we can tell from experience.
+
+If you make this investment, the potential gains are
+
+- simpler transfer between different interfaces for example different circuit simulators,
+- direct access to all kind of data using the same syntax,
+- faster exchange of scripts and hence workflows inside or outside work groups and finally
+- publications with sharable scripts as open data attachment.
+
 
 If you have used our framework for research purposes, please cite us with:
 
-TODO
-
 .. code:: tex
-
-    @misc{DMT,
-    author = {M. Krattenmacher, M. Mueller and M. Schroeter},
-    title = {DMT - {Device-Modeling-Toolkit}},
-    howpublished = {https://www.iee.et.tu-dresden.de/iee/eb/eb_home.html}
+    @ARTICLE{DMT2022,
+        title     = "{DMT-core: A Python Toolkit for Semiconductor Device Engineers}",
+        author    = {Mario Krattenmacher and Markus M{\"u}ller and Pascal Kuthe and Michael Schr{\"o}ter},
+        journal   = {Journal of Open Source Software}
+        publisher = {The Open Journal},
+        volume    =  {7},
+        number    =  {75},
+        pages     = {4298},
+        month     =  {jul},
+        year      =  {2022},
+        doi       = {10.21105/joss.04298},
+        url       = {https://doi.org/10.21105/joss.04298},
     }
 
-Currently DMT is developed at `SemiMod <https://semimod.de/>`, by:
 
-* Dipl.-Ing. M.Krattenmacher
-* Dipl.-Ing. M.Müller
+Currently DMT is developed at `SemiMod <https://semimod.de/>`__, by:
+
+* Dipl.-Ing. Mario Krattenmacher
+* Dipl.-Ing. Markus Müller
 * Pascal Kuthe
 
 Open-Source
 --------------
 
-The core package of DMT is available for everyone in a `gitlab.com repository <https://gitlab.com/dmt-development/dmt-core>` under GPLv3. If you find bugs, want to suggest enhancements or even join the developement team, the repository is the best point to start.
+The core package of DMT is available for everyone in a `gitlab.com repository <https://gitlab.com/dmt-development/dmt-core>`__ under GPLv3. If you find bugs, want to suggest enhancements or even join the development team, the repository is the best point to start.
 
 If are interested in other modules, need installation or usage support, or you want to use DMT in your own project contact: info@semimod.de
+
+Questions, bugs and feature requests
+------------------------------------
+
+If you have any questions or issues regarding DMT, we kindly ask you to contact us. Either mail us directly or open an issue `here <https://gitlab.com/dmt-development/dmt-core/-/issues>`__. There we have prepared `several templates <https://docs.gitlab.com/ee/user/project/description_templates.html#use-the-templates>`__ for the description:
+
+* `Questions <https://gitlab.com/dmt-development/dmt-core/-/issues/new?issuable_template=question>`__
+* `Bug reports <https://gitlab.com/dmt-development/dmt-core/-/issues/new?issuable_template=bug_report>`__
+* `Feature requests <https://gitlab.com/dmt-development/dmt-core/-/issues/new?issuable_template=feature_request>`__
 
 
 Overview of Documentation

@@ -1,0 +1,23 @@
+# DMT example docker config
+user_name:      USER # user name. Used for autodoc
+user_email:     mail #
+progress_minimal: no # if no: Show Simulation Information Info for each simulation, if yes: show only total Progress (good when starting hundreds of simulations)
+directories:
+    simulation: .simulation_results/ # All simulations are saved here.
+    database:   .databases/ # All data bases are stored here.
+    autodoc:    null # Path to an autodoc template, if null, the DMT provided template is used.
+    libautodoc: null # Path to an libautodoc template, if null, the DMT provided template is used.
+    x_doc_dir:  null # Path to the documentation. If null the extraction directory is used. The create_xdoc file dialog will start here by default.
+build_doc:      no # Only generates LaTeX files for the autodoc and do not build them. If True, the given LaTeX compiler and standard compilers are called.
+commands:
+    Hdev:       hdev # Command to execute the TCAD simulator Hdev.
+    NGSPICE:    ngspice # Command to execute the circuit simulator ngspice.
+    XYCE:       Xyce # Command to execute the circuit simulator Xyce.
+    TEX:        pdflatex # Tex Compiler of your system
+    TEXARGS:    #arguments for Tex Compiler
+        - --shell-escape
+        - --interaction=nonstopmode
+backend_remote: no # with yes, the simulations are run on the specified server, per default.
+useHDF5Store:   yes # if yes saves data as HDF5 Databases, if no, pickle is used.
+custom_specifiers : [] # are added to the DMT specifiers and then can be identified by get_specifier_from_string()
+custom_sub_specifiers : []  # are added to the DMT specifiers and then can be identified by get_sub_specifiers()

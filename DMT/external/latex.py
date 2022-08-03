@@ -3,7 +3,7 @@
 # DMT_core
 # Copyright (C) from 2022  SemiMod
 # Copyright (C) until 2021  Markus Müller, Mario Krattenmacher and Pascal Kuthe
-# <https://gitlab.com/dmt-development/dmt-device>
+# <https://gitlab.com/dmt-development/dmt-core>
 #
 # This file is part of DMT_core.
 #
@@ -55,54 +55,45 @@ def build_tex(full_path_to_file, additional_compiler=None, wait=False, extension
     else:
         file_name = [file_name + ext]
 
+    compilers = (
+        ("latexmk", ["--interaction=nonstopmode", "--shell-escape", "--pdf"]),
+        ("lualatex", ["--interaction=nonstopmode", "--shell-escape"]),
+        ("pdflatex", ["--interaction=nonstopmode", "--shell-escape"]),
+    )
+    if additional_compiler is not None and additional_compiler[0] is not None:
+        compilers = (additional_compiler,) + compilers
+
+    # turn of testing of all compilers. Just use the first one
+    compiler = compilers[0]
+    command = [compiler[0]] + compiler[1] + file_name
+
     with cd(directory):
-        compilers = (
-            ("latexmk", ["--interaction=nonstopmode", "--shell-escape", "--pdf"]),
-            ("lualatex", ["--interaction=nonstopmode", "--shell-escape"]),
-            ("pdflatex", ["--interaction=nonstopmode", "--shell-escape"]),
-        )
-        if additional_compiler is not None and additional_compiler[0] is not None:
-            compilers = (additional_compiler,) + compilers
-
-        # os_error = None
-
-        for compiler, arguments in compilers:
-            command = [compiler] + arguments + file_name
-
-            # try:
+        try:
             if wait:
                 # output = subprocess.call(command, stderr=subprocess.STDOUT)
                 subprocess.call(command, stderr=subprocess.STDOUT)
             else:
                 # output = subprocess.Popen(command, stderr=subprocess.STDOUT)
                 subprocess.Popen(command, stderr=subprocess.STDOUT)
-            # except (OSError, IOError) as e:
-            #     # Use FileNotFoundError when python 2 is dropped
-            #     os_error = e
+        except FileNotFoundError as err:
+            print(err)
 
-            #     if os_error.errno == errno.ENOENT:
-            #         # If compiler does not exist, try next in the list
-            #         continue
-            #     raise
-            # except subprocess.CalledProcessError as e:
-            #     # For all other errors print the output and raise the error
-            #     print(e.output.decode())
-            #     continue
-            #     # raise
-            # else:
-            #     print(output.decode())
-
-            # Compilation has finished, so no further compilers have to be
-            # tried
-            return
-
-        # Notify user that none of the compilers worked.
-        raise (
-            IOError(
-                "No LaTex compiler was found\n"
-                + "Make sure you have latexmk, lualatex or pdfLaTex installed and in your PATH environment."
+            # Notify user that the compiler is not found.
+            print(
+                "The used latex compiler was not found\n"
+                + "The latex command was "
+                + " ".join(command)
+                + "\n"
+                + "Make sure that a LaTeX distribution (like Tex Live) is installed and in your PATH."
             )
-        )
+        except subprocess.CalledProcessError as err:
+            # For all other errors print the output and raise the error
+            print(err)
+            raise
+        else:
+            print("LaTeX compile successfull")
+
+        # Compilation has finished
 
 
 def build_png(full_path_to_file, wait=True):

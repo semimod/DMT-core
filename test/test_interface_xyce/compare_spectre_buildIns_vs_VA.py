@@ -7,21 +7,22 @@ verilogae install --module-name sgp_v1p0 DMT_other/DMT/hl2/sgp_v1p0_vae.va
 
 """
 import types
-import os.path
 import logging
-import sgp_v1p0
 
+from pathlib import Path
 from DMT.core import DutType, Sweep, specifiers, SimCon, Plot, MCard
 from DMT.core.circuit import SGP_BJT
 from DMT.hl2 import VA_FILES, sgp_default_circuits
 from DMT.xyce import DutXyce
 from DMT.spectre import DutSpectre
 
+folder_path = Path(__file__).resolve().parent
+test_path = folder_path.parent
 
 logging.basicConfig(
     level=logging.DEBUG,
     format="%(levelname)s - %(message)s",
-    filename=os.path.join("logs", "test_xyce.log"),
+    filename=folder_path.parent.parent / "logs" / "test_xyce_vs_spectre.log",
     filemode="w",
 )
 
@@ -43,7 +44,7 @@ def get_spg_mc():
     modelcard.get_circuit = types.MethodType(
         get_circuit, modelcard
     )  # we need to bind here, this is a little tricky -.-
-    modelcard.load_model_parameters("test/test_interface_xyce/bjt.lib")
+    modelcard.load_model_parameters(folder_path / "bjt.lib")
 
     # modelcard.set_values(
     #     {"is": 1e-16,}

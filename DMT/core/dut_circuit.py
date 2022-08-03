@@ -15,7 +15,7 @@ Author: Mario Krattenmacher | Mario.Krattenmacher@semimod.de
 # DMT_core
 # Copyright (C) from 2022  SemiMod
 # Copyright (C) until 2021  Markus Müller, Mario Krattenmacher and Pascal Kuthe
-# <https://gitlab.com/dmt-development/dmt-device>
+# <https://gitlab.com/dmt-development/dmt-core>
 #
 # This file is part of DMT_core.
 #
@@ -85,9 +85,9 @@ class DutCircuit(DutView):
             self.simulator_options = OrderedDict(sorted(simulator_options.items()))
 
         if get_circuit_arguments is None:
-            self.get_circuit_arguments = {}
+            self.get_circuit_arguments = OrderedDict()
         else:
-            self.get_circuit_arguments = get_circuit_arguments
+            self.get_circuit_arguments = OrderedDict(sorted(get_circuit_arguments.items()))
 
         # save for later use
         self._inp_circuit = None

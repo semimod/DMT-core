@@ -13,7 +13,7 @@ Author: Markus Müller | markus.mueller@semimod.de
 # DMT_core
 # Copyright (C) from 2022  SemiMod
 # Copyright (C) until 2021  Markus Müller, Mario Krattenmacher and Pascal Kuthe
-# <https://gitlab.com/dmt-development/dmt-device>
+# <https://gitlab.com/dmt-development/dmt-core>
 #
 # This file is part of DMT_core.
 #
@@ -687,7 +687,7 @@ class SimCon(object, metaclass=Singleton):
         )
         logging.debug("The simulation folder of this simulation is %s", sim_folder)
         log_file = open(sim_folder / "sim.log", "w")
-        log_file.write("The simulation command is\n" + dut.get_start_sim_command())
+        log_file.write(f"The simulation command is\n{dut.get_start_sim_command()}\n\n")
         return subprocess.Popen(
             dut.get_start_sim_command().split(),
             shell=False,

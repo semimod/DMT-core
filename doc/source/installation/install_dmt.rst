@@ -5,11 +5,81 @@
 Installation
 =============
 
+To use DMT there are two main ways: Docker or install to virtual environment. In this short intro, we will touch both. The two ways have their own advantages and drawbacks:
+
++------------------------------------------+--------------------------+
+| Docker                                   | Virtual environment      |
++==========================================+==========================+
+| Easy install                             | Complex install          |
++------------------------------------------+--------------------------+
+| Fixed interfaces only                    | Own interfaces           |
++------------------------------------------+--------------------------+
+| Exchange of data between host and guest  | No data exchange needed  |
++------------------------------------------+--------------------------+
+| No debugging                             | Direct debugging         |
++------------------------------------------+--------------------------+
+
+
+
+Of course, for each drawback there is a workaround, but the basic difference stays.
+
+So the recommendation is, if you want to test DMT and see if it suits you, choose docker. But if you want to change the code of DMT or develop more interfaces/modules, then we recommend installing the code in editor mode from your own fork. Somewhere in the middle between these, is the option to install the official pypi release.
+
+Use the docker container
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+This is quite straight forward:
+
+.. code:: bash
+
+    docker login registry.gitlab.com
+
+Then the example bash script in `docker/dmt` can be used to execute Python scripts which call DMT. 
+
+Installing container dependencies
+---------------------------------
+
+If you want to install more programs or Python packages into this container, we recommend creating your own container. The Dockerfile would start like this:
+
+.. code:: Dockerfile
+
+    FROM registry.gitlab.com/dmt-development/dmt-core:full
+
+    ...
+
+Build and tag this file with your own name. Then change the `docker/dmt` bash script to use the new container accordingly.
+
+Exchange data
+-------------
+
+Per default, the bash script mounts the local folder into the container under `/pwd` and hence all data inside the current working path is available there. If you only use local paths (also for the simulation data and reports), the borders between host and guest are transparent. Be aware, that inside the container the user `dmt_user` (id: 1000, group: 1000) is used. So if you have a different id, change the script accordingly. It may look like this (untested):
+
+.. code:: bash
+
+    chmod a+rw -r . # either here
+    docker run --rm -ti \
+        --env="DISPLAY" \
+        --user 1000:1000 \
+        --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
+        --volume "${PWD}":/pwd \
+        --workdir=/pwd \
+        registry.gitlab.com/dmt-development/dmt-core:full "python3 $@; chmod a+rw -r ." # or here
+
+Either before or after the run, everyone gets read/write access to the data inside the folder. Depending on your use case, you may restrict the exchange to one direction or special folders. 
+
+If you tested and verified/improved the script, please report this to us!
+
+
+Install the python package
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 In this short document, we will explain how to install DMT and many of its dependencies, including how to connect them to DMT.
 
-This tutorial is written for Unix-users. Most of the command-line commands given herein have very similar windows equivalents and we hope that this tutorial is helpful for both Windows aswell as Unix users. DMT can be run both on Windows and Unix (probably also Mac, but we have not tried that, yet).
+This tutorial is written for Unix-users. Most of the command-line commands given herein have very similar windows equivalents, and we hope that this tutorial is helpful for both Windows and Unix users. DMT can be run both on Windows and Unix (probably also Mac, but we have not tried that, yet). DMT is implemented and tested using Ubuntu. So if you are free to choose your OS and are looking for an easy start, we can recommend using this.
 
-Before you get started with DMT, please note that DMT is a high-level project (in terms of programming level abstraction), meaning that it has many dependencies. Additionally, DMT is still in development and if you use DMT be careful when updating to new versions. We try to keep everything backwards compatible as much as possible and also breaking changes will be denoted by a new master version, but this major version increase may happen earlier than you like.
+Before you get started with DMT, please note that DMT is a high-level project (in terms of programming level abstraction), meaning that it has many dependencies. At the end of this page, you may find some installation help for the dependency you want to use. 
+
+Additionally, DMT is still in development and if you use DMT be careful when updating to new versions. We try to keep everything backwards compatible as much as possible and also breaking changes will be denoted by a new master version, but this major version increase may happen earlier than you like.
 
 So before we get started, please:
 
@@ -48,7 +118,7 @@ To install DMT-core just run in:
 
     python3.10 -m pip install DMT-core[full]
 
-If a never version is needed, the release candidates can be installed from gitlab directly:
+If a newer version is needed, the release candidates can be installed from gitlab directly:
 
 .. code:: bash
 
@@ -91,27 +161,29 @@ These are not installed when installing DMT.
 Configuration
 --------------
 
-DMT is a modular, high-level project, that relies heavily on other python packages.
-Furthermore some DMT modules interface to other (possibly proprietary) software such as ADS.
+DMT is a modular, high-level project, that relies heavily on other python packages. Furthermore some DMT modules interface to other (possibly proprietary) software such as ADS.
 If you want to use such interfaces, you need:
 
 * the corresponding DMT module
 * the other software
 
-Using other software may require DMT to be configured for your user and also for your current
-working directory.
-The default config file is placed inside the DMT python package (``DMT/config/DMT_default_config.py``) and can be
-copied manually to your ``~/.DMT`` (for Linux) or ``C:\Users\<CurrentUserName>\.DMT`` for windows when installing DMT. In this file you also can check for most of the possible configuration options DMT offers.
-Each DMT module should contain documentation that explains the relevant configuration options.
+Using other software may require DMT to be configured for your user and also for your current working directory. DMT has 3 different configuration file locations: 
 
-In example to use ngspice on a Unix system one needs to type
+* the local config the working directory ``$PWD/DMT_config.yaml``,
+* the user config in 
+  * ``%LOCALAPPDATA%\DMT\DMT_config.yaml`` on Windows or 
+  * ``$XDG_CONFIG_HOME/DMT/DMT_config.yaml`` on Linux and MacOS with ``$XDG_CONFIG_HOME`` defaulting to ``~/.config`` and
+* the default config in the DMT installation directory (for example: ``.../venv/lib/python3.10/site-packages/DMT/config/DMT_config.py``)
+
+In this last file you can check for the possible configuration options DMT offers and also copy the file altogether if needed. Each DMT module should additionally contain documentation that explains the relevant configuration options.
+
+For example to use ngspice on a Unix system the command is
 
 .. code:: bash
 
     ngspice
 
-into the console. This command may be different and needs to be known to DMT.
-If you want to change this command for your user change in ``~/.DMT/DMT_config.yaml``
+If this is different on your machine (for example because the `ngspice` callable is not in your path), you should to change this command for your user or workspace config 
 
 .. code:: yaml
 
@@ -119,19 +191,7 @@ If you want to change this command for your user change in ``~/.DMT/DMT_config.y
         NGSPICE:    ngspice # Command to execute the circuit simulator ngspice.
 
 
-This changes the default bash command to start the software.
-
-Additionally you can add a DMT configuration file ``DMT_config.yaml`` into your working directory.
-The configuration in the working directory will overwrite the user configuration on the home directory and the default configuration.
-This can be usefully if you have different projects on the same user, which need different database directories or custom_specifiers.
-
-DMT always tries to load:
-
-* the default config in the DMT installation directory (for example: ``venv/lib/python3.10/site-packages/DMT/config/DMT_default_config.py``)
-* the user config in ``~/.DMT/DMT_config.yaml``
-* the local config the working directory ``$PWD/DMT_config.yaml``
-
-The default config is overwritten by the existing keys from the user config, which is in turn overwritten by the existing keys from the local config. So if a key is not given in the local config, the user config value is used, if it is given there, if not the default value is employed.
+The configuration in the working directory will overwrite the user configuration on the home directory and the default configuration. This can be usefully if you have different projects on the same user, which need different database directories or custom_specifiers.
 
 More installation details
 ----------------------------

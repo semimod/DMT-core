@@ -19,10 +19,11 @@ from DMT.core.circuit import (
 from DMT.xyce import DutXyce
 
 
+folder_path = Path(__file__).resolve().parent
 logging.basicConfig(
     level=logging.DEBUG,
     format="%(levelname)s - %(message)s",
-    filename=Path(__file__).resolve().parent.parent.parent / "logs" / "test_xyce_sgp.log",
+    filename=folder_path.parent.parent / "logs" / "test_xyce_sgp.log",
     filemode="w",
 )
 
@@ -45,6 +46,10 @@ def get_circuit(self, use_build_in=False, **kwargs):
     else:
         module_name = self.default_module_name  # should be "bjtn" because vae
 
+    node_emitter = next(f"n_{node.upper()}" for node in self.nodes_list if "E" in node.upper())
+    node_base = next(f"n_{node.upper()}" for node in self.nodes_list if "B" in node.upper())
+    node_collector = next(f"n_{node.upper()}" for node in self.nodes_list if "C" in node.upper())
+
     circuit_elements = []
     # model instance
     circuit_elements.append(
@@ -65,7 +70,7 @@ def get_circuit(self, use_build_in=False, **kwargs):
         rbm = 1e-3
 
     circuit_elements.append(
-        CircuitElement(RESISTANCE, "Rbm", ["n_B_FORCED", "n_B"], parameters=[("R", str(rbm))])
+        CircuitElement(RESISTANCE, "Rbm", ["n_B_FORCED", node_base], parameters=[("R", str(rbm))])
     )
     # shorts for current measurement
     circuit_elements.append(
@@ -77,7 +82,7 @@ def get_circuit(self, use_build_in=False, **kwargs):
     )
     # capacitance since AC already deembeded Rbm
     circuit_elements.append(
-        CircuitElement(CAPACITANCE, "Cbm", ["n_B_FORCED", "n_B"], parameters=[("C", str(1))])
+        CircuitElement(CAPACITANCE, "Cbm", ["n_B_FORCED", node_base], parameters=[("C", str(1))])
     )
 
     # COLLECTOR NODE CONNECTION #############
@@ -95,11 +100,15 @@ def get_circuit(self, use_build_in=False, **kwargs):
         rcm = 1e-3
 
     circuit_elements.append(
-        CircuitElement(RESISTANCE, "Rcm", ["n_C_FORCED", "n_C"], parameters=[("R", str(rcm))])
+        CircuitElement(
+            RESISTANCE, "Rcm", ["n_C_FORCED", node_collector], parameters=[("R", str(rcm))]
+        )
     )
     # capacitance since AC already deembeded Rcm
     circuit_elements.append(
-        CircuitElement(CAPACITANCE, "Ccm", ["n_C_FORCED", "n_C"], parameters=[("C", str(1))])
+        CircuitElement(
+            CAPACITANCE, "Ccm", ["n_C_FORCED", node_collector], parameters=[("C", str(1))]
+        )
     )
     # EMITTER NODE CONNECTION #############
     circuit_elements.append(
@@ -116,11 +125,13 @@ def get_circuit(self, use_build_in=False, **kwargs):
         rem = 1e-3
 
     circuit_elements.append(
-        CircuitElement(RESISTANCE, "Rem", ["n_E_FORCED", "n_E"], parameters=[("R", str(rem))])
+        CircuitElement(
+            RESISTANCE, "Rem", ["n_E_FORCED", node_emitter], parameters=[("R", str(rem))]
+        )
     )
     # capacitance since AC already deembeded Rcm
     circuit_elements.append(
-        CircuitElement(CAPACITANCE, "Cem", ["n_E_FORCED", "n_E"], parameters=[("C", str(1))])
+        CircuitElement(CAPACITANCE, "Cem", ["n_E_FORCED", node_emitter], parameters=[("C", str(1))])
     )
     # add sources and thermal resistance
     circuit_elements.append(
@@ -141,11 +152,15 @@ def get_circuit(self, use_build_in=False, **kwargs):
 
     # metal resistance between contact emitter potential and substrate contact
     if len(self.nodes_list) > 3:
+        node_substrate = next(
+            f"n_{node.upper()}" for node in self.nodes_list if "S" in node.upper()
+        )
+
         circuit_elements.append(
             CircuitElement(
                 SHORT,
                 "I_S",
-                ["n_SX", "n_S"],
+                ["n_SX", node_substrate],
             )
         )
         try:
@@ -174,11 +189,11 @@ def get_dut_build_in():
         "QSGP1",
         SGP_BJT,
         1.0,
-        va_file=Path(__file__).resolve().parent / "sgp_v1p0.va",
+        va_file=folder_path / "sgp_v1p0.va",
     )
     modelcard.default_module_name = SGP_BJT
     modelcard.get_circuit = types.MethodType(get_circuit, modelcard)
-    modelcard.load_model_parameters(Path(__file__).resolve().parent / "bjt.lib")
+    modelcard.load_model_parameters(folder_path / "bjt.lib")
     return DutXyce(
         None,
         DutType.npn,
@@ -197,10 +212,10 @@ def get_dut_va():
         "QSGP2",
         SGP_BJT,
         1.0,
-        va_file=Path(__file__).resolve().parent / "sgp_v1p0.va",
+        va_file=folder_path / "sgp_v1p0.va",
     )
     modelcard.get_circuit = types.MethodType(get_circuit, modelcard)
-    modelcard.load_model_parameters(Path(__file__).resolve().parent / "bjt.lib")
+    modelcard.load_model_parameters(folder_path / "bjt.lib")
     return DutXyce(
         None,
         DutType.npn,

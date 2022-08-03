@@ -1,27 +1,28 @@
 """ test ngspice input file generation.
 """
+
+import numpy as np
 import logging
-import os.path
+from pathlib import Path
 from DMT.core import SimCon, Plot, DutType, Sweep, specifiers
 from DMT.ngspice import DutNgspice
 from DMT.ADS import DutAds
 from DMT.hl2 import McHicum, Hl2Model, VA_FILES
 
-import numpy as np
+folder_path = Path(__file__).resolve().parent
+test_path = folder_path.parent
 
 logging.basicConfig(
     level=logging.DEBUG,
     format="%(levelname)s - %(message)s",
-    filename=os.path.join("logs", "test_ADS.log"),
+    filename=folder_path.parent.parent / "logs" / "test_ADS.log",
     filemode="w",
 )
 
 
 def compare_ngspice_ads():
 
-    mc = McHicum(
-        load_model_from_path=os.path.join("test", "test_interface_ngspice", "npn_full_sh.lib"),
-    )
+    mc = McHicum(load_model_from_path=folder_path / "npn_full_sh.lib")
 
     ###### Disable branches
     ## General settings

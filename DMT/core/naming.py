@@ -5,7 +5,7 @@ Internally all variables and column names which contain a quantity of a specifie
 # DMT_core
 # Copyright (C) from 2022  SemiMod
 # Copyright (C) until 2021  Markus Müller, Mario Krattenmacher and Pascal Kuthe
-# <https://gitlab.com/dmt-development/dmt-device>
+# <https://gitlab.com/dmt-development/dmt-core>
 #
 # This file is part of DMT_core.
 #
@@ -25,7 +25,8 @@ Internally all variables and column names which contain a quantity of a specifie
 from __future__ import annotations
 import copy
 import numpy as np
-from typing import List, Union
+import warnings
+from typing import List, Union, Set, FrozenSet
 from pint.formatting import siunitx_format_unit
 from more_itertools import unique_everseen
 from DMT.config import DATA_CONFIG
@@ -84,14 +85,20 @@ class SpecifierStr(str):
 
     specifier: str = ""
     nodes: List[str] = []
-    sub_specifiers: List[str] = []
+    sub_specifiers: FrozenSet[str] = []
 
     # pylint: disable=no-member
     def __new__(
         cls,
         specifier: Union[str, SpecifierStr],
         *nodes: str,
-        sub_specifiers: Union[List[Union[str, SpecifierStr]], str, SpecifierStr, None] = None,
+        sub_specifiers: Union[
+            FrozenSet[Union[str, SpecifierStr]],
+            Set[Union[str, SpecifierStr]],
+            str,
+            SpecifierStr,
+            None,
+        ] = None,
     ):
         if not nodes and sub_specifiers is None:
             try:
@@ -103,24 +110,21 @@ class SpecifierStr(str):
                 nodes = ()
                 sub_specifiers = None
 
-        # cast to list
+        # cast to set
         if sub_specifiers is None:
-            sub_specifiers = []
+            sub_specifiers = frozenset()
         elif isinstance(sub_specifiers, str):
-            sub_specifiers = [sub_specifiers]
+            sub_specifiers = frozenset([sub_specifiers])
 
-        for i, sub_specifier in enumerate(sub_specifiers):
-            if isinstance(sub_specifier, SpecifierStr):
-                sub_specifiers[i] = sub_specifier.sub_specifiers[0]
-
-        # check if any sub_specifiers are empty
-        while "" in sub_specifiers:
-            sub_specifiers.remove("")
-
-        sub_specifiers = [str(sub_specifier) for sub_specifier in sub_specifiers]  # string cast :/
-
-        # unique
-        sub_specifiers = list(unique_everseen(sub_specifiers))
+        tempset = set()
+        for sub_specifier in sub_specifiers:
+            if sub_specifier:
+                if isinstance(sub_specifier, SpecifierStr):
+                    for sub_spec in sub_specifier.sub_specifiers:
+                        tempset.add(sub_spec)
+                else:
+                    tempset.add(sub_specifier)
+        sub_specifiers = frozenset(str(sub_spec) for sub_spec in tempset)  # string cast :/
 
         # check if all are valid sub_specifiers
         # if any(sub_specifier not in SUB_SPECIFIERS_STR for sub_specifier in sub_specifiers):
@@ -137,7 +141,9 @@ class SpecifierStr(str):
             # make sure nodes is a list not a tuple
 
         if sub_specifiers:
-            sub_specifiers_str = "|" + "|".join(sub_specifiers)
+            sub_specifiers_str = "|" + "|".join(
+                sorted(sub_specifiers)
+            )  # sort the sub specifiers to ensure same string always!
         else:
             sub_specifiers_str = ""
 
@@ -168,7 +174,7 @@ class SpecifierStr(str):
         """
         unit = self.get_pint_unit()
 
-        if sub_specifiers.PHASE.sub_specifiers[0] in self.sub_specifiers:
+        if sub_specifiers.PHASE.sub_specifiers <= self.sub_specifiers:
             return r"\si{\degree}"
 
         elif self.specifier in UNIT_PREFIX_MIX:  # mixed unit
@@ -341,21 +347,15 @@ class SpecifierStr(str):
         """
         if isinstance(other, SpecifierStr):
             if self.specifier == other.specifier and self.nodes == other.nodes:
-                # order of subspecifiers does not matter Oo
-                if all(
-                    sub_spec in other.sub_specifiers for sub_spec in self.sub_specifiers
-                ) and all(
-                    sub_spec in self.sub_specifiers for sub_spec in other.sub_specifiers
-                ):  # check both directions...
-                    return True
+                # order of subspecifiers does not matter Oo -> can not since these are sets
+                return self.sub_specifiers == other.sub_specifiers
         elif isinstance(other, str):
             if str(self) == other:
                 return True
             else:
                 col_other = get_specifier_from_string(other, nodes=self.nodes)
                 if isinstance(col_other, SpecifierStr):  # here also the order does not matter -.-
-                    if self == col_other:
-                        return True
+                    return self == col_other
         elif other is not None:
             return NotImplemented
 
@@ -374,7 +374,32 @@ class SpecifierStr(str):
         bool
             str(other) in str(self)
         """
-        return str(other) in str(self)
+        if isinstance(other, SpecifierStr):
+            if other.specifier and not other.nodes and not other.sub_specifiers:
+                if self.specifier == other.specifier:
+                    return True
+            elif not other.specifier and other.nodes and not other.sub_specifiers:
+                if all(node in self.nodes for node in other.nodes):
+                    return True
+            elif not other.specifier and not other.nodes and other.sub_specifiers:
+                if other.sub_specifiers <= self.sub_specifiers:
+                    return True
+
+            return False
+
+        elif isinstance(other, str):
+            if str(self) == other:
+                return True
+            else:
+                col_other = get_specifier_from_string(other, nodes=self.nodes)
+                if isinstance(col_other, SpecifierStr):
+                    return col_other in self
+
+        elif other is not None:
+            return NotImplemented
+
+        # return str(other) in str(self)
+        return False
 
     def __hash__(self):
         return hash(str(self))
@@ -589,9 +614,17 @@ SUB_SPECIFIERS_STR = [
 def add(self: SpecifierStr, other: Union[SpecifierStr, str, List[Union[str, SpecifierStr]]]):
     """Method is defined later, since we need the SUB_SPECIFIERS_STR list here...thanks python"""
     if isinstance(other, SpecifierStr):
-        spec_new = self.specifier + other.specifier
+        if (self.specifier == other.specifier) or (not other.specifier):
+            spec_new = self.specifier
+        elif not self.specifier:
+            spec_new = other.specifier
+        else:
+            raise IOError(
+                f"DMT->Naming: Adding 2 different SpecifierStr, which specifier to take:\n{self.specifier} or {other.specifier} ?"
+            )
+
         nodes_new = self.nodes + other.nodes
-        sub_specifiers_new = self.sub_specifiers + other.sub_specifiers
+        sub_specifiers_new = self.sub_specifiers | other.sub_specifiers
         return SpecifierStr(spec_new, *nodes_new, sub_specifiers=sub_specifiers_new)
 
     elif isinstance(other, str):
@@ -603,17 +636,17 @@ def add(self: SpecifierStr, other: Union[SpecifierStr, str, List[Union[str, Spec
 
         if other in SUB_SPECIFIERS_STR:
             return SpecifierStr(
-                self.specifier, *self.nodes, sub_specifiers=self.sub_specifiers + [other]
+                self.specifier, *self.nodes, sub_specifiers=self.sub_specifiers | {other}
             )
         else:
             return SpecifierStr(
                 self.specifier, *self.nodes, other, sub_specifiers=self.sub_specifiers
             )  # @Mario we should discuss this
 
-    elif isinstance(other, list):
+    elif isinstance(other, (list, set, frozenset)):
         if self.nodes:
             return SpecifierStr(
-                self.specifier, *self.nodes, sub_specifiers=self.sub_specifiers + other  # type: ignore
+                self.specifier, *self.nodes, sub_specifiers=self.sub_specifiers | set(other)  # type: ignore
             )
         else:
             return SpecifierStr(self.specifier, *other, sub_specifiers=self.sub_specifiers)
@@ -627,7 +660,7 @@ SpecifierStr.__add__ = add
 
 def get_pint_unit(self) -> pint.Unit:
     """Return the DMT base unit of this specifier as a pint unit"""
-    if sub_specifiers.PHASE.sub_specifiers[0] in self.sub_specifiers:
+    if sub_specifiers.PHASE.sub_specifiers <= self.sub_specifiers:
         return unit_registry.degree
 
     unit_converter = {
@@ -773,13 +806,13 @@ def to_tex(self, subscript="", superscript=""):
         tex = tex + r"^{" + superscript + r"}"
 
     # add sub_specifiers that wrap the main specifier
-    if sub_specifiers.REAL.sub_specifiers[0] in self.sub_specifiers:
+    if sub_specifiers.REAL.sub_specifiers <= self.sub_specifiers:
         tex = r"\Re\{" + tex + r"\}"
-    elif sub_specifiers.IMAG.sub_specifiers[0] in self.sub_specifiers:
+    elif sub_specifiers.IMAG.sub_specifiers <= self.sub_specifiers:
         tex = r"\Im\{" + tex + r"\}"
-    elif sub_specifiers.MAG.sub_specifiers[0] in self.sub_specifiers:
+    elif sub_specifiers.MAG.sub_specifiers <= self.sub_specifiers:
         tex = r"|" + tex + r"|"
-    elif sub_specifiers.PHASE.sub_specifiers[0] in self.sub_specifiers:
+    elif sub_specifiers.PHASE.sub_specifiers <= self.sub_specifiers:
         tex = r"\angle\{" + tex + r"\}"
 
     # add specifiers that are appended to the string
@@ -816,6 +849,7 @@ def set_col_name(specifier, *nodes, sub_specifiers=None):
         If nodes are given: specifier + '_' + ''.join(nodes)
         Without nodes: specifier
     """
+    warnings.warn("Use SpecifierStr directly!", category=DeprecationWarning)
 
     return SpecifierStr(specifier, *nodes, sub_specifiers=sub_specifiers)
 
@@ -903,13 +937,13 @@ def get_sub_specifiers(string):
 
     Returns
     -------
-    sub_specifiers : [str]
+    sub_specifiers : {str}
         A list of the sub_specifiers in specifier in the correct order.
     """
-    relevant_subspecifiers = []
+    relevant_subspecifiers = set()
     for sub_specifier in SUB_SPECIFIERS_STR:
         if sub_specifier in string:
-            relevant_subspecifiers.append(sub_specifier)
+            relevant_subspecifiers.add(sub_specifier)
             string = string.replace(sub_specifier, "")  # delete the ones which are already found
 
     return relevant_subspecifiers

@@ -1,7 +1,7 @@
 """ test ngspice vs ADS using a real modelcard.
 """
 import logging
-import os.path
+from pathlib import Path
 from DMT.core import SimCon, Plot, DutType, Sweep, specifiers, McParameter
 from DMT.ngspice import DutNgspice
 from DMT.ADS import DutAds
@@ -9,16 +9,19 @@ from DMT.hl2 import McHicum, Hl2Model, VA_FILES
 
 import numpy as np
 
+folder_path = Path(__file__).resolve().parent
+test_path = folder_path.parent
+
 logging.basicConfig(
     level=logging.DEBUG,
     format="%(levelname)s - %(message)s",
-    filename=os.path.join("logs", "test_ADS.log"),
+    filename=folder_path.parent.parent / "logs" / "test_ADS_real.log",
     filemode="w",
 )
 
 
 def compare_ngspice_ads_real_mc():
-    mc = McHicum.load(os.path.join("test", "test_interface_ngspice", "real_mcard.mcard"))
+    mc = McHicum.load(folder_path / "real_mcard.mcard")
 
     ###### Disable branches
     ## General settings

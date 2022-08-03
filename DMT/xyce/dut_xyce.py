@@ -3,7 +3,7 @@
 # DMT_core
 # Copyright (C) from 2022  SemiMod
 # Copyright (C) until 2021  Markus Müller, Mario Krattenmacher and Pascal Kuthe
-# <https://gitlab.com/dmt-development/dmt-device>
+# <https://gitlab.com/dmt-development/dmt-core>
 #
 # This file is part of DMT_core.
 #
@@ -553,7 +553,18 @@ class DutXyce(DutCircuit):
         )  # TODO add outputdef ?!?
 
         # AC simulation
-        if swd_ac is not None:
+        if swd_ac is None:
+            str_netlist += "* AC simulation\n"
+            str_netlist += ".AC DATA=TAB_FREQUENCIES \n"
+            str_netlist += ".DATA TAB_FREQUENCIES \n"
+            str_netlist += "+ FREQ \n"
+            str_netlist += (
+                "+ " + " ".join(f"{val:.6g}" for val in [1e9]) + " \n"
+            )  # always to a 1GHz AC
+            str_netlist += ".ENDDATA \n"
+            str_netlist += "* AC output definition\n"
+            str_netlist += ".PRINT AC FORMAT=CSV FILE=AC.csv V(*) I(*) \n"
+        else:
             str_netlist += "* AC simulation\n"
             str_netlist += ".AC DATA=TAB_FREQUENCIES \n"
             str_netlist += ".DATA TAB_FREQUENCIES \n"
@@ -561,9 +572,7 @@ class DutXyce(DutCircuit):
             str_netlist += "+ " + " ".join(f"{val:.6g}" for val in swd_ac.values) + " \n"
             str_netlist += ".ENDDATA \n"
             str_netlist += "* AC output definition\n"
-            str_netlist += ".PRINT AC FORMAT=CSV FILE=AC.csv V(*) I(*) \n"  # TODO add outputdef ?!?
-        else:
-            raise NotImplementedError("Untested")
+            str_netlist += ".PRINT AC FORMAT=CSV FILE=AC.csv V(*) I(*) \n"
 
         # end simulation and log it
         str_netlist += "\n.END\n"
@@ -772,11 +781,12 @@ class DutXyce(DutCircuit):
             # join the real and imaginary to values
             for i_col, col in enumerate(df.columns):
                 try:
-                    if sub_specifiers.REAL.sub_specifiers[0] in col.sub_specifiers:
-                        col_complex = SpecifierStr(col.specifier) + col.nodes
-                        for sub_spec in col.sub_specifiers:
-                            if sub_spec != sub_specifiers.REAL.sub_specifiers[0]:
-                                col_complex += sub_spec
+                    if sub_specifiers.REAL in col:
+                        col_complex = SpecifierStr(
+                            col.specifier,
+                            *col.nodes,
+                            sub_specifiers=col.sub_specifiers - sub_specifiers.REAL.sub_specifiers,
+                        )
                         col_imag = col_complex + sub_specifiers.IMAG
                         df[col_complex] = df[col] + 1j * df[col_imag]
                         df.drop(columns=[col, col_imag], inplace=True)
@@ -841,11 +851,7 @@ class DutXyce(DutCircuit):
             cols_dc = [col for col in df_dc.columns if col not in [col_ac_switch]]
 
             # find the row pairs with same forced dc, temp and frequency
-            cols_filter = [
-                col
-                for col in cols_dc
-                if sub_specifiers.FORCED.sub_specifiers[0] in col.sub_specifiers
-            ]
+            cols_filter = [col for col in cols_dc if sub_specifiers.FORCED in col]
             cols_filter.append(specifiers.TEMPERATURE)
             cols_filter.append(specifiers.FREQUENCY)
 

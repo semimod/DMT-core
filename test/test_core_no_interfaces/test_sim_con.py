@@ -8,6 +8,10 @@ from DMT.core import specifiers
 from DMT.core import MCard
 
 
+folder_path = Path(__file__).resolve().parent
+test_path = folder_path.parent
+
+
 def test_run_sim():
     """Creates a sweep and a dummy dut to run using the simulation controller."""
     sim_con = SimCon(n_core=4, t_max=5)
@@ -36,20 +40,25 @@ def test_run_sim():
     sweep = Sweep("test_sweep", sweepdef=sweepdef, othervar=othervar)
 
     mcard = MCard(
-        ["A"], "Q_HIC", "hicuml2va", va_file=Path(__file__).parent / "hicumL2V2p4p0_release.va"
+        ["A"],
+        "Q_HIC",
+        "hicuml2va",
+        va_file=folder_path / "test_va_code" / "hicuml2" / "hicumL2V2p4p0_release.va",
     )
     mcard.load_model_parameters(
-        Path(__file__).parent / "test_modelcards" / "IHP_ECE704_03_para_D21.mat",
+        folder_path / "test_modelcards" / "IHP_ECE704_03_para_D21.mat",
     )
 
-    dut = DutDummy("test", "dummy", DutType.npn, mcard, nodes=None, reference_node="E", force=True)
+    dut = DutDummy(
+        test_path, "dummy", DutType.npn, mcard, nodes=None, reference_node="E", force=True
+    )
 
     for _i in range(10):
         sim_con.append_simulation(dut, sweep)
 
     sim_con.run_and_read(force=True)
 
-    os.remove(os.path.join("test", "iv.p"))
+    (test_path / "iv.p").unlink()
 
 
 if __name__ == "__main__":

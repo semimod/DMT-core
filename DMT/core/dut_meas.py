@@ -4,7 +4,7 @@
 # DMT_core
 # Copyright (C) from 2022  SemiMod
 # Copyright (C) until 2021  Markus Müller, Mario Krattenmacher and Pascal Kuthe
-# <https://gitlab.com/dmt-development/dmt-device>
+# <https://gitlab.com/dmt-development/dmt-core>
 #
 # This file is part of DMT_core.
 #
@@ -287,9 +287,13 @@ class DutMeas(DutView):
         key_parts = list(key_parts)
         for i_key_part, key_part in enumerate(key_parts):
             temp = temperature_converter(key_part)
-            if temp == -1:  # this value is returned it the temperature is not in the key.
+            if isinstance(temp, str):
+                # escape to directly manipulate the key
+                key_parts[i_key_part] = temp
                 continue
-            if temp < 0:
+            elif temp == -1:  # this value is returned it the temperature is not in the key.
+                continue
+            elif temp < 0:
                 raise ValueError(
                     "Got a negative temperature for the key. This is nonphysical since the temperature must be in Kelvin!"
                 )

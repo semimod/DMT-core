@@ -634,7 +634,7 @@ the "copyright" line and a pointer to where the full notice is found.
     DMT
     Copyright (C) from 2022  SemiMod
     Copyright (C) until 2021  Markus Müller, Mario Krattenmacher and Pascal Kuthe
-    <https://gitlab.com/dmt-development/dmt-device>
+    <https://gitlab.com/dmt-development/dmt-core>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -657,7 +657,7 @@ notice like this when it starts in an interactive mode:
     DMT
     Copyright (C) from 2022  SemiMod
     Copyright (C) until 2021  Markus Müller, Mario Krattenmacher and Pascal Kuthe
-    <https://gitlab.com/dmt-development/dmt-device>
+    <https://gitlab.com/dmt-development/dmt-core>
 
     This program comes with ABSOLUTELY NO WARRANTY; for details type `show w'.
     This is free software, and you are welcome to redistribute it

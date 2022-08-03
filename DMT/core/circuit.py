@@ -8,7 +8,7 @@ Later on this can be extended to allow (pseudo-)simulations directly inside DMT.
 # DMT_core
 # Copyright (C) from 2022  SemiMod
 # Copyright (C) until 2021  Markus Müller, Mario Krattenmacher and Pascal Kuthe
-# <https://gitlab.com/dmt-development/dmt-device>
+# <https://gitlab.com/dmt-development/dmt-core>
 #
 # This file is part of DMT_core.
 #
@@ -48,6 +48,8 @@ HICUML0_HBT = "BHT0"
 """ Indicates a bipolar transistor modeled with HICUM/L0 in a circuit. """
 SGP_BJT = "BJT"
 """ Indicates a bipolar transistor modeled with SGP in a circuit. """
+AHBT = "AgilentHBT"
+""" Indicates a bipolar transistor modeled with AHBT in a circuit. """
 DIODE = "diode"
 """ Indicates a diode in a circuit. """
 
