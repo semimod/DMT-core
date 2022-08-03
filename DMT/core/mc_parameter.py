@@ -1189,22 +1189,20 @@ class McParameterCollection(object):
         with doc.create(Section("Modelcard")):
             doc.append(pretext)
             with doc.create(
-                LongTable(
-                    NoEscape(r"l S >{\collectcell\unit}l<{\endcollectcell}"), width=3, booktabs=True
-                )
+                LongTable(NoEscape(r"l S"), width=2, booktabs=True)
             ) as data_table:  # pylatex does not count s S columns from siunitx
                 data_table.add_hline()
-                data_table.add_row(["parameter name", NoEscape("{value}"), NoEscape("{unit}")])
+                data_table.add_row(["parameter", NoEscape("{value}")])
                 data_table.add_hline()
                 data_table.end_table_header()
                 data_table.add_hline()
                 data_table.add_row(
-                    (MultiColumn(3, align="r", data="continued on next Page"),), strict=False
+                    (MultiColumn(2, align="r", data="continued on next Page"),), strict=False
                 )
                 data_table.add_hline()
                 data_table.end_table_footer()
                 data_table.add_hline()
-                data_table.add_row((MultiColumn(3, align="r", data="Finish"),), strict=False)
+                data_table.add_row((MultiColumn(2, align="r", data="Finish"),), strict=False)
                 data_table.add_hline()
                 data_table.end_table_last_footer()
 
@@ -1222,14 +1220,27 @@ class McParameterCollection(object):
                                 if group_a == group
                             )
                             data_table.add_row(
-                                (MultiColumn(3, align="l", data=group_desc),), strict=False
+                                (MultiColumn(2, align="l", data=group_desc),), strict=False
                             )
                         except StopIteration:
                             pass
 
-                    data_table.add_row(
-                        [f"{para:<12s}", NoEscape(f"{para:g}"), NoEscape(f"{para:u}")], strict=False
-                    )
+                    if para.unit.dimensionless:
+                        data_table.add_row(
+                            [
+                                NoEscape(f"{para:<12s}"),
+                                NoEscape(f"{para:g}"),
+                            ],
+                            strict=False,
+                        )
+                    else:
+                        data_table.add_row(
+                            [
+                                NoEscape(f"{para:<12s}/\si{{{para:u}}}"),
+                                NoEscape(f"{para:g}"),
+                            ],
+                            strict=False,
+                        )
 
         return doc
 
