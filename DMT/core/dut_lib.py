@@ -682,6 +682,18 @@ class DutLib(object):
                 suitable_open, suitable_short = user_fun(dev)
                 suitable_opens.append(suitable_open)
                 suitable_shorts.append(suitable_short)
+            
+            # prefer devices at same die if multiple options
+            if len(suitable_opens) > 1 or len(suitable_shorts) > 1:
+                die_target = dev.die
+                for dut_open in suitable_opens:
+                    if dut_open.die == die_target:
+                        suitable_opens = [dut_open]
+                        break
+                for dut_short in suitable_shorts:
+                    if dut_short.die == die_target:
+                        suitable_shorts = [dut_short]
+                        break
 
             # if we found more than one suitable short or open, throw an error.
             if len(suitable_opens) > 1 or len(suitable_shorts) > 1:
@@ -842,6 +854,14 @@ class DutLib(object):
                         continue
 
                 suitable_shorts.append(deem_dut)
+
+            # if multiple shorts, prefer at same die
+            if len(suitable_shorts) > 1:
+                die_target = dev.die
+                for dut_short in suitable_shorts:
+                    if dut_short.die == die_target:
+                        suitable_shorts = [dut_short]
+                        break
 
             # if we found more than one suitabel short or open, throw an error.
             if len(suitable_shorts) > 1:

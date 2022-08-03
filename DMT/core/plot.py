@@ -2268,7 +2268,5 @@ def save_or_show(plts, show=True, location=None, **kwargs):
                 standalone=False,
                 build=False,
                 extension=r"tikz",
-                width=None,
-                height=None,
                 **kwargs,
             )

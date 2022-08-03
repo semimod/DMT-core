@@ -31,6 +31,7 @@ import pandas as pd
 import logging
 import h5py
 from typing import cast
+import shutil
 
 from DMT.core import (
     DutTcad,
@@ -50,7 +51,7 @@ from DMT.config import COMMANDS
 from hdevpy.tools import makeinp, turn_off_recombination
 
 try:
-    import Hdev
+    from HdevInterface import hdev_py
 except ImportError:
     print("Warning hdevpy not available.")
 
@@ -777,17 +778,30 @@ class DutHdev(DutTcad):
         if not DutHdev.inited:
             self.init_()
 
-        mob = np.zeros_like(field)
-        for i in range(len(field)):
-            if doping > 0:
-                mob[i] = Hdev._py.get_mobility_py(
-                    semiconductor, valley, field[i], 1, 1, 1, temperature, 0, doping, 0, grading
-                )
-                # def get_mobility_py(semi_name     ,valley,f       , ec_l, ec_r, dim, t, dens, don, acc,  grad):
-            else:
-                mob[i] = Hdev._py.get_mobility_py(
-                    semiconductor, valley, field[i], 1, 1, 1, temperature, 0, 0, -doping, grading
-                )
+        if type(field) == int:
+            mob = np.zeros_like(doping)
+            for i in range(len(doping)):
+                if doping[i] > 0:
+                    mob[i] = hdev_py.get_mobility_py(
+                        semiconductor, valley, float(field), 1, 1, 1, temperature, 0, doping[i], 0, grading
+                    )
+                    # def get_mobility_py(semi_name     ,valley,f       , ec_l, ec_r, dim, t, dens, don, acc,  grad):
+                else:
+                    mob[i] = hdev_py.get_mobility_py(
+                        semiconductor, valley, float(field), 1, 1, 1, temperature, 0, 0, -doping[i], grading
+                    )
+        else:
+            mob = np.zeros_like(field)
+            for i in range(len(field)):
+                if doping > 0:
+                    mob[i] = hdev_py.get_mobility_py(
+                        semiconductor, valley, field[i], 1, 1, 1, temperature, 0, doping, 0, grading
+                    )
+                    # def get_mobility_py(semi_name     ,valley,f       , ec_l, ec_r, dim, t, dens, don, acc,  grad):
+                else:
+                    mob[i] = hdev_py.get_mobility_py(
+                        semiconductor, valley, field[i], 1, 1, 1, temperature, 0, 0, -doping, grading
+                    )
 
         return mob
 
@@ -797,7 +811,7 @@ class DutHdev(DutTcad):
 
         rec = np.zeros_like(field)
         for i in range(len(field)):
-            rec[i] = Hdev._py.get_intervalley_rate_py(
+            rec[i] = hdev_py.get_intervalley_rate_py(
                 semiconductor, valley_1, valley_2, field[i], doping, temperature
             )
 
@@ -807,28 +821,28 @@ class DutHdev(DutTcad):
         if not DutHdev.inited:
             self.init_()
 
-        paras = Hdev._py.get_mobility_paras_py(semi, valley)
+        paras = hdev_py.get_mobility_paras_py(semi, valley)
         return paras
 
     def get_recombination_paras(self, semi, rec_type):
         if not DutHdev.inited:
             self.init_()
 
-        paras = Hdev._py.get_recombination_paras_py(semi, rec_type)
+        paras = hdev_py.get_recombination_paras_py(semi, rec_type)
         return paras
 
     def set_mobility_paras(self, semi, valley, paras):
         if not DutHdev.inited:
             self.init_()
 
-        Hdev._py.set_mobility_paras_py(semi, valley, paras)
+        hdev_py.set_mobility_paras_py(semi, valley, paras)
         return
 
     def set_recombination_paras(self, semi, paras):
         if not DutHdev.inited:
             self.init_()
 
-        Hdev._py.set_recombination_paras_py(semi, paras)
+        hdev_py.set_recombination_paras_py(semi, paras)
         return
 
     def init_(self):
@@ -851,24 +865,17 @@ class DutHdev(DutTcad):
                 )
                 n = n + 1
         outputdef = [
-            specifiers.VOLTAGE + ["B", "C"],
-            specifiers.CURRENT + "C",
-            specifiers.CURRENT + "B",
-            "internal",
-            "QU",
-            "Q_Y11E",
-            "Q_Y22E",
         ]
         othervar = {"TEMP": 300}
         sweep = Sweep("gummel", sweepdef=sweepdef, outputdef=outputdef, othervar=othervar)
         inp_str = self.make_input(sweep)
 
-        home = os.path.expanduser("~")
-        tmp_path = os.path.join(home, "tmp", "_inp.din")
-        inp_file = open(tmp_path, "w+")
+        path_sim = os.path.join(DATA_CONFIG["directories"]["simulation"], "inp_tmp.inp")
+        inp_file = open(path_sim, "w+")
         inp_file.write(inp_str)
         inp_file.close()
-        Hdev._py.init(inp_file.name)
+        shutil.copyfile(os.path.join(DATA_CONFIG["directories"]["simulation"], "bias.h5"), os.path.join("/home/markus/Documents/Gitprojects/dissertation/bias.h5"))
+        hdev_py.init(inp_file.name)
 
     def scale_modelcard(self, *_args, **_kwargs):
         """Hdev currently has no scaling"""

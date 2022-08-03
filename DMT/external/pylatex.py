@@ -151,6 +151,19 @@ class CommandInput(CommandBase):
         Package("inputenc", options="utf8"),
     ]
 
+class CommandInputTikz(CommandBase):
+    """This command can be used to input .tikz files."""
+
+    _latex_name = "inputTikz"
+    _default_escape = False
+    packages = [
+        Package("siunitx"),
+        Package("tikz"),
+        Package("fontspec"),
+        Package("pgfplots"),
+        Package("inputenc", options="utf8"),
+    ]
+
 
 class CommandLabel(CommandBase):
     """This command can be used to input matplotlib2tikz .tex files."""
