@@ -802,9 +802,9 @@ class McParameterCollection(object):
 
         try:
             if isinstance(parameters, McParameter):
-                my_para = next(para for para in self._paras if para.name == parameters.name)
+                my_para = next(para for para in self._paras if para.name == parameters.name.lower())
             elif isinstance(parameters, str):
-                my_para = next(para for para in self._paras if para.name == parameters)
+                my_para = next(para for para in self._paras if para.name == parameters.lower())
             else:
                 raise IOError("The parameter is neither of type McParameter or str.")
 
@@ -884,6 +884,7 @@ class McParameterCollection(object):
             If the para was not in self.
         """
         for name, value in dict_parameters.items():
+            name = name.lower()
             try:
                 index = self.name.index(name)
             except ValueError as err:
@@ -928,7 +929,7 @@ class McParameterCollection(object):
         """
         values = {}
         for name in parameters:
-            values[name] = self._values[name]
+            values[name] = self._values[name.lower()]
 
         return values
 
@@ -947,7 +948,7 @@ class McParameterCollection(object):
         """
         for name, values in dict_parameters.items():
             try:
-                index = self.name.index(name)
+                index = self.name.index(name.lower())
             except ValueError as err:
                 raise KeyError(
                     f"The parameter {name:s} is not part of this parameter collection!"
