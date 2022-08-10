@@ -1,12 +1,12 @@
-""" test ngspice input file generation.
+""" test ngspice skywater130 simulation
 """
+import numpy as np
 from pathlib import Path
-from DMT.core import DutType, Sweep, specifiers, SimCon, Plot, MCard
+from DMT.core import MCard, DutType, Sweep, specifiers, SimCon, Plot
 from DMT.core.sweep_def import SweepDefList
-from DMT.core.circuit import Circuit, CircuitElement, RESISTANCE, CAPACITANCE, SHORT, VOLTAGE
+from DMT.core.circuit import Circuit, CircuitElement, RESISTANCE, VOLTAGE
 
 from DMT.ngspice import DutNgspice
-import numpy as np
 
 folder_path = Path(__file__).resolve().parent
 
@@ -20,15 +20,43 @@ col_is = specifiers.CURRENT + "S"
 col_ib = specifiers.CURRENT + "B"
 col_freq = specifiers.FREQUENCY
 
+mcard = MCard(
+    nodes_list=["n_D", "n_G", "n_S", "n_B"],
+    default_subckt_name="x1",
+    default_module_name="sky130_fd_pr__nfet_01v8",
+)
+mcard.set_values(
+    {
+        "l": 1,
+        "w": 1,
+        "nf": 1.0,
+        "ad": 0,
+        "as": 0,
+        "pd": 0,
+        "ps": 0,
+        "nrd": 0,
+        "nrs": 0,
+        "sa": 0,
+        "sb": 0,
+        "sd": 0,
+        "mult": 1,
+    },
+    policy_missing="add",
+)
+mcard.pdk_path = "/usr/local/share/pdk/sky130B/libs.tech/ngspice/sky130.lib.spice"
+mcard.pdk_corner = "tt"
+
 circuit = Circuit(
     [
-        ".option scale=1E-6",
-        '.lib "/usr/local/share/pdk/sky130B/libs.tech/ngspice/sky130.lib.spice" tt',
-        "x1 n_D n_G 0 0 sky130_fd_pr__nfet_g5v0d10v5",
-        CircuitElement(RESISTANCE, "R_D", ["n_D", "n_DX"], parameters=[("R", "100")]),
+        CircuitElement(
+            "sky130_fd_pr__nfet_01v8", "x1", ["n_D", "n_G", "n_S", "n_B"], parameters=mcard
+        ),
+        CircuitElement(RESISTANCE, "R_D", ["n_D", "n_DX"], parameters=[("R", "1")]),
         CircuitElement(VOLTAGE, "V_D", ["n_DX", "0"], parameters=[("Vdc", "V_D"), ("Vac", "1")]),
         CircuitElement(VOLTAGE, "V_G", ["n_GX", "0"], parameters=[("Vdc", "V_G"), ("Vac", "1")]),
-        CircuitElement(RESISTANCE, "R_G", ["n_GX", "n_G"], parameters=[("R", "680")]),
+        CircuitElement(RESISTANCE, "R_G", ["n_GX", "n_G"], parameters=[("R", "1")]),
+        CircuitElement(RESISTANCE, "R_S", ["n_S", "0"], parameters=[("R", "0")]),
+        CircuitElement(RESISTANCE, "R_B", ["n_B", "0"], parameters=[("R", "0")]),
     ]
 )
 
@@ -90,19 +118,19 @@ plt_id_vd.plot_pyqtgraph(show=False)
 plt_id_vg.plot_pyqtgraph(show=True)
 
 
-plt_id_vd.save_tikz(
-    folder_path.parent / "tmp" / "check_skywater130",
-    standalone=True,
-    build=True,
-    clean=True,
-    width="6in",
-    legend_location="upper left",
-)
-plt_id_vg.save_tikz(
-    folder_path.parent / "tmp" / "check_skywater130",
-    standalone=True,
-    build=True,
-    clean=True,
-    width="6in",
-    legend_location="upper left",
-)
+# plt_id_vd.save_tikz(
+#     folder_path.parent / "tmp" / "check_skywater130",
+#     standalone=True,
+#     build=True,
+#     clean=True,
+#     width="6in",
+#     legend_location="upper left",
+# )
+# plt_id_vg.save_tikz(
+#     folder_path.parent / "tmp" / "check_skywater130",
+#     standalone=True,
+#     build=True,
+#     clean=True,
+#     width="6in",
+#     legend_location="upper left",
+# )

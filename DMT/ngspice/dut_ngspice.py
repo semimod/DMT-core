@@ -890,6 +890,20 @@ class DutNgspice(DutCircuit):
                         str_model_parameters += "{0:s}={0:10.10e} ".format(para)
 
                     str_temp = f"\n.model dmod {additional_str} d( {str_model_parameters} )"  # we should count here somehow the models
+                elif "sky130_fd_pr" in circuit_element.element_type:
+                    # skywater 130 device
+                    mcard = circuit_element.parameters
+                    str_instance_parameters = ""
+
+                    for para in sorted(mcard.paras, key=lambda x: (x.group, x.name)):
+                        str_instance_parameters += "{0:s}={0:10.10e} ".format(para)
+
+                    str_netlist = (
+                        f'.lib "{mcard.pdk_path}" {mcard.pdk_corner}\n'
+                        + f"{circuit_element.name} "
+                        + " ".join(circuit_element.contact_nodes)
+                    )
+                    str_temp = f"{circuit_element.element_type} {str_instance_parameters}"
                 else:
                     raise NotImplementedError(
                         f"The element type {circuit_element.element_type} is not implemented for ngspice.",
