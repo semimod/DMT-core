@@ -139,7 +139,7 @@ class McSkywater(MCard):
             return Circuit(
                 [
                     CircuitElement(
-                        "sky130_fd_pr__nfet_01v8",
+                        self.default_module_name,
                         "x1",
                         ["n_D", "n_G", "n_S", "n_B"],
                         parameters=mcard,

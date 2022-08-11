@@ -2,9 +2,8 @@
 """
 import numpy as np
 from pathlib import Path
-from DMT.core import MCard, DutType, Sweep, specifiers, SimCon, Plot, McSkywater
+from DMT.core import DutType, Sweep, specifiers, SimCon, Plot, McSkywater
 from DMT.core.sweep_def import SweepDefList
-from DMT.core.circuit import Circuit, CircuitElement, RESISTANCE, VOLTAGE
 
 from DMT.ngspice import DutNgspice
 
