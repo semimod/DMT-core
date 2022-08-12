@@ -436,8 +436,16 @@ class DutLib(object):
 
         try:
             for dut in duts:
+                if dut.name in [dut_a.name for dut_a in self.duts]:
+                    raise IOError(
+                        "DutLib: A DuT of this name already exists. Dut names must be unique!"
+                    )
                 self.duts.append(dut)
         except TypeError:
+            if duts.name in [dut_a.name for dut_a in self.duts]:
+                raise IOError(
+                    "DutLib: A DuT of this name already exists. Dut names must be unique!"
+                )
             self.duts.append(duts)
 
     def save(self):
