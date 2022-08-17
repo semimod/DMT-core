@@ -239,7 +239,7 @@ The circuit is represented by another DUT object that corresponding to the circu
         reference_node="E",
     )
 
-Alternatively, you may use a different simulator. The target of DMT is that all simulators can be used interchangeable, but as the feature set of the simulators differ, not every interface supports all DUTs. If you encounter a case, where a simulation does not work, please write an issue including the code <here `https://gitlab.com/dmt-development/dmt-core/-/issues/new?issuable_template=feature_request>`__.
+Alternatively, you may use a different simulator. The target of DMT is that all simulators can be used interchangeable, but as the feature set of the simulators differ, not every interface supports all DUTs. If you encounter a case, where a simulation does not work, please write an issue including the code `here <https://gitlab.com/dmt-development/dmt-core/-/issues/new?issuable_template=feature_request>`__.
 For the example here, ngspice could be used:
 
 .. code-block:: python

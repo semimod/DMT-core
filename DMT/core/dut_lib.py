@@ -682,7 +682,7 @@ class DutLib(object):
                 suitable_open, suitable_short = user_fun(dev)
                 suitable_opens.append(suitable_open)
                 suitable_shorts.append(suitable_short)
-            
+
             # prefer devices at same die if multiple options
             if len(suitable_opens) > 1 or len(suitable_shorts) > 1:
                 die_target = dev.die
@@ -1186,87 +1186,115 @@ class DutLib(object):
             with doc.create(Subsection("Geometry Overview")):
                 dut_types = list(set([dut.dut_type for dut in self]))
                 for dut_type in dut_types:
-                    configs = [dut.contact_config for dut in self if dut.dut_type == dut_type]
-                    configs = list(set(configs))  # cast to unique
-                    for config in configs:
-                        if config is None:
-                            doc.append(
-                                NoEscape(
-                                    r"Measurements for devices of type "
-                                    + str(dut_type)
-                                    + r" are available with the following geometries:"
-                                )
-                            )
-                        else:
-                            doc.append(
-                                NoEscape(
-                                    r"Measurements for devices with contact configuration "
-                                    + config.replace("_", r"\_")
-                                    + r" and device type "
-                                    + str(dut_type)
-                                    + r" are available with the following geometries:"
-                                )
-                            )
+                    flavors = [dut.flavor for dut in self if dut.dut_type == dut_type]
+                    flavors = list(set(flavors))  # cast to unique
 
-                        doc.append("\r")
-                        duts = list(
-                            set(
-                                [
-                                    dut
-                                    for dut in self
-                                    if dut.dut_type == dut_type and dut.contact_config == config
-                                ]
-                            )
-                        )
-                        lE0s = list(set([dut.length for dut in duts]))
-                        bE0s = list(set([dut.width for dut in duts]))
-                        lE0s.sort()
-                        bE0s.sort()
-                        header = "|" + " c | " * (
-                            len(lE0s) + 1
-                        )  # one col for each length and one for bE0 indices
-                        with doc.create(Center()) as _centered:
-                            with doc.create(Tabular(header)) as table:
-                                table.add_hline()
-                                first_row = [
+                    for flavor in flavors:
+                        configs = [
+                            dut.contact_config
+                            for dut in self
+                            if dut.dut_type == dut_type and dut.flavor == flavor
+                        ]
+                        configs = list(set(configs))  # cast to unique
+                        for config in configs:
+                            if config is None:
+                                str_flavor = (
+                                    ""
+                                    if flavor is None
+                                    else " and flavor " + str(flavor).replace("_", r"\_")
+                                )
+                                doc.append(
                                     NoEscape(
-                                        r"\backslashbox{$b_{\mathrm{E,drawn}}/\si{\micro\meter}$}{$l_{\mathrm{E,drawn}}/\si{\micro\meter}$}"
+                                        "Measurements for devices of type "
+                                        + str(dut_type)
+                                        + str_flavor
+                                        + " are available with the following geometries:"
                                     )
-                                ]
-                                try:
-                                    first_row += ["{:04.2f}".format(lE0 * 1e6) for lE0 in lE0s]
-                                except TypeError:
-                                    first_row += [
-                                        ",".join(["{:04.2f}".format(lE0_a * 1e6) for lE0_a in lE0])
-                                        for lE0 in lE0s
+                                )
+                            else:
+                                str_flavor = (
+                                    ""
+                                    if flavor is None
+                                    else ", flavor " + str(flavor).replace("_", r"\_")
+                                )
+                                doc.append(
+                                    NoEscape(
+                                        "Measurements for devices with device type "
+                                        + str(dut_type)
+                                        + str_flavor
+                                        + " and contact configuration "
+                                        + config.replace("_", r"\_")
+                                        + " and  "
+                                        + " are available with the following geometries:"
+                                    )
+                                )
+
+                            doc.append("\r")
+                            duts = list(
+                                set(
+                                    [
+                                        dut
+                                        for dut in self
+                                        if dut.dut_type == dut_type
+                                        and dut.contact_config == config
+                                        and dut.flavor == flavor
                                     ]
-
-                                table.add_row(first_row)
-                                table.add_hline()
-                                for bE0 in bE0s:
-                                    try:
-                                        row = ["{:04.2f}".format(bE0 * 1e6)]
-                                    except TypeError:
-                                        row = [
-                                            ",".join(
-                                                ["{:04.2f}".format(bE0_a * 1e6) for bE0_a in bE0]
-                                            )
-                                        ]
-                                    for lE0 in lE0s:
-                                        try:
-                                            # check if dut with these dimensions exists
-                                            dut = next(
-                                                dut
-                                                for dut in duts
-                                                if dut.length == lE0 and dut.width == bE0
-                                            )
-                                            row.append("x")
-                                        except StopIteration:
-                                            row.append(" ")
-
-                                    table.add_row(row)
+                                )
+                            )
+                            lE0s = list(set([dut.length for dut in duts]))
+                            bE0s = list(set([dut.width for dut in duts]))
+                            lE0s.sort()
+                            bE0s.sort()
+                            header = "|" + " c | " * (
+                                len(lE0s) + 1
+                            )  # one col for each length and one for bE0 indices
+                            with doc.create(Center()) as _centered:
+                                with doc.create(Tabular(header)) as table:
                                     table.add_hline()
-                        doc.append("\r")
+                                    first_row = [
+                                        NoEscape(
+                                            r"\backslashbox{$b_{\mathrm{E,drawn}}/\si{\micro\meter}$}{$l_{\mathrm{E,drawn}}/\si{\micro\meter}$}"
+                                        )
+                                    ]
+                                    try:
+                                        first_row += ["{:04.2f}".format(lE0 * 1e6) for lE0 in lE0s]
+                                    except TypeError:
+                                        first_row += [
+                                            ",".join(
+                                                ["{:04.2f}".format(lE0_a * 1e6) for lE0_a in lE0]
+                                            )
+                                            for lE0 in lE0s
+                                        ]
+
+                                    table.add_row(first_row)
+                                    table.add_hline()
+                                    for bE0 in bE0s:
+                                        try:
+                                            row = ["{:04.2f}".format(bE0 * 1e6)]
+                                        except TypeError:
+                                            row = [
+                                                ",".join(
+                                                    [
+                                                        "{:04.2f}".format(bE0_a * 1e6)
+                                                        for bE0_a in bE0
+                                                    ]
+                                                )
+                                            ]
+                                        for lE0 in lE0s:
+                                            try:
+                                                # check if dut with these dimensions exists
+                                                dut = next(
+                                                    dut
+                                                    for dut in duts
+                                                    if dut.length == lE0 and dut.width == bE0
+                                                )
+                                                row.append("x")
+                                            except StopIteration:
+                                                row.append(" ")
+
+                                        table.add_row(row)
+                                        table.add_hline()
+                            doc.append("\r")
 
             with doc.create(
                 Subsection("Measurement Data over Temperature and Deembedding Structures")

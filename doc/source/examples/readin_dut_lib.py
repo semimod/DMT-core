@@ -38,6 +38,7 @@ for child in path_to_cells.glob("*/" * (2)):
 # Create a DutLib object that stores measurement data
 lib_save_dir = path_to_dmt_core / "test" / "tmp" / "skywater130_lib"
 lib = DutLib(save_dir=lib_save_dir, force=True)
+lib.wafer = "MPW-5"
 
 # to import all data at once, DutLib offers the import_directory method. This method needs a custom filter function to create the correct DutViews that store device-related information.
 def filter_dut(dut_name):
@@ -60,24 +61,26 @@ def filter_dut(dut_name):
     length = re.search(r"_l([\dp]+)u_", dut_path.name, re.MULTILINE).group(1)
     length = float(length.replace("p", ".")) * 1e-6
     dut_type = DutType.n_mos if "nfet" in dut_name else DutType.p_mos
-    multiplication_factor = re.search(r"_m([\d]+)\(", dut_path.name, re.MULTILINE).group(1)
-    multiplication_factor = int(multiplication_factor)
+    multiplication_factor = int(re.search(r"_m([\d]+)\(", dut_path.name, re.MULTILINE).group(1))
+    module_name = int(re.search(r"\((\d+)_", dut_path.name, re.MULTILINE).group(1))
     contacts = re.search(r"_m[\d]+\((.+)", dut_path.name, re.MULTILINE).group(1)
+    flavor = dut_name
 
     dut = DutMeas(
         database_dir=path_to_dmt_core / "test" / "tmp",
         dut_type=dut_type,
         force=True,
         wafer="MPW-5",
-        die="x",
+        die=module_name,
         width=width,
         length=length,
         contact_config="SGD",
         name=dut_path.parent.name,
         reference_node="S",
         ndevices=multiplication_factor,
+        flavor=flavor,
     )
-    dut.contact_info = contacts.replace("_"," ")
+    dut.contact_info = contacts.replace("_", " ")
 
     return dut
 
@@ -149,41 +152,45 @@ sp_id = specifiers.CURRENT + ["D"]
 
 
 # Now we plot all data of the "nfet_01v8" devices, one plot for every unique device length
-device_name = "nfet_01v8"
+device_flavor = "nfet_01v8"
 plots = []
-lengths = np.unique([dut.length for dut in lib if dut.name == device_name])
+lengths = np.unique(
+    [dut.length for dut in lib if dut.flavor == device_flavor]
+)  # to compare all lengths
 lengths = [0.5e-6]
 
 for l_i in lengths:
-    plot = Plot(f"length_{l_i*1e6:.2f}um_ID(VG)", x_specifier=sp_vg, y_label="Id(mA/um)", y_scale=1e3/1e6)
+    plot = Plot(
+        f"length_{l_i*1e6:.2f}um_ID(VG)", x_specifier=sp_vg, y_label="Id(mA/um)", y_scale=1e3 / 1e6
+    )
     for dut in lib:
-        if dut.name == device_name and np.isclose(dut.length, l_i):# and np.isclose(dut.width, 0.42e-6):
+        if dut.flavor == device_flavor and np.isclose(dut.length, l_i):
             df = dut.data["T300.00K/IDVG"]
             df = df[np.isclose(df[sp_vb], 0)]
             df = df[np.isclose(df[sp_vd], 1.8)]
 
             plot.add_data_set(
                 df[sp_vg],
-                df[sp_id]/dut.width,
+                df[sp_id] / dut.width,
                 label=f"w={dut.width*1e6:.2f}um, {dut.contact_info}",
             )
 
     plots.append(plot)
 
 # for plt in plots[:-1]:
-#     plt.plot_py(show=False)
+#     plt.plot_pyqtgraph(show=False)
 
-# plots[-1].plot_py(show=True)
+# plots[-1].plot_pyqtgraph(show=True)
 
 
-plots[-1].save_tikz(
-    Path(__file__).parent.parent / "_static" / "readin_dut_lib",
-    standalone=True,
-    build=True,
-    clean=True,
-    width="6in",
-    legend_location="upper right outer",
-)
+# plots[-1].save_tikz(
+#     Path(__file__).parent.parent / "_static" / "readin_dut_lib",
+#     standalone=True,
+#     build=True,
+#     clean=True,
+#     width="6in",
+#     legend_location="upper right outer",
+# )
 
 
 # To get a pdf with all information about the measurements DocuDutLib can be used:

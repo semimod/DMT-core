@@ -230,7 +230,7 @@ PLOT_DEFAULTS = {
             "legend_location": "upper left",
             "y_limits": (None, None),
             "x_limits": (None, None),
-            "tex": r"Gummel  $I_{\mathrm{D}}(V_{\mathrm{G}})@V_{\mathrm{D}}$.",
+            "tex": r"$I_{\mathrm{D}}(V_{\mathrm{G}})@V_{\mathrm{D}}$.",
         },
         "id(vd)": {
             "x_log": False,
@@ -241,7 +241,7 @@ PLOT_DEFAULTS = {
             "legend_location": "upper left",
             "y_limits": (None, None),
             "x_limits": (None, None),
-            "tex": r"Gummel  $I_{\mathrm{D}}(V_{\mathrm{D}})@V_{\mathrm{G}}$.",
+            "tex": r"$I_{\mathrm{D}}(V_{\mathrm{D}})@V_{\mathrm{G}}$.",
         },
     },
     DutType.p_mos: {
@@ -254,7 +254,7 @@ PLOT_DEFAULTS = {
             "legend_location": "upper left",
             "y_limits": (None, None),
             "x_limits": (None, None),
-            "tex": r"Gummel  $I_{\mathrm{D}}(V_{\mathrm{G}})@V_{\mathrm{D}}$.",
+            "tex": r"$I_{\mathrm{D}}(V_{\mathrm{G}})@V_{\mathrm{D}}$.",
         },
         "id(vd)": {
             "x_log": False,
@@ -265,7 +265,7 @@ PLOT_DEFAULTS = {
             "legend_location": "upper left",
             "y_limits": (None, None),
             "x_limits": (None, None),
-            "tex": r"Gummel  $I_{\mathrm{D}}(V_{\mathrm{D}})@V_{\mathrm{G}}$.",
+            "tex": r"$I_{\mathrm{D}}(V_{\mathrm{D}})@V_{\mathrm{G}}$.",
         },
     },
 }
@@ -894,7 +894,12 @@ class DocuDutLib(object):
             # now rename _x_title and _author
             string_deckblatt = (destination / "content" / "deckblatt.tex").read_text()
             string_deckblatt = string_deckblatt.replace("_author", DATA_CONFIG["user_name"])
-            string_deckblatt = string_deckblatt.replace("_x_title", str("B11").replace("_", r"\_"))
+            string_deckblatt = string_deckblatt.replace(
+                "_company", str(DATA_CONFIG["company"]).replace("_", r"\_")
+            )
+            string_deckblatt = string_deckblatt.replace(
+                "_x_title", str(DATA_CONFIG["docu_topic"]).replace("_", r"\_")
+            )
             string_deckblatt = string_deckblatt.replace(
                 "_wafer", str(self.dut_lib.wafer).replace("_", r"\_")
             )

@@ -15,6 +15,7 @@
 *.fot
 *.cb
 *.cb2
+*.pmn
 .*.lb
 
 ### latexmk
