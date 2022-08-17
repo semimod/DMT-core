@@ -436,8 +436,16 @@ class DutLib(object):
 
         try:
             for dut in duts:
+                if dut.name in [dut_a.name for dut_a in self.duts]:
+                    raise IOError(
+                        "DutLib: A DuT of this name already exists. Dut names must be unique!"
+                    )
                 self.duts.append(dut)
         except TypeError:
+            if duts.name in [dut_a.name for dut_a in self.duts]:
+                raise IOError(
+                    "DutLib: A DuT of this name already exists. Dut names must be unique!"
+                )
             self.duts.append(duts)
 
     def save(self):
@@ -1186,7 +1194,13 @@ class DutLib(object):
             with doc.create(Subsection("Geometry Overview")):
                 dut_types = list(set([dut.dut_type for dut in self]))
                 for dut_type in dut_types:
-                    flavors = [dut.flavor for dut in self if dut.dut_type == dut_type]
+                    try:
+                        flavors = [dut.flavor for dut in self if dut.dut_type == dut_type]
+                    except AttributeError:
+                        for dut in self:
+                            if not hasattr(dut, "flavor"):
+                                dut.flavor = None
+                        flavors = [dut.flavor for dut in self if dut.dut_type == dut_type]
                     flavors = list(set(flavors))  # cast to unique
 
                     for flavor in flavors:

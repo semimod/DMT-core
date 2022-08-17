@@ -64,24 +64,24 @@ if __name__ == "__main__":
     sp_vb = specifiers.VOLTAGE + ["B"]
 
     plt_id = Plot(
-        "ID(VG)",
-        x_specifier=sp_vg,
+        "ID(VD)",
+        x_specifier=sp_vd,
         y_specifier=sp_id,
         legend_location="upper left",
         style="color",
         divide_by_unit=True,
     )
     plt_ib = Plot(
-        "IB(VG)",
-        x_specifier=sp_vg,
+        "IB(VD)",
+        x_specifier=sp_vd,
         y_specifier=sp_ib,
         legend_location="lower left",
         style="color",
         divide_by_unit=True,
     )
     plt_ig = Plot(
-        "IG(VG)",
-        x_specifier=sp_vg,
+        "IG(VD)",
+        x_specifier=sp_vd,
         y_specifier=sp_ig,
         legend_location="lower left",
         style="color",

@@ -16,7 +16,4 @@ The generated files
 
 .. figure:: /_static/readin_dut_lib/length_0_dot_50um_IDVG.png
 
-.. literalinclude:: /_static/readin_dut_lib/length_0_dot_50um_IDVG.tex
-    :language: latex
-    :linenos:
-    :caption: length_0_dot_50um_IDVG.tex
+.. figure:: /_static/readin_dut_lib/length_0_dot_50um_IDVG_mismatch.png

@@ -91,7 +91,7 @@ unit_converter = {
     "": unit_registry.dimensionless,
 }
 
-SEMVER_MCARD_CURRENT = VersionInfo(major=2, minor=1)
+SEMVER_MCARD_CURRENT = VersionInfo(major=2, minor=2)
 
 
 class MCard(McParameterCollection):
@@ -149,6 +149,8 @@ class MCard(McParameterCollection):
         directory_va_file: Optional[Union[str, os.PathLike]] = None,
         __MCard__=SEMVER_MCARD_CURRENT,
         ignore_checksum: bool = False,
+        pdk_path: str = "",
+        pdk_corner: str = "",
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -200,6 +202,8 @@ class MCard(McParameterCollection):
         self.default_subckt_name = default_subckt_name
         self.default_module_name = default_module_name
         self.version = version
+        self.pdk_path = pdk_path
+        self.pdk_corner = pdk_corner
 
         self._va_codes = None
         if va_codes is not None:
@@ -551,6 +555,8 @@ class MCard(McParameterCollection):
         info_dict["default_subckt_name"] = self.default_subckt_name
         info_dict["default_module_name"] = self.default_module_name
         info_dict["version"] = self.version
+        info_dict["pdk_path"] = self.pdk_path
+        info_dict["pdk_corner"] = self.pdk_corner
 
         if save_va_code and self.va_codes is not None:
             info_dict["va_codes"] = self.va_codes.export_dict(compressed_code=compress_va_code)

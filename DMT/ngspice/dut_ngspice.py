@@ -177,8 +177,12 @@ class DutNgspice(DutCircuit):
         # add elements:
         for element in inp_circuit.netlist:
             if isinstance(element, str):
-                pass
-                # str_netlist += element + '\n'
+                # pass
+                if re.match(r"^[\w_]+=", element):
+                    # filters Variables -> ngspice does not need those
+                    continue
+
+                str_netlist += element + "\n"
             else:
                 str_netlist += self._convert_CircuitElement_netlist(element)
 
@@ -481,13 +485,13 @@ class DutNgspice(DutCircuit):
             for my_file in files:
                 filename = my_file
                 if filename.endswith(".ngspice"):
-                    dfs.append(self.read_ngspice(os.path.join(root, filename)))
+                    df = self.read_ngspice(os.path.join(root, filename))
+                    dfs.append(self.clean_df(df, filename))
 
-        dfs = [self.clean_df(df) for df in dfs]
-        dfs[0] = self.join(dfs)
+        df_joined = self.join(dfs)
 
         key = self.join_key(self.get_sweep_key(sweep), "iv")
-        self.data[key] = dfs[0]
+        self.data[key] = df_joined
         logging.info(
             "Read the NGSpice simulation output data of the sweep %s. \nThe simulation folder is %s",
             sweep.name,
@@ -588,7 +592,7 @@ class DutNgspice(DutCircuit):
         # initalize pd.Dataframe() and return it
         return DataFrame(data_raw, columns=split_header)
 
-    def clean_df(self, df):
+    def clean_df(self, df, filename):
         """From the df as read directly from ngspice, create a df that has DMT specifiers and is suitable for modeling."""
         df = df.loc[:, ~df.columns.duplicated()]  # drop duplicate columns
         cols = df.columns
@@ -628,48 +632,45 @@ class DutNgspice(DutCircuit):
         # dirty: add the Y Parameters
         if is_ac:
             # step one: find which port is begin excited
-            ac_voltage = None
-            node_excited = None
-            for node in self.nodes:
-                excitement = new_df[specifiers.VOLTAGE + node].to_numpy()
-                if (
-                    np.mean(excitement) > 0.95
-                ):  # very dirty but should work...lol better use filename
-                    ac_voltage = excitement
-                    node_excited = node
-                    new_df.drop(axis=1, columns=specifiers.VOLTAGE + node, inplace=True)
-                    break
+            node_excited = re.search(r"V_(\w+?)\.ngspice", filename).group(1)
+            col_v_ne = specifiers.VOLTAGE + node_excited
+            ac_voltage = 1  # fallback
+
+            try:
+                ac_voltage = new_df[col_v_ne].to_numpy()
+                ac_voltage = new_df[col_v_ne + sub_specifiers.FORCED].to_numpy()
+            except KeyError:
+                pass
+            try:
+                new_df.drop(axis=1, columns=col_v_ne, inplace=True)
+            except KeyError:
+                pass
+            try:
+                new_df.drop(axis=1, columns=col_v_ne + sub_specifiers.FORCED, inplace=True)
+            except KeyError:
+                pass
 
             # delete the AC voltages, because why would anyone need them.
             for node in self.nodes:
+                col_v_n = specifiers.VOLTAGE + node
                 try:
-                    new_df.drop(axis=1, columns=specifiers.VOLTAGE + node, inplace=True)
-
+                    new_df.drop(axis=1, columns=col_v_n, inplace=True)
                 except KeyError:
                     pass
                 try:
-                    new_df.drop(
-                        axis=1,
-                        columns=specifiers.VOLTAGE + node + sub_specifiers.FORCED,
-                        inplace=True,
-                    )
+                    new_df.drop(axis=1, columns=col_v_n + sub_specifiers.FORCED, inplace=True)
                 except KeyError:
                     pass
 
             # step2: now calculate the y parameters Y(X,node)
             for node_2 in self.nodes:
-                try:
-                    ac_current = new_df.drop(axis=1, columns=specifiers.CURRENT + node_2).to_numpy()
-                    ac_current = new_df[specifiers.CURRENT + node_2].to_numpy()
-                    new_df.drop(axis=1, columns=specifiers.CURRENT + node_2, inplace=True)
-                except KeyError:
-                    continue
+                col_i_n = specifiers.CURRENT + node_2
+                if col_i_n in new_df.columns:
+                    ac_current = new_df[col_i_n].to_numpy()
+                    new_df.drop(axis=1, columns=col_i_n, inplace=True)
 
-                try:
-                    y_para = specifiers.SS_PARA_Y + node_2 + node_excited
+                    y_para = specifiers.SS_PARA_Y + [node_2, node_excited]
                     new_df[y_para] = ac_current / ac_voltage
-                except TypeError:
-                    raise IOError("What went wrong here? We do not know.")
 
         fallback_dict = {}
         for op_var in op_vars:
@@ -889,6 +890,20 @@ class DutNgspice(DutCircuit):
                         str_model_parameters += "{0:s}={0:10.10e} ".format(para)
 
                     str_temp = f"\n.model dmod {additional_str} d( {str_model_parameters} )"  # we should count here somehow the models
+                elif "sky130_fd_pr" in circuit_element.element_type:
+                    # skywater 130 device
+                    mcard = circuit_element.parameters
+                    str_instance_parameters = ""
+
+                    for para in sorted(mcard.paras, key=lambda x: (x.group, x.name)):
+                        str_instance_parameters += "{0:s}={0:10.10e} ".format(para)
+
+                    str_netlist = (
+                        f'.lib "{mcard.pdk_path}" {mcard.pdk_corner}\n'
+                        + f"{circuit_element.name} "
+                        + " ".join(circuit_element.contact_nodes)
+                    )
+                    str_temp = f"{circuit_element.element_type} {str_instance_parameters}"
                 else:
                     raise NotImplementedError(
                         f"The element type {circuit_element.element_type} is not implemented for ngspice.",
@@ -949,18 +964,16 @@ class DutNgspice(DutCircuit):
                 raise IOError("DMT -> NGspice: frequencies of AC simulation data do not match.")
 
         # join the ac dataframes into one ac dataframe dfs_ac[0]
+        df_ac = dfs_ac[0]
         for df in dfs_ac[1:]:
-            for col in df.columns:
-                if not col in dfs_ac[0].columns:
-                    vals = df[col].to_numpy()
-                    dfs_ac[0][col] = vals
+            for y_param in [col for col in df.columns if col.specifier == specifiers.SS_PARA_Y]:
+                df_ac[y_param] = df[y_param].to_numpy()
 
         # join the dc data to the ac data
         n_freq = len(np.unique(freqs[0]))
         for col in df_dc.columns:
-            # if not col in dfs_ac[0].columns:
             vals = df_dc[col].to_numpy()
             vals = np.repeat(vals, n_freq)
-            dfs_ac[0][col] = vals
+            df_ac[col] = vals
 
-        return dfs_ac[0]
+        return df_ac

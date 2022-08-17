@@ -27,7 +27,7 @@ Features:
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 import logging
 import copy
-from typing import Dict, List, Mapping, Type, Optional, Union
+from typing import Dict, List, Mapping, Type, Optional, Union, Set
 import numpy as np
 from itertools import product
 from DMT.core import create_md5_hash, specifiers, sub_specifiers, SpecifierStr, DataFrame, SweepDef
@@ -370,7 +370,7 @@ class Sweep(object):
                 {'var_name':specifiers.VOLTAGE+'E', 'sweep_order':2, 'sweep_type':'CON' , 'value_def':[0]}
             ]
 
-    outputdef  : List[str], optional
+    outputdef  : List[str] or Set[str] , optional
         A list of the variables that shall be computed. Example: [specifiers.CURRENT+'C',specifiers.CURRENT+'B']
 
     othervar   : Dict[str, float], optional
@@ -417,7 +417,9 @@ class Sweep(object):
         self,
         name: str,
         sweepdef: Optional[List[Union[SweepDef, Mapping[str, object]]]] = None,
-        outputdef: Optional[List[Union[SpecifierStr, str]]] = None,
+        outputdef: Optional[
+            Union[List[Union[SpecifierStr, str]], Set[Union[SpecifierStr, str]]]
+        ] = None,
         othervar: Optional[Mapping[str, float]] = None,
         SweepDefClass: Type = SweepDef,
     ):
@@ -446,10 +448,24 @@ class Sweep(object):
 
     @property
     def sweepdef(self):
+        """Get the sweepdef
+
+        Returns
+        -------
+        List[SweepDef]
+            Saved sweepdef
+        """
         return self._sweepdef
 
     @sweepdef.setter
-    def sweepdef(self, sweepdef_new):
+    def sweepdef(self, sweepdef_new: Optional[List[Union[SweepDef, Mapping[str, object]]]]):
+        """New sweepdef
+
+        Parameters
+        ----------
+        sweepdef_new : Optional[List[Union[SweepDef, Mapping[str, object]]]]
+            Sweepdef to set
+        """
         self._sweepdef = []
         for swd in sweepdef_new:
             if isinstance(swd, self.SweepDefClass):
@@ -484,12 +500,12 @@ class Sweep(object):
 
     @outputdef.setter
     def outputdef(self, outputdef_new):
-        if isinstance(outputdef_new, list):
+        if isinstance(outputdef_new, (list, set)):
             # cast and copy to be save
             # sort to save some repeatings
             self._outputdef = sorted(list(copy.deepcopy(outputdef_new)))
         else:
-            raise IOError("sweep.outputdef needs to be a list.")
+            raise IOError("sweep.outputdef must to be a list or a set.")
 
     def create_df(self):
         """Fill the dataframe according to the sweepdefinition

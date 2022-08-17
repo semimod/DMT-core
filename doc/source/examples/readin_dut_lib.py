@@ -161,7 +161,16 @@ lengths = [0.5e-6]
 
 for l_i in lengths:
     plot = Plot(
-        f"length_{l_i*1e6:.2f}um_ID(VG)", x_specifier=sp_vg, y_label="Id(mA/um)", y_scale=1e3 / 1e6
+        f"length_{l_i*1e6:.2f}um_ID_w(VG)",
+        x_specifier=sp_vg,
+        y_label="$I_{\mathrm{D}}/w(mA/um)$",
+        y_scale=1e3 / 1e6,
+    )
+    plot_mismatch = Plot(
+        f"length_{l_i*1e6:.2f}um_ID_w(VG)_mismatch",
+        x_specifier=sp_vg,
+        y_label="$I_{\mathrm{D}}/w(mA/um)$",
+        y_scale=1e3 / 1e6,
     )
     for dut in lib:
         if dut.flavor == device_flavor and np.isclose(dut.length, l_i):
@@ -169,49 +178,56 @@ for l_i in lengths:
             df = df[np.isclose(df[sp_vb], 0)]
             df = df[np.isclose(df[sp_vd], 1.8)]
 
-            plot.add_data_set(
-                df[sp_vg],
-                df[sp_id] / dut.width,
-                label=f"w={dut.width*1e6:.2f}um, {dut.contact_info}",
-            )
+            if dut.die in [2602, 2605, 2607, 2608, 2611, 2612, 2618, 2622, 2624, 2627]:
+                plot_mismatch.add_data_set(
+                    df[sp_vg],
+                    df[sp_id] / dut.width,
+                    label=f"w={dut.width*1e6:.2f}um, {dut.contact_info}",
+                )
+            else:
+                plot.add_data_set(
+                    df[sp_vg],
+                    df[sp_id] / dut.width,
+                    label=f"w={dut.width*1e6:.2f}um, {dut.contact_info}",
+                )
 
     plots.append(plot)
+    plots.append(plot_mismatch)
 
-# for plt in plots[:-1]:
-#     plt.plot_pyqtgraph(show=False)
+for plt in plots[:-1]:
+    plt.plot_pyqtgraph(show=False)
 
-# plots[-1].plot_pyqtgraph(show=True)
+plots[-1].plot_pyqtgraph(show=True)
 
-
-# plots[-1].save_tikz(
-#     Path(__file__).parent.parent / "_static" / "readin_dut_lib",
-#     standalone=True,
-#     build=True,
-#     clean=True,
-#     width="6in",
-#     legend_location="upper right outer",
-# )
-
-
-# To get a pdf with all information about the measurements DocuDutLib can be used:
-# Be aware that this feature is currently in a early state and feedback/improvemend suggestions are very welcome.
-docu = DocuDutLib(lib, devices=[{"name": "esd_nfet_01v8"}])
-docu.generate_docu(
-    lib_save_dir.parent / "docu_skywater130_raw",
-    plot_specs=[
-        {"type": "id(vg)", "key": "IDVG", "dut_type": DutType.n_mos},
-        {"type": "id(vg)", "key": "IDVG", "dut_type": DutType.p_mos},
-        {"type": "id(vd)", "key": "IDVD", "dut_type": DutType.n_mos},
-        {"type": "id(vd)", "key": "IDVD", "dut_type": DutType.p_mos},
-    ],
-    show=False,
-    save_tikz_settings={
-        "width": "3in",
-        "height": "5in",
-        "standalone": True,
-        "svg": False,
-        "build": True,
-        "mark_repeat": 20,
-        "clean": True,  # Remove all files except *.pdf files in plots
-    },
+plots[-1].save_tikz(
+    Path(__file__).parent.parent / "_static" / "readin_dut_lib",
+    standalone=True,
+    build=True,
+    clean=True,
+    width="6in",
+    legend_location="upper left",
 )
+
+
+# # To get a pdf with all information about the measurements DocuDutLib can be used:
+# # Be aware that this feature is currently in a early state and feedback/improvemend suggestions are very welcome.
+# docu = DocuDutLib(lib, devices=[{"name": "esd_nfet_01v8"}])
+# docu.generate_docu(
+#     lib_save_dir.parent / "docu_skywater130_raw",
+#     plot_specs=[
+#         {"type": "id(vg)", "key": "IDVG", "dut_type": DutType.n_mos},
+#         {"type": "id(vg)", "key": "IDVG", "dut_type": DutType.p_mos},
+#         {"type": "id(vd)", "key": "IDVD", "dut_type": DutType.n_mos},
+#         {"type": "id(vd)", "key": "IDVD", "dut_type": DutType.p_mos},
+#     ],
+#     show=False,
+#     save_tikz_settings={
+#         "width": "3in",
+#         "height": "5in",
+#         "standalone": True,
+#         "svg": False,
+#         "build": True,
+#         "mark_repeat": 20,
+#         "clean": True,  # Remove all files except *.pdf files in plots
+#     },
+# )

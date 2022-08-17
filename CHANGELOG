@@ -17,6 +17,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Added a RuntimeWarning when loading a parameter for a MCard which is out of bounds.
 - Added a mdm-reader test case for SkywaterPDK raw measurement data
 - Added an example to the docu how to read and handle the SkywaterPDK raw data in a DutLib
+- Added an error for non-unique dut names in a DutLib. Names must be unique to generate separate save folders.
 
 ### Changed
 
