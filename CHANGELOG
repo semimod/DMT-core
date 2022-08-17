@@ -4,7 +4,7 @@ All changes of DMT starting from version 1.3.0 will be documented in this file. 
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] - 
+## [1.7.0] - 2022.08.17
 
 ### Added
 
@@ -17,6 +17,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Added a RuntimeWarning when loading a parameter for a MCard which is out of bounds.
 - Added a mdm-reader test case for SkywaterPDK raw measurement data
 - Added an example to the docu how to read and handle the SkywaterPDK raw data in a DutLib
+- Added McSkywater to simulate Skywater130 PDK models using DutNgspice
 - Added an error for non-unique dut names in a DutLib. Names must be unique to generate separate save folders.
 
 ### Changed
@@ -26,6 +27,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - `SpecifierStr.sub_specifiers` are now `frozenset` instead of a list. This fixes the order issue and at the same time improves readability when testing.
 - `SpecifierStr.__contains__` now properly testing containement without the shortcut using string casts.
 - The DMT.core.Sweep attributes are now proteced by setters and getters to ensure types.
+- All McParameter names are casted to lower case.
 
 ### Fixed
 
