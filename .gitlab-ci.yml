@@ -11,7 +11,6 @@ variables:
 stages:
   - format
   - test
-  - deploy
   - create_release
   - release
 
@@ -68,65 +67,19 @@ test_DMT:
         coverage_format: cobertura
         path: coverage.xml
 
-wheel_to_gitlab:
-  image: registry.gitlab.com/dmt-development/dmt-core:base
-  stage: deploy
-  rules:
-    - if: $CI_COMMIT_BRANCH == "main"
-  needs:
-    - job: test_DMT
-  script:
-    - python3 setup.py sdist bdist_wheel
-    - TWINE_PASSWORD="$CI_JOB_TOKEN" TWINE_USERNAME=gitlab-ci-token python3 -m twine upload --verbose --repository-url ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/pypi dist/*
-    - echo "WHEEL_NAME=$(ls dist/*.whl)"
-    - echo "ARCHIV_NAME=$(ls dist/*.gz)"
-  artifacts:
-    paths:
-      - $WHEEL_NAME
-      - $ARCHIV_NAME
-
-pages:
-  image: registry.gitlab.com/dmt-development/dmt-core:base
-  stage: deploy
-  rules:
-    - if: $CI_COMMIT_BRANCH == "main"
-  needs:
-    - job: test_DMT
-  script:
-    - pip install -e .[develop,HDF5,latex,remote]
-    - cd doc ; make html
-    - mv build/html/ ../public/
-  artifacts:
-    paths:
-      - public
-  
-sbom:
-  image: registry.gitlab.com/dmt-development/dmt-core:base
-  stage: deploy
-  rules:
-    - if: $CI_COMMIT_BRANCH == "main"
-  needs:
-    - job: test_DMT
-  script:
-     - pip install --upgrade --upgrade-strategy eager -e .[develop,HDF5,latex,remote]
-     - pip install cyclonedx-bom
-     - cyclonedx-bom -e
-  artifacts:
-    paths:
-      - cyclonedx.xml
- 
-
 wheel_to_pypi:
   image: registry.gitlab.com/dmt-development/dmt-core:base
   stage: create_release
   rules:
     - if: $CI_COMMIT_TAG =~ /^Version/
   script:
+    - echo "VERSION_NR=$(python3 DMT/external/pypi.py --check_version $CI_COMMIT_TAG)"
+    - sed -i 's/9.9.9/$VERSION_NR/' setup.py
     - python3 setup.py sdist bdist_wheel
     - python3 -c "import re; match = re.search(r'(## \[\d.+?)((## \[)|\Z)', open('CHANGELOG').read(), re.DOTALL); print(match.group(1))" | tee current_changes.md
     # push to pip
     - TWINE_PASSWORD="$PIP_JOB_TOKEN" TWINE_USERNAME=__token__ python3 -m twine upload --verbose --repository-url https://upload.pypi.org/legacy/  dist/*
-    - echo "WHEEL_LINK=$(python3 DMT/external/pypi.py)" >> wheel_to_pypi.env
+    - echo "WHEEL_LINK=$(python3 DMT/external/pypi.py --wheel_link)" >> wheel_to_pypi.env
   artifacts:
     paths:
       - current_changes.md
@@ -146,6 +99,36 @@ release_job:
       --tag-name $CI_COMMIT_TAG --ref $CI_COMMIT_SHA
       --assets-link "{\"name\":\"wheel\",\"url\":\"${WHEEL_LINK}\",\"link_type\":\"other\",\"filepath\":\"/assets/DMT_core.whl\"}" 
   
+pages:
+  image: registry.gitlab.com/dmt-development/dmt-core:base
+  stage: release
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^Version/
+  needs:
+    - job: wheel_to_pypi
+  script:
+    - pip install --upgrade --upgrade-strategy eager -e .[develop,HDF5,latex,remote]
+    - cd doc ; make html
+    - mv build/html/ ../public/
+  artifacts:
+    paths:
+      - public
+  
+sbom:
+  image: registry.gitlab.com/dmt-development/dmt-core:base
+  stage: release
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^Version/
+  needs:
+    - job: wheel_to_pypi
+  script:
+     - pip install --upgrade --upgrade-strategy eager -e .[develop,HDF5,latex,remote]
+     - pip install cyclonedx-bom
+     - cyclonedx-bom -e
+  artifacts:
+    paths:
+      - cyclonedx.xml
+
 build_container:
   image: docker:20.10.17
   stage: release
