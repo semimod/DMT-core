@@ -195,6 +195,8 @@ class MCard(McParameterCollection):
 
         elif __MCard__ == VersionInfo(major=2, minor=0):
             pass  # nothing to do here?!
+        elif __MCard__ == VersionInfo(major=2, minor=1):
+            pass  # nothing to do here?!
         elif __MCard__ != SEMVER_MCARD_CURRENT:
             raise NotImplementedError("DMT->MCard: Unknown version of MCard to create!")
 

@@ -138,8 +138,10 @@ class SimCon(object, metaclass=Singleton):
 
         Returns
         -------
-        [type]
-            [description]
+        boolean
+            True, if no simulation failed. This means it is also true if no simulation was run at all.
+        boolean
+            True, if any simulation was started. False if all simulations were read from hard disk.
         """
         # reduce number of jobs if we only read a very low number of simulations
         n_jobs = self.n_core if len(self.sim_list) > self.n_core else len(self.sim_list)

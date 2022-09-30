@@ -279,6 +279,7 @@ def tex_to_text(tex):
     tex = resolve_siunitx(tex)
     tex = tex.replace("\\num", "")
     tex = tex.replace("\\mathrm", "")
+    tex = tex.replace("\\quad", "  ")
     tex = tex.replace("\\left(", "(")
     tex = tex.replace("\\right)", ")")
     tex = tex.replace("{", "")
