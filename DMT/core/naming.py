@@ -245,7 +245,7 @@ class SpecifierStr(str):
             else:
                 return r"$" + self.to_tex() + left_brack + tex_unit + right_brack + r"$"
 
-    def to_legend_with_value(self, value, scale=1, **kwargs) -> str:
+    def to_legend_with_value(self, value, scale=1, decimals=2, **kwargs) -> str:
         """Creates a SI legend entry in the form : specifier_tex = \\SI{value}{scale, spec_unit}
 
         Parameters
@@ -275,12 +275,12 @@ class SpecifierStr(str):
         if self.specifier in UNIT_PREFIX_MIX:  # mixed unit
             unit_with_prefix = UNIT_PREFIX_MIX[self.specifier][np.round(scale, decimals=10)]
 
-            return f"${self.to_tex(**kwargs):s}=\\SI{{{value * scale:.2f}}}{{{unit_with_prefix:s}{unit:s}}}$"
+            return f"${self.to_tex(**kwargs):s}=\\SI{{{value * scale:.{decimals}f}}}{{{unit_with_prefix:s}{unit:s}}}$"
 
         else:
             unit_prefix = UNIT_PREFIX[scale]
 
-            return f"${self.to_tex(**kwargs):s}=\\SI{{{value * scale:.2f}}}{{{unit_prefix:s}{unit:s}}}$"
+            return f"${self.to_tex(**kwargs):s}=\\SI{{{value * scale:.{decimals}f}}}{{{unit_prefix:s}{unit:s}}}$"
 
     def to_raw_string(self) -> str:
         """get a raw string from the specifier -> can be used for string operations and variable naming...
@@ -670,6 +670,7 @@ def get_pint_unit(self) -> pint.Unit:
         specifiers.UNILATERAL_GAIN: unit_registry.dimensionless,
         specifiers.VOLTAGE: unit_registry.volt,
         specifiers.CAPACITANCE: unit_registry.farad,
+        specifiers.CHARGE: unit_registry.coulomb,
         specifiers.FREQUENCY: unit_registry.hertz,
         specifiers.CURRENT: unit_registry.ampere,
         specifiers.CURRENT_DENSITY: unit_registry.ampere_per_square_meter,
@@ -1017,6 +1018,7 @@ natural_scales = {
     specifiers.TRANSCONDUCTANCE: 1,
     specifiers.TRANSIT_FREQUENCY: 1e-9,
     specifiers.CAPACITANCE: 1e15,
+    specifiers.CHARGE: 1e15,
     specifiers.SS_PARA_Y: 1e3,
     specifiers.DC_CURRENT_AMPLIFICATION: 1,
     specifiers.FREQUENCY: 1e-9,  # GHz

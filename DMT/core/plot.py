@@ -393,7 +393,7 @@ class Plot(object):
                 y_scale = natural_scales[y_specifier.specifier]
         except KeyError as err:
             raise IOError(
-                "can not find natural scale for specifier of x-axis:" + str(y_specifier)
+                "can not find natural scale for specifier of y-axis:" + str(y_specifier)
             ) from err
 
         if y_scale is not None:

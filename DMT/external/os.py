@@ -108,4 +108,5 @@ def slugify(s: str) -> str:
     """
     s = str(s).strip().replace(" ", "_")
     s = s.replace(".", "_dot_")
+    s = s.replace("@", "_at_")
     return re.sub(r"(?u)[^-\w.]", "", s)
