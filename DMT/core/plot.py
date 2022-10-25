@@ -46,6 +46,12 @@ if "PYQTGRAPH_QT_LIB" not in os.environ:  # user did not choose Backend. Try to 
 try:
     import pyqtgraph
     from pyqtgraph.Qt import QtCore
+
+    if hasattr(pyqtgraph, "QtWidgets"):
+        pyqt_widgets = pyqtgraph.QtWidgets
+    else:
+        pyqt_widgets = pyqtgraph.Qt.QtGui
+
 except ImportError:
     print(f"DMT->Plot: Failed to import plotting module pyqtgraph.")
 
@@ -968,7 +974,7 @@ class Plot(object):
 
         if Plot.qt_application is None and not only_widget:
             try:
-                Plot.qt_application = pyqtgraph.Qt.QtGui.QApplication([])  # type: ignore
+                Plot.qt_application = pyqt_widgets.QApplication([])  # type: ignore
             except RuntimeError:
                 Plot.qt_application = "Already started"
 
@@ -977,12 +983,12 @@ class Plot(object):
 
         if not only_widget:
             # make own window
-            self.mw_pg = pyqtgraph.Qt.QtGui.QMainWindow()  # type: ignore
+            self.mw_pg = pyqt_widgets.QMainWindow()  # type: ignore
             self.mw_pg.setWindowTitle(self.num)
             self.mw_pg.resize(*figure_size)
-            cw = pyqtgraph.Qt.QtGui.QWidget()  # type: ignore
+            cw = pyqt_widgets.QWidget()  # type: ignore
             self.mw_pg.setCentralWidget(cw)
-            qt_layout = pyqtgraph.Qt.QtGui.QVBoxLayout()  # type: ignore
+            qt_layout = pyqt_widgets.QVBoxLayout()  # type: ignore
             cw.setLayout(qt_layout)
             qt_layout.addWidget(self.pw_pg)
 
@@ -1171,7 +1177,7 @@ class Plot(object):
         ## Start Qt event loop unless running in interactive mode or using pyside.
         if show:
             if sys.flags.interactive != 1 or not hasattr(pyqtgraph.Qt.QtCore, "PYQT_VERSION"):
-                pyqtgraph.QtGui.QApplication.exec_()  # type: ignore
+                pyqt_widgets.QApplication.exec_()  # type: ignore
 
         if only_widget:
             return self.pw_pg
@@ -1182,7 +1188,7 @@ class Plot(object):
         """Reshows the PyQtGraph main window and startes the Qt event loop"""
         if self.mw_pg is not None:
             self.mw_pg.show()
-            pyqtgraph.QtGui.QApplication.exec_()  # type: ignore
+            pyqt_widgets.QApplication.exec_()  # type: ignore
 
     def _convert_mpl_to_pyqt(self, mpl_style):
         """Returns a corresponding PyQtGraph style for a given matplotlib style.
