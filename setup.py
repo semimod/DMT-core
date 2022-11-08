@@ -60,6 +60,8 @@ setuptools.setup(
         "semver",
         "verilogae>=0.9b4",
         "h5py",
+        "cycler",
+        "colormath",
     ],
     extras_require=EXTRAS_REQUIRE,
 )
