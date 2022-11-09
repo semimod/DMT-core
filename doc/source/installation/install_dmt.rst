@@ -118,6 +118,40 @@ To install DMT-core just run in:
 
     python3.10 -m pip install DMT-core[full]
 
+As you can see `DMT-core` offers some installation variants with different dependencies (indicated by the closed brackets). The variants and their additional dependencies are:
+
+
++------------+------------------------------+
+| Variant    | Extra required packages      |
++============+==============================+
+| HDF5       | tables                       |
++------------+------------------------------+
+| pyqtgraph  | pyqtgraph                    |
++------------+------------------------------+
+| matplotlib | matplotlib                   |
++------------+------------------------------+
+| pyside2    | PySide2                      |
++------------+------------------------------+
+| pyqt5      | PyQt5                        |
++------------+------------------------------+
+| smithplot  | matplotlib, pysmithplot-3.10 |
++------------+------------------------------+
+| develop    | pylint, black                |
++------------+------------------------------+
+| latex      | pylatex, pylatexenc          |
++------------+------------------------------+
+| remote     | paramiko, scp                |
++------------+------------------------------+
+| full       | All of above except PyQt5    |
++------------+------------------------------+
+
+It is possible to choose multiple variants at once. We recommend either the full install or at least:
+
+.. code:: bash
+
+    python3.10 -m pip install DMT-core[develop,HDF5,pyqtgraph,pyside2]
+
+
 If a newer version is needed, the release candidates can be installed from gitlab directly:
 
 .. code:: bash
