@@ -205,7 +205,7 @@ class SpecifierStr(str):
 
             return r"\si{" + unit + add + r"}"
 
-    def to_label(self, scale=1, negative=False, divide_by_unit=False) -> str:
+    def to_label(self, scale=1, negative=False, divide_by_unit=False, **kwargs) -> str:
         """Generates a label for plots for this specifier, where scale determines the unit prefix.
 
         Parameters
@@ -219,6 +219,9 @@ class SpecifierStr(str):
         divide_by_unit : bool, optional
             If True, the unit is given as division, if False in brackets.
 
+        kwargs : optional
+            Keyword arguments passed on to self.to_tex(). Currently this allows subscript and superscript strings.
+
         Returns
         -------
         unit : string
@@ -231,9 +234,9 @@ class SpecifierStr(str):
             else:
                 tex_unit = "/" + tex_unit
             if negative:
-                return r"$-" + self.to_tex() + tex_unit + r"$"
+                return r"$-" + self.to_tex(**kwargs) + tex_unit + r"$"
             else:
-                return r"$" + self.to_tex() + tex_unit + r"$"
+                return r"$" + self.to_tex(**kwargs) + tex_unit + r"$"
         else:
             left_brack = r"\left("
             right_brack = r"\right)"
@@ -241,9 +244,9 @@ class SpecifierStr(str):
                 left_brack = ""
                 right_brack = ""
             if negative:
-                return r"$-" + self.to_tex() + left_brack + tex_unit + right_brack + r"$"
+                return r"$-" + self.to_tex(**kwargs) + left_brack + tex_unit + right_brack + r"$"
             else:
-                return r"$" + self.to_tex() + left_brack + tex_unit + right_brack + r"$"
+                return r"$" + self.to_tex(**kwargs) + left_brack + tex_unit + right_brack + r"$"
 
     def to_legend_with_value(self, value, scale=1, decimals=2, **kwargs) -> str:
         """Creates a SI legend entry in the form : specifier_tex = \\SI{value}{scale, spec_unit}
