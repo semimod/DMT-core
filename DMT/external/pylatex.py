@@ -22,12 +22,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 from DMT.external.latex import build_tex
 
-try:  # soft dependency: DMT can be used without pylatex...
-    from pylatex import Section
-    from pylatex import Package, NoEscape
-    from pylatex.base_classes import CommandBase, Container
-except ImportError:
-    pass
+from pylatex import Section
+from pylatex import Package, NoEscape
+from pylatex.base_classes import CommandBase, Container
 
 
 class Tex(Section):
