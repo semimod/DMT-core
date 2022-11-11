@@ -77,7 +77,51 @@ test_dependencies:
   needs:
     - job: check_format
   script:
-    - pip install --upgrade --upgrade-strategy eager -e .[develop,HDF5,latex,remote,matplotlib]
+    - pip install matplotlib # scikit-rf 0.24.0 issue
+    - pip install  -e .
+    - python3 test/test_core_no_interfaces/test_MCard.py
+    # test all optional variants
+
+    # HDF5
+    - pip install -e .[HDF5]
+    - python3 test/test_core_no_interfaces/test_MCard.py
+    - pip uninstall -y tables
+
+    # pyqtgraph and pyside2
+    - pip install -e .[pyqtgraph,pyside2]
+    - python3 test/test_core_no_interfaces/test_MCard.py
+    - pip uninstall -y pyqtgraph PySide2
+
+    # pyqtgraph and pyqt5
+    - pip install -e .[pyqtgraph,pyqt5]
+    - python3 test/test_core_no_interfaces/test_MCard.py
+    - pip uninstall -y pyqtgraph PyQt5
+
+    # matplotlib
+    - pip install -e .[matplotlib]
+    - python3 test/test_core_no_interfaces/test_MCard.py
+    # - pip uninstall -y matplotlib
+
+    # smithplot
+    - pip install -e .[smithplot]
+    - python3 test/test_core_no_interfaces/test_MCard.py
+    - pip uninstall -y matplotlib pysmithplot-3.10
+
+    # develop
+    - pip install -e .[develop]
+    - python3 test/test_core_no_interfaces/test_MCard.py
+    - pip uninstall -y pylint black
+
+    # latex 
+    - pip install -e .[latex]
+    - python3 test/test_core_no_interfaces/test_MCard.py
+    - pip uninstall -y pylatex pylatexenc
+
+    # remote 
+    - pip install -e .[remote]
+    - python3 test/test_core_no_interfaces/test_MCard.py
+    - pip uninstall -y paramiko scp
+
 
 wheel_to_pypi:
   image: registry.gitlab.com/dmt-development/dmt-core:base
