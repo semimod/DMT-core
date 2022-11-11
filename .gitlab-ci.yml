@@ -105,7 +105,8 @@ test_dependencies:
     # smithplot
     - pip install -e .[smithplot]
     - python3 test/test_core_no_interfaces/test_MCard.py
-    - pip uninstall -y matplotlib pysmithplot-3.10
+    # - pip uninstall -y matplotlib pysmithplot-3.10
+    - pip uninstall -y pysmithplot-3.10
 
     # develop
     - pip install -e .[develop]
