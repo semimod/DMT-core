@@ -46,11 +46,12 @@ UNIT_PREFIX = {
     1e15: r"\femto",
 }
 UNIT_PREFIX_MIX = {
-    "J": {  # current density
+    "J": {  # current density-> they are all over the place :/
         1e-9: r"\milli\ampere\per\square\micro\meter",
         1e-6: r"\micro\ampere\per\square\micro\meter",
         1e-3: r"\milli\ampere\per\square\micro\meter",
         1e-0: r"\ampere\per\square\micro\meter",
+        1e+3: r"\milli\ampere\per\square\micro\meter",
     },
     "F": {
         1: r"\volt\per\meter",
