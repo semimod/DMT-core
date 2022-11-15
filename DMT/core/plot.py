@@ -1484,6 +1484,18 @@ class Plot(object):
             str_width = "width=0.951*\\figurewidth,\n"
         else:
             str_width = "width=" + width + ",\n"
+
+        if self.pw_pg is not None:
+            if self.pw_pg.plotItem.ctrl.logXCheck.isChecked():
+                self.x_axis_scale = "log"
+            else:
+                self.x_axis_scale = "linear"
+
+            if self.pw_pg.plotItem.ctrl.logYCheck.isChecked():
+                self.y_axis_scale = "log"
+            else:
+                self.y_axis_scale = "linear"
+
         str_x_log = "" if self.x_axis_scale == "linear" else "xmode=log,\n"
         str_y_log = "" if self.y_axis_scale == "linear" else "ymode=log,\n"
 

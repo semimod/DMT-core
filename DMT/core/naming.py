@@ -51,7 +51,7 @@ UNIT_PREFIX_MIX = {
         1e-6: r"\micro\ampere\per\square\micro\meter",
         1e-3: r"\milli\ampere\per\square\micro\meter",
         1e-0: r"\ampere\per\square\micro\meter",
-        1e+3: r"\milli\ampere\per\square\micro\meter",
+        1e3: r"\milli\ampere\per\square\micro\meter",
     },
     "F": {
         1: r"\volt\per\meter",
@@ -534,6 +534,7 @@ class _specifiers(GlobalObj, metaclass=Singleton):
     CURRENT = SpecifierStr("I")
     CAPACITANCE = SpecifierStr("C")
     CHARGE = SpecifierStr("Q")
+    CHARGE_DENSITY = SpecifierStr("Q''")
     INDUCTANCE = SpecifierStr("L")
     TEMPERATURE = SpecifierStr("TEMP")
     TIME = SpecifierStr("TIME")
@@ -675,6 +676,7 @@ def get_pint_unit(self) -> pint.Unit:
         specifiers.VOLTAGE: unit_registry.volt,
         specifiers.CAPACITANCE: unit_registry.farad,
         specifiers.CHARGE: unit_registry.coulomb,
+        specifiers.CHARGE_DENSITY: unit_registry.coulomb_per_square_meter,
         specifiers.FREQUENCY: unit_registry.hertz,
         specifiers.CURRENT: unit_registry.ampere,
         specifiers.CURRENT_DENSITY: unit_registry.ampere_per_square_meter,
@@ -1023,6 +1025,7 @@ natural_scales = {
     specifiers.TRANSIT_FREQUENCY: 1e-9,
     specifiers.CAPACITANCE: 1e15,
     specifiers.CHARGE: 1e15,
+    specifiers.CURRENT_DENSITY: 1e15 / (1e6 * 1e6),  # fF/um^2
     specifiers.SS_PARA_Y: 1e3,
     specifiers.DC_CURRENT_AMPLIFICATION: 1,
     specifiers.FREQUENCY: 1e-9,  # GHz
