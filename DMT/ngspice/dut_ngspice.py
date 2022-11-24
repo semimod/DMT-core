@@ -102,6 +102,7 @@ class DutNgspice(DutCircuit):
         simulator_options = default_options
 
         self.initial_conditions = initial_conditions
+        self.devices_op_vars = []
 
         # set temperature to find it easily later!
         # simulator_options['Temp'] = r'{TEMP}'
@@ -145,6 +146,7 @@ class DutNgspice(DutCircuit):
                 "For ADS circuits netlist generation is only possible from object of class DMT.classes.Circuit"
             )
 
+        self.devices_op_vars = []
         str_netlist = "DMT generated netlist\n"
         str_netlist += ".Options " + self._convert_dict_to_inp_line(self.simulator_options) + "\n"
 
@@ -238,65 +240,21 @@ class DutNgspice(DutCircuit):
             # add temperature from othervar
             str_netlist = self.inp_header + "\n.temp {:10.10e}\n".format(
                 sweep.othervar["TEMP"] - constants.P_CELSIUS0
-            )
-        elif index_temp_swd != 0:
-            # sorry :(, could be possible as soon as temperature sweeps are implemented. See add_temperature_sweep
-            raise NotImplementedError("For ADS a temperature sweep has to be the outermost sweep!")
+            )                ["@Q_Q_H[{:s}]".format(out) for out in self.devices_op_vars]
+            )a temperature sweep has to be the outermost sweep!")
         else:
             # add the correct temperature sweep and remove it from sweepdefs
             str_netlist = self.inp_header + self.add_temperature_sweep(sweepdefs[0])
             del sweepdefs[0]
 
         # output def
-        # TODO: dirty fix to debug ngspice..
-        # this is really messy...
-        # device_out = [
-        #     "temp",
-        #     "m",
-        #     "vbe",
-        #     "vbc",
-        #     "vce",
-        #     "vsc",
-        #     "vbbp",
-        #     "ic",
-        #     "ib",
-        #     "ie",
-        #     "iavl",
-        #     "is",
-        #     "ibei",
-        #     "ibci",
-        #     "it",
-        #     "vbiei",
-        #     "vbpbi",
-        #     "vbici",
-        #     "vciei",
-        #     "rcx_t",
-        #     "re_t",
-        #     "rbi",
-        #     "rb",
-        #     "betadc",
-        #     "gmi",
-        #     "gms",
-        #     "rpii",
-        #     "rpix",
-        #     "rmui",
-        #     "rmux",
-        #     "roi",
-        #     "cpii",
-        #     "cpix",
-        #     "cmui",
-        #     "cmux",
-        #     "ccs",
-        #     "betaac",
-        #     "crbi",
-        #     "tf",
-        #     "ft",
-        #     "ick",
-        #     "p",
-        #     "tk",
-        #     "dtsh",
-        # ]
-        # str_netlist += ".save all " + " ".join(["@Q_Q_H[{:s}]".format(out) for out in device_out])
+        if tmp_sweep.outputdef:
+            str_netlist += ".save all "
+            if "OpVar" in tmp_sweep.outputdef:
+                str_netlist += " ".join(self.devices_op_vars) + " "
+                tmp_sweep.outputdef.remove("OpVar")
+
+            str_netlist += " ".join(tmp_sweep.outputdef)
 
         # ngspice control statement
         str_netlist += "\n\n.control\n"
@@ -832,9 +790,9 @@ class DutNgspice(DutCircuit):
         if circuit_element.parameters is not None:
             if isinstance(circuit_element.parameters, MCard):
                 str_temp = "+ "
+                mcard = circuit_element.parameters
 
                 if circuit_element.element_type in ["hicumL2va", HICUML2_HBT, "hicumL2_test"]:
-                    mcard = circuit_element.parameters
                     str_instance_parameters = ""
                     str_model_parameters = ""
                     str_type = "NPN"
@@ -857,7 +815,6 @@ class DutNgspice(DutCircuit):
                         + f"+ {str_model_parameters}"
                     )
                 elif circuit_element.element_type in [SGP_BJT, "bjtn"]:
-                    mcard = circuit_element.parameters
                     str_instance_parameters = ""
                     str_model_parameters = ""
                     str_type = "NPN"
@@ -878,21 +835,17 @@ class DutNgspice(DutCircuit):
                         + f"+ {str_model_parameters}"
                     )
                 elif circuit_element.element_type in [DIODE]:
-                    mcard = circuit_element.parameters
                     str_instance_parameters = ""
                     str_model_parameters = ""
                     str_type = "NPN"
                     additional_str = ""
                     for para in sorted(mcard.paras, key=lambda x: (x.group, x.name)):
                         if para.name == "osdi":
-                            if para - value == 1:
-                                additional_str = " osdi " + circuit_element.name
-                        str_model_parameters += "{0:s}={0:10.10e} ".format(para)
+                            if para.va)ters += "{0:s}={0:10.10e} ".format(para)
 
                     str_temp = f"\n.model dmod {additional_str} d( {str_model_parameters} )"  # we should count here somehow the models
                 elif "sky130_fd_pr" in circuit_element.element_type:
                     # skywater 130 device
-                    mcard = circuit_element.parameters
                     str_instance_parameters = ""
 
                     for para in sorted(mcard.paras, key=lambda x: (x.group, x.name)):
@@ -909,6 +862,9 @@ class DutNgspice(DutCircuit):
                         f"The element type {circuit_element.element_type} is not implemented for ngspice.",
                         "Check the ngspice manual if this type needs special treatment and implement it accordingly.",
                     )
+                
+                self.devices_op_vars +=  [f"@{element_type}_{circuit_element.name}[{op_var:s}]" for op_var in mcard.op_vars]
+            
             else:
                 str_temp = []
                 for (para, value) in circuit_element.parameters:

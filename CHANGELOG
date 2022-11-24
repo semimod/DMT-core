@@ -11,7 +11,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Pushing release-candidates to Pypi with ensured transparent versioning using git tags.
 - Added cycler and colormath package dependencies
 - Proper optional pylatex dependency
-- Added pass-through kwargs from SpecifierStr.to_label() to SpecifierStr.to_tex()
+- SpecifierStr: Added pass-through kwargs from SpecifierStr.to_label() to SpecifierStr.to_tex()
+- MCard: Added op_vars back to MCard and pushed its semver to 2.2. op_vars will be used in DutNgspice
+- DutNgspice: Added devices_op_vars to collect all op_vars in a netlist and add them if OpVars is given in the sweep.outputdef
+- DutNgspice: Added sweep.outputdef to netlist in save_all directive
 
 ## Changed
 
