@@ -186,41 +186,7 @@ def get_circuit(self, use_build_in=False, topology="common_emitter", **kwargs):
     return Circuit(circuit_elements)
 
 
-def test_ngspice():
-    col_vb = specifiers.VOLTAGE + "B"
-    col_ib = specifiers.CURRENT + "B"
-    col_ic = specifiers.CURRENT + "C"
-
-    mc_D21 = MCard(
-        ["C", "B", "E", "S", "T"],
-        default_module_name="",
-        default_subckt_name="",
-        va_file=folder_path.parent
-        / "test_core_no_interfaces"
-        / "test_va_code"
-        / "hicuml2"
-        / "hicumL2V2p4p0_release.va",
-    )
-    mc_D21.load_model_parameters(
-        folder_path.parent
-        / "test_core_no_interfaces"
-        / "test_modelcards"
-        / "IHP_ECE704_03_para_D21.mat",
-    )
-    mc_D21.update_from_vae(remove_old_parameters=True)
-    mc_D21.get_circuit = types.MethodType(get_circuit, mc_D21)
-
-    dut = DutNgspice(
-        None,
-        DutType.npn,
-        mc_D21,
-        nodes="C,B,E,S,T",
-        reference_node="E",
-        get_circuit_arguments={"use_build_in": True},
-    )
-    # dut = DutXyce(None, DutType.npn, mc_D21, nodes="C,B,E,S,T", reference_node="E")
-    duts = [dut]
-
+def create_sweep():
     # create a sweep
     sweepdef = [
         {
@@ -250,7 +216,49 @@ def test_ngspice():
     ]
     outputdef = []
     othervar = {"TEMP": 300}
-    sweep = Sweep("gummel", sweepdef=sweepdef, outputdef=outputdef, othervar=othervar)
+    return Sweep("gummel", sweepdef=sweepdef, outputdef=outputdef, othervar=othervar)
+
+
+def test_ngspice(sweep, build_in):
+    col_vb = specifiers.VOLTAGE + "B"
+    col_ib = specifiers.CURRENT + "B"
+    col_ic = specifiers.CURRENT + "C"
+
+    mc_D21 = MCard(
+        ["C", "B", "E", "S", "T"],
+        default_module_name="",
+        default_subckt_name="",
+        va_file=folder_path.parent
+        / "test_core_no_interfaces"
+        / "test_va_code"
+        / "hicuml2"
+        / "hicumL2V2p4p0_release.va",
+    )
+    mc_D21.load_model_parameters(
+        folder_path.parent
+        / "test_core_no_interfaces"
+        / "test_modelcards"
+        / "IHP_ECE704_03_para_D21.mat",
+    )
+    mc_D21.update_from_vae(remove_old_parameters=True)
+    mc_D21.get_circuit = types.MethodType(get_circuit, mc_D21)
+
+    if build_in:
+        name = "ngspiceBI"
+    else:
+        name = "ngspiceVA"
+
+    dut = DutNgspice(
+        None,
+        DutType.npn,
+        mc_D21,
+        name=name,
+        nodes="C,B,E,S,T",
+        reference_node="E",
+        get_circuit_arguments={"use_build_in": build_in},
+    )
+    # dut = DutXyce(None, DutType.npn, mc_D21, nodes="C,B,E,S,T", reference_node="E")
+    duts = [dut]
 
     sim_con = SimCon()
 
@@ -318,11 +326,13 @@ def test_ngspice():
         ),
     ).all()
 
-    return duts, sweep
+    return duts
 
 
 if __name__ == "__main__":
-    duts, sweep = test_ngspice()
+    sweep = create_sweep()
+    duts_build_in = test_ngspice(sweep=sweep, build_in=True)
+    # duts_VA = test_ngspice(sweep=sweep, build_in=False)
 
     col_vbc = specifiers.VOLTAGE + ["B", "C"]
     col_vbe = specifiers.VOLTAGE + ["B", "E"]
@@ -345,8 +355,8 @@ if __name__ == "__main__":
         style="bw",
     )
 
-    for dut in duts:
-        dut_name = dut.name[5:7]
+    for dut in duts_build_in:
+        dut_name = dut.name + " "
         df = dut.get_data(sweep=sweep)
 
         df.ensure_specifier_column(col_vbe, ports=dut.nodes)
@@ -359,12 +369,12 @@ if __name__ == "__main__":
             plt_gummel.add_data_set(
                 np.real(data[col_vbe].to_numpy()),
                 np.real(data[col_ic].to_numpy()),
-                label=dut_name + " $V_{{CE}} = {0:1.2f} V$".format(np.real(vce)),
+                label=dut_name + col_vce.to_legend_with_value(vce),
             )
             plt_ib.add_data_set(
                 np.real(data[col_vbe].to_numpy()),
                 np.real(data[col_ib].to_numpy()),
-                label=dut_name + " $V_{{CE}} = {0:1.2f} V$".format(np.real(vce)),
+                label=dut_name + col_vce.to_legend_with_value(vce),
             )
 
     plt_ib.plot_pyqtgraph(show=False)
