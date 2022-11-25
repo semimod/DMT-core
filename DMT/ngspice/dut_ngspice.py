@@ -104,9 +104,6 @@ class DutNgspice(DutCircuit):
         self.initial_conditions = initial_conditions
         self.devices_op_vars = []
 
-        # set temperature to find it easily later!
-        # simulator_options['Temp'] = r'{TEMP}'
-
         super().__init__(
             database_dir,
             name,
@@ -131,13 +128,18 @@ class DutNgspice(DutCircuit):
         -------
         netlist : str
         """
+        use_osdi = bool(COMMANDS["OPENVAF"])  # False if None/null
         if isinstance(inp_circuit, MCard) or isinstance(inp_circuit, McParameterCollection):
             # save the modelcard, in case it was set inderectly via the input header!
             self._modelcard = copy.deepcopy(inp_circuit)
             # generate inp_circuit for netlist generation
-            inp_circuit = inp_circuit.get_circuit(**self.get_circuit_arguments)  # type: ignore
+            self._inp_circuit = inp_circuit.get_circuit(**self.get_circuit_arguments)  # type: ignore
+            if (
+                "use_build_in" in self.get_circuit_arguments
+                and self.get_circuit_arguments["use_build_in"]
+            ):
+                use_osdi = False
             # in case a standard circuit is used, this is the real input circuit
-            self._inp_circuit = inp_circuit
         elif isinstance(inp_circuit, Circuit):
             self._modelcard = None
             self._inp_circuit = copy.deepcopy(inp_circuit)
@@ -151,33 +153,49 @@ class DutNgspice(DutCircuit):
         str_netlist += ".Options " + self._convert_dict_to_inp_line(self.simulator_options) + "\n"
 
         # is a modelcard inside the netlist?
-        list_va_files = []
-        for element in inp_circuit.netlist:
+        list_va_files = list()
+        for element in self._inp_circuit.netlist:
             try:
-                if (
-                    isinstance(inp_circuit, MCard)
-                    or isinstance(inp_circuit, McParameterCollection)
-                    and element.parameters.va_file is not None
-                ):
-                    list_va_files.append(element.parameters.va_file)
+                list_va_files.append(element.parameters.va_codes)
             except AttributeError:
+                # element does not have a va_file.
                 pass
 
-        # load va files:
-        for va_file in list_va_files:
-            if self._copy_va_files:
-                self._list_va_file_contents.append(va_file)
-            else:
-                raise NotImplementedError("Absolute path of VA-File for NGSpice...")
-                if os.path.isfile(va_file):
-                    # file is relative to current cwd -> transform to absolute path
-                    va_file = os.path.abspath(va_file)
-                # else: file must be relative to simulation cwd -> nothing to do! Possible error is raised in simulation...
+        if use_osdi:
+            # pre_osdi strings and list to compile
+            va_plugins = []
+            self._va_plugins_to_compile = []  # reset the plugins
+            for vafile in list_va_files:
+                if vafile is None:
+                    continue
+
+                if self._copy_va_files:
+                    self._list_va_file_contents.append(vafile)
+
+                # hash file content
+                va_hash = vafile.get_tree_hash()
+                # check if plugin is already compiled and in the folder
+                path_va_hash = self.sim_dir / "xyce_plugins" / (va_hash + ".so")
+
+                if not path_va_hash.is_file():
+                    # if not: add to "to_compile"
+                    self._va_plugins_to_compile.append((path_va_hash, vafile))
+
+                va_plugins.append(path_va_hash)
+
+            # add to simulator arguments
+            if va_plugins:
+                try:
+                    i_plugin = self.sim_args.index("-plugin")
+                    self.sim_args[i_plugin + 1] = ",".join(str(va_path) for va_path in va_plugins)
+                except ValueError:
+                    self.sim_args.append("-plugin")
+                    self.sim_args.append(",".join(str(va_path) for va_path in va_plugins))
 
         str_netlist += "\n* Netlist\n"
 
         # add elements:
-        for element in inp_circuit.netlist:
+        for element in self._inp_circuit.netlist:
             if isinstance(element, str):
                 # pass
                 if re.match(r"^[\w_]+=", element):
@@ -240,28 +258,32 @@ class DutNgspice(DutCircuit):
             # add temperature from othervar
             str_netlist = self.inp_header + "\n.temp {:10.10e}\n".format(
                 sweep.othervar["TEMP"] - constants.P_CELSIUS0
-            )                ["@Q_Q_H[{:s}]".format(out) for out in self.devices_op_vars]
-            )a temperature sweep has to be the outermost sweep!")
+            )
+        elif index_temp_swd != 0:
+            # sorry :(, could be possible as soon as temperature sweeps are implemented. See add_temperature_sweep
+            raise NotImplementedError("For ADS a temperature sweep has to be the outermost sweep!")
         else:
             # add the correct temperature sweep and remove it from sweepdefs
             str_netlist = self.inp_header + self.add_temperature_sweep(sweepdefs[0])
             del sweepdefs[0]
 
-        # output def
-        if tmp_sweep.outputdef:
-            str_netlist += ".save all "
-            if "OpVar" in tmp_sweep.outputdef:
-                str_netlist += " ".join(self.devices_op_vars) + " "
-                tmp_sweep.outputdef.remove("OpVar")
-
-            str_netlist += " ".join(tmp_sweep.outputdef)
-
         # ngspice control statement
         str_netlist += "\n\n.control\n"
 
+        # output def
+        str_netlist += "save alli allv "
+        str_dc_output = ""
+        if tmp_sweep.outputdef:
+            if "OpVar" in tmp_sweep.outputdef:
+                str_dc_output += " ".join(self.devices_op_vars) + " "
+                tmp_sweep.outputdef.remove("OpVar")
+
+            str_dc_output += " ".join(tmp_sweep.outputdef)
+        str_netlist += str_dc_output
+
         # output settings
         str_netlist += (
-            "set filetype=ascii\n"
+            "\n\nset filetype=ascii\n"
             + "set appendwrite\n"
             + "set wr_vecnames\n"
             + "set wr_singlescale\n"
@@ -363,7 +385,7 @@ class DutNgspice(DutCircuit):
             # dc output statement
 
             # #write to output
-            str_netlist += "wrdata output_ngspice_dc.ngspice all\n"
+            str_netlist += f"wrdata output_ngspice_dc.ngspice alli allv {str_dc_output}\n"
 
             # #if we also need ac, lets go
             if ac:
@@ -792,7 +814,7 @@ class DutNgspice(DutCircuit):
                 str_temp = "+ "
                 mcard = circuit_element.parameters
 
-                if circuit_element.element_type in ["hicumL2va", HICUML2_HBT, "hicumL2_test"]:
+                if circuit_element.element_type == HICUML2_HBT:
                     str_instance_parameters = ""
                     str_model_parameters = ""
                     str_type = "NPN"
@@ -834,16 +856,6 @@ class DutNgspice(DutCircuit):
                         + f".model QMOD {str_type} level=1\n"
                         + f"+ {str_model_parameters}"
                     )
-                elif circuit_element.element_type in [DIODE]:
-                    str_instance_parameters = ""
-                    str_model_parameters = ""
-                    str_type = "NPN"
-                    additional_str = ""
-                    for para in sorted(mcard.paras, key=lambda x: (x.group, x.name)):
-                        if para.name == "osdi":
-                            if para.va)ters += "{0:s}={0:10.10e} ".format(para)
-
-                    str_temp = f"\n.model dmod {additional_str} d( {str_model_parameters} )"  # we should count here somehow the models
                 elif "sky130_fd_pr" in circuit_element.element_type:
                     # skywater 130 device
                     str_instance_parameters = ""
@@ -862,9 +874,12 @@ class DutNgspice(DutCircuit):
                         f"The element type {circuit_element.element_type} is not implemented for ngspice.",
                         "Check the ngspice manual if this type needs special treatment and implement it accordingly.",
                     )
-                
-                self.devices_op_vars +=  [f"@{element_type}_{circuit_element.name}[{op_var:s}]" for op_var in mcard.op_vars]
-            
+
+                self.devices_op_vars += [
+                    f"@{element_type}_{circuit_element.name}[{op_var:s}]"
+                    for op_var in mcard.op_vars
+                ]
+
             else:
                 str_temp = []
                 for (para, value) in circuit_element.parameters:
@@ -922,7 +937,15 @@ class DutNgspice(DutCircuit):
         # join the ac dataframes into one ac dataframe dfs_ac[0]
         df_ac = dfs_ac[0]
         for df in dfs_ac[1:]:
-            for y_param in [col for col in df.columns if col.specifier == specifiers.SS_PARA_Y]:
+            y_cols = []
+            for col in df.columns:
+                try:
+                    if col.specifier == specifiers.SS_PARA_Y:
+                        y_cols.append(col)
+                except AttributeError:
+                    pass  # from AC dataframes ONLY the SS paras are copied other, rest is ignored
+
+            for y_param in y_cols:
                 df_ac[y_param] = df[y_param].to_numpy()
 
         # join the dc data to the ac data

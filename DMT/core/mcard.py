@@ -237,17 +237,6 @@ class MCard(McParameterCollection):
         """
         return self._va_codes
 
-    # @va_codes.setter
-    # def va_codes(self, va_codes_new: VAFile):
-    #     """Set the va_codes
-
-    #     Parameters
-    #     ----------
-    #     va_codes_new : VAFile
-    #         New rel paths with codes
-    #     """
-    #     self._va_codes = va_codes_new
-
     def set_va_codes(
         self, path_to_main_code: Union[os.PathLike, str], version: Union[str, float] = None
     ):

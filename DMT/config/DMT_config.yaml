@@ -19,6 +19,7 @@ commands:
     SPECTRE:    spectre # Command to execute the circuit simulator of Cadence spectre.
     SIMU:       simul # Command to execute the circuit simulator SIMU.
     NGSPICE:    ngspice # Command to execute the circuit simulator ngspice.
+    OPENVAF:    null # Command to execute the veriloga compiler OpenVAF.
     XYCE:       Xyce # Command to execute the circuit simulator Xyce.
     VMC:        vmc # Command to execute the MCBTE simulator VMC
     TEX:        pdflatex # Tex Compiler of your system

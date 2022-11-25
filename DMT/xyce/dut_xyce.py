@@ -41,7 +41,6 @@ from DMT.core import (
     sub_specifiers,
     SpecifierStr,
     DataFrame,
-    create_md5_hash,
     constants,
     print_progress_bar,
 )
