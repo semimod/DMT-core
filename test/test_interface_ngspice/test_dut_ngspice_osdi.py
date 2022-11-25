@@ -245,13 +245,16 @@ def test_ngspice(sweep, build_in):
 
     if build_in:
         name = "ngspiceBI"
+        command = "ngspice"
     else:
         name = "ngspiceVA"
+        command = "ngspice_osdi"
 
     dut = DutNgspice(
         None,
         DutType.npn,
         mc_D21,
+        simulator_command=command,
         name=name,
         nodes="C,B,E,S,T",
         reference_node="E",
