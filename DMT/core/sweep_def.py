@@ -255,7 +255,7 @@ class SweepDef(object):
         """
         if self.sweep_type == "LIN":
             self.values = np.linspace(
-                self.value_def[0], self.value_def[1], self.value_def[2], dtype=np.float64
+                self.value_def[0], self.value_def[1], int(self.value_def[2]), dtype=np.float64
             )
 
         elif self.sweep_type == "CON":
@@ -267,7 +267,7 @@ class SweepDef(object):
 
         elif self.sweep_type == "LOG":
             self.values = np.logspace(
-                self.value_def[0], self.value_def[1], self.value_def[2], dtype=np.float64
+                self.value_def[0], self.value_def[1], int(self.value_def[2]), dtype=np.float64
             )
 
         elif self.sweep_type == "LIST":

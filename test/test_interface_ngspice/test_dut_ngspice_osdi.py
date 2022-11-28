@@ -3,6 +3,9 @@
 import types
 import copy
 from pathlib import Path
+from DMT.config import COMMANDS
+
+COMMANDS["OPENVAF"] = "openvaf"
 from DMT.core import DutType, Sweep, specifiers, SimCon, Plot, MCard
 from DMT.core.circuit import (
     Circuit,
@@ -13,11 +16,21 @@ from DMT.core.circuit import (
     VOLTAGE,
     HICUML2_HBT,
 )
+from DMT.core.sweep_def import SweepDefConst, SweepDefLinear, SweepDefLog
 
 from DMT.ngspice import DutNgspice
 import numpy as np
 
 folder_path = Path(__file__).resolve().parent
+
+col_vb = specifiers.VOLTAGE + "B"
+col_vc = specifiers.VOLTAGE + "C"
+col_ve = specifiers.VOLTAGE + "E"
+col_vbc = specifiers.VOLTAGE + ["B", "C"]
+col_vbe = specifiers.VOLTAGE + ["B", "E"]
+col_vce = specifiers.VOLTAGE + ["C", "E"]
+col_ib = specifiers.CURRENT + "B"
+col_ic = specifiers.CURRENT + "C"
 
 
 def get_circuit(self, use_build_in=False, topology="common_emitter", **kwargs):
@@ -189,41 +202,15 @@ def get_circuit(self, use_build_in=False, topology="common_emitter", **kwargs):
 def create_sweep():
     # create a sweep
     sweepdef = [
-        {
-            "var_name": specifiers.FREQUENCY,
-            "sweep_order": 4,
-            "sweep_type": "LOG",
-            "value_def": [1, 2, 11],
-        },
-        {
-            "var_name": specifiers.VOLTAGE + "B",
-            "sweep_order": 3,
-            "sweep_type": "LIN",
-            "value_def": [0.5, 1, 11],
-        },
-        {
-            "var_name": specifiers.VOLTAGE + "C",
-            "sweep_order": 2,
-            "sweep_type": "CON",
-            "value_def": [1],
-        },
-        {
-            "var_name": specifiers.VOLTAGE + "E",
-            "sweep_order": 1,
-            "sweep_type": "CON",
-            "value_def": [0],
-        },
+        SweepDefLog(specifiers.FREQUENCY, start=1, stop=2, steps=11, sweep_order=4),
+        SweepDefLinear(col_vb, start=0.5, stop=1, steps=11, sweep_order=3),
+        SweepDefConst(col_vc, value_def=1, sweep_order=2),
+        SweepDefConst(col_ve, value_def=0, sweep_order=1),
     ]
-    outputdef = []
-    othervar = {"TEMP": 300}
-    return Sweep("gummel", sweepdef=sweepdef, outputdef=outputdef, othervar=othervar)
+    return Sweep("gummel", sweepdef=sweepdef, outputdef=[], othervar={"TEMP": 300})
 
 
-def test_ngspice(sweep, build_in):
-    col_vb = specifiers.VOLTAGE + "B"
-    col_ib = specifiers.CURRENT + "B"
-    col_ic = specifiers.CURRENT + "C"
-
+def sim_ngspice(sweep, build_in):
     mc_D21 = MCard(
         ["C", "B", "E", "S", "T"],
         default_module_name="",
@@ -260,15 +247,19 @@ def test_ngspice(sweep, build_in):
         reference_node="E",
         get_circuit_arguments={"use_build_in": build_in},
     )
-    # dut = DutXyce(None, DutType.npn, mc_D21, nodes="C,B,E,S,T", reference_node="E")
-    duts = [dut]
-
     sim_con = SimCon()
 
     sim_con.append_simulation(dut=dut, sweep=sweep)
     sim_con.run_and_read(force=True, remove_simulations=False)
 
-    df = dut.get_data(sweep=sweep)
+    return dut
+
+
+def test_ngspice_build_in():
+    sweep = create_sweep()
+    dut_build_in = sim_ngspice(sweep=sweep, build_in=True)
+
+    df = dut_build_in.get_data(sweep=sweep)
     df = df[np.isclose(df[specifiers.FREQUENCY], 100)]
     vb = np.real(df[col_vb].to_numpy())
     ic = np.real(df[col_ic].to_numpy())
@@ -329,36 +320,97 @@ def test_ngspice(sweep, build_in):
         ),
     ).all()
 
-    return duts
+
+def test_ngspice_va():
+    sweep = create_sweep()
+    dut_va = sim_ngspice(sweep=sweep, build_in=False)
+
+    df = dut_va.get_data(sweep=sweep)
+    df = df[np.isclose(df[specifiers.FREQUENCY], 100)]
+    vb = np.real(df[col_vb].to_numpy())
+    ic = np.real(df[col_ic].to_numpy())
+    ib = np.real(df[col_ib].to_numpy())
+
+    assert np.isclose(
+        vb,
+        np.array(
+            [
+                0.5,
+                0.55,
+                0.6,
+                0.65,
+                0.7,
+                0.75,
+                0.799999998,
+                0.849999988,
+                0.899999936,
+                0.949999737,
+                0.999998983,
+            ]
+        ),
+    ).all()
+    assert np.isclose(
+        ic,
+        np.array(
+            [
+                1.14411023e-08,
+                7.72436124e-08,
+                5.21259381e-07,
+                3.51478332e-06,
+                2.36602833e-05,
+                1.58450115e-04,
+                1.02883550e-03,
+                5.66105364e-03,
+                2.07661062e-02,
+                4.84558354e-02,
+                6.65799725e-02,
+            ]
+        ),
+    ).all()
+    assert np.isclose(
+        ib,
+        np.array(
+            [
+                3.80850906e-11,
+                1.86446414e-10,
+                1.10640030e-09,
+                7.04312697e-09,
+                4.57901024e-08,
+                2.99416229e-07,
+                1.95688028e-06,
+                1.22897825e-05,
+                6.44280625e-05,
+                2.62581618e-04,
+                1.01681899e-03,
+            ]
+        ),
+    ).all()
 
 
 if __name__ == "__main__":
-    sweep = create_sweep()
-    duts_build_in = test_ngspice(sweep=sweep, build_in=True)
-    # duts_VA = test_ngspice(sweep=sweep, build_in=False)
+    test_ngspice_build_in()
+    test_ngspice_va()
 
-    col_vbc = specifiers.VOLTAGE + ["B", "C"]
-    col_vbe = specifiers.VOLTAGE + ["B", "E"]
-    col_vce = specifiers.VOLTAGE + ["C", "E"]
-    col_ib = specifiers.CURRENT + "B"
-    col_ic = specifiers.CURRENT + "C"
+    sweep = create_sweep()
+    dut_va = sim_ngspice(sweep=sweep, build_in=False)
+    dut_build_in = sim_ngspice(sweep=sweep, build_in=True)
 
     plt_gummel = Plot(
         r"$I_{\mathrm{C}}(V_{\mathrm{BE}})$",
-        x_label=r"$V_{\mathrm{BE}}$",
-        y_label=r"$I_{\mathrm{C}}$",
+        x_specifier=col_vbe,
+        y_specifier=col_ic,
         y_log=True,
         style="bw",
     )
     plt_ib = Plot(
         r"$I_{\mathrm{B}}(V_{\mathrm{BE}})$",
-        x_label=r"$V_{\mathrm{BE}}$",
-        y_label=r"$I_{\mathrm{B}}$",
+        x_specifier=col_vbe,
+        y_specifier=col_ib,
         y_log=True,
         style="bw",
     )
 
-    for dut in duts_build_in:
+    for dut in [dut_build_in, dut_va]:
         dut_name = dut.name + " "
         df = dut.get_data(sweep=sweep)
 

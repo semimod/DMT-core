@@ -132,6 +132,24 @@ PLOT_STYLES.append(XTRACTION_INTERPOLATED_COLOR)
 MIX = "mix"
 PLOT_STYLES.append(MIX)
 
+CYCLER_MARKERS = cycler(marker=[char for char in "x+v^*<>.so"])
+CYCLER_LINESTYLES = cycler(linestyle=["-", "--", "-.", ":"])
+CYCLER_COLORS = cycler(
+    color=[
+        "#006400",  # darkgreen
+        "#00008b",  # darkblue
+        "#b03060",  # maroon3
+        "#ff0000",  # red
+        "#9467bd",  # yellow -> replaced by violett/brown combo
+        "#deb887",  # curlywood
+        "#00ff00",  # lime
+        "#00ffff",  # aqua
+        "#ff00ff",  # fuchsia
+        "#6495ed",  # cornflower
+    ]
+)
+
+
 ### Translation dictionaries from matplotlib to tikz
 _DICT_MARKERS_MPL_TO_PGF = {
     ".": r"mark=*, mark options={solid, fill}, ",
@@ -429,7 +447,6 @@ class Plot(object):
         """
         markers = [char for char in "x+v^*<>.so"]
         linestyles = ["-", "--", "-.", ":"]
-        dashed = ["--"]
         # MM: replaced grey1 (#7f7f7f) with black(#) and grey2 with dark blue #1012d5. Does this cause problems?
         # MK: introduced completely new palette from https://mokole.com/palette.html (settings: 10 colors, 1% min, 80% max, 15000 loops, score 65.49)
         colors = [
@@ -464,7 +481,7 @@ class Plot(object):
             self._cycler = cycler("color", ["black"]) * cycler("linestyle", "-")
 
         elif style == BLACK_DASHED:
-            self._cycler = cycler("color", ["black"]) * cycler("linestyle", dashed)
+            self._cycler = cycler("color", ["black"]) * cycler("linestyle", "--")
 
         elif style == BLACK_LINESTYLE:
             self._cycler = cycler("color", ["black"]) * cycler("linestyle", linestyles)

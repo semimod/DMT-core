@@ -40,6 +40,8 @@ import logging
 import copy
 import re
 import numpy as np
+import subprocess
+from pathlib import Path
 
 from DMT.config import COMMANDS
 from DMT.core import (
@@ -85,6 +87,7 @@ class DutNgspice(DutCircuit):
         simulator_command=None,
         simulator_arguments=None,
         initial_conditions={},
+        command_openvaf=COMMANDS["OPENVAF"],
         **kwargs,
     ):
         if simulator_command is None:
@@ -103,6 +106,8 @@ class DutNgspice(DutCircuit):
 
         self.initial_conditions = initial_conditions
         self.devices_op_vars = []
+        self._osdi_imports = []
+        self.command_openvaf = command_openvaf
 
         super().__init__(
             database_dir,
@@ -128,7 +133,7 @@ class DutNgspice(DutCircuit):
         -------
         netlist : str
         """
-        use_osdi = bool(COMMANDS["OPENVAF"])  # False if None/null
+        use_osdi = bool(self.command_openvaf)  # False if None/null
         if isinstance(inp_circuit, MCard) or isinstance(inp_circuit, McParameterCollection):
             # save the modelcard, in case it was set inderectly via the input header!
             self._modelcard = copy.deepcopy(inp_circuit)
@@ -162,40 +167,36 @@ class DutNgspice(DutCircuit):
                 pass
 
         if use_osdi:
-            # pre_osdi strings and list to compile
-            va_plugins = []
-            self._va_plugins_to_compile = []  # reset the plugins
+            # pre_osdi strings
+            self._osdi_imports = []
             for vafile in list_va_files:
                 if vafile is None:
                     continue
 
+                self._list_va_file_contents.append(vafile)
+
                 if self._copy_va_files:
-                    self._list_va_file_contents.append(vafile)
+                    # always add the relative path to va -> compile and use relative import in netlist
+                    self._osdi_imports.append(vafile.root)
+                else:
+                    # check if compiled file is already there and if yes, directly add ".osdi", else add ".va"
 
-                # hash file content
-                va_hash = vafile.get_tree_hash()
-                # check if plugin is already compiled and in the folder
-                path_va_hash = self.sim_dir / "xyce_plugins" / (va_hash + ".so")
+                    va_hash = vafile.get_tree_hash()  # hash file content
+                    # check if plugin is already compiled and in the folder
+                    path_va = self.sim_dir / "VA_codes" / va_hash / vafile.root
+                    path_osdi = path_va.with_suffix(".osdi")
 
-                if not path_va_hash.is_file():
-                    # if not: add to "to_compile"
-                    self._va_plugins_to_compile.append((path_va_hash, vafile))
+                    if path_osdi.is_file():
+                        self._osdi_imports.append(path_osdi)
+                    else:
+                        # if not: add to "to_compile"
+                        self._osdi_imports.append(path_va)
 
-                va_plugins.append(path_va_hash)
-
-            # add to simulator arguments
-            if va_plugins:
-                try:
-                    i_plugin = self.sim_args.index("-plugin")
-                    self.sim_args[i_plugin + 1] = ",".join(str(va_path) for va_path in va_plugins)
-                except ValueError:
-                    self.sim_args.append("-plugin")
-                    self.sim_args.append(",".join(str(va_path) for va_path in va_plugins))
-
+        self._osdi_imports = set(self._osdi_imports)  # unique...
         str_netlist += "\n* Netlist\n"
 
         # add elements:
-        for element in self._inp_circuit.netlist:
+        for index, element in enumerate(self._inp_circuit.netlist):
             if isinstance(element, str):
                 # pass
                 if re.match(r"^[\w_]+=", element):
@@ -204,7 +205,7 @@ class DutNgspice(DutCircuit):
 
                 str_netlist += element + "\n"
             else:
-                str_netlist += self._convert_CircuitElement_netlist(element)
+                str_netlist += self._convert_CircuitElement_netlist(element, index)
 
         logging.info("Successfully created input header of dut %s!", self.name)
         logging.debug("Content:\n%s", str_netlist)
@@ -270,8 +271,42 @@ class DutNgspice(DutCircuit):
         # ngspice control statement
         str_netlist += "\n\n.control\n"
 
+        # add pre_osdi
+        for osdi in self._osdi_imports:
+            try:
+                if osdi.suffix != ".osdi":
+                    # compile needed
+                    process = subprocess.run(
+                        [self.command_openvaf, osdi.stem], shell=False, cwd=osdi.parent
+                    )
+                    if process.returncode != 0:
+                        raise OSError(
+                            "DMT.DutNgspice: Run of OpenVAF failed!",
+                            f"The file to compile was {osdi}",
+                        )
+                    osdi = osdi.with_suffix(".osdi")
+
+                # import from common "VA_codes" folder
+                str_netlist += f"pre_osdi {osdi}\n"
+            except AttributeError:
+                # import from relative location
+                # compile always needed
+                process = subprocess.run(
+                    [self.command_openvaf, osdi], shell=False, cwd=self.get_sim_folder(sweep)
+                )
+                if process.returncode != 0:
+                    raise OSError(
+                        "DMT.DutNgspice: Run of OpenVAF failed!",
+                        f"The file to compile was {osdi} in {self.get_sim_folder(sweep)}",
+                    )
+
+                osdi = Path(osdi).with_suffix(".osdi")
+
+                # relative import
+                str_netlist += f"pre_osdi {osdi.name}\n"
+
         # output def
-        str_netlist += "save alli allv "
+        str_netlist += "\nsave alli allv "
         str_dc_output = ""
         if tmp_sweep.outputdef:
             if "OpVar" in tmp_sweep.outputdef:
@@ -763,7 +798,7 @@ class DutNgspice(DutCircuit):
 
         return str_return
 
-    def _convert_CircuitElement_netlist(self, circuit_element):
+    def _convert_CircuitElement_netlist(self, circuit_element, index):
         """Transforms a :class:`~DMT.classes.circuit.CircuitElement` into a string fitting for NGspice.
 
         Parameters
@@ -787,8 +822,6 @@ class DutNgspice(DutCircuit):
         element_types = {
             VOLTAGE: "V",
             CURRENT: "I",
-            "hicumL2va": "Q",
-            "hicumL2_test": "Q",
             HICUML2_HBT: "Q",
             SGP_BJT: "Q",
             "bjtn": "Q",
@@ -803,6 +836,11 @@ class DutNgspice(DutCircuit):
                 circuit_element.contact_nodes[1],
                 circuit_element.contact_nodes[0],
             )
+        elif (
+            isinstance(circuit_element.parameters, MCard)
+            and circuit_element.parameters.va_codes is not None
+        ):
+            element_type = "N"
         else:
             element_type = circuit_element.element_type
 
@@ -832,9 +870,8 @@ class DutNgspice(DutCircuit):
                         # dirty to allow debugging ngspice
                         str_model_parameters += "{0:s}={1:10.10e} ".format(key, val)
                     str_temp = (
-                        f"hicum_va {str_instance_parameters}\n"  # we should count here somehow the models
-                        + f".model hicum_va {str_type} level=8\n"
-                        + f"+ {str_model_parameters}"
+                        f"hicum_build_in{index:d} {str_instance_parameters}\n"  # we should count here somehow the models
+                        + f".model hicum_build_in{index:d} {str_type} level=8 {str_model_parameters}"
                     )
                 elif circuit_element.element_type in [SGP_BJT, "bjtn"]:
                     str_instance_parameters = ""
@@ -852,9 +889,8 @@ class DutNgspice(DutCircuit):
                         # dirty to allow debugging ngspice
                         str_model_parameters += "{0:s}={1:10.10e} ".format(key, val)
                     str_temp = (
-                        f"QMOD {str_instance_parameters}\n"  # we should count here somehow the models
-                        + f".model QMOD {str_type} level=1\n"
-                        + f"+ {str_model_parameters}"
+                        f"QMOD{index:d} {str_instance_parameters}\n"  # we should count here somehow the models
+                        + f".model QMOD{index:d} {str_type} level=1 {str_model_parameters}"
                     )
                 elif "sky130_fd_pr" in circuit_element.element_type:
                     # skywater 130 device
@@ -869,6 +905,21 @@ class DutNgspice(DutCircuit):
                         + " ".join(circuit_element.contact_nodes)
                     )
                     str_temp = f"{circuit_element.element_type} {str_instance_parameters}"
+                elif circuit_element.parameters.va_codes is not None:
+                    str_instance_parameters = ""
+                    str_model_parameters = ""
+                    for para in sorted(mcard.paras, key=lambda x: (x.group, x.name)):
+                        if (
+                            para.name in []
+                        ):  # here all instance parameters TODO after next verilogae release
+                            str_instance_parameters += "{0:s}={0:10.10e} ".format(para)
+                        else:  # here all model parameters
+                            str_model_parameters += "{0:s}={0:10.10e} ".format(para)
+
+                    str_temp = (
+                        f"model_va{index:d} {str_instance_parameters}\n"  # we should count here somehow the models
+                        + f".model model_va{index:d} {circuit_element.parameters.default_module_name} {str_model_parameters}"
+                    )
                 else:
                     raise NotImplementedError(
                         f"The element type {circuit_element.element_type} is not implemented for ngspice.",

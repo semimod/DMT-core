@@ -778,12 +778,18 @@ def _check_simulation_needed(i_sim, n_tot, dut=None, sweep=None):
     # print("Check: dut: {:s}, sweep: {:s}".format(dut_name, sim_name))
     print_progress_bar(i_sim, n_tot, prefix="Progress", length=50)
     if dut.check_existence_sweep(sweep):
+        print(
+            f"Simulation of DuT {dut_name} with sweep {sim_name} loaded from database.",
+        )
         logging.info("Simulation of DuT %s with sweep %s loaded from database.", dut_name, sim_name)
     else:
         # if not in dut.data and not in dut.db
         try:
             # was it simulated already successfully ?
             dut.validate_simulation_successful(sweep)
+            print(
+                f"Simulation of DuT {dut_name} with sweep {sim_name} already done and results are valid, only data needs to be read.",
+            )
             logging.info(
                 "Simulation of DuT %s with sweep %s already done and results are valid, only data needs to be read.",
                 dut_name,
@@ -794,7 +800,9 @@ def _check_simulation_needed(i_sim, n_tot, dut=None, sweep=None):
             )
             dut.add_data(sweep)
         except SimulationFail:
-            print("Simulation of DuT %s with sweep %s already done and failed!", dut_name, sim_name)
+            print(
+                f"Simulation of DuT {dut_name} with sweep {sim_name} already done and failed.",
+            )
         # except (SimulationUnsuccessful, FileNotFoundError, IndexError, struct.error):
         except:  # all exceptions should be re-simulated
             # ok simulate it!

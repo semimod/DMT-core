@@ -279,8 +279,6 @@ class DutView(object):
         # set the simulation folder
         sim_folder = self.get_sim_folder(sweep)
 
-        inp_content = self.make_input(sweep)
-
         try:
             sim_folder.mkdir(parents=True)
         except OSError:
@@ -293,12 +291,7 @@ class DutView(object):
                     "Simulation folder exists but can not be deleted. Is the location mounted correctly? Hint: Shut down Windows correctly."
                 )
 
-        (sim_folder / self.inp_name).write_text(inp_content)
-        if DATA_CONFIG["server"]["use_pbs"] and DATA_CONFIG["backend_remote"]:
-            pbs_content = self.make_pbs(sweep)  # needs to be implemented by the DUT
-            (sim_folder / "pbs_job").write_text(pbs_content)
-
-        # copy va files?
+        # copy va files into simulation folder?
         sim_folder = self.get_sim_folder(sweep)
         if self._copy_va_files:
             for vafile in self._list_va_file_contents:
@@ -310,6 +303,12 @@ class DutView(object):
                 dir_code = va_files_dir / vafile.get_tree_hash()
                 if not dir_code.is_dir():
                     vafile.write_files(dir_code, filter=self.va_code_filter)
+
+        inp_content = self.make_input(sweep)
+        (sim_folder / self.inp_name).write_text(inp_content)
+        if DATA_CONFIG["server"]["use_pbs"] and DATA_CONFIG["backend_remote"]:
+            pbs_content = self.make_pbs(sweep)  # needs to be implemented by the DUT
+            (sim_folder / "pbs_job").write_text(pbs_content)
 
         for data_copy in self.list_copy:
             try:
