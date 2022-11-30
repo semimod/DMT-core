@@ -88,6 +88,7 @@ class DutNgspice(DutCircuit):
         simulator_arguments=None,
         initial_conditions={},
         command_openvaf=COMMANDS["OPENVAF"],
+        copy_va_files=False,
         **kwargs,
     ):
         if simulator_command is None:
@@ -118,6 +119,7 @@ class DutNgspice(DutCircuit):
             simulator_options=simulator_options,
             simulator_arguments=simulator_arguments,
             inp_name="ngspice_circuit.ckt",
+            copy_va_files=copy_va_files,
             **kwargs,
         )
 
@@ -157,16 +159,16 @@ class DutNgspice(DutCircuit):
         str_netlist = "DMT generated netlist\n"
         str_netlist += ".Options " + self._convert_dict_to_inp_line(self.simulator_options) + "\n"
 
-        # is a modelcard inside the netlist?
-        list_va_files = list()
-        for element in self._inp_circuit.netlist:
-            try:
-                list_va_files.append(element.parameters.va_codes)
-            except AttributeError:
-                # element does not have a va_file.
-                pass
-
         if use_osdi:
+            # is a modelcard inside the netlist?
+            list_va_files = list()
+            for element in self._inp_circuit.netlist:
+                try:
+                    list_va_files.append(element.parameters.va_codes)
+                except AttributeError:
+                    # element does not have a va_file.
+                    pass
+
             # pre_osdi strings
             self._osdi_imports = []
             for vafile in list_va_files:
@@ -272,18 +274,21 @@ class DutNgspice(DutCircuit):
         str_netlist += "\n\n.control\n"
 
         # add pre_osdi
+        if self._osdi_imports:
+            print("\nPreparing OSDI Sources if needed.\n")
         for osdi in self._osdi_imports:
             try:
                 if osdi.suffix != ".osdi":
-                    # compile needed
-                    process = subprocess.run(
-                        [self.command_openvaf, osdi.stem], shell=False, cwd=osdi.parent
-                    )
-                    if process.returncode != 0:
-                        raise OSError(
-                            "DMT.DutNgspice: Run of OpenVAF failed!",
-                            f"The file to compile was {osdi}",
+                    # compile needed ? Could be compiled by a "parallel" simulation
+                    if not osdi.with_suffix(".osdi").is_file():
+                        process = subprocess.run(
+                            [self.command_openvaf, osdi.name], shell=False, cwd=osdi.parent
                         )
+                        if process.returncode != 0:
+                            raise OSError(
+                                "DMT.DutNgspice: Run of OpenVAF failed!",
+                                f"The file to compile was {osdi}",
+                            )
                     osdi = osdi.with_suffix(".osdi")
 
                 # import from common "VA_codes" folder
@@ -313,7 +318,9 @@ class DutNgspice(DutCircuit):
                 str_dc_output += " ".join(self.devices_op_vars) + " "
                 tmp_sweep.outputdef.remove("OpVar")
 
-            str_dc_output += " ".join(tmp_sweep.outputdef)
+            # TODO find better way to use outputdef for ngspice
+            # current way does not work...
+            # str_dc_output += " ".join(tmp_sweep.outputdef)
         str_netlist += str_dc_output
 
         # output settings
@@ -334,36 +341,15 @@ class DutNgspice(DutCircuit):
         # .ac dec nd fstart fstop-
         # .ac oct no fstart fstop
         # .ac lin np fstart fstop
+        # ONLY lin can have only 1 freqency
 
         # find the AC sweep definition
         ac_statements = []
         if ac:
             for swd in sweepdefs:
                 if swd.var_name == specifiers.FREQUENCY:
-                    swd_type = swd.sweep_type
-                    swd_value_def = swd.value_def
-                    nfreq = swd_value_def[-1]
-                    if swd_type == "LOG":
-                        ac_statements.append(
-                            "ac dec {0:2.0f} {1:2.5e} {2:2.5e} \n".format(
-                                nfreq, 10 ** swd_value_def[0], 10 ** swd_value_def[1]
-                            )
-                        )
-                    elif swd_type == "CON":
-                        ac_statements.append(
-                            "ac dec 1 {0:2.5e} {0:2.5e} \n".format(swd_value_def[0])
-                        )
-                    elif swd_type == "LIN":
-                        ac_statements.append(
-                            "ac lin {0:2.0f} {1:2.5e} {2:2.5e} \n".format(
-                                nfreq, swd_value_def[0], swd_value_def[1]
-                            )
-                        )
-                    elif swd_type == "LIST":
-                        for val in swd_value_def:
-                            ac_statements.append("ac dec 1 {0:2.5e} {0:2.5e} \n".format(val))
-                    else:
-                        raise NotImplementedError
+                    for freq in swd.values:
+                        ac_statements.append(f"ac lin 1 {freq:g} {freq:g}\n")
 
             # remove all but one frequency from DF. We can then later put the "ac_statement" behind every DC point.
             freqs = df[specifiers.FREQUENCY]
@@ -397,7 +383,7 @@ class DutNgspice(DutCircuit):
         #                         sweepvar = col
 
         # so we have VOLTAGE sources and CURRENT sources and Frequency for every operating point.
-        for _index, row in df.iterrows():
+        for index, row in df.iterrows():
             for voltage_source in voltage_sources:
                 voltage_name = voltage_source.name
                 try:
@@ -429,7 +415,7 @@ class DutNgspice(DutCircuit):
                     str_netlist += "alter V_" + voltage_source.name + " ac=0\n"
 
                 # turn on one voltage source at a time and save the results of ac analysis
-                for ac_statement in ac_statements:
+                for i_ac_statement, ac_statement in enumerate(ac_statements):
                     # turn on source
 
                     # ac analysis statement
@@ -448,9 +434,8 @@ class DutNgspice(DutCircuit):
                         # turn off source
                         str_netlist += "alter V_" + voltage_source.name + " ac=0\n"
 
-                    str_netlist += "unset wr_vecnames\n"
-
-            str_netlist += "unset wr_vecnames\n"
+                    if index == 0 and i_ac_statement == 0:
+                        str_netlist += "unset wr_vecnames\n"
 
         str_netlist += ".endc\n" + ".end\n"
 

@@ -145,6 +145,7 @@ class DutView(object):
         separate_databases=False,
         list_copy=None,
         t_max=None,
+        sim_dir=DATA_CONFIG["directories"]["simulation"],
         simulate_on_server=None,
         simulator_command="",
         simulator_arguments=None,
@@ -230,7 +231,7 @@ class DutView(object):
                 existing_dut = DutView.load_dut(self.dut_dir)
                 self.__dict__.update(existing_dut.__dict__)
 
-        self.sim_dir = DATA_CONFIG["directories"]["simulation"]
+        self.sim_dir = sim_dir
 
         self.technology = technology
         self.contact_config = contact_config
