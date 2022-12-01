@@ -1957,7 +1957,7 @@ class Plot(object):
                         except ValueError:
                             # if not add it
                             pgf_color = "color=color" + str(len(colors)) + ", "
-                            colors.append(colors)
+                            colors.append(mpl_color)
                     else:
                         pgf_color = "color=" + _DICT_COLORS_MPL[mpl_color] + ", "
 
