@@ -498,6 +498,7 @@ class _sub_specifiers(GlobalObj, metaclass=Singleton):
     IMAG = SpecifierStr("", sub_specifiers="IMAG")
     MAG = SpecifierStr("", sub_specifiers="MAG")
     PHASE = SpecifierStr("", sub_specifiers="PHASE")
+    DELTA = SpecifierStr("", sub_specifiers="DELTA")
     NOISE = SpecifierStr("", sub_specifiers="NOISE")
     QUASISTATIC = SpecifierStr("", sub_specifiers="QUASISTATIC")
     JUNCTION = SpecifierStr("", sub_specifiers="JUNCTION")
@@ -821,17 +822,19 @@ def to_tex(self, subscript="", superscript=""):
         tex = r"|" + tex + r"|"
     elif sub_specifiers.PHASE.sub_specifiers <= self.sub_specifiers:
         tex = r"\angle\{" + tex + r"\}"
+    elif sub_specifiers.DELTA.sub_specifiers <= self.sub_specifiers:
+        tex = r"\Delta " + tex
 
     # add specifiers that are appended to the string
-    for specifier in self.sub_specifiers:
-        if "|" + specifier in [
-            sub_specifiers.PERIMETER,
-            sub_specifiers.AREA,
-            sub_specifiers.CORNER,
-            sub_specifiers.LENGTH,
-            sub_specifiers.WIDTH,
-        ]:
-            tex = tex + "|" + specifier
+    sub_spec_append = (
+        sub_specifiers.PERIMETER.sub_specifiers
+        | sub_specifiers.AREA.sub_specifiers
+        | sub_specifiers.CORNER.sub_specifiers
+        | sub_specifiers.LENGTH.sub_specifiers
+        | sub_specifiers.WIDTH.sub_specifiers
+    )
+    for append in self.sub_specifiers & sub_spec_append:
+        tex = tex + "|" + append
 
     return tex
 

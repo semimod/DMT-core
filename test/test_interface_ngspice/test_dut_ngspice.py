@@ -1,10 +1,20 @@
 """ test ngspice input file generation.
 """
+import copy
 import types
 import logging
 from pathlib import Path
 from DMT.core import DutType, Sweep, specifiers, SimCon, Plot, MCard
-from DMT.core.circuit import Circuit, CircuitElement, RESISTANCE, CAPACITANCE, SHORT, VOLTAGE
+from DMT.core.circuit import (
+    Circuit,
+    CircuitElement,
+    RESISTANCE,
+    CAPACITANCE,
+    SHORT,
+    VOLTAGE,
+    HICUML2_HBT,
+)
+from DMT.core.sweep_def import SweepDefConst, SweepDefLinear, SweepDefLog
 
 from DMT.ngspice import DutNgspice
 import numpy as np
@@ -19,7 +29,7 @@ logging.basicConfig(
 )
 
 
-def get_circuit(self, use_build_in=False, topology="common_emitter", **kwargs):
+def get_circuit(self, use_build_in=True, topology="common_emitter", **kwargs):
     """
 
     Parameter
@@ -33,21 +43,26 @@ def get_circuit(self, use_build_in=False, topology="common_emitter", **kwargs):
     circuit : :class:`~DMT.core.circuit.Circuit`
 
     """
-    node_emitter = next(f"n_{node.upper()}" for node in self.nodes_list if "E" in node.upper())
-    node_base = next(f"n_{node.upper()}" for node in self.nodes_list if "B" in node.upper())
-    node_collector = next(f"n_{node.upper()}" for node in self.nodes_list if "C" in node.upper())
-    node_substrate = next(f"n_{node.upper()}" for node in self.nodes_list if "S" in node.upper())
-    node_temperature = next(f"n_{node.upper()}" for node in self.nodes_list if "T" in node.upper())
+    mcard = copy.deepcopy(self)
+    if use_build_in:
+        mcard._va_codes = None
+        mcard.default_module_name = HICUML2_HBT
+
+    node_emitter = next(f"n_{node.upper()}" for node in mcard.nodes_list if "E" in node.upper())
+    node_base = next(f"n_{node.upper()}" for node in mcard.nodes_list if "B" in node.upper())
+    node_collector = next(f"n_{node.upper()}" for node in mcard.nodes_list if "C" in node.upper())
+    node_substrate = next(f"n_{node.upper()}" for node in mcard.nodes_list if "S" in node.upper())
+    node_temperature = next(f"n_{node.upper()}" for node in mcard.nodes_list if "T" in node.upper())
 
     circuit_elements = []
     # model instance
     circuit_elements.append(
         CircuitElement(
-            self.default_module_name,
+            mcard.default_module_name,
             "Q_H",
-            [f"n_{node.upper()}" for node in self.nodes_list],
+            [f"n_{node.upper()}" for node in mcard.nodes_list],
             # ["n_C", "n_B", "n_E"],
-            parameters=self,
+            parameters=mcard,
         )
     )
 
@@ -56,7 +71,7 @@ def get_circuit(self, use_build_in=False, topology="common_emitter", **kwargs):
         # BASE NODE CONNECTION #############
         # metal resistance between contact base point and real collector
         try:
-            rbm = self.get("_rbm").value
+            rbm = mcard.get("_rbm").value
         except KeyError:
             rbm = 1e-3
 
@@ -90,7 +105,7 @@ def get_circuit(self, use_build_in=False, topology="common_emitter", **kwargs):
         )
         # metal resistance between contact collector point and real collector
         try:
-            rcm = self.get("_rcm").value
+            rcm = mcard.get("_rcm").value
         except KeyError:
             rcm = 1e-3
 
@@ -115,7 +130,7 @@ def get_circuit(self, use_build_in=False, topology="common_emitter", **kwargs):
         )
         # metal resistance between contact emiter point and real emiter
         try:
-            rem = self.get("_rem").value
+            rem = mcard.get("_rem").value
         except KeyError:
             rem = 1e-3
 
@@ -142,7 +157,7 @@ def get_circuit(self, use_build_in=False, topology="common_emitter", **kwargs):
         )
 
         # metal resistance between contact emitter potential and substrate contact
-        if len(self.nodes_list) > 3:
+        if len(mcard.nodes_list) > 3:
             circuit_elements.append(
                 CircuitElement(
                     SHORT,
@@ -151,13 +166,13 @@ def get_circuit(self, use_build_in=False, topology="common_emitter", **kwargs):
                 )
             )
             try:
-                rsm = self.get("_rsm").value
+                rsm = mcard.get("_rsm").value
             except KeyError:
                 rsm = 5
             circuit_elements.append(
                 CircuitElement(RESISTANCE, "R_S", ["n_SX", "n_EX"], parameters=[("R", str(rsm))])
             )
-        if len(self.nodes_list) > 4:
+        if len(mcard.nodes_list) > 4:
             circuit_elements.append(
                 CircuitElement(
                     RESISTANCE, "R_t", [node_temperature, "0"], parameters=[("R", "1e9")]
@@ -182,6 +197,8 @@ def get_circuit(self, use_build_in=False, topology="common_emitter", **kwargs):
 
 def test_ngspice():
     col_vb = specifiers.VOLTAGE + "B"
+    col_vc = specifiers.VOLTAGE + "C"
+    col_ve = specifiers.VOLTAGE + "E"
     col_ib = specifiers.CURRENT + "B"
     col_ic = specifiers.CURRENT + "C"
 
@@ -210,30 +227,10 @@ def test_ngspice():
 
     # create a sweep
     sweepdef = [
-        {
-            "var_name": specifiers.FREQUENCY,
-            "sweep_order": 4,
-            "sweep_type": "LOG",
-            "value_def": [1, 2, 11],
-        },
-        {
-            "var_name": specifiers.VOLTAGE + "B",
-            "sweep_order": 3,
-            "sweep_type": "LIN",
-            "value_def": [0.5, 1, 11],
-        },
-        {
-            "var_name": specifiers.VOLTAGE + "C",
-            "sweep_order": 2,
-            "sweep_type": "CON",
-            "value_def": [1],
-        },
-        {
-            "var_name": specifiers.VOLTAGE + "E",
-            "sweep_order": 1,
-            "sweep_type": "CON",
-            "value_def": [0],
-        },
+        SweepDefLog(specifiers.FREQUENCY, start=1, stop=2, steps=11, sweep_order=4),
+        SweepDefLinear(col_vb, start=0.5, stop=1, steps=11, sweep_order=3),
+        SweepDefConst(col_vc, value_def=1, sweep_order=2),
+        SweepDefConst(col_ve, value_def=0, sweep_order=1),
     ]
     outputdef = ["I_C", "I_B"]
     othervar = {"TEMP": 300}
