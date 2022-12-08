@@ -510,6 +510,7 @@ class _sub_specifiers(GlobalObj, metaclass=Singleton):
     MAX = SpecifierStr("", sub_specifiers="MAX")
     MIN = SpecifierStr("", sub_specifiers="MIN")
     MID = SpecifierStr("", sub_specifiers="MID")
+    MEAN = SpecifierStr("", sub_specifiers="MEAN")
     TRAPS = SpecifierStr("", sub_specifiers="TRAPS")
     YDIR = SpecifierStr("", sub_specifiers="YDIR")
     XDIR = SpecifierStr("", sub_specifiers="XDIR")
@@ -824,6 +825,8 @@ def to_tex(self, subscript="", superscript=""):
         tex = r"\angle\{" + tex + r"\}"
     elif sub_specifiers.DELTA.sub_specifiers <= self.sub_specifiers:
         tex = r"\Delta " + tex
+    elif sub_specifiers.MEAN.sub_specifiers <= self.sub_specifiers:
+        tex = r"\overline\{" + tex + r"\}"
 
     # add specifiers that are appended to the string
     sub_spec_append = (
