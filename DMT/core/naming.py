@@ -438,18 +438,20 @@ class SpecifierStr(str):
         """
         raise NotImplementedError
 
-    def to_tex(self) -> str:
-        """Declaration of function, to be set later
+    def to_tex(self, subscript="", superscript="") -> str:
+        """Return a Tex representation of this specifier. If subscript is not None the string in subscript will be appended. If superscript is not None, a superscript will be added.
+
+        Parameters
+        ----------
+        subscript : str
+            Subscript to add to the specifier's Tex representation
+        superscript : str
+            Superscript to add to the specifier's Tex representation
 
         Returns
         -------
-        str
-            [description]
-
-        Raises
-        ------
-        NotImplementedError
-            [description]
+        tex : str
+                A Tex representation fo the specifier.
         """
         raise NotImplementedError
 
@@ -826,7 +828,7 @@ def to_tex(self, subscript="", superscript=""):
     elif sub_specifiers.DELTA.sub_specifiers <= self.sub_specifiers:
         tex = r"\Delta " + tex
     elif sub_specifiers.MEAN.sub_specifiers <= self.sub_specifiers:
-        tex = r"\overline\{" + tex + r"\}"
+        tex = r"\overline{" + tex + r"}"
 
     # add specifiers that are appended to the string
     sub_spec_append = (

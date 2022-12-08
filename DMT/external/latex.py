@@ -286,6 +286,7 @@ def tex_to_text(tex):
     tex = tex.replace("\\quad", "  ")
     tex = tex.replace("\\left(", "(")
     tex = tex.replace("\\right)", ")")
+    tex = tex.replace("\\overline", "mean ")
     tex = tex.replace("{", "")
     tex = tex.replace("}", "")
     tex = tex.replace("$", "")
