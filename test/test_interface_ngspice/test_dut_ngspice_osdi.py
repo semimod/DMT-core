@@ -207,7 +207,7 @@ def create_sweep():
         SweepDefConst(col_vc, value_def=1, sweep_order=2),
         SweepDefConst(col_ve, value_def=0, sweep_order=1),
     ]
-    return Sweep("gummel", sweepdef=sweepdef, outputdef=[], othervar={"TEMP": 300})
+    return Sweep("gummel", sweepdef=sweepdef, outputdef=["OpVar"], othervar={"TEMP": 300})
 
 
 def sim_ngspice(sweep, build_in):
@@ -235,7 +235,7 @@ def sim_ngspice(sweep, build_in):
         command = "ngspice"
     else:
         name = "ngspiceVA"
-        command = "ngspice_osdi"
+        command = "ngspice"
 
     dut = DutNgspice(
         None,

@@ -752,7 +752,14 @@ class DutView(object):
                 return
 
             if isinstance(sweep, str):
-                name = sweep
+                if sweep == "all":
+                    # iter throuh self.save_dir and load all .h5
+                    for file_db in self.save_dir.glob("**/*.h5"):
+                        self._data.update(self.manager.load_db(file_db))
+
+                    return
+                else:
+                    name = sweep
             else:
                 name = self.get_sweep_key(sweep)
 

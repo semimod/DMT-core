@@ -131,7 +131,7 @@ wheel_to_pypi:
     - if: $CI_COMMIT_TAG =~ /^Version/
   script:
     - VERSION_NR=$(python3 DMT/external/pypi.py --check_version $CI_COMMIT_TAG)
-    - sed -i 's/9.9.9/$VERSION_NR/' setup.py
+    - sed -i "s/9.9.9/$VERSION_NR/" setup.py
     - python3 setup.py sdist bdist_wheel
     - python3 -c "import re; match = re.search(r'(## \[\d.+?)((## \[)|\Z)', open('CHANGELOG').read(), re.DOTALL); print(match.group(1))" | tee current_changes.md
     # push to pip
@@ -172,6 +172,8 @@ pages:
   needs:
     - job: wheel_to_pypi
   script:
+    - VERSION_NR=$(python3 DMT/external/pypi.py --extract_version $CI_COMMIT_TAG)
+    - sed -i "s/9.9.9/$VERSION_NR/" doc/source/conf.py
     - pip install --upgrade --upgrade-strategy eager -e .[develop,HDF5,latex,remote]
     - cd doc ; make html
     - mv build/html/ ../public/
