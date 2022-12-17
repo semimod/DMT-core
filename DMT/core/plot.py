@@ -752,7 +752,7 @@ class Plot(object):
         for line in self.data:
             line["label"] = None
 
-    def add_data_set_multiple_y(self, x, *y, label=None):
+    def add_data_set_multiple_y(self, x, *y, label=None, style=None):
         """Add y(x) to the plot
 
         Each data set is a tuple with five entries, no need to create a dictionary, keeps it simple
@@ -764,6 +764,8 @@ class Plot(object):
             multiple y arrays to plot versus x
         label : str or list(str), optional
             Legend entry/ies
+        style : list(str), optional
+            List of styles
         """
         if label is None or not label:  # no or empty label
             label = []
@@ -777,8 +779,16 @@ class Plot(object):
                 "To set multiple y(x) at the same time, the number of labels must be equal to the number of y datas"
             )
 
-        for y_a, label_a in zip(y, label):
-            self.add_data_set(x, y_a, label=label_a)
+        if style is None:
+            for y_a, label_a in zip(y, label):
+                self.add_data_set(x, y_a, label=label_a)
+        else:
+            if len(y) != len(style):
+                raise IOError(
+                    "If you want to set the style manually, the number of styles must be equal to the number of y datas"
+                )
+            for y_a, label_a, style_a in zip(y, label, style):
+                self.add_data_set(x, y_a, label=label_a, style=style_a)
 
     def plot_py(
         self,
