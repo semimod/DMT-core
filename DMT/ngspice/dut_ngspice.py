@@ -356,7 +356,7 @@ class DutNgspice(DutCircuit):
             df = df[df[specifiers.FREQUENCY] == freqs[0]]
 
         if not ac_statements:
-            ac_statements.append("ac dec 1 {0:2.5e} {0:2.5e} \n".format(1e9))
+            ac_statements.append("ac lin 1 1e9 1e9 \n")
 
         # # #try to cast the analysis into a dc sweep ... convergence -> need to iterate over DMT sweepdef
         # if not ac:

@@ -1780,7 +1780,7 @@ class Plot(object):
         str_lines = ""
         colors = []
         # try:
-        #     mark_delta = np.int(mark_repeat/len(self.data[::nth]))
+        #     mark_delta = int(mark_repeat/len(self.data[::nth]))
         # except ZeroDivisionError:
         #     mark_delta = 1
         #     print("DMT->plot->{:s}: Plot has no data, generating axis anyways.".format(self.name))
@@ -1907,7 +1907,7 @@ class Plot(object):
 
         if "mark phase" not in opts_style:
             # Markus: what was this?
-            # mark_phase = np.int(nr_line)*mark_delta if (mark_delta is not None) else np.int(1)
+            # mark_phase = int(nr_line)*mark_delta if (mark_delta is not None) else int(1)
             opts_style += "mark phase={:d}, ".format(mark_delta)
 
         if line_width is not None:
