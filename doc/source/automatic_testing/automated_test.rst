@@ -4,7 +4,7 @@ CI/CD File
 This page explains the Gitlab CI/CD file, which automatically runs a number of
 test-cases and generates the documentation when a new commit is added to the DMT master or pre-master branch.
 
-For the full how-to check the documentation of `gitlab <https://docs.gitlab.com/ee/ci/index.html>`
+For the full how-to check the documentation of `gitlab <https://docs.gitlab.com/ee/ci/index.html>`__.
 
 
 Explanation to the automatic test and result generation
@@ -65,7 +65,7 @@ The last stage is used to generate the coverage report and the documentation:
     only:
       - master
 
-The artifacts that are generated in this step can be download from `pipelines <https://gitlab.com/dmt-development/dmt-core/pipelines>`.
+The artifacts that are generated in this step can be download from `pipelines <https://gitlab.com/dmt-development/dmt-core/pipelines>`__.
 
 Automatic Testing
 ----------------------------------------------------------
