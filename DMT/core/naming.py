@@ -316,7 +316,10 @@ class SpecifierStr(str):
             splitted = splitted[1].split("!")
 
             nodes = splitted[0].split("?")
-            sub_specifiers = splitted[1].split("|")
+            try:
+                sub_specifiers = splitted[1].split("|")
+            except IndexError:
+                sub_specifiers = None
             return SpecifierStr(spec, *nodes, sub_specifiers=sub_specifiers)
         else:  # it was just a regular str
             return string
