@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Pushing release-candidates to Pypi with ensured transparent versioning using git tags.
 - Added cycler and colormath package dependencies
 - Proper optional pylatex dependency
+- Plot: Added style as an optional argument for add_data_set_multiple_y()
 - SpecifierStr: Added pass-through kwargs from SpecifierStr.to_label() to SpecifierStr.to_tex()
 - sub_specifier.DELTA is converted to_tex as \Delta X also added more testing for this feature.
 - MCard: Added op_vars back to MCard and pushed its semver to 2.2. op_vars will be used in DutNgspice
