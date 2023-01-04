@@ -1412,6 +1412,7 @@ class Plot(object):
         skip_every=lambda x: x,
         n_ticks_x=None,
         n_ticks_y=None,
+        show_legend=True,
         legend_location=None,
         legend_to_name=None,
         **kwargs,
@@ -1789,7 +1790,7 @@ class Plot(object):
             if len(dict_line["x"]) == 0:
                 continue
             str_addplot, colors = self._tikz_addplot(
-                dict_line, nr_line, colors=colors, mark_delta=mark_delta
+                dict_line, nr_line, colors=colors, mark_delta=mark_delta, show_label=show_legend
             )
             if str_addplot is not None:
                 str_lines += str_addplot
@@ -1873,7 +1874,7 @@ class Plot(object):
 
         return file_name
 
-    def _tikz_addplot(self, dict_line, nr_line, colors=None, mark_delta=None):
+    def _tikz_addplot(self, dict_line, nr_line, colors=None, mark_delta=None, show_label=True):
         """Transforms a line into a pgfplots addplot command.
 
         Parameters
@@ -1946,8 +1947,10 @@ class Plot(object):
 
         if label is None:
             str_addplot += "% \\addlegendentry{}\n"
-        else:
+        elif show_label:
             str_addplot += "\\addlegendentry{" + label + "}\n"
+        else:
+            str_addplot += "% \\addlegendentry{" + label + "}\n"
 
         return str_addplot, colors
 
