@@ -29,6 +29,7 @@ from __future__ import annotations
 from typing import Dict, List, Mapping, Type, Optional, Union, Tuple
 import numpy as np
 from DMT.core import (
+    specifiers,
     get_specifier_from_string,
     SpecifierStr,
 )
@@ -160,6 +161,10 @@ class SweepDef(object):
             return "SYNC"
         elif "LIST" in sweep_type_new:
             return "LIST"
+        elif "SIN" in sweep_type_new:
+            return "SINUS"
+        elif "SMOOTH_RAMP" in sweep_type_new:
+            return "SMOOTH_RAMP"
         else:
             raise IOError(
                 'DMT->Sweep: specified sweeptype:"' + sweep_type_new + '" is unknown to DMT.'
@@ -284,6 +289,13 @@ class SweepDef(object):
                 for i_col in range(self.values.shape[0]):
                     self.values[i_col, :] = self.master.values + self.offset.values[i_col]
                 self.values = np.concatenate(self.values)
+
+        elif self.sweep_type in ("SINUS", "SMOOTH_RAMP"):
+            pass  # can not set the values! They are depending on the simulation (i.e. steping)...
+        else:
+            raise OSError(
+                'DMT->Sweep: specified sweeptype:"' + self.sweep_type + '" is unknown to DMT.'
+            )
 
 
 class SweepDefConst(SweepDef):
@@ -454,3 +466,83 @@ class SweepDefSync(SweepDef):
             master=master,
             offset=offset,
         )
+
+
+class SweepDefTransSinus(SweepDef):
+    """Sinusoidal transient sweep definition
+
+    Parameters
+    ----------
+    amp : Union[int, float], optional
+        _description_, by default None
+    phase : Union[int, float], optional
+        _description_, by default None
+    contact : Union[Tuple[str], str], optional
+        _description_, by default None
+    sweep_order : Optional[int], optional
+        _description_, by default None
+    """
+
+    def __init__(
+        self,
+        value_def: Union[List, np.array] = None,
+        amp: Union[int, float] = None,
+        phase: Union[int, float] = None,
+        contact: Union[Tuple[str], str] = None,
+        sweep_order: Optional[int] = None,
+    ):
+        super().__init__(
+            value_def=value_def,
+            var_name=specifiers.TIME,
+            sweep_type="SINUS",
+            sweep_order=sweep_order,
+        )
+
+        self.amp = amp
+        if isinstance(contact, tuple):
+            self.contact = contact
+        else:
+            self.contact = (contact,)
+        self.phase = phase
+
+        self._attr_repr += ["amp", "contact", "phase"]
+
+
+class SweepDefTransRamp(SweepDef):
+    """smooth ramp transient sweep definition
+
+    Parameters
+    ----------
+    amp : Union[int, float], optional
+        _description_, by default None
+    phase : Union[int, float], optional
+        _description_, by default None
+    contact : Union[Tuple[str], str], optional
+        _description_, by default None
+    sweep_order : Optional[int], optional
+        _description_, by default None
+    """
+
+    def __init__(
+        self,
+        value_def: Union[List, np.array] = None,
+        amp: Union[int, float] = None,
+        phase: Union[int, float] = None,
+        contact: Union[Tuple[str], str] = None,
+        sweep_order: Optional[int] = None,
+    ):
+        super().__init__(
+            value_def=value_def,
+            var_name=specifiers.TIME,
+            sweep_type="SMOOTH_RAMP",
+            sweep_order=sweep_order,
+        )
+
+        self.amp = amp
+        if isinstance(contact, tuple):
+            self.contact = contact
+        else:
+            self.contact = (contact,)
+        self.phase = phase
+
+        self._attr_repr += ["amp", "contact", "phase"]

@@ -526,9 +526,10 @@ class Sweep(object):
         columns = []
         values_per_subsweep = []
         for subsweep in self.sweepdef:
-            if not subsweep.sweep_type == "SYNC":
-                columns.append(subsweep.var_name)
-                values_per_subsweep.append(list(subsweep.values))
+            if subsweep.sweep_type in ["SYNC", "SINUS", "SMOOTH_RAMP"]:
+                continue
+            columns.append(subsweep.var_name)
+            values_per_subsweep.append(list(subsweep.values))
 
         # sweepdefs are a tree...
         # use itertools product to generate all possible combinations in the correct order

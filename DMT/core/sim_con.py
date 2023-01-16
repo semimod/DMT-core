@@ -667,7 +667,7 @@ class SimCon(object, metaclass=Singleton):
                 if len(process_running) == 0 and len(sim_list) == 0:
                     finished = True
                 elif len(process_running) == self.n_core or len(sim_list) == 0:
-                    time.sleep(0.1)
+                    time.sleep(0.5)
 
         # print download status
         if self.scp_client is not None:
@@ -779,7 +779,7 @@ def _check_simulation_needed(i_sim, n_tot, dut=None, sweep=None):
     print_progress_bar(i_sim, n_tot, prefix="Progress", length=50)
     if dut.check_existence_sweep(sweep):
         print(
-            f"Simulation of DuT {dut_name} with sweep {sim_name} loaded from database.",
+            f"\n Simulation of DuT {dut_name} with sweep {sim_name} loaded from database.",
         )
         logging.info("Simulation of DuT %s with sweep %s loaded from database.", dut_name, sim_name)
     else:
@@ -788,7 +788,7 @@ def _check_simulation_needed(i_sim, n_tot, dut=None, sweep=None):
             # was it simulated already successfully ?
             dut.validate_simulation_successful(sweep)
             print(
-                f"Simulation of DuT {dut_name} with sweep {sim_name} already done and results are valid, only data needs to be read.",
+                f"\n Simulation of DuT {dut_name} with sweep {sim_name} already done and results are valid, only data needs to be read.",
             )
             logging.info(
                 "Simulation of DuT %s with sweep %s already done and results are valid, only data needs to be read.",
@@ -801,7 +801,7 @@ def _check_simulation_needed(i_sim, n_tot, dut=None, sweep=None):
             dut.add_data(sweep)
         except SimulationFail:
             print(
-                f"Simulation of DuT {dut_name} with sweep {sim_name} already done and failed.",
+                f"\n Simulation of DuT {dut_name} with sweep {sim_name} already done and failed.",
             )
         # except (SimulationUnsuccessful, FileNotFoundError, IndexError, struct.error):
         except:  # all exceptions should be re-simulated

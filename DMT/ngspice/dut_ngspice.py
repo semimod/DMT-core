@@ -332,31 +332,32 @@ class DutNgspice(DutCircuit):
         )
 
         df = tmp_sweep.create_df()
-        ac = True
-        if not specifiers.FREQUENCY in df.columns:
-            # ac = False
-            df[specifiers.FREQUENCY] = 1e9
 
-        # from ngspice manual
-        # .ac dec nd fstart fstop-
-        # .ac oct no fstart fstop
-        # .ac lin np fstart fstop
-        # ONLY lin can have only 1 freqency
+        # for AC use a table and only linear sweeps since:
+        # from ngspice manual ONLY lin can have only 1 freqency
 
         # find the AC sweep definition
         ac_statements = []
-        if ac:
-            for swd in sweepdefs:
-                if swd.var_name == specifiers.FREQUENCY:
-                    for freq in swd.values:
-                        ac_statements.append(f"ac lin 1 {freq:g} {freq:g}\n")
+        for swd in sweepdefs:
+            if swd.var_name == specifiers.FREQUENCY:
+                for freq in swd.values:
+                    ac_statements.append(f"ac lin 1 {freq:g} {freq:g}\n")
 
-            # remove all but one frequency from DF. We can then later put the "ac_statement" behind every DC point.
+        if ac_statements:
+            # remove all but one frequency from DF. We later put the "ac_statement" behind every DC point.
             freqs = df[specifiers.FREQUENCY]
             df = df[df[specifiers.FREQUENCY] == freqs[0]]
-
-        if not ac_statements:
+        else:
+            df[specifiers.FREQUENCY] = 1e9  # default frequency...
             ac_statements.append("ac lin 1 1e9 1e9 \n")
+
+        try:
+            # currently only 1 transient simulation per ngspice simulation (?)
+            swd_tran = next(swd for swd in sweepdefs if swd.var_name == specifiers.TIME)
+            if len(list(swd for swd in sweepdefs if swd.var_name == specifiers.TIME)) > 1:
+                raise IOError("Currently only one transient sweepdef per sweep in DutNgspice")
+        except StopIteration:
+            swd_tran = False
 
         # # #try to cast the analysis into a dc sweep ... convergence -> need to iterate over DMT sweepdef
         # if not ac:
