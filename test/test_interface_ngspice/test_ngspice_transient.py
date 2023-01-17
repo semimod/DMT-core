@@ -200,53 +200,67 @@ def get_circuit(self, use_build_in=True, topology="common_emitter", **kwargs):
     return Circuit(circuit_elements)
 
 
+col_time = specifiers.TIME
 col_vb = specifiers.VOLTAGE + "B"
 col_vc = specifiers.VOLTAGE + "C"
 col_ve = specifiers.VOLTAGE + "E"
 
-mc_D21 = MCard(
-    ["C", "B", "E", "S", "T"],
-    default_module_name="",
-    default_subckt_name="",
-    va_file=folder_path.parent
-    / "test_core_no_interfaces"
-    / "test_va_code"
-    / "hicuml2"
-    / "hicumL2V2p4p0_release.va",
-)
-mc_D21.load_model_parameters(
-    folder_path.parent
-    / "test_core_no_interfaces"
-    / "test_modelcards"
-    / "IHP_ECE704_03_para_D21.mat",
-)
-mc_D21.update_from_vae(remove_old_parameters=True)
-mc_D21.get_circuit = types.MethodType(get_circuit, mc_D21)
 
-dut_HICUM = DutNgspice(
-    None,
-    DutType.npn,
-    input_circuit=mc_D21,
-    reference_node="E",
-    copy_va_files=False,
-    simulator_command="ngspice_osdi",
-)
+def get_dut():
+    mc_D21 = MCard(
+        ["C", "B", "E", "S", "T"],
+        default_module_name="",
+        default_subckt_name="",
+        va_file=folder_path.parent
+        / "test_core_no_interfaces"
+        / "test_va_code"
+        / "hicuml2"
+        / "hicumL2V2p4p0_release.va",
+    )
+    mc_D21.load_model_parameters(
+        folder_path.parent
+        / "test_core_no_interfaces"
+        / "test_modelcards"
+        / "IHP_ECE704_03_para_D21.mat",
+    )
+    mc_D21.update_from_vae(remove_old_parameters=True)
+    mc_D21.get_circuit = types.MethodType(get_circuit, mc_D21)
 
-sim_con = SimCon(n_core=1, t_max=1000)
+    return DutNgspice(
+        None,
+        DutType.npn,
+        input_circuit=mc_D21,
+        reference_node="E",
+        copy_va_files=False,
+        simulator_command="ngspice_osdi",
+    )
 
-frequencies = 203e9 * np.array([0.1, 0.4, 0.5, 0.6, 0.7, 1, 2, 3])
-sweep = Sweep(
-    "test",
-    sweepdef=[
-        SweepDefTransSinus(value_def=frequencies, amp=25e-3, phase=0, contact="B", sweep_order=2),
-        SweepDefSync(col_vc, master=col_vb, offset=0, sweep_order=1),
-        SweepDefConst(col_vb, value_def=0.87, sweep_order=1),
-        SweepDefConst(col_ve, value_def=0, sweep_order=0),
-    ],
-    outputdef=["OpVar"],
-    othervar={specifiers.TEMPERATURE: 300},
-)
 
-sim_con.append_simulation(dut=dut_HICUM, sweep=sweep)
+def get_sweep():
+    frequencies = 203e9 * np.array([0.1, 0.4, 0.5, 0.6, 0.7, 1, 2, 3])
+    return Sweep(
+        "test",
+        sweepdef=[
+            SweepDefTransSinus(
+                value_def=frequencies, amp=25e-3, phase=0, contact="B", sweep_order=2
+            ),
+            SweepDefSync(col_vc, master=col_vb, offset=0, sweep_order=1),
+            SweepDefConst(col_vb, value_def=0.87, sweep_order=1),
+            SweepDefConst(col_ve, value_def=0, sweep_order=0),
+        ],
+        outputdef=["OpVar"],
+        othervar={specifiers.TEMPERATURE: 300},
+    )
 
-sim_con.run_and_read()
+
+if __name__ == "__main__":
+    dut_HICUM = get_dut()
+    sweep = get_sweep()
+
+    sim_con = SimCon(n_core=1, t_max=1000)
+    sim_con.append_simulation(dut=dut_HICUM, sweep=sweep)
+    sim_con.run_and_read()
+
+    i_op = 0
+    i_freq = 0
+    df = dut_HICUM.get_data(sweep=sweep, key=f"tr_{i_op}_{i_freq}")

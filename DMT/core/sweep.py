@@ -526,7 +526,7 @@ class Sweep(object):
         columns = []
         values_per_subsweep = []
         for subsweep in self.sweepdef:
-            if subsweep.sweep_type in ["SYNC", "SINUS", "SMOOTH_RAMP"]:
+            if subsweep.sweep_type in ["SYNC"]:
                 continue
             columns.append(subsweep.var_name)
             values_per_subsweep.append(list(subsweep.values))

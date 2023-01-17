@@ -352,36 +352,16 @@ class DutNgspice(DutCircuit):
             ac_statements.append("ac lin 1 1e9 1e9 \n")
 
         try:
-            # currently only 1 transient simulation per ngspice simulation (?)
+            # currently only 1 transient sweepdef per ngspice simulation (?)
             swd_tran = next(swd for swd in sweepdefs if swd.var_name == specifiers.TIME)
             if len(list(swd for swd in sweepdefs if swd.var_name == specifiers.TIME)) > 1:
                 raise IOError("Currently only one transient sweepdef per sweep in DutNgspice")
+
+            # add transient signal to the correct voltage source
+            transient_source_temp = ""
+            TODO
         except StopIteration:
             swd_tran = False
-
-        # # #try to cast the analysis into a dc sweep ... convergence -> need to iterate over DMT sweepdef
-        # if not ac:
-        #     n_lin = 0
-        #     n_con = 0
-        #     for swd in sweepdefs:
-        #         if swd.sweep_type == 'CON':
-        #             n_con += 1
-        #         elif swd.sweep_type == 'LIN':
-        #             n_lin += 1
-        #         else:
-        #             continue
-
-        #     if n_lin == 1:
-        #         #only one linear sweep and no AC ... cast to ngspice sweep
-        #         sweepvar = None
-        #         for col in df.columns:
-        #             if 'V_' in col:
-        #                 vals = df[col].to_numpy()
-        #                 if len(np.unique(vals)) == 1:
-        #                     continue
-        #                 else:
-        #                     if all(np.diff(vals)==np.diff(vals)[0]):
-        #                         sweepvar = col
 
         # so we have VOLTAGE sources and CURRENT sources and Frequency for every operating point.
         for index, row in df.iterrows():
@@ -409,34 +389,44 @@ class DutNgspice(DutCircuit):
             # #write to output
             str_netlist += f"wrdata output_ngspice_dc.ngspice alli allv {str_dc_output}\n"
 
-            # #if we also need ac, lets go
-            if ac:
-                # set all ac magnitudes to zero
+            # Add AC
+            # set all ac magnitudes to zero
+            for voltage_source in voltage_sources:
+                str_netlist += "alter V_" + voltage_source.name + " ac=0\n"
+
+            # turn on one voltage source at a time and save the results of ac analysis
+            for i_ac_statement, ac_statement in enumerate(ac_statements):
+                # turn on source
+
+                # ac analysis statement
+                # ngspice ac format: dec n_points f_start f_stop
+                # dmt sweep format : log_10(fstart) log_10(fstop) n_points
                 for voltage_source in voltage_sources:
+                    str_netlist += "alter V_" + voltage_source.name + " ac=1\n"
+                    str_netlist += ac_statement
+                    # ac output statement -> move to end?
+                    str_netlist += (
+                        "wrdata output_ngspice_ac_" + voltage_source.name + ".ngspice alli allv\n"
+                    )
+
+                    # turn off source
                     str_netlist += "alter V_" + voltage_source.name + " ac=0\n"
 
-                # turn on one voltage source at a time and save the results of ac analysis
-                for i_ac_statement, ac_statement in enumerate(ac_statements):
-                    # turn on source
+                if index == 0 and i_ac_statement == 0:
+                    str_netlist += "unset wr_vecnames\n"
 
-                    # ac analysis statement
-                    # ngspice ac format: dec n_points f_start f_stop
-                    # dmt sweep format : log_10(fstart) log_10(fstop) n_points
-                    for voltage_source in voltage_sources:
-                        str_netlist += "alter V_" + voltage_source.name + " ac=1\n"
-                        str_netlist += ac_statement
-                        # ac output statement -> move to end?
-                        str_netlist += (
-                            "wrdata output_ngspice_ac_"
-                            + voltage_source.name
-                            + ".ngspice alli allv\n"
-                        )
-
-                        # turn off source
-                        str_netlist += "alter V_" + voltage_source.name + " ac=0\n"
-
-                    if index == 0 and i_ac_statement == 0:
-                        str_netlist += "unset wr_vecnames\n"
+            # Add transients
+            for i_tr, freq in enumerate(swd_tran.value_def):
+                tau = 1 / freq
+                transient_source_new = transient_source_temp.replace("%%MARK%%")
+                str_netlist = str_netlist.replace(transient_source_old, transient_source_new)
+                transient_source_old = transient_source_new
+                str_netlist += (
+                    "set wr_vecnames\n"
+                    + f"tran {tau/40} {3*tau}"
+                    + f"wrdata output_ngspice_tr_{index}_{i_tr} alli allv"
+                    + "unset wr_vecnames\n"
+                )
 
         str_netlist += ".endc\n" + ".end\n"
 

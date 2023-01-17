@@ -9,6 +9,8 @@ from DMT.core.sweep_def import (
     SweepDefLog,
     SweepDefSync,
     SweepDefList,
+    SweepDefTransSinus,
+    SweepDefTransRamp,
 )
 
 sp_temp = specifiers.TEMPERATURE
@@ -340,6 +342,56 @@ def test_sweep_temp():
         ).get_temperature()
 
 
+def test_tran_sweep():
+    col_time = specifiers.TIME
+    col_vb = specifiers.VOLTAGE + "B"
+    col_vc = specifiers.VOLTAGE + "C"
+    col_ve = specifiers.VOLTAGE + "E"
+    frequencies = 1e9 * np.array([0.1, 0.5, 1, 2])
+    sweep = Sweep(
+        "test",
+        sweepdef=[
+            SweepDefTransSinus(
+                value_def=frequencies, amp=25e-3, phase=0, contact="B", sweep_order=2
+            ),
+            SweepDefSync(col_vc, master=col_vb, offset=0, sweep_order=1),
+            SweepDefConst(col_vb, value_def=0.87, sweep_order=1),
+            SweepDefConst(col_ve, value_def=0, sweep_order=0),
+        ],
+        outputdef=["OpVar"],
+        othervar={specifiers.TEMPERATURE: 300},
+    )
+    frame = sweep.create_df()
+    frame["signal"] = sweep.sweepdef[3].get_input_signal()
+
+    assert len(frame) == len(frequencies) * 121
+    assert all(np.abs(frame["signal"]) <= 0.025)
+    # check zero crossings
+    assert np.allclose(frame.loc[0:120:20, "signal"], 0.0)
+    assert np.allclose(frame.loc[121:241:20, "signal"], 0.0)
+    assert np.allclose(frame.loc[242:362:20, "signal"], 0.0)
+    assert np.allclose(frame.loc[363:484:20, "signal"], 0.0)
+
+    frequencies = 1e9 * np.array([0.1, 0.5, 1, 2])
+    sweep = Sweep(
+        "test",
+        sweepdef=[
+            SweepDefTransRamp(value_def=frequencies, amp=1, phase=0, contact="B", sweep_order=2),
+            SweepDefSync(col_vc, master=col_vb, offset=0, sweep_order=1),
+            SweepDefConst(col_vb, value_def=0.87, sweep_order=1),
+            SweepDefConst(col_ve, value_def=0, sweep_order=0),
+        ],
+        outputdef=["OpVar"],
+        othervar={specifiers.TEMPERATURE: 300},
+    )
+    frame = sweep.create_df()
+    frame["signal"] = sweep.sweepdef[3].get_input_signal()
+
+    assert len(frame) == len(frequencies) * 121
+    assert all(np.abs(frame["signal"]) <= 0.25)
+    assert frame.loc["signal"]
+
+
 if __name__ == "__main__":
     test_dc_sweep()
     test_sync_sweep()
@@ -347,3 +399,4 @@ if __name__ == "__main__":
     test_sweepdef_errors()
     test_sweep_swd()
     test_sweep_temp()
+    test_tran_sweep()
