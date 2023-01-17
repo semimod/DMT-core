@@ -25,7 +25,7 @@ try:
     from .pylatex import CommandLabel
     from .pylatex import CommandRef
     from .pylatex import CommandRefRange
-except (ImportError, NameError):
+except ImportError:
     pass
 
 ## verilogae

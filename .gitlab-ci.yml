@@ -67,14 +67,71 @@ test_DMT:
         coverage_format: cobertura
         path: coverage.xml
 
+test_dependencies:
+  image: python:3.10-bullseye
+  stage: test
+  rules:
+    - if: $CI_COMMIT_BRANCH =~ /main/
+    - if: $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
+      when: manual
+  needs:
+    - job: check_format
+  script:
+    - pip install matplotlib # scikit-rf 0.24.0 issue
+    - pip install --upgrade --upgrade-strategy eager -e . # upgrade to everything new in the first pip install
+    - python3 test/test_core_no_interfaces/test_MCard.py
+    # test all optional variants
+
+    # HDF5
+    - pip install -e .[HDF5]
+    - python3 test/test_core_no_interfaces/test_MCard.py
+    - pip uninstall -y tables
+
+    # pyqtgraph and pyside2
+    - pip install -e .[pyqtgraph,pyside2]
+    - python3 test/test_core_no_interfaces/test_MCard.py
+    - pip uninstall -y pyqtgraph PySide2
+
+    # pyqtgraph and pyqt5
+    - pip install -e .[pyqtgraph,pyqt5]
+    - python3 test/test_core_no_interfaces/test_MCard.py
+    - pip uninstall -y pyqtgraph PyQt5
+
+    # matplotlib
+    - pip install -e .[matplotlib]
+    - python3 test/test_core_no_interfaces/test_MCard.py
+    # - pip uninstall -y matplotlib
+
+    # smithplot
+    - pip install -e .[smithplot]
+    - python3 test/test_core_no_interfaces/test_MCard.py
+    # - pip uninstall -y matplotlib pysmithplot-3.10
+    - pip uninstall -y pysmithplot-3.10
+
+    # develop
+    - pip install -e .[develop]
+    - python3 test/test_core_no_interfaces/test_MCard.py
+    - pip uninstall -y pylint black
+
+    # latex 
+    - pip install -e .[latex]
+    - python3 test/test_core_no_interfaces/test_MCard.py
+    - pip uninstall -y pylatex pylatexenc
+
+    # remote 
+    - pip install -e .[remote]
+    - python3 test/test_core_no_interfaces/test_MCard.py
+    - pip uninstall -y paramiko scp
+
+
 wheel_to_pypi:
   image: registry.gitlab.com/dmt-development/dmt-core:base
   stage: create_release
   rules:
     - if: $CI_COMMIT_TAG =~ /^Version/
   script:
-    - echo "VERSION_NR=$(python3 DMT/external/pypi.py --check_version $CI_COMMIT_TAG)"
-    - sed -i "s/9.9.9/${VERSION_NR}/" setup.py
+    - VERSION_NR=$(python3 DMT/external/pypi.py --check_version $CI_COMMIT_TAG)
+    - sed -i "s/9.9.9/$VERSION_NR/" setup.py
     - python3 setup.py sdist bdist_wheel
     - python3 -c "import re; match = re.search(r'(## \[\d.+?)((## \[)|\Z)', open('CHANGELOG').read(), re.DOTALL); print(match.group(1))" | tee current_changes.md
     # push to pip
@@ -94,10 +151,18 @@ release_job:
   needs:
     - job: wheel_to_pypi
   script:
-    - >
-      release-cli create --name $CI_COMMIT_TAG --description current_changes.md
-      --tag-name $CI_COMMIT_TAG --ref $CI_COMMIT_SHA
-      --assets-link "{\"name\":\"wheel\",\"url\":\"${WHEEL_LINK}\",\"link_type\":\"other\",\"filepath\":\"/assets/DMT_core.whl\"}" 
+    - echo 'Releasing wheel to Pypi'
+  release:
+    name: $CI_COMMIT_TAG
+    tag_name: $CI_COMMIT_TAG
+    ref: $CI_COMMIT_SHA
+    description: ./current_changes.md
+    assets:
+      links:
+        - name: 'wheel'
+          url: '${WHEEL_LINK}'
+          link_type: 'other'
+          filepath: /releases/DMT_core.whl
   
 pages:
   image: registry.gitlab.com/dmt-development/dmt-core:base
@@ -107,6 +172,8 @@ pages:
   needs:
     - job: wheel_to_pypi
   script:
+    - VERSION_NR=$(python3 DMT/external/pypi.py --extract_version $CI_COMMIT_TAG)
+    - sed -i "s/9.9.9/$VERSION_NR/" doc/source/conf.py
     - pip install --upgrade --upgrade-strategy eager -e .[develop,HDF5,latex,remote]
     - cd doc ; make html
     - mv build/html/ ../public/
@@ -146,3 +213,4 @@ build_container:
     # push
     - docker push registry.gitlab.com/dmt-development/dmt-core:full
     - docker push registry.gitlab.com/dmt-development/dmt-core:$CI_COMMIT_TAG
+  

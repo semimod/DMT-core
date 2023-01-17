@@ -11,10 +11,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Pushing release-candidates to Pypi with ensured transparent versioning using git tags.
 - Added cycler and colormath package dependencies
 - Proper optional pylatex dependency
-- Added pass-through kwargs from SpecifierStr.to_label() to SpecifierStr.to_tex()
+- Plot: Added style as an optional argument for add_data_set_multiple_y()
+- SpecifierStr: Added pass-through kwargs from SpecifierStr.to_label() to SpecifierStr.to_tex()
+- sub_specifier.DELTA is converted to_tex as \Delta X also added more testing for this feature.
+- MCard: Added op_vars back to MCard and pushed its semver to 2.2. op_vars will be used in DutNgspice
+- DutNgspice: Added devices_op_vars to collect all op_vars in a netlist and add them if OpVars is given in the sweep.outputdef
+- DutNgspice: Added native support for VA-modeled devices using OpenVAF
+- DutView: save_db now allows saving only some sweep_keys in case of separate databases
 
 ### Changed
 
+- DutNgspice now uses the verilog-code if a modelcard has one. This breaks the current behaviour. Next release will be 2.0.0
+- Adjusted test_dut_ngspice to the new DutNgspice
 - Updated to pyqtgraph 0.13.1. QApplication in plot.py from QWidgets is tried to use, if this does not work, fall back to old implementation from Qt.QtGui
 
 ### Removed

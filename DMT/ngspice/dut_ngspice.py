@@ -40,6 +40,8 @@ import logging
 import copy
 import re
 import numpy as np
+import subprocess
+from pathlib import Path
 
 from DMT.config import COMMANDS
 from DMT.core import (
@@ -85,6 +87,8 @@ class DutNgspice(DutCircuit):
         simulator_command=None,
         simulator_arguments=None,
         initial_conditions={},
+        command_openvaf=COMMANDS["OPENVAF"],
+        copy_va_files=False,
         **kwargs,
     ):
         if simulator_command is None:
@@ -102,9 +106,9 @@ class DutNgspice(DutCircuit):
         simulator_options = default_options
 
         self.initial_conditions = initial_conditions
-
-        # set temperature to find it easily later!
-        # simulator_options['Temp'] = r'{TEMP}'
+        self.devices_op_vars = []
+        self._osdi_imports = []
+        self.command_openvaf = command_openvaf
 
         super().__init__(
             database_dir,
@@ -115,6 +119,7 @@ class DutNgspice(DutCircuit):
             simulator_options=simulator_options,
             simulator_arguments=simulator_arguments,
             inp_name="ngspice_circuit.ckt",
+            copy_va_files=copy_va_files,
             **kwargs,
         )
 
@@ -130,13 +135,18 @@ class DutNgspice(DutCircuit):
         -------
         netlist : str
         """
+        use_osdi = bool(self.command_openvaf)  # False if None/null
         if isinstance(inp_circuit, MCard) or isinstance(inp_circuit, McParameterCollection):
             # save the modelcard, in case it was set inderectly via the input header!
             self._modelcard = copy.deepcopy(inp_circuit)
             # generate inp_circuit for netlist generation
-            inp_circuit = inp_circuit.get_circuit(**self.get_circuit_arguments)  # type: ignore
+            self._inp_circuit = inp_circuit.get_circuit(**self.get_circuit_arguments)  # type: ignore
+            if (
+                "use_build_in" in self.get_circuit_arguments
+                and self.get_circuit_arguments["use_build_in"]
+            ):
+                use_osdi = False
             # in case a standard circuit is used, this is the real input circuit
-            self._inp_circuit = inp_circuit
         elif isinstance(inp_circuit, Circuit):
             self._modelcard = None
             self._inp_circuit = copy.deepcopy(inp_circuit)
@@ -145,37 +155,50 @@ class DutNgspice(DutCircuit):
                 "For ADS circuits netlist generation is only possible from object of class DMT.classes.Circuit"
             )
 
+        self.devices_op_vars = []
         str_netlist = "DMT generated netlist\n"
         str_netlist += ".Options " + self._convert_dict_to_inp_line(self.simulator_options) + "\n"
 
-        # is a modelcard inside the netlist?
-        list_va_files = []
-        for element in inp_circuit.netlist:
-            try:
-                if (
-                    isinstance(inp_circuit, MCard)
-                    or isinstance(inp_circuit, McParameterCollection)
-                    and element.parameters.va_file is not None
-                ):
-                    list_va_files.append(element.parameters.va_file)
-            except AttributeError:
-                pass
+        if use_osdi:
+            # is a modelcard inside the netlist?
+            list_va_files = list()
+            for element in self._inp_circuit.netlist:
+                try:
+                    list_va_files.append(element.parameters.va_codes)
+                except AttributeError:
+                    # element does not have a va_file.
+                    pass
 
-        # load va files:
-        for va_file in list_va_files:
-            if self._copy_va_files:
-                self._list_va_file_contents.append(va_file)
-            else:
-                raise NotImplementedError("Absolute path of VA-File for NGSpice...")
-                if os.path.isfile(va_file):
-                    # file is relative to current cwd -> transform to absolute path
-                    va_file = os.path.abspath(va_file)
-                # else: file must be relative to simulation cwd -> nothing to do! Possible error is raised in simulation...
+            # pre_osdi strings
+            self._osdi_imports = []
+            for vafile in list_va_files:
+                if vafile is None:
+                    continue
 
+                self._list_va_file_contents.append(vafile)
+
+                if self._copy_va_files:
+                    # always add the relative path to va -> compile and use relative import in netlist
+                    self._osdi_imports.append(vafile.root)
+                else:
+                    # check if compiled file is already there and if yes, directly add ".osdi", else add ".va"
+
+                    va_hash = vafile.get_tree_hash()  # hash file content
+                    # check if plugin is already compiled and in the folder
+                    path_va = self.sim_dir / "VA_codes" / va_hash / vafile.root
+                    path_osdi = path_va.with_suffix(".osdi")
+
+                    if path_osdi.is_file():
+                        self._osdi_imports.append(path_osdi)
+                    else:
+                        # if not: add to "to_compile"
+                        self._osdi_imports.append(path_va)
+
+        self._osdi_imports = set(self._osdi_imports)  # unique...
         str_netlist += "\n* Netlist\n"
 
         # add elements:
-        for element in inp_circuit.netlist:
+        for index, element in enumerate(self._inp_circuit.netlist):
             if isinstance(element, str):
                 # pass
                 if re.match(r"^[\w_]+=", element):
@@ -184,7 +207,7 @@ class DutNgspice(DutCircuit):
 
                 str_netlist += element + "\n"
             else:
-                str_netlist += self._convert_CircuitElement_netlist(element)
+                str_netlist += self._convert_CircuitElement_netlist(element, index)
 
         logging.info("Successfully created input header of dut %s!", self.name)
         logging.debug("Content:\n%s", str_netlist)
@@ -247,142 +270,101 @@ class DutNgspice(DutCircuit):
             str_netlist = self.inp_header + self.add_temperature_sweep(sweepdefs[0])
             del sweepdefs[0]
 
-        # output def
-        # TODO: dirty fix to debug ngspice..
-        # this is really messy...
-        # device_out = [
-        #     "temp",
-        #     "m",
-        #     "vbe",
-        #     "vbc",
-        #     "vce",
-        #     "vsc",
-        #     "vbbp",
-        #     "ic",
-        #     "ib",
-        #     "ie",
-        #     "iavl",
-        #     "is",
-        #     "ibei",
-        #     "ibci",
-        #     "it",
-        #     "vbiei",
-        #     "vbpbi",
-        #     "vbici",
-        #     "vciei",
-        #     "rcx_t",
-        #     "re_t",
-        #     "rbi",
-        #     "rb",
-        #     "betadc",
-        #     "gmi",
-        #     "gms",
-        #     "rpii",
-        #     "rpix",
-        #     "rmui",
-        #     "rmux",
-        #     "roi",
-        #     "cpii",
-        #     "cpix",
-        #     "cmui",
-        #     "cmux",
-        #     "ccs",
-        #     "betaac",
-        #     "crbi",
-        #     "tf",
-        #     "ft",
-        #     "ick",
-        #     "p",
-        #     "tk",
-        #     "dtsh",
-        # ]
-        # str_netlist += ".save all " + " ".join(["@Q_Q_H[{:s}]".format(out) for out in device_out])
-
         # ngspice control statement
         str_netlist += "\n\n.control\n"
 
+        # add pre_osdi
+        if self._osdi_imports:
+            print("\nPreparing OSDI Sources if needed.\n")
+        for osdi in self._osdi_imports:
+            try:
+                if osdi.suffix != ".osdi":
+                    # compile needed ? Could be compiled by a "parallel" simulation
+                    if not osdi.with_suffix(".osdi").is_file():
+                        process = subprocess.run(
+                            [self.command_openvaf, osdi.name], shell=False, cwd=osdi.parent
+                        )
+                        if process.returncode != 0:
+                            raise OSError(
+                                "DMT.DutNgspice: Run of OpenVAF failed!",
+                                f"The file to compile was {osdi}",
+                            )
+                    osdi = osdi.with_suffix(".osdi")
+
+                # import from common "VA_codes" folder
+                str_netlist += f"pre_osdi {osdi}\n"
+            except AttributeError:
+                # import from relative location
+                # compile always needed
+                process = subprocess.run(
+                    [self.command_openvaf, osdi], shell=False, cwd=self.get_sim_folder(sweep)
+                )
+                if process.returncode != 0:
+                    raise OSError(
+                        "DMT.DutNgspice: Run of OpenVAF failed!",
+                        f"The file to compile was {osdi} in {self.get_sim_folder(sweep)}",
+                    )
+
+                osdi = Path(osdi).with_suffix(".osdi")
+
+                # relative import
+                str_netlist += f"pre_osdi {osdi.name}\n"
+
+        # output def
+        str_netlist += "\nsave alli allv "
+        str_dc_output = ""
+        if tmp_sweep.outputdef:
+            if "OpVar" in tmp_sweep.outputdef:
+                str_dc_output += " ".join(self.devices_op_vars) + " "
+                tmp_sweep.outputdef.remove("OpVar")
+
+            # TODO find better way to use outputdef for ngspice
+            # current way does not work...
+            # str_dc_output += " ".join(tmp_sweep.outputdef)
+        str_netlist += str_dc_output
+
         # output settings
         str_netlist += (
-            "set filetype=ascii\n"
+            "\n\nset filetype=ascii\n"
             + "set appendwrite\n"
             + "set wr_vecnames\n"
             + "set wr_singlescale\n"
         )
 
         df = tmp_sweep.create_df()
-        ac = True
-        if not specifiers.FREQUENCY in df.columns:
-            # ac = False
-            df[specifiers.FREQUENCY] = 1e9
 
-        # from ngspice manual
-        # .ac dec nd fstart fstop-
-        # .ac oct no fstart fstop
-        # .ac lin np fstart fstop
+        # for AC use a table and only linear sweeps since:
+        # from ngspice manual ONLY lin can have only 1 freqency
 
         # find the AC sweep definition
         ac_statements = []
-        if ac:
-            for swd in sweepdefs:
-                if swd.var_name == specifiers.FREQUENCY:
-                    swd_type = swd.sweep_type
-                    swd_value_def = swd.value_def
-                    nfreq = swd_value_def[-1]
-                    if swd_type == "LOG":
-                        ac_statements.append(
-                            "ac dec {0:2.0f} {1:2.5e} {2:2.5e} \n".format(
-                                nfreq, 10 ** swd_value_def[0], 10 ** swd_value_def[1]
-                            )
-                        )
-                    elif swd_type == "CON":
-                        ac_statements.append(
-                            "ac dec 1 {0:2.5e} {0:2.5e} \n".format(swd_value_def[0])
-                        )
-                    elif swd_type == "LIN":
-                        ac_statements.append(
-                            "ac lin {0:2.0f} {1:2.5e} {2:2.5e} \n".format(
-                                nfreq, swd_value_def[0], swd_value_def[1]
-                            )
-                        )
-                    elif swd_type == "LIST":
-                        for val in swd_value_def:
-                            ac_statements.append("ac dec 1 {0:2.5e} {0:2.5e} \n".format(val))
-                    else:
-                        raise NotImplementedError
+        for swd in sweepdefs:
+            if swd.var_name == specifiers.FREQUENCY:
+                for freq in swd.values:
+                    ac_statements.append(f"ac lin 1 {freq:g} {freq:g}\n")
 
-            # remove all but one frequency from DF. We can then later put the "ac_statement" behind every DC point.
+        if ac_statements:
+            # remove all but one frequency from DF. We later put the "ac_statement" behind every DC point.
             freqs = df[specifiers.FREQUENCY]
             df = df[df[specifiers.FREQUENCY] == freqs[0]]
+        else:
+            df[specifiers.FREQUENCY] = 1e9  # default frequency...
+            ac_statements.append("ac lin 1 1e9 1e9 \n")
 
-        if not ac_statements:
-            ac_statements.append("ac dec 1 {0:2.5e} {0:2.5e} \n".format(1e9))
+        try:
+            # currently only 1 transient sweepdef per ngspice simulation (?)
+            swd_tran = next(swd for swd in sweepdefs if swd.var_name == specifiers.TIME)
+            if len(list(swd for swd in sweepdefs if swd.var_name == specifiers.TIME)) > 1:
+                raise IOError("Currently only one transient sweepdef per sweep in DutNgspice")
 
-        # # #try to cast the analysis into a dc sweep ... convergence -> need to iterate over DMT sweepdef
-        # if not ac:
-        #     n_lin = 0
-        #     n_con = 0
-        #     for swd in sweepdefs:
-        #         if swd.sweep_type == 'CON':
-        #             n_con += 1
-        #         elif swd.sweep_type == 'LIN':
-        #             n_lin += 1
-        #         else:
-        #             continue
-
-        #     if n_lin == 1:
-        #         #only one linear sweep and no AC ... cast to ngspice sweep
-        #         sweepvar = None
-        #         for col in df.columns:
-        #             if 'V_' in col:
-        #                 vals = df[col].to_numpy()
-        #                 if len(np.unique(vals)) == 1:
-        #                     continue
-        #                 else:
-        #                     if all(np.diff(vals)==np.diff(vals)[0]):
-        #                         sweepvar = col
+            # add transient signal to the correct voltage source
+            transient_source_temp = ""
+            TODO
+        except StopIteration:
+            swd_tran = False
 
         # so we have VOLTAGE sources and CURRENT sources and Frequency for every operating point.
-        for _index, row in df.iterrows():
+        for index, row in df.iterrows():
             for voltage_source in voltage_sources:
                 voltage_name = voltage_source.name
                 try:
@@ -405,37 +387,46 @@ class DutNgspice(DutCircuit):
             # dc output statement
 
             # #write to output
-            str_netlist += "wrdata output_ngspice_dc.ngspice all\n"
+            str_netlist += f"wrdata output_ngspice_dc.ngspice alli allv {str_dc_output}\n"
 
-            # #if we also need ac, lets go
-            if ac:
-                # set all ac magnitudes to zero
+            # Add AC
+            # set all ac magnitudes to zero
+            for voltage_source in voltage_sources:
+                str_netlist += "alter V_" + voltage_source.name + " ac=0\n"
+
+            # turn on one voltage source at a time and save the results of ac analysis
+            for i_ac_statement, ac_statement in enumerate(ac_statements):
+                # turn on source
+
+                # ac analysis statement
+                # ngspice ac format: dec n_points f_start f_stop
+                # dmt sweep format : log_10(fstart) log_10(fstop) n_points
                 for voltage_source in voltage_sources:
+                    str_netlist += "alter V_" + voltage_source.name + " ac=1\n"
+                    str_netlist += ac_statement
+                    # ac output statement -> move to end?
+                    str_netlist += (
+                        "wrdata output_ngspice_ac_" + voltage_source.name + ".ngspice alli allv\n"
+                    )
+
+                    # turn off source
                     str_netlist += "alter V_" + voltage_source.name + " ac=0\n"
 
-                # turn on one voltage source at a time and save the results of ac analysis
-                for ac_statement in ac_statements:
-                    # turn on source
-
-                    # ac analysis statement
-                    # ngspice ac format: dec n_points f_start f_stop
-                    # dmt sweep format : log_10(fstart) log_10(fstop) n_points
-                    for voltage_source in voltage_sources:
-                        str_netlist += "alter V_" + voltage_source.name + " ac=1\n"
-                        str_netlist += ac_statement
-                        # ac output statement -> move to end?
-                        str_netlist += (
-                            "wrdata output_ngspice_ac_"
-                            + voltage_source.name
-                            + ".ngspice alli allv\n"
-                        )
-
-                        # turn off source
-                        str_netlist += "alter V_" + voltage_source.name + " ac=0\n"
-
+                if index == 0 and i_ac_statement == 0:
                     str_netlist += "unset wr_vecnames\n"
 
-            str_netlist += "unset wr_vecnames\n"
+            # Add transients
+            for i_tr, freq in enumerate(swd_tran.value_def):
+                tau = 1 / freq
+                transient_source_new = transient_source_temp.replace("%%MARK%%")
+                str_netlist = str_netlist.replace(transient_source_old, transient_source_new)
+                transient_source_old = transient_source_new
+                str_netlist += (
+                    "set wr_vecnames\n"
+                    + f"tran {tau/40} {3*tau}"
+                    + f"wrdata output_ngspice_tr_{index}_{i_tr} alli allv"
+                    + "unset wr_vecnames\n"
+                )
 
         str_netlist += ".endc\n" + ".end\n"
 
@@ -783,7 +774,7 @@ class DutNgspice(DutCircuit):
 
         return str_return
 
-    def _convert_CircuitElement_netlist(self, circuit_element):
+    def _convert_CircuitElement_netlist(self, circuit_element, index):
         """Transforms a :class:`~DMT.classes.circuit.CircuitElement` into a string fitting for NGspice.
 
         Parameters
@@ -807,8 +798,6 @@ class DutNgspice(DutCircuit):
         element_types = {
             VOLTAGE: "V",
             CURRENT: "I",
-            "hicumL2va": "Q",
-            "hicumL2_test": "Q",
             HICUML2_HBT: "Q",
             SGP_BJT: "Q",
             "bjtn": "Q",
@@ -823,6 +812,11 @@ class DutNgspice(DutCircuit):
                 circuit_element.contact_nodes[1],
                 circuit_element.contact_nodes[0],
             )
+        elif (
+            isinstance(circuit_element.parameters, MCard)
+            and circuit_element.parameters.va_codes is not None
+        ):
+            element_type = "N"
         else:
             element_type = circuit_element.element_type
 
@@ -832,9 +826,9 @@ class DutNgspice(DutCircuit):
         if circuit_element.parameters is not None:
             if isinstance(circuit_element.parameters, MCard):
                 str_temp = "+ "
+                mcard = circuit_element.parameters
 
-                if circuit_element.element_type in ["hicumL2va", HICUML2_HBT, "hicumL2_test"]:
-                    mcard = circuit_element.parameters
+                if circuit_element.element_type == HICUML2_HBT:
                     str_instance_parameters = ""
                     str_model_parameters = ""
                     str_type = "NPN"
@@ -852,12 +846,10 @@ class DutNgspice(DutCircuit):
                         # dirty to allow debugging ngspice
                         str_model_parameters += "{0:s}={1:10.10e} ".format(key, val)
                     str_temp = (
-                        f"hicum_va {str_instance_parameters}\n"  # we should count here somehow the models
-                        + f".model hicum_va {str_type} level=8\n"
-                        + f"+ {str_model_parameters}"
+                        f"hicum_build_in{index:d} {str_instance_parameters}\n"  # we should count here somehow the models
+                        + f".model hicum_build_in{index:d} {str_type} level=8 {str_model_parameters}"
                     )
                 elif circuit_element.element_type in [SGP_BJT, "bjtn"]:
-                    mcard = circuit_element.parameters
                     str_instance_parameters = ""
                     str_model_parameters = ""
                     str_type = "NPN"
@@ -873,26 +865,11 @@ class DutNgspice(DutCircuit):
                         # dirty to allow debugging ngspice
                         str_model_parameters += "{0:s}={1:10.10e} ".format(key, val)
                     str_temp = (
-                        f"QMOD {str_instance_parameters}\n"  # we should count here somehow the models
-                        + f".model QMOD {str_type} level=1\n"
-                        + f"+ {str_model_parameters}"
+                        f"QMOD{index:d} {str_instance_parameters}\n"  # we should count here somehow the models
+                        + f".model QMOD{index:d} {str_type} level=1 {str_model_parameters}"
                     )
-                elif circuit_element.element_type in [DIODE]:
-                    mcard = circuit_element.parameters
-                    str_instance_parameters = ""
-                    str_model_parameters = ""
-                    str_type = "NPN"
-                    additional_str = ""
-                    for para in sorted(mcard.paras, key=lambda x: (x.group, x.name)):
-                        if para.name == "osdi":
-                            if para - value == 1:
-                                additional_str = " osdi " + circuit_element.name
-                        str_model_parameters += "{0:s}={0:10.10e} ".format(para)
-
-                    str_temp = f"\n.model dmod {additional_str} d( {str_model_parameters} )"  # we should count here somehow the models
                 elif "sky130_fd_pr" in circuit_element.element_type:
                     # skywater 130 device
-                    mcard = circuit_element.parameters
                     str_instance_parameters = ""
 
                     for para in sorted(mcard.paras, key=lambda x: (x.group, x.name)):
@@ -904,11 +881,32 @@ class DutNgspice(DutCircuit):
                         + " ".join(circuit_element.contact_nodes)
                     )
                     str_temp = f"{circuit_element.element_type} {str_instance_parameters}"
+                elif circuit_element.parameters.va_codes is not None:
+                    str_instance_parameters = ""
+                    str_model_parameters = ""
+                    for para in sorted(mcard.paras, key=lambda x: (x.group, x.name)):
+                        if (
+                            para.name in []
+                        ):  # here all instance parameters TODO after next verilogae release
+                            str_instance_parameters += "{0:s}={0:10.10e} ".format(para)
+                        else:  # here all model parameters
+                            str_model_parameters += "{0:s}={0:10.10e} ".format(para)
+
+                    str_temp = (
+                        f"model_va{index:d} {str_instance_parameters}\n"  # we should count here somehow the models
+                        + f".model model_va{index:d} {circuit_element.parameters.default_module_name} {str_model_parameters}"
+                    )
                 else:
                     raise NotImplementedError(
                         f"The element type {circuit_element.element_type} is not implemented for ngspice.",
                         "Check the ngspice manual if this type needs special treatment and implement it accordingly.",
                     )
+
+                self.devices_op_vars += [
+                    f"@{element_type}_{circuit_element.name}[{op_var:s}]"
+                    for op_var in mcard.op_vars
+                ]
+
             else:
                 str_temp = []
                 for (para, value) in circuit_element.parameters:
@@ -966,7 +964,15 @@ class DutNgspice(DutCircuit):
         # join the ac dataframes into one ac dataframe dfs_ac[0]
         df_ac = dfs_ac[0]
         for df in dfs_ac[1:]:
-            for y_param in [col for col in df.columns if col.specifier == specifiers.SS_PARA_Y]:
+            y_cols = []
+            for col in df.columns:
+                try:
+                    if col.specifier == specifiers.SS_PARA_Y:
+                        y_cols.append(col)
+                except AttributeError:
+                    pass  # from AC dataframes ONLY the SS paras are copied other, rest is ignored
+
+            for y_param in y_cols:
                 df_ac[y_param] = df[y_param].to_numpy()
 
         # join the dc data to the ac data

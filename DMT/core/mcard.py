@@ -91,7 +91,7 @@ unit_converter = {
     "": unit_registry.dimensionless,
 }
 
-SEMVER_MCARD_CURRENT = VersionInfo(major=2, minor=2)
+SEMVER_MCARD_CURRENT = VersionInfo(major=2, minor=3)
 
 
 class MCard(McParameterCollection):
@@ -151,6 +151,7 @@ class MCard(McParameterCollection):
         ignore_checksum: bool = False,
         pdk_path: str = "",
         pdk_corner: str = "",
+        op_vars: Optional[list[str]] = None,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -197,6 +198,8 @@ class MCard(McParameterCollection):
             pass  # nothing to do here?!
         elif __MCard__ == VersionInfo(major=2, minor=1):
             pass  # nothing to do here?!
+        elif __MCard__ == VersionInfo(major=2, minor=2):
+            pass  # nothing to do here: Only added op_vars
         elif __MCard__ != SEMVER_MCARD_CURRENT:
             raise NotImplementedError("DMT->MCard: Unknown version of MCard to create!")
 
@@ -206,6 +209,10 @@ class MCard(McParameterCollection):
         self.version = version
         self.pdk_path = pdk_path
         self.pdk_corner = pdk_corner
+        if op_vars is None:
+            self.op_vars = []
+        else:
+            self.op_vars = op_vars
 
         self._va_codes = None
         if va_codes is not None:
@@ -229,17 +236,6 @@ class MCard(McParameterCollection):
 
         """
         return self._va_codes
-
-    # @va_codes.setter
-    # def va_codes(self, va_codes_new: VAFile):
-    #     """Set the va_codes
-
-    #     Parameters
-    #     ----------
-    #     va_codes_new : VAFile
-    #         New rel paths with codes
-    #     """
-    #     self._va_codes = va_codes_new
 
     def set_va_codes(
         self, path_to_main_code: Union[os.PathLike, str], version: Union[str, float] = None
@@ -342,6 +338,7 @@ class MCard(McParameterCollection):
 
         self.default_module_name = vae_module.module_name
         self.nodes_list = vae_module.nodes
+        self.op_vars = vae_module.op_vars
         # self.version = ?? -> can be set in the submodules according to some model specific stuff
 
     def read_va_file_boundaries(self, remove_old_parameters=True):
@@ -559,6 +556,7 @@ class MCard(McParameterCollection):
         info_dict["version"] = self.version
         info_dict["pdk_path"] = self.pdk_path
         info_dict["pdk_corner"] = self.pdk_corner
+        info_dict["op_vars"] = self.op_vars
 
         if save_va_code and self.va_codes is not None:
             info_dict["va_codes"] = self.va_codes.export_dict(compressed_code=compress_va_code)

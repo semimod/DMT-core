@@ -141,8 +141,16 @@ def test_pretty_printing():
 
     col_y21 = specifiers.SS_PARA_Y + ["C", "B"]
     assert col_y21.to_tex() == "\\underline{Y}_{\\mathrm{21}}"
-    col_y21_imag = specifiers.SS_PARA_Y + ["C", "B"] + sub_specifiers.IMAG
-    assert col_y21_imag.to_tex() == "\\Im\\{\\underline{Y}_{\\mathrm{21}}\\}"
+    assert (col_y21 + sub_specifiers.REAL).to_tex() == "\\Re\\{\\underline{Y}_{\\mathrm{21}}\\}"
+    assert (col_y21 + sub_specifiers.IMAG).to_tex() == "\\Im\\{\\underline{Y}_{\\mathrm{21}}\\}"
+    assert (col_y21 + sub_specifiers.MAG).to_tex() == "|\\underline{Y}_{\\mathrm{21}}|"
+    assert (col_y21 + sub_specifiers.PHASE).to_tex() == "\\angle\\{\\underline{Y}_{\\mathrm{21}}\\}"
+
+    col_ic_area = col_ic + sub_specifiers.AREA
+    assert col_ic_area.to_tex() == "I_{\\mathrm{C}}|AREA"
+
+    assert (col_ic + sub_specifiers.DELTA).to_tex() == "\\Delta I_{\\mathrm{C}}"
+    assert (col_ic + sub_specifiers.MEAN).to_tex() == "\\overline\{I_{\\mathrm{C}}\}"
 
 
 if __name__ == "__main__":

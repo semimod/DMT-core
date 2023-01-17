@@ -145,6 +145,7 @@ class DutView(object):
         separate_databases=False,
         list_copy=None,
         t_max=None,
+        sim_dir=DATA_CONFIG["directories"]["simulation"],
         simulate_on_server=None,
         simulator_command="",
         simulator_arguments=None,
@@ -230,7 +231,7 @@ class DutView(object):
                 existing_dut = DutView.load_dut(self.dut_dir)
                 self.__dict__.update(existing_dut.__dict__)
 
-        self.sim_dir = DATA_CONFIG["directories"]["simulation"]
+        self.sim_dir = sim_dir
 
         self.technology = technology
         self.contact_config = contact_config
@@ -279,8 +280,6 @@ class DutView(object):
         # set the simulation folder
         sim_folder = self.get_sim_folder(sweep)
 
-        inp_content = self.make_input(sweep)
-
         try:
             sim_folder.mkdir(parents=True)
         except OSError:
@@ -293,12 +292,7 @@ class DutView(object):
                     "Simulation folder exists but can not be deleted. Is the location mounted correctly? Hint: Shut down Windows correctly."
                 )
 
-        (sim_folder / self.inp_name).write_text(inp_content)
-        if DATA_CONFIG["server"]["use_pbs"] and DATA_CONFIG["backend_remote"]:
-            pbs_content = self.make_pbs(sweep)  # needs to be implemented by the DUT
-            (sim_folder / "pbs_job").write_text(pbs_content)
-
-        # copy va files?
+        # copy va files into simulation folder?
         sim_folder = self.get_sim_folder(sweep)
         if self._copy_va_files:
             for vafile in self._list_va_file_contents:
@@ -310,6 +304,12 @@ class DutView(object):
                 dir_code = va_files_dir / vafile.get_tree_hash()
                 if not dir_code.is_dir():
                     vafile.write_files(dir_code, filter=self.va_code_filter)
+
+        inp_content = self.make_input(sweep)
+        (sim_folder / self.inp_name).write_text(inp_content)
+        if DATA_CONFIG["server"]["use_pbs"] and DATA_CONFIG["backend_remote"]:
+            pbs_content = self.make_pbs(sweep)  # needs to be implemented by the DUT
+            (sim_folder / "pbs_job").write_text(pbs_content)
 
         for data_copy in self.list_copy:
             try:
@@ -696,19 +696,27 @@ class DutView(object):
 
             self.data[key] = df
 
-    def save_db(self):
-        """Write a database for this dut. If it already exists it is overwritten. Does NOT save all keys starting with '_'"""
+    def save_db(self, sweep_keys=None):
+        """Write a database for this dut. If it already exists it is overwritten. Does NOT save all keys starting with '_'
+
+        Parameters
+        ----------
+        sweep_keys : list[str], optional
+            List of sweeps to save to database. Usefull if a lot of data is loaded but only a part should be saved to the hard drive database.
+
+        """
         if not self._data:
             return  # nothing to do here
 
         if self._separate_databases:
-            # find all sweeps in self.data
-            sweep_keys = []
-            for key in self._data.keys():
-                ## key is equal except for the last part -> same sweep
-                sweep_key = self.join_key(*self.split_key(key)[0:-1])
-                if sweep_key not in sweep_keys:
-                    sweep_keys.append(sweep_key)
+            if sweep_keys is None:
+                # find all sweeps in self.data
+                sweep_keys = []
+                for key in self._data.keys():
+                    ## key is equal except for the last part -> same sweep
+                    sweep_key = self.join_key(*self.split_key(key)[0:-1])
+                    if sweep_key not in sweep_keys:
+                        sweep_keys.append(sweep_key)
 
             for sweep_key in sweep_keys:
                 data_to_save = {}
@@ -744,7 +752,14 @@ class DutView(object):
                 return
 
             if isinstance(sweep, str):
-                name = sweep
+                if sweep == "all":
+                    # iter throuh self.save_dir and load all .h5
+                    for file_db in self.save_dir.glob("**/*.h5"):
+                        self._data.update(self.manager.load_db(file_db))
+
+                    return
+                else:
+                    name = sweep
             else:
                 name = self.get_sweep_key(sweep)
 

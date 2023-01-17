@@ -1,11 +1,24 @@
-""" test ngspice input file generation.
+"""
+
+1D schalten mit HICUM
+Konvergenz bei vergleich von flnqs = 0/1
+
 """
 import copy
 import types
 import logging
 import numpy as np
 from pathlib import Path
-from DMT.core import DutType, Sweep, specifiers, SimCon, Plot, MCard
+from DMT.config import COMMANDS
+
+COMMANDS["OPENVAF"] = "openvaf"
+from DMT.core import specifiers, DutType, SimCon, Sweep, Plot, MCard
+from DMT.core.sweep_def import (
+    SweepDefConst,
+    SweepDefSync,
+    SweepDefTransSinus,
+    SweepDefTransRamp,
+)
 from DMT.core.circuit import (
     Circuit,
     CircuitElement,
@@ -15,18 +28,10 @@ from DMT.core.circuit import (
     VOLTAGE,
     HICUML2_HBT,
 )
-from DMT.core.sweep_def import SweepDefConst, SweepDefLinear, SweepDefLog
 
 from DMT.ngspice import DutNgspice
 
 folder_path = Path(__file__).resolve().parent
-
-logging.basicConfig(
-    level=logging.DEBUG,
-    format="%(levelname)s - %(message)s",
-    filename=folder_path.parent.parent / "logs" / "test_ngspice.log",
-    filemode="w",
-)
 
 
 def get_circuit(self, use_build_in=True, topology="common_emitter", **kwargs):
@@ -195,13 +200,13 @@ def get_circuit(self, use_build_in=True, topology="common_emitter", **kwargs):
     return Circuit(circuit_elements)
 
 
-def test_ngspice():
-    col_vb = specifiers.VOLTAGE + "B"
-    col_vc = specifiers.VOLTAGE + "C"
-    col_ve = specifiers.VOLTAGE + "E"
-    col_ib = specifiers.CURRENT + "B"
-    col_ic = specifiers.CURRENT + "C"
+col_time = specifiers.TIME
+col_vb = specifiers.VOLTAGE + "B"
+col_vc = specifiers.VOLTAGE + "C"
+col_ve = specifiers.VOLTAGE + "E"
 
+
+def get_dut():
     mc_D21 = MCard(
         ["C", "B", "E", "S", "T"],
         default_module_name="",
@@ -221,137 +226,41 @@ def test_ngspice():
     mc_D21.update_from_vae(remove_old_parameters=True)
     mc_D21.get_circuit = types.MethodType(get_circuit, mc_D21)
 
-    dut = DutNgspice(None, DutType.npn, mc_D21, nodes="C,B,E,S,T", reference_node="E")
-    # dut = DutXyce(None, DutType.npn, mc_D21, nodes="C,B,E,S,T", reference_node="E")
-    duts = [dut]
+    return DutNgspice(
+        None,
+        DutType.npn,
+        input_circuit=mc_D21,
+        reference_node="E",
+        copy_va_files=False,
+        simulator_command="ngspice_osdi",
+    )
 
-    # create a sweep
-    sweepdef = [
-        SweepDefLog(specifiers.FREQUENCY, start=1, stop=2, steps=11, sweep_order=4),
-        SweepDefLinear(col_vb, start=0.5, stop=1, steps=11, sweep_order=3),
-        SweepDefConst(col_vc, value_def=1, sweep_order=2),
-        SweepDefConst(col_ve, value_def=0, sweep_order=1),
-    ]
-    outputdef = ["I_C", "I_B"]
-    othervar = {"TEMP": 300}
-    sweep = Sweep("gummel", sweepdef=sweepdef, outputdef=outputdef, othervar=othervar)
 
-    sim_con = SimCon()
-
-    sim_con.append_simulation(dut=dut, sweep=sweep)
-    sim_con.run_and_read(force=True, remove_simulations=False)
-
-    df = dut.get_data(sweep=sweep)
-    df = df[np.isclose(df[specifiers.FREQUENCY], 100)]
-    vb = np.real(df[col_vb].to_numpy())
-    ic = np.real(df[col_ic].to_numpy())
-    ib = np.real(df[col_ib].to_numpy())
-
-    assert np.isclose(
-        vb,
-        np.array(
-            [
-                0.5,
-                0.55,
-                0.6,
-                0.65,
-                0.7,
-                0.75,
-                0.799999998,
-                0.849999988,
-                0.899999936,
-                0.949999737,
-                0.999998983,
-            ]
-        ),
-    ).all()
-    assert np.isclose(
-        ic,
-        np.array(
-            [
-                1.14418981e-08,
-                7.72463409e-08,
-                5.2127632e-07,
-                3.51490644e-06,
-                2.36611728e-05,
-                0.000158456473,
-                0.00102887822,
-                0.00566126767,
-                0.0207667184,
-                0.0484566543,
-                0.06658047,
-            ]
-        ),
-    ).all()
-    assert np.isclose(
-        ib,
-        np.array(
-            [
-                3.81987775e-11,
-                1.86560101e-10,
-                1.10651399e-09,
-                7.04358172e-09,
-                4.57921487e-08,
-                2.99428393e-07,
-                1.95696248e-06,
-                1.22903099e-05,
-                6.44306933e-05,
-                0.000262592983,
-                0.00101685885,
-            ]
-        ),
-    ).all()
-
-    return duts, sweep
+def get_sweep():
+    frequencies = 203e9 * np.array([0.1, 0.4, 0.5, 0.6, 0.7, 1, 2, 3])
+    return Sweep(
+        "test",
+        sweepdef=[
+            SweepDefTransSinus(
+                value_def=frequencies, amp=25e-3, phase=0, contact="B", sweep_order=2
+            ),
+            SweepDefSync(col_vc, master=col_vb, offset=0, sweep_order=1),
+            SweepDefConst(col_vb, value_def=0.87, sweep_order=1),
+            SweepDefConst(col_ve, value_def=0, sweep_order=0),
+        ],
+        outputdef=["OpVar"],
+        othervar={specifiers.TEMPERATURE: 300},
+    )
 
 
 if __name__ == "__main__":
-    duts, sweep = test_ngspice()
+    dut_HICUM = get_dut()
+    sweep = get_sweep()
 
-    col_vbc = specifiers.VOLTAGE + ["B", "C"]
-    col_vbe = specifiers.VOLTAGE + ["B", "E"]
-    col_vce = specifiers.VOLTAGE + ["C", "E"]
-    col_ib = specifiers.CURRENT + "B"
-    col_ic = specifiers.CURRENT + "C"
+    sim_con = SimCon(n_core=1, t_max=1000)
+    sim_con.append_simulation(dut=dut_HICUM, sweep=sweep)
+    sim_con.run_and_read()
 
-    plt_gummel = Plot(
-        r"$I_{\mathrm{C}}(V_{\mathrm{BE}})$",
-        x_label=r"$V_{\mathrm{BE}}$",
-        y_label=r"$I_{\mathrm{C}}$",
-        y_log=True,
-        style="bw",
-    )
-    plt_ib = Plot(
-        r"$I_{\mathrm{B}}(V_{\mathrm{BE}})$",
-        x_label=r"$V_{\mathrm{BE}}$",
-        y_label=r"$I_{\mathrm{B}}$",
-        y_log=True,
-        style="bw",
-    )
-
-    for dut in duts:
-        dut_name = dut.name[5:7]
-        df = dut.get_data(sweep=sweep)
-
-        df.ensure_specifier_column(col_vbe, ports=dut.nodes)
-        df.ensure_specifier_column(col_vbc, ports=dut.nodes)
-        df.ensure_specifier_column(col_vce, ports=dut.nodes)
-
-        for _index, vce, data in df.iter_unique_col(col_vce, decimals=3):
-            data = data[np.isclose(data[specifiers.FREQUENCY], 100)]
-
-            plt_gummel.add_data_set(
-                np.real(data[col_vbe].to_numpy()),
-                np.real(data[col_ic].to_numpy()),
-                label=dut_name + " $V_{{CE}} = {0:1.2f} V$".format(np.real(vce)),
-            )
-            plt_ib.add_data_set(
-                np.real(data[col_vbe].to_numpy()),
-                np.real(data[col_ib].to_numpy()),
-                label=dut_name + " $V_{{CE}} = {0:1.2f} V$".format(np.real(vce)),
-            )
-
-    plt_ib.plot_pyqtgraph(show=False)
-    plt_gummel.plot_pyqtgraph(show=True)
-    # plt_ib.plot_py(show=False, use_tex=True)
-    # plt_gummel.plot_py(show=True, use_tex=False)
+    i_op = 0
+    i_freq = 0
+    df = dut_HICUM.get_data(sweep=sweep, key=f"tr_{i_op}_{i_freq}")

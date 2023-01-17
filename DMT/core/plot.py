@@ -132,6 +132,24 @@ PLOT_STYLES.append(XTRACTION_INTERPOLATED_COLOR)
 MIX = "mix"
 PLOT_STYLES.append(MIX)
 
+CYCLER_MARKERS = cycler(marker=[char for char in "x+v^*<>.so"])
+CYCLER_LINESTYLES = cycler(linestyle=["-", "--", "-.", ":"])
+CYCLER_COLORS = cycler(
+    color=[
+        "#006400",  # darkgreen
+        "#00008b",  # darkblue
+        "#b03060",  # maroon3
+        "#ff0000",  # red
+        "#9467bd",  # yellow -> replaced by violett/brown combo
+        "#deb887",  # curlywood
+        "#00ff00",  # lime
+        "#00ffff",  # aqua
+        "#ff00ff",  # fuchsia
+        "#6495ed",  # cornflower
+    ]
+)
+
+
 ### Translation dictionaries from matplotlib to tikz
 _DICT_MARKERS_MPL_TO_PGF = {
     ".": r"mark=*, mark options={solid, fill}, ",
@@ -429,7 +447,6 @@ class Plot(object):
         """
         markers = [char for char in "x+v^*<>.so"]
         linestyles = ["-", "--", "-.", ":"]
-        dashed = ["--"]
         # MM: replaced grey1 (#7f7f7f) with black(#) and grey2 with dark blue #1012d5. Does this cause problems?
         # MK: introduced completely new palette from https://mokole.com/palette.html (settings: 10 colors, 1% min, 80% max, 15000 loops, score 65.49)
         colors = [
@@ -464,7 +481,7 @@ class Plot(object):
             self._cycler = cycler("color", ["black"]) * cycler("linestyle", "-")
 
         elif style == BLACK_DASHED:
-            self._cycler = cycler("color", ["black"]) * cycler("linestyle", dashed)
+            self._cycler = cycler("color", ["black"]) * cycler("linestyle", "--")
 
         elif style == BLACK_LINESTYLE:
             self._cycler = cycler("color", ["black"]) * cycler("linestyle", linestyles)
@@ -735,7 +752,7 @@ class Plot(object):
         for line in self.data:
             line["label"] = None
 
-    def add_data_set_multiple_y(self, x, *y, label=None):
+    def add_data_set_multiple_y(self, x, *y, label=None, style=None):
         """Add y(x) to the plot
 
         Each data set is a tuple with five entries, no need to create a dictionary, keeps it simple
@@ -747,6 +764,8 @@ class Plot(object):
             multiple y arrays to plot versus x
         label : str or list(str), optional
             Legend entry/ies
+        style : list(str), optional
+            List of styles
         """
         if label is None or not label:  # no or empty label
             label = []
@@ -760,8 +779,16 @@ class Plot(object):
                 "To set multiple y(x) at the same time, the number of labels must be equal to the number of y datas"
             )
 
-        for y_a, label_a in zip(y, label):
-            self.add_data_set(x, y_a, label=label_a)
+        if style is None:
+            for y_a, label_a in zip(y, label):
+                self.add_data_set(x, y_a, label=label_a)
+        else:
+            if len(y) != len(style):
+                raise IOError(
+                    "If you want to set the style manually, the number of styles must be equal to the number of y datas"
+                )
+            for y_a, label_a, style_a in zip(y, label, style):
+                self.add_data_set(x, y_a, label=label_a, style=style_a)
 
     def plot_py(
         self,
@@ -1385,6 +1412,7 @@ class Plot(object):
         skip_every=lambda x: x,
         n_ticks_x=None,
         n_ticks_y=None,
+        show_legend=True,
         legend_location=None,
         legend_to_name=None,
         **kwargs,
@@ -1484,6 +1512,18 @@ class Plot(object):
             str_width = "width=0.951*\\figurewidth,\n"
         else:
             str_width = "width=" + width + ",\n"
+
+        if self.pw_pg is not None:
+            if self.pw_pg.plotItem.ctrl.logXCheck.isChecked():
+                self.x_axis_scale = "log"
+            else:
+                self.x_axis_scale = "linear"
+
+            if self.pw_pg.plotItem.ctrl.logYCheck.isChecked():
+                self.y_axis_scale = "log"
+            else:
+                self.y_axis_scale = "linear"
+
         str_x_log = "" if self.x_axis_scale == "linear" else "xmode=log,\n"
         str_y_log = "" if self.y_axis_scale == "linear" else "ymode=log,\n"
 
@@ -1741,7 +1781,7 @@ class Plot(object):
         str_lines = ""
         colors = []
         # try:
-        #     mark_delta = np.int(mark_repeat/len(self.data[::nth]))
+        #     mark_delta = int(mark_repeat/len(self.data[::nth]))
         # except ZeroDivisionError:
         #     mark_delta = 1
         #     print("DMT->plot->{:s}: Plot has no data, generating axis anyways.".format(self.name))
@@ -1750,7 +1790,7 @@ class Plot(object):
             if len(dict_line["x"]) == 0:
                 continue
             str_addplot, colors = self._tikz_addplot(
-                dict_line, nr_line, colors=colors, mark_delta=mark_delta
+                dict_line, nr_line, colors=colors, mark_delta=mark_delta, show_label=show_legend
             )
             if str_addplot is not None:
                 str_lines += str_addplot
@@ -1834,7 +1874,7 @@ class Plot(object):
 
         return file_name
 
-    def _tikz_addplot(self, dict_line, nr_line, colors=None, mark_delta=None):
+    def _tikz_addplot(self, dict_line, nr_line, colors=None, mark_delta=None, show_label=True):
         """Transforms a line into a pgfplots addplot command.
 
         Parameters
@@ -1868,7 +1908,7 @@ class Plot(object):
 
         if "mark phase" not in opts_style:
             # Markus: what was this?
-            # mark_phase = np.int(nr_line)*mark_delta if (mark_delta is not None) else np.int(1)
+            # mark_phase = int(nr_line)*mark_delta if (mark_delta is not None) else int(1)
             opts_style += "mark phase={:d}, ".format(mark_delta)
 
         if line_width is not None:
@@ -1907,8 +1947,10 @@ class Plot(object):
 
         if label is None:
             str_addplot += "% \\addlegendentry{}\n"
-        else:
+        elif show_label:
             str_addplot += "\\addlegendentry{" + label + "}\n"
+        else:
+            str_addplot += "% \\addlegendentry{" + label + "}\n"
 
         return str_addplot, colors
 
@@ -1928,7 +1970,7 @@ class Plot(object):
                         except ValueError:
                             # if not add it
                             pgf_color = "color=color" + str(len(colors)) + ", "
-                            colors.append(colors)
+                            colors.append(mpl_color)
                     else:
                         pgf_color = "color=" + _DICT_COLORS_MPL[mpl_color] + ", "
 

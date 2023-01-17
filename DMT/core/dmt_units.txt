@@ -1,3 +1,4 @@
 # Current Density
 [current_density] = [current] / [area]
 ampere_per_square_meter = current / meter / meter 
+coulomb_per_square_meter = coulomb / meter / meter 

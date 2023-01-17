@@ -46,11 +46,12 @@ UNIT_PREFIX = {
     1e15: r"\femto",
 }
 UNIT_PREFIX_MIX = {
-    "J": {  # current density
+    "J": {  # current density-> they are all over the place :/
         1e-9: r"\milli\ampere\per\square\micro\meter",
         1e-6: r"\micro\ampere\per\square\micro\meter",
         1e-3: r"\milli\ampere\per\square\micro\meter",
         1e-0: r"\ampere\per\square\micro\meter",
+        1e3: r"\milli\ampere\per\square\micro\meter",
     },
     "F": {
         1: r"\volt\per\meter",
@@ -315,7 +316,10 @@ class SpecifierStr(str):
             splitted = splitted[1].split("!")
 
             nodes = splitted[0].split("?")
-            sub_specifiers = splitted[1].split("|")
+            try:
+                sub_specifiers = splitted[1].split("|")
+            except IndexError:
+                sub_specifiers = None
             return SpecifierStr(spec, *nodes, sub_specifiers=sub_specifiers)
         else:  # it was just a regular str
             return string
@@ -437,18 +441,20 @@ class SpecifierStr(str):
         """
         raise NotImplementedError
 
-    def to_tex(self) -> str:
-        """Declaration of function, to be set later
+    def to_tex(self, subscript="", superscript="") -> str:
+        """Return a Tex representation of this specifier. If subscript is not None the string in subscript will be appended. If superscript is not None, a superscript will be added.
+
+        Parameters
+        ----------
+        subscript : str
+            Subscript to add to the specifier's Tex representation
+        superscript : str
+            Superscript to add to the specifier's Tex representation
 
         Returns
         -------
-        str
-            [description]
-
-        Raises
-        ------
-        NotImplementedError
-            [description]
+        tex : str
+                A Tex representation fo the specifier.
         """
         raise NotImplementedError
 
@@ -497,6 +503,7 @@ class _sub_specifiers(GlobalObj, metaclass=Singleton):
     IMAG = SpecifierStr("", sub_specifiers="IMAG")
     MAG = SpecifierStr("", sub_specifiers="MAG")
     PHASE = SpecifierStr("", sub_specifiers="PHASE")
+    DELTA = SpecifierStr("", sub_specifiers="DELTA")
     NOISE = SpecifierStr("", sub_specifiers="NOISE")
     QUASISTATIC = SpecifierStr("", sub_specifiers="QUASISTATIC")
     JUNCTION = SpecifierStr("", sub_specifiers="JUNCTION")
@@ -508,6 +515,7 @@ class _sub_specifiers(GlobalObj, metaclass=Singleton):
     MAX = SpecifierStr("", sub_specifiers="MAX")
     MIN = SpecifierStr("", sub_specifiers="MIN")
     MID = SpecifierStr("", sub_specifiers="MID")
+    MEAN = SpecifierStr("", sub_specifiers="MEAN")
     TRAPS = SpecifierStr("", sub_specifiers="TRAPS")
     YDIR = SpecifierStr("", sub_specifiers="YDIR")
     XDIR = SpecifierStr("", sub_specifiers="XDIR")
@@ -533,6 +541,7 @@ class _specifiers(GlobalObj, metaclass=Singleton):
     CURRENT = SpecifierStr("I")
     CAPACITANCE = SpecifierStr("C")
     CHARGE = SpecifierStr("Q")
+    CHARGE_DENSITY = SpecifierStr("Q''")
     INDUCTANCE = SpecifierStr("L")
     TEMPERATURE = SpecifierStr("TEMP")
     TIME = SpecifierStr("TIME")
@@ -674,6 +683,7 @@ def get_pint_unit(self) -> pint.Unit:
         specifiers.VOLTAGE: unit_registry.volt,
         specifiers.CAPACITANCE: unit_registry.farad,
         specifiers.CHARGE: unit_registry.coulomb,
+        specifiers.CHARGE_DENSITY: unit_registry.coulomb_per_square_meter,
         specifiers.FREQUENCY: unit_registry.hertz,
         specifiers.CURRENT: unit_registry.ampere,
         specifiers.CURRENT_DENSITY: unit_registry.ampere_per_square_meter,
@@ -818,17 +828,21 @@ def to_tex(self, subscript="", superscript=""):
         tex = r"|" + tex + r"|"
     elif sub_specifiers.PHASE.sub_specifiers <= self.sub_specifiers:
         tex = r"\angle\{" + tex + r"\}"
+    elif sub_specifiers.DELTA.sub_specifiers <= self.sub_specifiers:
+        tex = r"\Delta " + tex
+    elif sub_specifiers.MEAN.sub_specifiers <= self.sub_specifiers:
+        tex = r"\overline{" + tex + r"}"
 
     # add specifiers that are appended to the string
-    for specifier in self.sub_specifiers:
-        if "|" + specifier in [
-            sub_specifiers.PERIMETER,
-            sub_specifiers.AREA,
-            sub_specifiers.CORNER,
-            sub_specifiers.LENGTH,
-            sub_specifiers.WIDTH,
-        ]:
-            tex = tex + "|" + specifier
+    sub_spec_append = (
+        sub_specifiers.PERIMETER.sub_specifiers
+        | sub_specifiers.AREA.sub_specifiers
+        | sub_specifiers.CORNER.sub_specifiers
+        | sub_specifiers.LENGTH.sub_specifiers
+        | sub_specifiers.WIDTH.sub_specifiers
+    )
+    for append in self.sub_specifiers & sub_spec_append:
+        tex = tex + "|" + append
 
     return tex
 
@@ -1022,6 +1036,7 @@ natural_scales = {
     specifiers.TRANSIT_FREQUENCY: 1e-9,
     specifiers.CAPACITANCE: 1e15,
     specifiers.CHARGE: 1e15,
+    specifiers.CURRENT_DENSITY: 1e15 / (1e6 * 1e6),  # fF/um^2
     specifiers.SS_PARA_Y: 1e3,
     specifiers.DC_CURRENT_AMPLIFICATION: 1,
     specifiers.FREQUENCY: 1e-9,  # GHz
