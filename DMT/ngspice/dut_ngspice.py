@@ -41,6 +41,8 @@ import copy
 import re
 import numpy as np
 import subprocess
+import multiprocessing
+from joblib import Parallel, delayed
 from pathlib import Path
 
 from DMT.config import COMMANDS
@@ -361,12 +363,19 @@ class DutNgspice(DutCircuit):
                 raise IOError("Currently only one transient simulation per sweep in DutNgspice")
 
             # add transient signal to the correct voltage source
-            transient_source_old = "V_V_{0} n_{0}X 0".format(swd_tran.contact)
-            TODO ALL VALUES +DC value!!!
-            transient_source_new = (
-                transient_source_old + self._convert_swd_trans_to_pwl(swd_tran) + " r=-1"
+            source_old = "V_V_{0} n_{0}X 0".format(swd_tran.contact)
+            if source_old not in str_netlist:
+                raise IOError(
+                    "DMT->DutNgspice: Did not find voltage source for transient signal input."
+                )
+
+            sources_new = (
+                "V_V_{0} n_{0}_DC 0\n".format(swd_tran.contact)
+                + "V_V_{0}_tr n_{0}X n_{0}_DC ".format(swd_tran.contact)
+                + self._convert_swd_trans_to_pwl(swd_tran)
+                + " r=-1"
             )
-            str_netlist = str_netlist.replace(transient_source_old, transient_source_new)
+            str_netlist = str_netlist.replace(source_old, sources_new)
         except StopIteration:
             swd_tran = False
 
@@ -477,20 +486,40 @@ class DutNgspice(DutCircuit):
                 break
 
         # find .ngspice files (these are DC and AC)
-        dfs = []
-        for sim_file in sim_folder.glob("*.ngspice"):
-            df = self.read_ngspice(sim_file)
-            dfs.append(self.clean_df(df, sim_file.name))
+        files_dc_ac = [sim_file for sim_file in sim_folder.glob("*.ngspice")]
+        # are there transient simulations?
+        files_tran = sorted(sim_file for sim_file in sim_folder.glob("*.ngspice_tr"))
 
-        df_joined = self.join(dfs)
+        n_jobs = len(files_dc_ac + files_tran)
+        cpu_count = multiprocessing.cpu_count()
+        n_jobs = n_jobs if n_jobs < cpu_count else cpu_count  # for parallel read
+
+        dfs_dc_ac = []
+
+        with Parallel(n_jobs=n_jobs, verbose=10, batch_size=16) as parallel:
+            dfs_dc_ac = parallel(
+                _read_clean_ngspice_df(
+                    sim_file,
+                    self.nodes,
+                    self.reference_node,
+                    self.ac_ports,
+                )
+                for sim_file in files_dc_ac
+            )
+
+            keys_tr = [
+                self.join_key(self.get_sweep_key(sweep), sim_tr_file.stem[15:])
+                for sim_tr_file in files_tran
+            ]
+            dfs_tr = parallel(
+                _read_clean_ngspice_df_transient(sim_tr_file, self.reference_node, self.ac_ports)
+                for sim_tr_file in files_tran
+            )
 
         key = self.join_key(self.get_sweep_key(sweep), "iv")
-        self.data[key] = df_joined
+        self.data[key] = self.join(dfs_dc_ac)
 
-        # are there transient simulations?
-        for sim_tr_file in sim_folder.glob("*.ngspice_tr"):
-            df = self.clean_df_transient(self.read_ngspice(sim_tr_file))
-            key = self.join_key(self.get_sweep_key(sweep), sim_tr_file.stem[15:])
+        for key, df in zip(keys_tr, dfs_tr):
             self.data[key] = df
 
         logging.info(
@@ -507,236 +536,6 @@ class DutNgspice(DutCircuit):
         )
         if search_obj_time:
             logging.info("Simulation times: %s.", search_obj_time.group(1))
-
-    def read_ngspice(self, filename):
-        """read the ngspice output file"""
-        # open file
-        with open(filename) as my_file:
-            list_lines = my_file.readlines()
-
-        # this seems to be printed for verilog modules... probably bracnh currents, however node is missing?
-        list_lines[0] = list_lines[0].replace("#no info", "#no_info")
-
-        # get column names
-        list_lines = [line.strip() for line in list_lines]
-        split_header = list_lines[0].split()
-        is_ac = False
-        if "frequency" in split_header:
-            is_ac = True  # this ia an ac simulation
-
-        # put all numeric values in large array and fill row by row taking n_data chunks
-        # this omits the issue with line breaks produced e.g. by DEVICE
-        list_lines = " ".join(list_lines[1:])
-        list_lines = list_lines.split()
-        list_lines = np.array([float(i) for i in list_lines])
-        n_col = float(len(split_header))
-        n_row = float(len(list_lines) / n_col)
-
-        # check if n_row is an integer
-        if n_row.is_integer():
-            n_row = int(n_row)
-        else:
-            raise IOError(
-                "DMT -> Data_reader: Encountered a weird number of rows in "
-                + filename
-                + ". Contact Markus Mueller."
-            )
-
-        # check if n_col is an integer
-        if n_col.is_integer():
-            n_col = int(n_col)
-        else:
-            raise IOError(
-                "DMT -> Data_reader: Encountered a weird number of cols in "
-                + filename
-                + ". Contact Markus Mueller."
-            )
-
-        # need to cast real valued stuff to complex...headache
-        if is_ac:
-            # cast values to complex...simpler later
-            n_col = int((n_col - 1) / 2 + 1)
-            list_lines_cmplx = np.zeros(n_row * n_col, dtype=np.complex128)
-            index_cmplx = 0  # index to list_lines_cmplx
-            index_real = 0  # index to list_lines
-            for n in range(n_row):
-                for i in range(n_col):
-                    if i == 0:
-                        list_lines_cmplx[index_cmplx] = list_lines[index_real]
-                        index_real += 1
-                    else:
-                        list_lines_cmplx[index_cmplx] = (
-                            list_lines[index_real] + 1j * list_lines[index_real + 1]
-                        )
-                        index_real += 2
-
-                    index_cmplx += 1
-
-            if index_cmplx != len(list_lines_cmplx):
-                raise IOError("DMT -> NGSPICE: error during ac import.")
-
-            list_lines = list_lines_cmplx
-
-            # now cast split_header
-            new_header = []
-            new_header.append(split_header[0])
-            for n in range(n_col - 1):
-                new_header.append(split_header[1 + n * 2])
-
-            split_header = new_header
-
-        # fill the data into the 2-dimensional array data_raw
-        data_raw = np.empty([n_row, n_col], dtype=np.complex128)
-        for i in range(n_row):
-            data_raw[i, :] = list_lines[n_col * i : n_col * (i + 1)]
-
-        # initalize pd.Dataframe() and return it
-        return DataFrame(data_raw, columns=split_header)
-
-    def clean_df(self, df, filename):
-        """From the df as read directly from ngspice, create a df that has DMT specifiers and is suitable for modeling."""
-        df = df.loc[:, ~df.columns.duplicated()]  # drop duplicate columns
-        cols = df.columns
-        nodes = [col[2:].upper() for col in cols if col[0:2] == "n_"]
-
-        is_ac = False
-        if "frequency" in cols:
-            is_ac = True
-
-        # check if more than one device has OpVars
-        op_vars = []
-        op_var_devices = set()
-        for col in cols:
-            if col.startswith("@"):
-                i_bracket = col.find("[")
-                op_var_devices.add(col[1:i_bracket].upper())
-
-        if len(op_var_devices) > 1:
-            op_var_multi = True
-        else:
-            op_var_multi = False
-
-        new_df = DataFrame()
-        for col in cols:
-            col_raw = col.upper()
-            if "#BRANCH" in col_raw:  # current that we should save
-                col_raw = col_raw.replace("#BRANCH", "")
-                node = next(node for node in nodes if node in col_raw)
-                new_df[specifiers.CURRENT + node] = -df[col]  # we want the other current direction
-            elif col_raw[0:2] == "N_":  # found a node, will take the voltage
-                node = col_raw[2:]
-                if "_FORCED" in node:
-                    new_df[
-                        specifiers.VOLTAGE + node.replace("_FORCED", "") + sub_specifiers.FORCED
-                    ] = df[col]
-                else:
-                    new_df[specifiers.VOLTAGE + node] = df[col]
-            elif col_raw == "FREQUENCY":
-                new_df[specifiers.FREQUENCY] = np.real(df["frequency"].to_numpy())
-
-            # add opvars
-            if col_raw.startswith("@"):
-                if op_var_multi:
-                    dev_op_var = re.search(r"@(.*)\[(.*)\]", col_raw)
-                    op_var = "{0}.{1}".format(*dev_op_var.groups()).upper()
-                    new_df[op_var] = np.real(df[col].to_numpy())
-                    op_vars.append(op_var)
-                else:
-                    op_var = re.search(r"\[(.*)\]", col_raw).groups()[0].upper()
-                    new_df[op_var] = np.real(df[col].to_numpy())
-                    op_vars.append(op_var)
-
-        # dirty: add the Y Parameters
-        if is_ac:
-            # step one: find which port is begin excited
-            node_excited = re.search(r"V_(\w+?)\.ngspice", filename).group(1)
-            col_v_ne = specifiers.VOLTAGE + node_excited
-            ac_voltage = 1  # fallback
-
-            try:
-                ac_voltage = new_df[col_v_ne].to_numpy()
-                ac_voltage = new_df[col_v_ne + sub_specifiers.FORCED].to_numpy()
-            except KeyError:
-                pass
-            try:
-                new_df.drop(axis=1, columns=col_v_ne, inplace=True)
-            except KeyError:
-                pass
-            try:
-                new_df.drop(axis=1, columns=col_v_ne + sub_specifiers.FORCED, inplace=True)
-            except KeyError:
-                pass
-
-            # delete the AC voltages, because why would anyone need them.
-            for node in self.nodes:
-                col_v_n = specifiers.VOLTAGE + node
-                try:
-                    new_df.drop(axis=1, columns=col_v_n, inplace=True)
-                except KeyError:
-                    pass
-                try:
-                    new_df.drop(axis=1, columns=col_v_n + sub_specifiers.FORCED, inplace=True)
-                except KeyError:
-                    pass
-
-            # step2: now calculate the y parameters Y(X,node)
-            for node_2 in self.nodes:
-                col_i_n = specifiers.CURRENT + node_2
-                if col_i_n in new_df.columns:
-                    ac_current = new_df[col_i_n].to_numpy()
-                    new_df.drop(axis=1, columns=col_i_n, inplace=True)
-
-                    y_para = specifiers.SS_PARA_Y + [node_2, node_excited]
-                    new_df[y_para] = ac_current / ac_voltage
-
-        fallback_dict = {}
-        for op_var in op_vars:
-            fallback_dict[op_var] = op_var
-        return new_df.clean_data(
-            nodes,
-            self.reference_node,
-            ac_ports=self.ac_ports,
-            fallback=fallback_dict,
-            warnings=False,
-        )
-
-    def clean_df_transient(self, df):
-        """From the df as read directly from ngspice, create a df that has DMT specifiers and is suitable for modeling."""
-        df = df.loc[:, ~df.columns.duplicated()]  # drop duplicate columns
-        cols = df.columns
-        nodes = [col[2:].upper() for col in cols if col[0:2] == "n_"]
-
-        new_df = DataFrame()
-        for col in cols:
-            # opvars are not set transient..
-            if col.startswith("@"):
-                continue
-
-            col_raw = col.upper()
-            if "#BRANCH" in col_raw:  # current that we should save
-                col_raw = col_raw.replace("#BRANCH", "")
-                node = next(node for node in nodes if node in col_raw)
-                new_df[specifiers.CURRENT + node] = -df[col]  # we want the other current direction
-            elif col_raw[0:2] == "N_":  # found a node, will take the voltage
-                node = col_raw[2:]
-                if "_FORCED" in node:
-                    new_df[
-                        specifiers.VOLTAGE + node.replace("_FORCED", "") + sub_specifiers.FORCED
-                    ] = df[col]
-                else:
-                    new_df[specifiers.VOLTAGE + node] = df[col]
-            elif col_raw == "FREQUENCY":
-                new_df[specifiers.FREQUENCY] = np.real(df["frequency"].to_numpy())
-            elif col_raw == "TIME":
-                new_df[specifiers.TIME] = np.real(df["time"].to_numpy())
-
-        return new_df.clean_data(
-            nodes,
-            self.reference_node,
-            ac_ports=self.ac_ports,
-            fallback={specifiers.TIME: specifiers.TIME},
-            warnings=False,
-        )
 
     def validate_simulation_successful(self, sweep):
         """Checks if the simulation of the given sweep was successful.
@@ -1053,3 +852,240 @@ class DutNgspice(DutCircuit):
             df_ac[col] = vals
 
         return df_ac
+
+
+def _read_ngspice(filename):
+    """read the ngspice output file"""
+    # open file
+    with open(filename) as my_file:
+        list_lines = my_file.readlines()
+
+    # this seems to be printed for verilog modules... probably bracnh currents, however node is missing?
+    list_lines[0] = list_lines[0].replace("#no info", "#no_info")
+
+    # get column names
+    list_lines = [line.strip() for line in list_lines]
+    split_header = list_lines[0].split()
+    is_ac = False
+    if "frequency" in split_header:
+        is_ac = True  # this ia an ac simulation
+
+    # put all numeric values in large array and fill row by row taking n_data chunks
+    # this omits the issue with line breaks produced e.g. by DEVICE
+    list_lines = " ".join(list_lines[1:])
+    list_lines = list_lines.split()
+    list_lines = np.array([float(i) for i in list_lines])
+    n_col = float(len(split_header))
+    n_row = float(len(list_lines) / n_col)
+
+    # check if n_row is an integer
+    if n_row.is_integer():
+        n_row = int(n_row)
+    else:
+        raise IOError(
+            "DMT -> Data_reader: Encountered a weird number of rows in "
+            + filename
+            + ". Contact Markus Mueller."
+        )
+
+    # check if n_col is an integer
+    if n_col.is_integer():
+        n_col = int(n_col)
+    else:
+        raise IOError(
+            "DMT -> Data_reader: Encountered a weird number of cols in "
+            + filename
+            + ". Contact Markus Mueller."
+        )
+
+    # need to cast real valued stuff to complex...headache
+    if is_ac:
+        # cast values to complex...simpler later
+        n_col = int((n_col - 1) / 2 + 1)
+        list_lines_cmplx = np.zeros(n_row * n_col, dtype=np.complex128)
+        index_cmplx = 0  # index to list_lines_cmplx
+        index_real = 0  # index to list_lines
+        for n in range(n_row):
+            for i in range(n_col):
+                if i == 0:
+                    list_lines_cmplx[index_cmplx] = list_lines[index_real]
+                    index_real += 1
+                else:
+                    list_lines_cmplx[index_cmplx] = (
+                        list_lines[index_real] + 1j * list_lines[index_real + 1]
+                    )
+                    index_real += 2
+
+                index_cmplx += 1
+
+        if index_cmplx != len(list_lines_cmplx):
+            raise IOError("DMT -> NGSPICE: error during ac import.")
+
+        list_lines = list_lines_cmplx
+
+        # now cast split_header
+        new_header = []
+        new_header.append(split_header[0])
+        for n in range(n_col - 1):
+            new_header.append(split_header[1 + n * 2])
+
+        split_header = new_header
+
+    # fill the data into the 2-dimensional array data_raw
+    data_raw = np.empty([n_row, n_col], dtype=np.complex128)
+    for i in range(n_row):
+        data_raw[i, :] = list_lines[n_col * i : n_col * (i + 1)]
+
+    # initalize pd.Dataframe() and return it
+    return DataFrame(data_raw, columns=split_header)
+
+
+@delayed
+def _read_clean_ngspice_df(filepath, nodes, reference_node, ac_ports):
+    """From the df as read directly from ngspice, create a df that has DMT specifiers and is suitable for modeling."""
+    df = _read_ngspice(filepath)
+    df = df.loc[:, ~df.columns.duplicated()]  # drop duplicate columns
+    cols = df.columns
+    nodes = [col[2:].upper() for col in cols if col[0:2] == "n_"]
+
+    is_ac = False
+    if "frequency" in cols:
+        is_ac = True
+
+    # check if more than one device has OpVars
+    op_vars = []
+    op_var_devices = set()
+    for col in cols:
+        if col.startswith("@"):
+            i_bracket = col.find("[")
+            op_var_devices.add(col[1:i_bracket].upper())
+
+    if len(op_var_devices) > 1:
+        op_var_multi = True
+    else:
+        op_var_multi = False
+
+    new_df = DataFrame()
+    for col in cols:
+        col_raw = col.upper()
+        if "#BRANCH" in col_raw:  # current that we should save
+            col_raw = col_raw.replace("#BRANCH", "")
+            node = next(node for node in nodes if node in col_raw)
+            new_df[specifiers.CURRENT + node] = -df[col]  # we want the other current direction
+        elif col_raw[0:2] == "N_":  # found a node, will take the voltage
+            node = col_raw[2:]
+            if "_FORCED" in node:
+                new_df[
+                    specifiers.VOLTAGE + node.replace("_FORCED", "") + sub_specifiers.FORCED
+                ] = df[col]
+            else:
+                new_df[specifiers.VOLTAGE + node] = df[col]
+        elif col_raw == "FREQUENCY":
+            new_df[specifiers.FREQUENCY] = np.real(df["frequency"].to_numpy())
+
+        # add opvars
+        if col_raw.startswith("@"):
+            if op_var_multi:
+                dev_op_var = re.search(r"@(.*)\[(.*)\]", col_raw)
+                op_var = "{0}.{1}".format(*dev_op_var.groups()).upper()
+                new_df[op_var] = np.real(df[col].to_numpy())
+                op_vars.append(op_var)
+            else:
+                op_var = re.search(r"\[(.*)\]", col_raw).groups()[0].upper()
+                new_df[op_var] = np.real(df[col].to_numpy())
+                op_vars.append(op_var)
+
+    # dirty: add the Y Parameters
+    if is_ac:
+        # step one: find which port is begin excited
+        node_excited = re.search(r"V_(\w+?)$", filepath.stem).group(1)
+        col_v_ne = specifiers.VOLTAGE + node_excited
+        ac_voltage = 1  # fallback
+
+        try:
+            ac_voltage = new_df[col_v_ne].to_numpy()
+            ac_voltage = new_df[col_v_ne + sub_specifiers.FORCED].to_numpy()
+        except KeyError:
+            pass
+        try:
+            new_df.drop(axis=1, columns=col_v_ne, inplace=True)
+        except KeyError:
+            pass
+        try:
+            new_df.drop(axis=1, columns=col_v_ne + sub_specifiers.FORCED, inplace=True)
+        except KeyError:
+            pass
+
+        # delete the AC voltages, because why would anyone need them.
+        for node in nodes:
+            col_v_n = specifiers.VOLTAGE + node
+            try:
+                new_df.drop(axis=1, columns=col_v_n, inplace=True)
+            except KeyError:
+                pass
+            try:
+                new_df.drop(axis=1, columns=col_v_n + sub_specifiers.FORCED, inplace=True)
+            except KeyError:
+                pass
+
+        # step2: now calculate the y parameters Y(X,node)
+        for node_2 in nodes:
+            col_i_n = specifiers.CURRENT + node_2
+            if col_i_n in new_df.columns:
+                ac_current = new_df[col_i_n].to_numpy()
+                new_df.drop(axis=1, columns=col_i_n, inplace=True)
+
+                y_para = specifiers.SS_PARA_Y + [node_2, node_excited]
+                new_df[y_para] = ac_current / ac_voltage
+
+    fallback_dict = {}
+    for op_var in op_vars:
+        fallback_dict[op_var] = op_var
+    return new_df.clean_data(
+        nodes,
+        reference_node,
+        ac_ports=ac_ports,
+        fallback=fallback_dict,
+        warnings=False,
+    )
+
+
+@delayed
+def _read_clean_ngspice_df_transient(filepath, reference_node, ac_ports):
+    """From the df as read directly from ngspice, create a df that has DMT specifiers and is suitable for modeling."""
+    df = _read_ngspice(filepath)
+    df = df.loc[:, ~df.columns.duplicated()]  # drop duplicate columns
+    cols = df.columns
+    nodes = [col[2:].upper() for col in cols if col[0:2] == "n_"]
+
+    new_df = DataFrame()
+    for col in cols:
+        # opvars are not set transient..
+        if col.startswith("@"):
+            continue
+
+        col_raw = col.upper()
+        if "#BRANCH" in col_raw:  # current that we should save
+            col_raw = col_raw.replace("#BRANCH", "")
+            node = next(node for node in nodes if node in col_raw)
+            new_df[specifiers.CURRENT + node] = -df[col]  # we want the other current direction
+        elif col_raw[0:2] == "N_":  # found a node, will take the voltage
+            node = col_raw[2:]
+            if "_FORCED" in node:
+                new_df[
+                    specifiers.VOLTAGE + node.replace("_FORCED", "") + sub_specifiers.FORCED
+                ] = df[col]
+            else:
+                new_df[specifiers.VOLTAGE + node] = df[col]
+        elif col_raw == "FREQUENCY":
+            new_df[specifiers.FREQUENCY] = np.real(df["frequency"].to_numpy())
+        elif col_raw == "TIME":
+            new_df[specifiers.TIME] = np.real(df["time"].to_numpy())
+
+    return new_df.clean_data(
+        nodes,
+        reference_node,
+        ac_ports=ac_ports,
+        fallback={specifiers.TIME: specifiers.TIME},
+        warnings=False,
+    )
