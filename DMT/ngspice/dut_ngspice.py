@@ -53,6 +53,7 @@ from DMT.core import (
     specifiers,
     sub_specifiers,
     McParameterCollection,
+    SweepDef,
 )
 from DMT.core.circuit import SGP_BJT, VOLTAGE, CURRENT, HICUML2_HBT, SHORT, DIODE
 
@@ -356,15 +357,21 @@ class DutNgspice(DutCircuit):
             swd_tran = next(swd for swd in sweepdefs if swd.var_name == specifiers.TIME)
             if len(list(swd for swd in sweepdefs if swd.var_name == specifiers.TIME)) > 1:
                 raise IOError("Currently only one transient sweepdef per sweep in DutNgspice")
+            if len(swd_tran.value_def) > 1:
+                raise IOError("Currently only one transient simulation per sweep in DutNgspice")
 
             # add transient signal to the correct voltage source
-            transient_source_temp = ""
-            TODO
+            transient_source_old = "V_V_{0} n_{0}X 0".format(swd_tran.contact)
+            TODO ALL VALUES +DC value!!!
+            transient_source_new = (
+                transient_source_old + self._convert_swd_trans_to_pwl(swd_tran) + " r=-1"
+            )
+            str_netlist = str_netlist.replace(transient_source_old, transient_source_new)
         except StopIteration:
             swd_tran = False
 
         # so we have VOLTAGE sources and CURRENT sources and Frequency for every operating point.
-        for index, row in df.iterrows():
+        for i_row, row in df.iterrows():
             for voltage_source in voltage_sources:
                 voltage_name = voltage_source.name
                 try:
@@ -412,23 +419,20 @@ class DutNgspice(DutCircuit):
                     # turn off source
                     str_netlist += "alter V_" + voltage_source.name + " ac=0\n"
 
-                if index == 0 and i_ac_statement == 0:
+                if i_row == 0 and i_ac_statement == 0:
                     str_netlist += "unset wr_vecnames\n"
 
             # Add transients
             if swd_tran:
                 for i_tr, freq in enumerate(swd_tran.value_def):
                     tau = 1 / freq
-                    transient_source_new = transient_source_temp.replace("%%MARK%%")
-                    str_netlist = str_netlist.replace(transient_source_old, transient_source_new)
-                    transient_source_old = transient_source_new
+
                     str_netlist += (
                         "set wr_vecnames\n"
-                        + f"tran {tau/40} {3*tau}"
-                        + f"wrdata output_ngspice_tr_{index}_{i_tr} alli allv"
+                        + f"tran {tau/40} {3*tau}\n"
+                        + f"wrdata output_ngspice_tr_{i_row}_{i_tr}.ngspice_tr alli allv\n"
                         + "unset wr_vecnames\n"
                     )
-                    TODO
 
         str_netlist += ".endc\n" + ".end\n"
 
@@ -472,19 +476,23 @@ class DutNgspice(DutCircuit):
             if filename.endswith(".ngspice"):
                 break
 
-        # find .ngspice file
+        # find .ngspice files (these are DC and AC)
         dfs = []
-        for root, _dors, files in os.walk(sim_folder):  # . filter
-            for my_file in files:
-                filename = my_file
-                if filename.endswith(".ngspice"):
-                    df = self.read_ngspice(os.path.join(root, filename))
-                    dfs.append(self.clean_df(df, filename))
+        for sim_file in sim_folder.glob("*.ngspice"):
+            df = self.read_ngspice(sim_file)
+            dfs.append(self.clean_df(df, sim_file.name))
 
         df_joined = self.join(dfs)
 
         key = self.join_key(self.get_sweep_key(sweep), "iv")
         self.data[key] = df_joined
+
+        # are there transient simulations?
+        for sim_tr_file in sim_folder.glob("*.ngspice_tr"):
+            df = self.clean_df_transient(self.read_ngspice(sim_tr_file))
+            key = self.join_key(self.get_sweep_key(sweep), sim_tr_file.stem[15:])
+            self.data[key] = df
+
         logging.info(
             "Read the NGSpice simulation output data of the sweep %s. \nThe simulation folder is %s",
             sweep.name,
@@ -595,8 +603,20 @@ class DutNgspice(DutCircuit):
         if "frequency" in cols:
             is_ac = True
 
-        new_df = DataFrame()
+        # check if more than one device has OpVars
         op_vars = []
+        op_var_devices = set()
+        for col in cols:
+            if col.startswith("@"):
+                i_bracket = col.find("[")
+                op_var_devices.add(col[1:i_bracket].upper())
+
+        if len(op_var_devices) > 1:
+            op_var_multi = True
+        else:
+            op_var_multi = False
+
+        new_df = DataFrame()
         for col in cols:
             col_raw = col.upper()
             if "#BRANCH" in col_raw:  # current that we should save
@@ -615,12 +635,16 @@ class DutNgspice(DutCircuit):
                 new_df[specifiers.FREQUENCY] = np.real(df["frequency"].to_numpy())
 
             # add opvars
-            regexp = r"\[(.*)\]"
-            m = re.search(regexp, col_raw)
-            if m:
-                op_var = m.groups()[0]
-                new_df[op_var] = np.real(df[col].to_numpy())
-                op_vars.append(op_var)
+            if col_raw.startswith("@"):
+                if op_var_multi:
+                    dev_op_var = re.search(r"@(.*)\[(.*)\]", col_raw)
+                    op_var = "{0}.{1}".format(*dev_op_var.groups()).upper()
+                    new_df[op_var] = np.real(df[col].to_numpy())
+                    op_vars.append(op_var)
+                else:
+                    op_var = re.search(r"\[(.*)\]", col_raw).groups()[0].upper()
+                    new_df[op_var] = np.real(df[col].to_numpy())
+                    op_vars.append(op_var)
 
         # dirty: add the Y Parameters
         if is_ac:
@@ -673,6 +697,44 @@ class DutNgspice(DutCircuit):
             self.reference_node,
             ac_ports=self.ac_ports,
             fallback=fallback_dict,
+            warnings=False,
+        )
+
+    def clean_df_transient(self, df):
+        """From the df as read directly from ngspice, create a df that has DMT specifiers and is suitable for modeling."""
+        df = df.loc[:, ~df.columns.duplicated()]  # drop duplicate columns
+        cols = df.columns
+        nodes = [col[2:].upper() for col in cols if col[0:2] == "n_"]
+
+        new_df = DataFrame()
+        for col in cols:
+            # opvars are not set transient..
+            if col.startswith("@"):
+                continue
+
+            col_raw = col.upper()
+            if "#BRANCH" in col_raw:  # current that we should save
+                col_raw = col_raw.replace("#BRANCH", "")
+                node = next(node for node in nodes if node in col_raw)
+                new_df[specifiers.CURRENT + node] = -df[col]  # we want the other current direction
+            elif col_raw[0:2] == "N_":  # found a node, will take the voltage
+                node = col_raw[2:]
+                if "_FORCED" in node:
+                    new_df[
+                        specifiers.VOLTAGE + node.replace("_FORCED", "") + sub_specifiers.FORCED
+                    ] = df[col]
+                else:
+                    new_df[specifiers.VOLTAGE + node] = df[col]
+            elif col_raw == "FREQUENCY":
+                new_df[specifiers.FREQUENCY] = np.real(df["frequency"].to_numpy())
+            elif col_raw == "TIME":
+                new_df[specifiers.TIME] = np.real(df["time"].to_numpy())
+
+        return new_df.clean_data(
+            nodes,
+            self.reference_node,
+            ac_ports=self.ac_ports,
+            fallback={specifiers.TIME: specifiers.TIME},
             warnings=False,
         )
 
@@ -947,6 +1009,12 @@ class DutNgspice(DutCircuit):
 
         str_netlist = str_netlist.replace("IS", "I_")
         return str_netlist + " " + str_temp + "\n"
+
+    def _convert_swd_trans_to_pwl(self, swd_tran: SweepDef):
+        time = swd_tran.values
+        signal = swd_tran.get_input_signal()
+        pwl = " ".join([f"{t:g} {s:g}" for t, s in zip(time, signal)])
+        return " PWL(" + pwl + ")"
 
     def join(self, dfs):
         """Join DC and AC dataframes into one dataframe"""

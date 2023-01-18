@@ -237,7 +237,7 @@ def get_dut():
 
 
 def get_sweep():
-    frequencies = 203e9 * np.array([0.1, 0.4, 0.5, 0.6, 0.7, 1, 2, 3])
+    frequencies = 1e9 * np.array([1])
     return Sweep(
         "test",
         sweepdef=[
@@ -264,3 +264,9 @@ if __name__ == "__main__":
     i_op = 0
     i_freq = 0
     df = dut_HICUM.get_data(sweep=sweep, key=f"tr_{i_op}_{i_freq}")
+
+    plt = Plot("i_c(t)")
+    plt.add_data_set(df[specifiers.TIME], df[specifiers.VOLTAGE + "B"], label="V_B")
+    plt.add_data_set(df[specifiers.TIME], df[specifiers.CURRENT + "C"], label="I_C")
+
+    plt.plot_pyqtgraph()

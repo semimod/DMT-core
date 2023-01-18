@@ -370,7 +370,7 @@ def test_tran_sweep():
     assert np.allclose(frame.loc[0:120:20, "signal"], 0.0)
     assert np.allclose(frame.loc[121:241:20, "signal"], 0.0)
     assert np.allclose(frame.loc[242:362:20, "signal"], 0.0)
-    assert np.allclose(frame.loc[363:484:20, "signal"], 0.0)
+    assert np.allclose(frame.loc[363:483:20, "signal"], 0.0)
 
     frequencies = 1e9 * np.array([0.1, 0.5, 1, 2])
     sweep = Sweep(
@@ -389,7 +389,7 @@ def test_tran_sweep():
 
     assert len(frame) == len(frequencies) * 121
     assert np.allclose(frame.loc[0:363:121, "signal"], 0)
-    assert np.allclose(frame.loc[121:484:121, "signal"], 1)
+    assert np.allclose(frame.loc[120:484:121, "signal"], 1)
 
 
 if __name__ == "__main__":

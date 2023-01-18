@@ -69,9 +69,9 @@ class SweepDef(object):
         master: Optional[SpecifierStr] = None,
         offset: Optional[Union[int, float, SpecifierStr]] = None,
         sync: Optional[Union[SpecifierStr, SweepDef]] = None,
-        amp: Union[int, float] = None,
-        phase: Union[int, float] = None,
-        contact: Union[Tuple[str], str] = None,
+        amp: Optional[Union[int, float]] = None,
+        phase: Optional[Union[int, float]] = None,
+        contact: Optional[str] = None,
     ):
         # needed names for repr
         self._attr_repr = [
@@ -131,10 +131,7 @@ class SweepDef(object):
 
         self.amp = amp
         self.phase = phase
-        if isinstance(contact, tuple):
-            self.contact = contact
-        else:
-            self.contact = (contact,)
+        self.contact = contact
 
         self.set_values()
 
@@ -321,7 +318,7 @@ class SweepDef(object):
             )
 
     def get_input_signal(self):
-        """Returns the transient input signal for the SweepDef"""
+        """Returns the transient input signal for the SweepDef (without DC!)"""
         self.set_values()
         if self.sweep_type == "SINUS":
             signal = []
@@ -534,7 +531,7 @@ class SweepDefTransSinus(SweepDef):
         value_def: Union[List, np.array] = None,
         amp: Union[int, float] = None,
         phase: Union[int, float] = None,
-        contact: Union[Tuple[str], str] = None,
+        contact: str = None,
         sweep_order: Optional[int] = None,
     ):
         super().__init__(
@@ -568,7 +565,7 @@ class SweepDefTransRamp(SweepDef):
         value_def: Union[List, np.array] = None,
         amp: Union[int, float] = None,
         phase: Union[int, float] = None,
-        contact: Union[Tuple[str], str] = None,
+        contact: str = None,
         sweep_order: Optional[int] = None,
     ):
         super().__init__(
