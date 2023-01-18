@@ -416,17 +416,19 @@ class DutNgspice(DutCircuit):
                     str_netlist += "unset wr_vecnames\n"
 
             # Add transients
-            for i_tr, freq in enumerate(swd_tran.value_def):
-                tau = 1 / freq
-                transient_source_new = transient_source_temp.replace("%%MARK%%")
-                str_netlist = str_netlist.replace(transient_source_old, transient_source_new)
-                transient_source_old = transient_source_new
-                str_netlist += (
-                    "set wr_vecnames\n"
-                    + f"tran {tau/40} {3*tau}"
-                    + f"wrdata output_ngspice_tr_{index}_{i_tr} alli allv"
-                    + "unset wr_vecnames\n"
-                )
+            if swd_tran:
+                for i_tr, freq in enumerate(swd_tran.value_def):
+                    tau = 1 / freq
+                    transient_source_new = transient_source_temp.replace("%%MARK%%")
+                    str_netlist = str_netlist.replace(transient_source_old, transient_source_new)
+                    transient_source_old = transient_source_new
+                    str_netlist += (
+                        "set wr_vecnames\n"
+                        + f"tran {tau/40} {3*tau}"
+                        + f"wrdata output_ngspice_tr_{index}_{i_tr} alli allv"
+                        + "unset wr_vecnames\n"
+                    )
+                    TODO
 
         str_netlist += ".endc\n" + ".end\n"
 

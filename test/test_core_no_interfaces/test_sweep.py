@@ -388,8 +388,8 @@ def test_tran_sweep():
     frame["signal"] = sweep.sweepdef[3].get_input_signal()
 
     assert len(frame) == len(frequencies) * 121
-    assert all(np.abs(frame["signal"]) <= 0.25)
-    assert frame.loc["signal"]
+    assert np.allclose(frame.loc[0:363:121, "signal"], 0)
+    assert np.allclose(frame.loc[121:484:121, "signal"], 1)
 
 
 if __name__ == "__main__":

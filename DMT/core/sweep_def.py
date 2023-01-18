@@ -326,30 +326,17 @@ class SweepDef(object):
         if self.sweep_type == "SINUS":
             signal = []
             for i_freq, freq in enumerate(self.value_def):
+                t = self.values[i_freq * 121 : (i_freq + 1) * 121]
                 signal += list(
-                    self.amp
-                    * (
-                        np.sin(
-                            2 * np.pi * self.values[i_freq * 121 : (i_freq + 1) * 121] * freq
-                            - self.phase
-                        )
-                        - np.sin(self.phase)
-                    )
+                    self.amp * (np.sin(2 * np.pi * t * freq - self.phase) - np.sin(self.phase))
                 )
             return np.array(list(flatten(signal)))
         elif self.sweep_type == "SMOOTH_RAMP":
             signal = []
             for i_freq, freq in enumerate(self.value_def):
-                signal += list(
-                    self.amp
-                    * (
-                        np.sin(
-                            2 * np.pi * self.values[i_freq * 121 : (i_freq + 1) * 121] * freq
-                            - self.phase
-                        )
-                        - np.sin(self.phase)
-                    )
-                )
+                t = self.values[i_freq * 121 : (i_freq + 1) * 121]
+                tau = np.sqrt(2) * np.exp(-1 / 2) / (2 * np.pi * freq)
+                signal += list(self.amp * (1 - np.exp(-((t / tau) ** 2))))
             return np.array(list(flatten(signal)))
         else:
             raise OSError(
