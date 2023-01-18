@@ -362,6 +362,11 @@ class DutNgspice(DutCircuit):
             if len(swd_tran.value_def) > 1:
                 raise IOError("Currently only one transient simulation per sweep in DutNgspice")
 
+            # remove all but one time point from DF. We later let ngspice make the transient at every DC point.
+            time = df[specifiers.TIME]
+            df = df[df[specifiers.TIME] == time[0]]
+            df = df.drop(specifiers.TIME, axis=1)
+
             # add transient signal to the correct voltage source
             source_old = "V_V_{0} n_{0}X 0".format(swd_tran.contact)
             if source_old not in str_netlist:
@@ -493,6 +498,8 @@ class DutNgspice(DutCircuit):
         n_jobs = len(files_dc_ac + files_tran)
         cpu_count = multiprocessing.cpu_count()
         n_jobs = n_jobs if n_jobs < cpu_count else cpu_count  # for parallel read
+        # parallel read is only worthwile if many files have to be read, otherwise overhead is to big
+        n_jobs = n_jobs if n_jobs > 20 else 1
 
         dfs_dc_ac = []
 

@@ -1027,6 +1027,7 @@ def get_specifier_from_string(string, nodes=None):
 
 # a dict that holds natural scaling for a few specifiers. Convenient for Plotting.
 natural_scales = {
+    specifiers.TIME: 1e12,  # ps
     specifiers.VOLTAGE: 1,
     specifiers.MAXIMUM_STABLE_GAIN: 1,
     specifiers.CURRENT: 1e3,  # mA
