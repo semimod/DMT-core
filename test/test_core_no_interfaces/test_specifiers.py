@@ -150,7 +150,7 @@ def test_pretty_printing():
     assert col_ic_area.to_tex() == "I_{\\mathrm{C}}|AREA"
 
     assert (col_ic + sub_specifiers.DELTA).to_tex() == "\\Delta I_{\\mathrm{C}}"
-    assert (col_ic + sub_specifiers.MEAN).to_tex() == "\\overline\{I_{\\mathrm{C}}\}"
+    assert (col_ic + sub_specifiers.MEAN).to_tex() == "\\overline{I_{\\mathrm{C}}}"
 
 
 if __name__ == "__main__":
