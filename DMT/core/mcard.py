@@ -190,13 +190,11 @@ class MCard(McParameterCollection):
                     )
                     va_file = None  # delete file name to escape error while try to load
 
-            if vae_module is not None:
-                raise NotImplementedError
+            # if vae_module is not None:
+            #     raise NotImplementedError
 
-        elif __MCard__ == VersionInfo(major=2, minor=0):
+        else:
             pass  # nothing to do here?!
-        elif __MCard__ != SEMVER_MCARD_CURRENT:
-            raise NotImplementedError("DMT->MCard: Unknown version of MCard to create!")
 
         self.nodes_list = nodes_list
         self.default_subckt_name = default_subckt_name

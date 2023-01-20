@@ -1363,7 +1363,7 @@ class Plot(object):
         self,
         directory,
         file_name=None,
-        width="\\textwidth",
+        width=None,
         height=None,
         mark_repeat=1,
         restrict=True,
@@ -1468,7 +1468,7 @@ class Plot(object):
             str_tikz_picture = (
                 "\\begin{tikzpicture}[font=\\"
                 + fontsize
-                + ",trim axis left, trim axis right]\n"
+                + ",trim axis left, trim axis right,tight background]\n"
                 + "\\pgfplotsset{every axis/.append style={very thick},compat=1.5},\n"
             )
         str_height = "" if height is None else "height=" + height + ",\n"

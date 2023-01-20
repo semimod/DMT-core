@@ -111,10 +111,11 @@ def build_png(full_path_to_file, wait=True):
         full_path_to_file = Path(full_path_to_file)
     directory = full_path_to_file.parent
     file_name = full_path_to_file.name.replace(".tex", "")
+    file_name = file_name.replace(".png", "")
 
     with cd(directory):
         # call latex to compile dvi
-        command = ["latex", "--interaction=nonstopmode", file_name + ".tex"]
+        command = ["latex", "--interaction=nonstopmode", full_path_to_file.name]
         try:
             output = subprocess.check_output(command, stderr=subprocess.STDOUT)
         except (OSError, IOError, subprocess.CalledProcessError) as e:
@@ -125,12 +126,12 @@ def build_png(full_path_to_file, wait=True):
             print(output.decode())
 
         # call dvisvgm to compile dvi to svg
-        command = ["pdftoppm", file_name + ".pdf", "outpuname", "-png", file_name + ".png"]
+        command = ["pdftoppm", "-png", file_name + ".pdf"]
         # pdftoppm input.pdf outputname -png
         # command = ['convert ', file_name+'.dvi','-quality 90', file_name+'.png']
         # convert -density 300 F_TJ_C.pdf -quality 90 F_TJ_C.png
         try:
-            output = subprocess.check_output(command, stderr=subprocess.STDOUT)
+            output = subprocess.check_output(command, stderr=subprocess.PIPE)
         except (OSError, IOError, subprocess.CalledProcessError) as e:
             # For all these errors print the output and raise the error
             print(e.output.decode())

@@ -345,7 +345,7 @@ class Plot2YAxis(object):
         self,
         directory,
         file_name=None,
-        width="\\textwidth",
+        width=None,
         fontsize="normalsize",
         height=None,
         mark_repeat=1,
