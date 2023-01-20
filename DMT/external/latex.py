@@ -201,7 +201,11 @@ def clean_tex_files(directory, file_name, keep=(".tex", ".pdf"), regex=False):
         test_fct = test_str
 
     for file_curr in Path(directory).iterdir():
-        if test_fct(file_name, file_curr) and (file_curr.suffix not in keep):
+        if (
+            file_curr.is_file()
+            and test_fct(file_name, file_curr)
+            and (file_curr.suffix not in keep)
+        ):
             file_curr.unlink()
 
 
@@ -280,8 +284,10 @@ def tex_to_text(tex):
     tex = resolve_siunitx(tex)
     tex = tex.replace("\\num", "")
     tex = tex.replace("\\mathrm", "")
+    tex = tex.replace("\\quad", "  ")
     tex = tex.replace("\\left(", "(")
     tex = tex.replace("\\right)", ")")
+    tex = tex.replace("\\overline", "mean ")
     tex = tex.replace("{", "")
     tex = tex.replace("}", "")
     tex = tex.replace("$", "")

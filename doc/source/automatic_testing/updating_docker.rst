@@ -5,7 +5,7 @@ When a dependency of DMT changes, the Docker image used to run the DMT test case
 needs to be re-built as-well.
 This is a short explanation how to update the docker image.
 
-For details, see the `gitlab Container Registry <https://gitlab.com/help/user/packages/container_registry/index>`.
+For details, see the `gitlab Container Registry <https://gitlab.com/help/user/packages/container_registry/index>`__.
 
 Docker generals
 -----------------
@@ -18,7 +18,7 @@ In Debian this can be done by:
 
   sudo apt install docker.io
 
-Also make sure that your user is added to the docker group (`see here for more info <https://www.configserverfirewall.com/ubuntu-linux/add-user-to-docker-group-ubuntu/>`):
+Also make sure that your user is added to the docker group (`see here for more info <https://www.configserverfirewall.com/ubuntu-linux/add-user-to-docker-group-ubuntu/>`__):
 The docker installation can be tested by:
 
 .. code-block:: bash

@@ -21,7 +21,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 import numpy as np
-import skrf as rf
+from skrf import network as rf_network
 from DMT.core import specifiers, set_col_name, sub_specifiers
 
 
@@ -297,46 +297,46 @@ class DataProcessor(object):
             elif p_to == "Y":
                 para_new = self.s2y(para_values, z0)
             elif p_to == "T":
-                para_new = rf.network.s2t(para_values)
+                para_new = rf_network.s2t(para_values)
             elif p_to == "A":
-                para_new = rf.network.s2a(para_values, z0)
+                para_new = rf_network.s2a(para_values, z0)
             elif p_to == "H":
-                para_new = rf.network.s2y(para_values, z0)
+                para_new = rf_network.s2y(para_values, z0)
                 para_new = self.y2h(para_new)
 
         elif p_from == "Z":
             if p_to == "S":
-                para_new = rf.network.z2s(para_values, z0)
+                para_new = rf_network.z2s(para_values, z0)
             elif p_to == "Y":
-                para_new = rf.network.z2y(para_values)
+                para_new = rf_network.z2y(para_values)
             elif p_to == "T":
-                para_new = rf.network.z2t(para_values)
+                para_new = rf_network.z2t(para_values)
             elif p_to == "A":
-                para_new = rf.network.z2a(para_values)
+                para_new = rf_network.z2a(para_values)
 
         elif p_from == "Y":
             if p_to == "S":
-                para_new = rf.network.y2s(para_values, z0)
+                para_new = rf_network.y2s(para_values, z0)
             elif p_to == "Z":
-                para_new = rf.network.y2z(para_values)
+                para_new = rf_network.y2z(para_values)
             elif p_to == "T":
-                para_new = rf.network.y2t(para_values)
+                para_new = rf_network.y2t(para_values)
             elif p_to == "A":  # i want to cry: y2a is not available in scikit-rf. workaround here
                 para_new = self.y2a(para_values)
 
         elif p_from == "T":
             if p_to == "S":
-                para_new = rf.network.t2s(para_values)
+                para_new = rf_network.t2s(para_values)
             elif p_to == "Z":
-                para_new = rf.network.t2z(para_values)
+                para_new = rf_network.t2z(para_values)
             elif p_to == "Y":
-                para_new = rf.network.t2y(para_values)
+                para_new = rf_network.t2y(para_values)
 
         elif p_from == "A":
             if p_to == "Y":
                 para_new = self.a2y(para_values)
             elif p_to == "S":
-                para_new = rf.network.a2s(para_values, z0)
+                para_new = rf_network.a2s(para_values, z0)
             elif p_to == "Z":
                 raise NotImplementedError
 

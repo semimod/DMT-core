@@ -20,15 +20,30 @@
 
 from pint import UnitRegistry
 from pathlib import Path
+from pkg_resources import get_distribution
 
+version_pkg = get_distribution("DMT-core").version.split(".")
 try:
     from semver.version import Version as VersionInfo
 except ImportError:
     from semver import VersionInfo
 
-__version__ = VersionInfo(major=1, minor=7, patch=0, prerelease="rc.6")  # , prerelease="rc.1"
+if "rc" in version_pkg[2]:
+    _patch = version_pkg[2].split("rc")[0]
+    _rc = version_pkg[2][len(_patch) + 2 :]
+    __version__ = VersionInfo(
+        major=version_pkg[0],
+        minor=version_pkg[1],
+        patch=_patch,
+        prerelease="rc." + _rc,
+    )
+else:
+    __version__ = VersionInfo(major=version_pkg[0], minor=version_pkg[1], patch=version_pkg[2])
+
 # to get the next version:
 # __version__.next_version(x) - with x = "major", "minor", "patch", "prerelease"
+# or
+# __version__.bump_x() - with x = "major", "minor", "patch", "prerelease"
 
 name = "core"
 

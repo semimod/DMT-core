@@ -46,11 +46,12 @@ UNIT_PREFIX = {
     1e15: r"\femto",
 }
 UNIT_PREFIX_MIX = {
-    "J": {  # current density
+    "J": {  # current density-> they are all over the place :/
         1e-9: r"\milli\ampere\per\square\micro\meter",
         1e-6: r"\micro\ampere\per\square\micro\meter",
         1e-3: r"\milli\ampere\per\square\micro\meter",
         1e-0: r"\ampere\per\square\micro\meter",
+        1e3: r"\milli\ampere\per\square\micro\meter",
     },
     "F": {
         1: r"\volt\per\meter",
@@ -205,7 +206,7 @@ class SpecifierStr(str):
 
             return r"\si{" + unit + add + r"}"
 
-    def to_label(self, scale=1, negative=False, divide_by_unit=False) -> str:
+    def to_label(self, scale=1, negative=False, divide_by_unit=False, **kwargs) -> str:
         """Generates a label for plots for this specifier, where scale determines the unit prefix.
 
         Parameters
@@ -219,6 +220,9 @@ class SpecifierStr(str):
         divide_by_unit : bool, optional
             If True, the unit is given as division, if False in brackets.
 
+        kwargs : optional
+            Keyword arguments passed on to self.to_tex(). Currently this allows subscript and superscript strings.
+
         Returns
         -------
         unit : string
@@ -231,9 +235,9 @@ class SpecifierStr(str):
             else:
                 tex_unit = "/" + tex_unit
             if negative:
-                return r"$-" + self.to_tex() + tex_unit + r"$"
+                return r"$-" + self.to_tex(**kwargs) + tex_unit + r"$"
             else:
-                return r"$" + self.to_tex() + tex_unit + r"$"
+                return r"$" + self.to_tex(**kwargs) + tex_unit + r"$"
         else:
             left_brack = r"\left("
             right_brack = r"\right)"
@@ -241,11 +245,11 @@ class SpecifierStr(str):
                 left_brack = ""
                 right_brack = ""
             if negative:
-                return r"$-" + self.to_tex() + left_brack + tex_unit + right_brack + r"$"
+                return r"$-" + self.to_tex(**kwargs) + left_brack + tex_unit + right_brack + r"$"
             else:
-                return r"$" + self.to_tex() + left_brack + tex_unit + right_brack + r"$"
+                return r"$" + self.to_tex(**kwargs) + left_brack + tex_unit + right_brack + r"$"
 
-    def to_legend_with_value(self, value, scale=1, **kwargs) -> str:
+    def to_legend_with_value(self, value, scale=1, decimals=2, **kwargs) -> str:
         """Creates a SI legend entry in the form : specifier_tex = \\SI{value}{scale, spec_unit}
 
         Parameters
@@ -275,12 +279,12 @@ class SpecifierStr(str):
         if self.specifier in UNIT_PREFIX_MIX:  # mixed unit
             unit_with_prefix = UNIT_PREFIX_MIX[self.specifier][np.round(scale, decimals=10)]
 
-            return f"${self.to_tex(**kwargs):s}=\\SI{{{value * scale:.2f}}}{{{unit_with_prefix:s}{unit:s}}}$"
+            return f"${self.to_tex(**kwargs):s}=\\SI{{{value * scale:.{decimals}f}}}{{{unit_with_prefix:s}{unit:s}}}$"
 
         else:
             unit_prefix = UNIT_PREFIX[scale]
 
-            return f"${self.to_tex(**kwargs):s}=\\SI{{{value * scale:.2f}}}{{{unit_prefix:s}{unit:s}}}$"
+            return f"${self.to_tex(**kwargs):s}=\\SI{{{value * scale:.{decimals}f}}}{{{unit_prefix:s}{unit:s}}}$"
 
     def to_raw_string(self) -> str:
         """get a raw string from the specifier -> can be used for string operations and variable naming...
@@ -312,7 +316,10 @@ class SpecifierStr(str):
             splitted = splitted[1].split("!")
 
             nodes = splitted[0].split("?")
-            sub_specifiers = splitted[1].split("|")
+            try:
+                sub_specifiers = splitted[1].split("|")
+            except IndexError:
+                sub_specifiers = None
             return SpecifierStr(spec, *nodes, sub_specifiers=sub_specifiers)
         else:  # it was just a regular str
             return string
@@ -434,18 +441,20 @@ class SpecifierStr(str):
         """
         raise NotImplementedError
 
-    def to_tex(self) -> str:
-        """Declaration of function, to be set later
+    def to_tex(self, subscript="", superscript="") -> str:
+        """Return a Tex representation of this specifier. If subscript is not None the string in subscript will be appended. If superscript is not None, a superscript will be added.
+
+        Parameters
+        ----------
+        subscript : str
+            Subscript to add to the specifier's Tex representation
+        superscript : str
+            Superscript to add to the specifier's Tex representation
 
         Returns
         -------
-        str
-            [description]
-
-        Raises
-        ------
-        NotImplementedError
-            [description]
+        tex : str
+                A Tex representation fo the specifier.
         """
         raise NotImplementedError
 
@@ -494,6 +503,7 @@ class _sub_specifiers(GlobalObj, metaclass=Singleton):
     IMAG = SpecifierStr("", sub_specifiers="IMAG")
     MAG = SpecifierStr("", sub_specifiers="MAG")
     PHASE = SpecifierStr("", sub_specifiers="PHASE")
+    DELTA = SpecifierStr("", sub_specifiers="DELTA")
     NOISE = SpecifierStr("", sub_specifiers="NOISE")
     QUASISTATIC = SpecifierStr("", sub_specifiers="QUASISTATIC")
     JUNCTION = SpecifierStr("", sub_specifiers="JUNCTION")
@@ -505,6 +515,7 @@ class _sub_specifiers(GlobalObj, metaclass=Singleton):
     MAX = SpecifierStr("", sub_specifiers="MAX")
     MIN = SpecifierStr("", sub_specifiers="MIN")
     MID = SpecifierStr("", sub_specifiers="MID")
+    MEAN = SpecifierStr("", sub_specifiers="MEAN")
     TRAPS = SpecifierStr("", sub_specifiers="TRAPS")
     YDIR = SpecifierStr("", sub_specifiers="YDIR")
     XDIR = SpecifierStr("", sub_specifiers="XDIR")
@@ -530,6 +541,7 @@ class _specifiers(GlobalObj, metaclass=Singleton):
     CURRENT = SpecifierStr("I")
     CAPACITANCE = SpecifierStr("C")
     CHARGE = SpecifierStr("Q")
+    CHARGE_DENSITY = SpecifierStr("Q''")
     INDUCTANCE = SpecifierStr("L")
     TEMPERATURE = SpecifierStr("TEMP")
     TIME = SpecifierStr("TIME")
@@ -670,6 +682,8 @@ def get_pint_unit(self) -> pint.Unit:
         specifiers.UNILATERAL_GAIN: unit_registry.dimensionless,
         specifiers.VOLTAGE: unit_registry.volt,
         specifiers.CAPACITANCE: unit_registry.farad,
+        specifiers.CHARGE: unit_registry.coulomb,
+        specifiers.CHARGE_DENSITY: unit_registry.coulomb_per_square_meter,
         specifiers.FREQUENCY: unit_registry.hertz,
         specifiers.CURRENT: unit_registry.ampere,
         specifiers.CURRENT_DENSITY: unit_registry.ampere_per_square_meter,
@@ -814,17 +828,21 @@ def to_tex(self, subscript="", superscript=""):
         tex = r"|" + tex + r"|"
     elif sub_specifiers.PHASE.sub_specifiers <= self.sub_specifiers:
         tex = r"\angle\{" + tex + r"\}"
+    elif sub_specifiers.DELTA.sub_specifiers <= self.sub_specifiers:
+        tex = r"\Delta " + tex
+    elif sub_specifiers.MEAN.sub_specifiers <= self.sub_specifiers:
+        tex = r"\overline{" + tex + r"}"
 
     # add specifiers that are appended to the string
-    for specifier in self.sub_specifiers:
-        if "|" + specifier in [
-            sub_specifiers.PERIMETER,
-            sub_specifiers.AREA,
-            sub_specifiers.CORNER,
-            sub_specifiers.LENGTH,
-            sub_specifiers.WIDTH,
-        ]:
-            tex = tex + "|" + specifier
+    sub_spec_append = (
+        sub_specifiers.PERIMETER.sub_specifiers
+        | sub_specifiers.AREA.sub_specifiers
+        | sub_specifiers.CORNER.sub_specifiers
+        | sub_specifiers.LENGTH.sub_specifiers
+        | sub_specifiers.WIDTH.sub_specifiers
+    )
+    for append in self.sub_specifiers & sub_spec_append:
+        tex = tex + "|" + append
 
     return tex
 
@@ -1009,6 +1027,7 @@ def get_specifier_from_string(string, nodes=None):
 
 # a dict that holds natural scaling for a few specifiers. Convenient for Plotting.
 natural_scales = {
+    specifiers.TIME: 1e12,  # ps
     specifiers.VOLTAGE: 1,
     specifiers.MAXIMUM_STABLE_GAIN: 1,
     specifiers.CURRENT: 1e3,  # mA
@@ -1017,6 +1036,8 @@ natural_scales = {
     specifiers.TRANSCONDUCTANCE: 1,
     specifiers.TRANSIT_FREQUENCY: 1e-9,
     specifiers.CAPACITANCE: 1e15,
+    specifiers.CHARGE: 1e15,
+    specifiers.CURRENT_DENSITY: 1e15 / (1e6 * 1e6),  # fF/um^2
     specifiers.SS_PARA_Y: 1e3,
     specifiers.DC_CURRENT_AMPLIFICATION: 1,
     specifiers.FREQUENCY: 1e-9,  # GHz

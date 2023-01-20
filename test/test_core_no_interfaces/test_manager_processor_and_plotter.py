@@ -235,4 +235,4 @@ if __name__ == "__main__":
     plt_ft.y_limits = (0, 325)
 
     # --->Get plot
-    plt_ft.plot_py()
+    plt_ft.plot_pyqtgraph()
