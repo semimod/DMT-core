@@ -354,6 +354,7 @@ class Plot2YAxis(object):
         restrict_right=True,
         hide_second_ticks=False,
         hide_second_axis=False,
+        show_legend=True,
         standalone=False,
         build=False,
         clean=False,
@@ -400,6 +401,7 @@ class Plot2YAxis(object):
             standalone=standalone,
             restrict=restrict_left,
             extension=extension,
+            show_legend=show_legend,
         )
         file_tikz_right = self.plot_right.save_tikz(
             directory,
@@ -409,6 +411,7 @@ class Plot2YAxis(object):
             standalone=standalone,
             restrict=restrict_right,
             extension=extension,
+            show_legend=show_legend,
         )
 
         # open, read and delete the tikz files

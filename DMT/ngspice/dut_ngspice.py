@@ -41,8 +41,6 @@ import copy
 import re
 import numpy as np
 import subprocess
-import multiprocessing
-from joblib import Parallel, delayed
 from pathlib import Path
 
 from DMT.config import COMMANDS
@@ -374,6 +372,8 @@ class DutNgspice(DutCircuit):
                     "DMT->DutNgspice: Did not find voltage source for transient signal input."
                 )
 
+            # if swd_tran.
+
             sources_new = (
                 "V_V_{0} n_{0}_DC 0\n".format(swd_tran.contact)
                 + "V_V_{0}_tr n_{0}X n_{0}_DC ".format(swd_tran.contact)
@@ -495,36 +495,26 @@ class DutNgspice(DutCircuit):
         # are there transient simulations?
         files_tran = sorted(sim_file for sim_file in sim_folder.glob("*.ngspice_tr"))
 
-        n_jobs = len(files_dc_ac + files_tran)
-        cpu_count = multiprocessing.cpu_count()
-        n_jobs = n_jobs if n_jobs < cpu_count else cpu_count  # for parallel read
-        # parallel read is only worthwile if many files have to be read, otherwise overhead is to big
-        n_jobs = n_jobs if n_jobs > 20 else 1
-
-        dfs_dc_ac = []
-
-        with Parallel(n_jobs=n_jobs, verbose=10, batch_size=16) as parallel:
-            dfs_dc_ac = parallel(
-                _read_clean_ngspice_df(
-                    sim_file,
-                    self.nodes,
-                    self.reference_node,
-                    self.ac_ports,
-                )
-                for sim_file in files_dc_ac
-            )
-
-            keys_tr = [
-                self.join_key(self.get_sweep_key(sweep), sim_tr_file.stem[15:])
-                for sim_tr_file in files_tran
-            ]
-            dfs_tr = parallel(
-                _read_clean_ngspice_df_transient(sim_tr_file, self.reference_node, self.ac_ports)
-                for sim_tr_file in files_tran
-            )
-
         key = self.join_key(self.get_sweep_key(sweep), "iv")
+        dfs_dc_ac = [
+            _read_clean_ngspice_df(
+                sim_file,
+                self.nodes,
+                self.reference_node,
+                self.ac_ports,
+            )
+            for sim_file in files_dc_ac
+        ]
         self.data[key] = self.join(dfs_dc_ac)
+
+        keys_tr = [
+            self.join_key(self.get_sweep_key(sweep), sim_tr_file.stem[15:])
+            for sim_tr_file in files_tran
+        ]
+        dfs_tr = [
+            _read_clean_ngspice_df_transient(sim_tr_file, self.reference_node, self.ac_ports)
+            for sim_tr_file in files_tran
+        ]
 
         for key, df in zip(keys_tr, dfs_tr):
             self.data[key] = df
@@ -947,7 +937,6 @@ def _read_ngspice(filename):
     return DataFrame(data_raw, columns=split_header)
 
 
-@delayed
 def _read_clean_ngspice_df(filepath, nodes, reference_node, ac_ports):
     """From the df as read directly from ngspice, create a df that has DMT specifiers and is suitable for modeling."""
     df = _read_ngspice(filepath)
@@ -1057,7 +1046,6 @@ def _read_clean_ngspice_df(filepath, nodes, reference_node, ac_ports):
     )
 
 
-@delayed
 def _read_clean_ngspice_df_transient(filepath, reference_node, ac_ports):
     """From the df as read directly from ngspice, create a df that has DMT specifiers and is suitable for modeling."""
     df = _read_ngspice(filepath)

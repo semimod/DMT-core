@@ -1037,7 +1037,7 @@ natural_scales = {
     specifiers.TRANSIT_FREQUENCY: 1e-9,
     specifiers.CAPACITANCE: 1e15,
     specifiers.CHARGE: 1e15,
-    specifiers.CURRENT_DENSITY: 1e15 / (1e6 * 1e6),  # fF/um^2
+    specifiers.CHARGE_DENSITY: 1e15 / (1e6 * 1e6),  # fF/um^2
     specifiers.SS_PARA_Y: 1e3,
     specifiers.DC_CURRENT_AMPLIFICATION: 1,
     specifiers.FREQUENCY: 1e-9,  # GHz
