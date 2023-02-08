@@ -513,7 +513,8 @@ def read_DEVICE_bin(filename):
 
     # check if pseudo 2D simulation
     if "y" in df.columns:
-        if all((df["y"] == 0.0) | (df["y"] == df["y"].to_numpy()[-1])):
+        # if all((df["y"] == 0.0) | (df["y"] == df["y"].to_numpy()[-1])):
+        if len(df["y"].unique()) == 2:
             # all 'y' are either 0.0 or 1.0 -> 1D simulation: cut off the df
             df = df[df["y"] == 0.0]
             del df["y"]
