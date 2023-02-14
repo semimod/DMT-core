@@ -777,16 +777,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
                 raise IOError(
                     'DMT -> DataFrame -> ensure_specifier_column: Calculation of a capacitance requires the specification of the "ports" keyword argument.'
                 )
-            if any(
-                sub_specifier_poa.sub_specifiers <= sub_specifiers_in_col
-                for sub_specifier_poa in [
-                    sub_specifiers.PERIMETER,
-                    sub_specifiers.AREA,
-                    sub_specifiers.CORNER,
-                    sub_specifiers.LENGTH,
-                    sub_specifiers.WIDTH,
-                ]
-            ):
+            if sub_specifiers_in_col & { sub_specifiers.PERIMETER, sub_specifiers.AREA, sub_specifiers.CORNER, sub_specifiers.LENGTH, sub_specifiers.WIDTH, } :
                 raise IOError(
                     "DMT -> DataFrame -> ensure_specifier_column: Can not calculate a PoA capacitance. This needs to be done by a XQ Step."
                 )
