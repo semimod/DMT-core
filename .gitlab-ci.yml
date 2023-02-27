@@ -45,7 +45,7 @@ test_DMT:
     - pip install -e .
     - cd ..
     # download the executable and put it into path
-    - wget "https://gitlab.com/metroid120/hdev_simulator/-/jobs/artifacts/master/raw/builddir_docker/hdev?job=build:linux" -O hdev
+    - curl -L -o hdev --location "https://gitlab.com/api/v4/projects/metroid120%2Fhdev_simulator/jobs/artifacts/master/raw/builddir_docker/hdev?job=build:linux"
     - chmod +x hdev
     - export PATH=$PATH:$(pwd)
     # now create the DMT simulation directory
@@ -131,7 +131,7 @@ wheel_to_pypi:
     - if: $CI_COMMIT_TAG =~ /^Version/
   script:
     - VERSION_NR=$(python3 DMT/external/pypi.py --check_version $CI_COMMIT_TAG)
-    - sed -i "s/9.9.9/$VERSION_NR/" setup.py
+    - sed -i 's/9.9.9/$VERSION_NR/' setup.py
     - python3 setup.py sdist bdist_wheel
     - python3 -c "import re; match = re.search(r'(## \[\d.+?)((## \[)|\Z)', open('CHANGELOG').read(), re.DOTALL); print(match.group(1))" | tee current_changes.md
     # push to pip
@@ -172,8 +172,6 @@ pages:
   needs:
     - job: wheel_to_pypi
   script:
-    - VERSION_NR=$(python3 DMT/external/pypi.py --extract_version $CI_COMMIT_TAG)
-    - sed -i "s/9.9.9/$VERSION_NR/" doc/source/conf.py
     - pip install --upgrade --upgrade-strategy eager -e .[develop,HDF5,latex,remote]
     - cd doc ; make html
     - mv build/html/ ../public/

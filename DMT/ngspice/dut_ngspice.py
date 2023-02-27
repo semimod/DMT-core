@@ -277,6 +277,7 @@ class DutNgspice(DutCircuit):
         # add pre_osdi
         if self._osdi_imports:
             print("\nPreparing OSDI Sources if needed.\n")
+
         for osdi in self._osdi_imports:
             try:
                 if osdi.suffix != ".osdi":
