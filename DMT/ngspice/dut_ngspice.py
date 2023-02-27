@@ -161,6 +161,7 @@ class DutNgspice(DutCircuit):
         str_netlist += ".Options " + self._convert_dict_to_inp_line(self.simulator_options) + "\n"
 
         if use_osdi:
+            raise IOError("yes use OSDI")
             # is a modelcard inside the netlist?
             list_va_files = list()
             for element in self._inp_circuit.netlist:
@@ -194,6 +195,8 @@ class DutNgspice(DutCircuit):
                     else:
                         # if not: add to "to_compile"
                         self._osdi_imports.append(path_va)
+        else:
+            raise IOError("no dont use OSDI")
 
         self._osdi_imports = set(self._osdi_imports)  # unique...
         str_netlist += "\n* Netlist\n"
