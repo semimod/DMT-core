@@ -1,0 +1,16 @@
+FROM ubuntu:22.04 as BUILDER
+
+# environment installation
+RUN apt-get update \
+    && apt-get -y install \
+    wget bc bison flex libxaw7 libxaw7-dev libx11-6 libx11-dev libreadline8 libxmu6 build-essential libtool gperf libxml2 \
+    libxml2-dev libxml-libxml-perl libgd-perl g++ gfortran make cmake libfl-dev libfftw3-dev libsuitesparse-dev libblas-dev  \
+    liblapack-dev git libreadline-dev curl
+
+# build ngspice to test DutNGSpice
+RUN cd /home \
+    && wget -O ngspice.tar.gz https://sourceforge.net/projects/ngspice/files/ng-spice-rework/39/ngspice-39.tar.gz/download \
+    && tar -xf ngspice.tar.gz \
+    && cd ngspice-39 \
+    && chmod +rwx compile_linux.sh \
+    && ./compile_linux.sh --disable-debug
