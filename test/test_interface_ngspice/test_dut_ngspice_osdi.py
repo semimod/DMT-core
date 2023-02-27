@@ -233,15 +233,19 @@ def sim_ngspice(sweep, build_in):
     if build_in:
         name = "ngspiceBI"
         command = "ngspice"
+        command_openvaf = None
+
     else:
         name = "ngspiceVA"
         command = "ngspice"
+        command_openvaf = "openvaf"
 
     dut = DutNgspice(
         None,
         DutType.npn,
         mc_D21,
         simulator_command=command,
+        command_openvaf=command_openvaf,
         name=name,
         nodes="C,B,E,S,T",
         reference_node="E",
