@@ -137,6 +137,9 @@ class DutNgspice(DutCircuit):
         netlist : str
         """
         use_osdi = bool(self.command_openvaf)  # False if None/null
+        if use_osdi:
+            raise IOError("yes use OSDI")
+
         if isinstance(inp_circuit, MCard) or isinstance(inp_circuit, McParameterCollection):
             # save the modelcard, in case it was set inderectly via the input header!
             self._modelcard = copy.deepcopy(inp_circuit)
