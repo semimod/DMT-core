@@ -777,7 +777,13 @@ class DataFrame(DataProcessor, pd.DataFrame):
                 raise IOError(
                     'DMT -> DataFrame -> ensure_specifier_column: Calculation of a capacitance requires the specification of the "ports" keyword argument.'
                 )
-            if sub_specifiers_in_col & { sub_specifiers.PERIMETER, sub_specifiers.AREA, sub_specifiers.CORNER, sub_specifiers.LENGTH, sub_specifiers.WIDTH, } :
+            if sub_specifiers_in_col & {
+                sub_specifiers.PERIMETER,
+                sub_specifiers.AREA,
+                sub_specifiers.CORNER,
+                sub_specifiers.LENGTH,
+                sub_specifiers.WIDTH,
+            }:
                 raise IOError(
                     "DMT -> DataFrame -> ensure_specifier_column: Can not calculate a PoA capacitance. This needs to be done by a XQ Step."
                 )
@@ -2113,10 +2119,14 @@ class DataFrame(DataProcessor, pd.DataFrame):
         decimals : int, optional
             Rounding precision for the unique, None to turn off, by default 5
 
-        Returns
+        Yields
         -------
-        :class:`DMT.core.data_frame.IterUniqueRoundColumn`
-            Iterator over all unique values of this column
+        int
+            Index of current iteration
+        float
+            Value of the uniqued column
+        :class:`DMT.core.Dataframe`
+            Slice of the dataframe with the unique value
 
         Examples
         --------
@@ -2132,82 +2142,22 @@ class DataFrame(DataProcessor, pd.DataFrame):
                 ... # user action
 
         """
-        return IterUniqueRoundColumn(self, column, decimals=decimals)
-
-
-class IterUniqueRoundColumn(object):
-    """Iterator to iterate over rounded unique values of a column
-
-    Parameters
-    ----------
-    dataframe : :class:`DMT.core.Dataframe`
-        DMT (or parandas) dataframe with data including the column to iterate over.
-    column : :class:`DMT.core.SpecifierStr` or str
-        Column name to iterate over
-    decimals : int, optional
-        Rounding precision for the unique, None to turn off, by default 5
-
-    """
-
-    def __init__(self, dataframe, column, decimals=5):
-        self.index = 0  # start at 0
-        self.dataframe = dataframe
-        self.column = column
+        index = 0
 
         if decimals is None:
-            self.val_unique = np.unique(dataframe[column])
-            self.atol = None
+            val_unique = np.unique(self[column])
+            atol = None
         else:
-            self.val_unique = np.unique(np.round(dataframe[column], decimals=decimals))
-            self.atol = 5 * np.float_power(10, -(decimals + 1))
+            val_unique = np.unique(np.round(self[column], decimals=decimals))
+            atol = 5 * np.float_power(10, -(decimals + 1))
 
-    def __len__(self):
-        """Convenience to so len(iterator) can be used.
+        while index < len(val_unique):
+            val = val_unique[index]
 
-        Returns
-        -------
-        int
-            Length of the uniqued values
-        """
-        return len(self.val_unique)
+            if atol is None:
+                dataframe = self[self[column] == val]
+            else:
+                dataframe = self[np.isclose(self[column], val, atol=atol)]
 
-    def __iter__(self):
-        """Here self is returned -> this class itself is an iterator.
-
-        Returns
-        -------
-        :class:`DMT.core.data_frame.IterUniqueRoundColumn`
-            Iterator over all unique values of this column
-        """
-        return self
-
-    def __next__(self):
-        """This routine is magic and sets the iteration behavior.
-
-        Returns
-        -------
-        int
-            Index of current iteration
-        float
-            Value of the uniqued column
-        :class:`DMT.core.Dataframe`
-            Slice of the dataframe with the value
-
-        Raises
-        ------
-        StopIteration
-            As soon as all values are iterated
-        """
-        if self.index == len(self):
-            # end reached
-            raise StopIteration
-
-        val = self.val_unique[self.index]
-
-        if self.atol is None:
-            dataframe = self.dataframe[self.dataframe[self.column] == val]
-        else:
-            dataframe = self.dataframe[np.isclose(self.dataframe[self.column], val, atol=self.atol)]
-
-        self.index += 1
-        return self.index - 1, val, dataframe
+            yield index, val, dataframe
+            index += 1
