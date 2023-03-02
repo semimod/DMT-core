@@ -30,6 +30,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Removed gitlab.com repository from pipeline.
 
+## Fixed
+
+- DataFrame.check_ss_cols: Fixed bug where column name was identified as a SS-Parameter falsely
+- DataFrame.get_ss_para: Checking for ALL found SS-Parameters not just one.
+
 ## [1.7.0] - 2022.08.17
 
 ### Added
