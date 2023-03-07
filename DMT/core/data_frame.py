@@ -380,7 +380,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
         fallback[specifier_frequency] = specifiers.FREQUENCY
 
         # rename columns that are specified by fallback
-        new_df = DataFrame()
+        data = {}
         unknown_columns = []
         for col in self.columns:
             if col in fallback.keys():
@@ -398,14 +398,14 @@ class DataFrame(DataProcessor, pd.DataFrame):
                             col,
                             fallback[col],
                         )
-                    new_df[fallback[col]] = self[col]
+                    data[fallback[col]] = self[col].to_numpy()
                 else:
                     if warnings:
                         logging.warning(
                             "The column %s is kept it was according to the fallback dictionary!",
                             col,
                         )
-                    new_df[col] = self[col]
+                    data[col] = self[col].to_numpy()
 
                 continue
 
@@ -431,7 +431,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
 
             elif col[0] not in "VIC":
                 # only rename the names of values which can be identified
-                new_df[col] = self[col]
+                data[col] = self[col].to_numpy()
                 continue
 
             nodes_in_col = get_nodes(col, nodes, fallback=fallback)
@@ -449,13 +449,13 @@ class DataFrame(DataProcessor, pd.DataFrame):
                     col[0], *nodes_in_col, sub_specifiers=sub_specifiers_in_col
                 )
                 # self  =  self.rename(columns={ self.columns[i]:new_column_name })
-                if new_column_name in new_df.columns:  # pylint: disable=unsupported-membership-test
+                if new_column_name in data:
                     raise IOError(
                         "Column is already in the dataframe. Maybe it should be deleted? (fallback: {"
                         + new_column_name
                         + " :None})"
                     )
-                new_df[new_column_name] = self[col]
+                data[new_column_name] = self[col].to_numpy()
             else:
                 unknown_columns.append(col)
 
@@ -470,7 +470,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
                 + " is unknown to this DuT as the nodes can not be extracted! Either a fallback behavior or different DuT nodes for this column are needed."
             )
 
-        self = new_df
+        self = DataFrame(data)
 
         # convert voltages, potentials and maybe in the future to SpecifierStr
         to_rename = {}
