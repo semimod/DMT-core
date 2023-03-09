@@ -233,15 +233,19 @@ def sim_ngspice(sweep, build_in):
     if build_in:
         name = "ngspiceBI"
         command = "ngspice"
+        command_openvaf = None
+
     else:
         name = "ngspiceVA"
         command = "ngspice"
+        command_openvaf = "openvaf"
 
     dut = DutNgspice(
         None,
         DutType.npn,
         mc_D21,
         simulator_command=command,
+        command_openvaf=command_openvaf,
         name=name,
         nodes="C,B,E,S,T",
         reference_node="E",
@@ -258,6 +262,11 @@ def sim_ngspice(sweep, build_in):
 def test_ngspice_build_in():
     sweep = create_sweep()
     dut_build_in = sim_ngspice(sweep=sweep, build_in=True)
+
+    sim_con = SimCon()
+
+    sim_con.append_simulation(dut=dut_build_in, sweep=sweep)
+    sim_con.run_and_read(force=True, remove_simulations=False)
 
     df = dut_build_in.get_data(sweep=sweep)
     df = df[np.isclose(df[specifiers.FREQUENCY], 100)]
@@ -324,6 +333,11 @@ def test_ngspice_build_in():
 def test_ngspice_va():
     sweep = create_sweep()
     dut_va = sim_ngspice(sweep=sweep, build_in=False)
+
+    sim_con = SimCon()
+
+    sim_con.append_simulation(dut=dut_va, sweep=sweep)
+    sim_con.run_and_read(force=True, remove_simulations=False)
 
     df = dut_va.get_data(sweep=sweep)
     df = df[np.isclose(df[specifiers.FREQUENCY], 100)]

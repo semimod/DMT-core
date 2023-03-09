@@ -646,8 +646,29 @@ class Sweep(object):
         vars_all = [element.var_name for element in self.sweepdef] + list(self.othervar.keys())
         if len(vars_all) != len(set(vars_all)):
             raise IOError(
-                "The Variable TEMP is specified more than once, this is forbidden for DMT. TEMP is the temperature of the transistor."
+                "One sweep variable is specified more than once, this is forbidden for DMT. The defined variable are:"
+                + " ".join(vars_all)
             )
+
+        # correct amp phase contact if set
+        for i_swd, swd in enumerate(self.sweepdef):
+            if swd.amp is not None:
+                if not isinstance(swd.amp, (float, int)):
+                    raise IOError(
+                        "DMT->Sweep: If an transient amplitude is set, is has to be of type float or int."
+                    )
+
+            if swd.phase is not None:
+                if not isinstance(swd.phase, (float, int)):
+                    raise IOError(
+                        "DMT->Sweep: If an transient phase is set, is has to be of type float or int."
+                    )
+
+            if swd.contact is not None:
+                if not isinstance(swd.contact, str):
+                    raise IOError(
+                        "DMT->Sweep: If an transient contact is set, is has to be of type str."
+                    )
 
     def get_temperature(self):
         """Returns the temperature of the sweep as a string. Use this to set the key of a dut.

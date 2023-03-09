@@ -1098,7 +1098,7 @@ class Plot(object):
                         if not len(dict_line["x"]) == 0
                     ]
                 )
-                x_min = 0.9 * x_min if x_min > 0 else 1.1 * x_min
+                x_min = 0.95 * x_min if x_min > 0 else 1.05 * x_min
                 x_min_set = x_min * self.x_scale
             else:
                 x_min = 0
@@ -1117,7 +1117,7 @@ class Plot(object):
                         if not len(dict_line["x"]) == 0
                     ]
                 )
-                x_max = 1.1 * x_max if x_max > 0 else 0.9 * x_max
+                x_max = 1.05 * x_max if x_max > 0 else 0.95 * x_max
                 # x_max = np.ceil(1.1*x_max) if x_max > 0 else np.ceil(0.9*x_max)
                 x_max_set = x_max * self.x_scale
             else:
@@ -1153,7 +1153,9 @@ class Plot(object):
                     # y_min = (
                     #     np.min([np.min(dict_line["y"]) for dict_line in self.data])
                     # )
-                    y_min = 0.9 * y_min * self.y_scale if y_min > 0 else 1.1 * y_min * self.y_scale
+                    y_min = (
+                        0.95 * y_min * self.y_scale if y_min > 0 else 1.05 * y_min * self.y_scale
+                    )
                 except ValueError:
                     y_min = 0.0
                 # y_min = np.floor(0.9*y_min) if y_min > 0 else np.floor(1.1*y_min)
@@ -1177,7 +1179,9 @@ class Plot(object):
                     # y_max = (
                     #     np.max([np.max(dict_line["y"]) for dict_line in self.data])
                     # )
-                    y_max = 1.1 * y_max * self.y_scale if y_max > 0 else 0.9 * y_max * self.y_scale
+                    y_max = (
+                        1.05 * y_max * self.y_scale if y_max > 0 else 0.95 * y_max * self.y_scale
+                    )
                 except ValueError:
                     y_max = 1.0
             else:

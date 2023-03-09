@@ -66,7 +66,7 @@ class Plot2YAxis(object):
 
     """
 
-    def __init__(self, name, plot_left, plot_right, legend_location="upper right"):
+    def __init__(self, name, plot_left, plot_right, legend_location=None):
         self.name = name
 
         # do not check anything here!
@@ -310,6 +310,8 @@ class Plot2YAxis(object):
         ]:  # not supported in matplotlib
             self.ax_left.legend(loc="upper right", frameon=self.legend_frame)
             self.ax_right.legend(loc="upper right", frameon=self.legend_frame)
+        elif self.legend_location is None:
+            pass  # do nothing, legend location is set in the child plots.
         else:
             self.ax_left.legend(loc=self.legend_location, frameon=self.legend_frame)
             self.ax_right.legend(loc=self.legend_location, frameon=self.legend_frame)
@@ -354,6 +356,8 @@ class Plot2YAxis(object):
         restrict_right=True,
         hide_second_ticks=False,
         hide_second_axis=False,
+        show_legend=True,
+        legend_location=None,
         standalone=False,
         build=False,
         clean=False,
@@ -392,6 +396,9 @@ class Plot2YAxis(object):
         self.plot_right.name = name_old_right + "_tmp"
         self.plot_right.num = num_old_right + "_tmp"
 
+        if legend_location is None:
+            legend_location = self.legend_location
+
         file_tikz_left = self.plot_left.save_tikz(
             directory,
             width=width,
@@ -400,6 +407,8 @@ class Plot2YAxis(object):
             standalone=standalone,
             restrict=restrict_left,
             extension=extension,
+            show_legend=show_legend,
+            legend_location=legend_location,
         )
         file_tikz_right = self.plot_right.save_tikz(
             directory,
@@ -409,6 +418,8 @@ class Plot2YAxis(object):
             standalone=standalone,
             restrict=restrict_right,
             extension=extension,
+            show_legend=show_legend,
+            legend_location=legend_location,
         )
 
         # open, read and delete the tikz files

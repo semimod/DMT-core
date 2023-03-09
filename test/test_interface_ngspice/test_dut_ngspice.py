@@ -194,8 +194,7 @@ def get_circuit(self, use_build_in=True, topology="common_emitter", **kwargs):
 
     return Circuit(circuit_elements)
 
-
-def test_ngspice():
+def get_dut_sweep():
     col_vb = specifiers.VOLTAGE + "B"
     col_vc = specifiers.VOLTAGE + "C"
     col_ve = specifiers.VOLTAGE + "E"
@@ -241,7 +240,16 @@ def test_ngspice():
     sim_con.append_simulation(dut=dut, sweep=sweep)
     sim_con.run_and_read(force=True, remove_simulations=False)
 
-    df = dut.get_data(sweep=sweep)
+    return duts, sweep
+
+def test_ngspice():
+    col_vb = specifiers.VOLTAGE + "B"
+    col_vc = specifiers.VOLTAGE + "C"
+    col_ve = specifiers.VOLTAGE + "E"
+    col_ib = specifiers.CURRENT + "B"
+    col_ic = specifiers.CURRENT + "C"
+    duts, sweep = get_dut_sweep()
+    df = duts[0].get_data(sweep=sweep)
     df = df[np.isclose(df[specifiers.FREQUENCY], 100)]
     vb = np.real(df[col_vb].to_numpy())
     ic = np.real(df[col_ic].to_numpy())
@@ -302,11 +310,9 @@ def test_ngspice():
         ),
     ).all()
 
-    return duts, sweep
-
 
 if __name__ == "__main__":
-    duts, sweep = test_ngspice()
+    duts, sweep = get_dut_sweep()
 
     col_vbc = specifiers.VOLTAGE + ["B", "C"]
     col_vbe = specifiers.VOLTAGE + ["B", "E"]

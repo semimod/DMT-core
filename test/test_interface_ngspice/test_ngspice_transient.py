@@ -232,7 +232,7 @@ def get_dut():
         input_circuit=mc_D21,
         reference_node="E",
         copy_va_files=False,
-        simulator_command="ngspice_osdi",
+        simulator_command="ngspice",
     )
 
 
@@ -259,7 +259,7 @@ if __name__ == "__main__":
 
     sim_con = SimCon(n_core=1, t_max=1000)
     sim_con.append_simulation(dut=dut_HICUM, sweep=sweep)
-    sim_con.run_and_read()
+    sim_con.run_and_read(force=True)
 
     i_op = 0
     i_freq = 0
