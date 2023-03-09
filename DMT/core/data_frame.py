@@ -380,7 +380,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
         fallback[specifier_frequency] = specifiers.FREQUENCY
 
         # rename columns that are specified by fallback
-        new_df = DataFrame()
+        data = {}
         unknown_columns = []
         for col in self.columns:
             if col in fallback.keys():
@@ -398,14 +398,14 @@ class DataFrame(DataProcessor, pd.DataFrame):
                             col,
                             fallback[col],
                         )
-                    new_df[fallback[col]] = self[col]
+                    data[fallback[col]] = self[col].to_numpy()
                 else:
                     if warnings:
                         logging.warning(
                             "The column %s is kept it was according to the fallback dictionary!",
                             col,
                         )
-                    new_df[col] = self[col]
+                    data[col] = self[col].to_numpy()
 
                 continue
 
@@ -431,7 +431,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
 
             elif col[0] not in "VIC":
                 # only rename the names of values which can be identified
-                new_df[col] = self[col]
+                data[col] = self[col].to_numpy()
                 continue
 
             nodes_in_col = get_nodes(col, nodes, fallback=fallback)
@@ -449,13 +449,13 @@ class DataFrame(DataProcessor, pd.DataFrame):
                     col[0], *nodes_in_col, sub_specifiers=sub_specifiers_in_col
                 )
                 # self  =  self.rename(columns={ self.columns[i]:new_column_name })
-                if new_column_name in new_df.columns:  # pylint: disable=unsupported-membership-test
+                if new_column_name in data:
                     raise IOError(
                         "Column is already in the dataframe. Maybe it should be deleted? (fallback: {"
                         + new_column_name
                         + " :None})"
                     )
-                new_df[new_column_name] = self[col]
+                data[new_column_name] = self[col].to_numpy()
             else:
                 unknown_columns.append(col)
 
@@ -470,7 +470,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
                 + " is unknown to this DuT as the nodes can not be extracted! Either a fallback behavior or different DuT nodes for this column are needed."
             )
 
-        self = new_df
+        self = DataFrame(data)
 
         # convert voltages, potentials and maybe in the future to SpecifierStr
         to_rename = {}
@@ -704,7 +704,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
             )
             self.ensure_specifier_column(col_complex, ports=ports)
             self[col] = np.real(self[col_complex].to_numpy())
-
+            return
         elif (
             sub_specifiers.IMAG.sub_specifiers <= sub_specifiers_in_col
         ):  # [1:] to cut off the | for a correct string compare
@@ -726,7 +726,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
             )
             self.ensure_specifier_column(col_complex, ports=ports)
             self[col] = np.abs(self[col_complex].to_numpy())
-
+            return
         elif (
             sub_specifiers.PHASE.sub_specifiers <= sub_specifiers_in_col
         ):  # [1:] to cut off the | for a correct string compare
@@ -777,7 +777,13 @@ class DataFrame(DataProcessor, pd.DataFrame):
                 raise IOError(
                     'DMT -> DataFrame -> ensure_specifier_column: Calculation of a capacitance requires the specification of the "ports" keyword argument.'
                 )
-            if sub_specifiers_in_col & { sub_specifiers.PERIMETER, sub_specifiers.AREA, sub_specifiers.CORNER, sub_specifiers.LENGTH, sub_specifiers.WIDTH, } :
+            if sub_specifiers_in_col & {
+                sub_specifiers.PERIMETER,
+                sub_specifiers.AREA,
+                sub_specifiers.CORNER,
+                sub_specifiers.LENGTH,
+                sub_specifiers.WIDTH,
+            }:
                 raise IOError(
                     "DMT -> DataFrame -> ensure_specifier_column: Can not calculate a PoA capacitance. This needs to be done by a XQ Step."
                 )
@@ -1521,7 +1527,8 @@ class DataFrame(DataProcessor, pd.DataFrame):
                 if col.specifier == para:
                     return True
             except AttributeError:
-                if col[0:2] == para + "_":  # we should no allow this :(
+                if col.startswith(str(para) + "_"):
+                    # we should no allow this :(
                     return True
 
         return False
@@ -1545,58 +1552,65 @@ class DataFrame(DataProcessor, pd.DataFrame):
         """
         # check existence of the paras
         para_desired = para
-        try:
-            para_avail = [
-                ss_para
-                for ss_para in [para] + [speci for speci in specifiers_ss_para]
-                if self.check_ss_cols(ss_para)
-            ]
-            if len(para_avail) == 0:
-                raise StopIteration
-            elif len(para_avail) == 1:
-                para_avail = para_avail[0]
-            else:
-                if para_desired in para_avail:
-                    para_avail = para_desired
-                else:
-                    para_avail = para_avail[0]
-        except StopIteration:
+        paras_avail = [
+            ss_para for ss_para in {para} | set(specifiers_ss_para) if self.check_ss_cols(ss_para)
+        ]
+        if len(paras_avail) == 0:
             logging.warning("Warning: DMT->DataFrame: No SS-Parameters were found in DataFrame.")
-            raise StopIteration
+            raise StopIteration("DMT->DataFrame: No SS-Parameters were found in DataFrame.")
 
-        list_ports = [port_1]
-        columns = self.columns
-        for node in ports_n:
-            # check if full set of this parameter is here for this node
-            col_0 = SpecifierStr(para_avail.upper(), port_1, node)
-            col_1 = SpecifierStr(para_avail.upper(), node, port_1)
-            col_2 = SpecifierStr(para_avail.upper(), node, node)
+        if para_desired in paras_avail:
+            paras_avail.remove(para_desired)
+            paras_avail.insert(0, para_desired)
 
-            # did not check for node[i], node[j] on purpose, because node[j] may be not part of the full set..
-            if (
-                col_0 in columns and col_1 in columns and col_2 in columns
-            ):  # pylint: disable=unsupported-membership-test
-                list_ports.append(node)
+        columns = set(self.columns)
+        ports_wanted = [port_1] + list(ports_n)
+        ports_of_para = []
+        para_found = None
+        for para_test in paras_avail:
+            spec_test = SpecifierStr(para_test.upper())
+            if (spec_test + [port_1, port_1]) not in columns:
+                continue
+
+            ports_of_para = [port_1]
+            for node in ports_n:
+                # check if full set of this parameter is here for this node
+                col_0 = spec_test + [port_1, node]
+                col_1 = spec_test + [node, port_1]
+                col_2 = spec_test + [node, node]
+                # did not check for node[i], node[j] on purpose, because node[j] may be not part of the full set..
+
+                if len({col_0, col_1, col_2} & columns) == 3:
+                    ports_of_para.append(node)
+
+            if ports_of_para == ports_wanted:
+                para_found = spec_test
+                break
+
+        if not para_found:
+            raise IOError(
+                "DMT-DataFrame->get_ss_para: I found some SS-Paras but none with full set for all required ports."
+            )
 
         # get the existing parameters from df and put them into a numpy array
         try:
             n_freq = len(self[specifiers.FREQUENCY])
         except KeyError:
-            raise IOError("DMT -> data_frame -> get_ss_para: no column FREQ in data frame.")
+            raise IOError("DMT->DataFrame->get_ss_para: no column FREQ in data frame.")
 
-        n_port = len(list_ports)
+        n_port = len(ports_of_para)
 
         para_values = np.zeros((n_freq, n_port, n_port), dtype=np.complex128)
         for i in range(n_port):
             for j in range(n_port):
                 para_values[:, i, j] = self.loc[
-                    :, SpecifierStr(para_avail.upper(), list_ports[i], list_ports[j])
+                    :, para_found + [ports_of_para[i], ports_of_para[j]]
                 ]
 
         # we found some parameters, however not the desired ones. Try converting
-        if para_avail != para_desired:
+        if para_found != para_desired:
             para_values = self.processor.convert_n_port_para(
-                para_values, p_from=str(para_avail), p_to=str(para_desired)
+                para_values, p_from=str(para_found), p_to=str(para_desired)
             )
 
         return para_values
@@ -1630,7 +1644,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
 
         return self
 
-    def strip_ss_para(self, keep="S"):
+    def strip_ss_para(self, keep=specifiers_ss_para.SS_PARA_S):
         """Throw away all but keep small signal parameters.
 
         Parameters
@@ -1646,7 +1660,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
         ss_paras = self.get_all_ss_para()
         drop = []
         for para in ss_paras:
-            if para.specifier != keep:
+            if para.specifier != str(keep):
                 drop.append(para)
 
         return self.drop(columns=drop)
@@ -1718,15 +1732,17 @@ class DataFrame(DataProcessor, pd.DataFrame):
         return self
 
     def calc_tfit(self, tfit_kind: int, ports):
-        port1 = ports[0]
-        port2 = ports[1]
         if tfit_kind == 1:
-            return self.calc_tfit1(port1, port2)
+            return self.calc_tfit1(*ports)
         elif tfit_kind == 2:
-            return self.calc_tfit2(port1, port2)
+            return self.calc_tfit2(*ports)
         elif tfit_kind == 3:
             self.ensure_specifier_column(specifiers.TRANSIT_TIME, ports=ports)
             return self
+        else:
+            raise NotImplementedError(
+                "DMT-DataFrame-calc_tfit: Only kind 1,2 and 3 is implemented!"
+            )
 
     def calc_tfit1(self, port_1, port_2):
         """Calculates the transit frequency FT using the spot frequency method.
@@ -1873,7 +1889,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
             Dataframe that contains CBE.
         """
         # get values
-        s_para_values = self.get_ss_para("S", port_1, port_2)
+        s_para_values = self.get_ss_para("Y", port_1, port_2)
 
         sp_cbe = specifiers.CAPACITANCE + ["B", "E"]
 
@@ -1882,19 +1898,19 @@ class DataFrame(DataProcessor, pd.DataFrame):
             None  # default='warn' , Markus: This should not warn here.
         )
         if port_1 == "B" and port_2 == "C":
-            self[sp_cbe] = self.processor.calc_cap_shunt_port_1(self["FREQ"], s_para_values, "S")
+            self[sp_cbe] = self.processor.calc_cap_shunt_port_1(self["FREQ"], s_para_values, "Y")
         elif port_1 == "C" and port_2 == "B":
-            self[sp_cbe] = self.processor.calc_cap_shunt_port_2(self["FREQ"], s_para_values, "S")
+            self[sp_cbe] = self.processor.calc_cap_shunt_port_2(self["FREQ"], s_para_values, "Y")
         elif port_1 == "B" and port_2 == "E":
-            self[sp_cbe] = self.processor.calc_cap_series_thru(self["FREQ"], s_para_values, "S")
+            self[sp_cbe] = self.processor.calc_cap_series_thru(self["FREQ"], s_para_values, "Y")
         elif port_1 == "E" and port_2 == "B":
-            self[sp_cbe] = self.processor.calc_cap_series_thru(self["FREQ"], s_para_values, "S")
+            self[sp_cbe] = self.processor.calc_cap_series_thru(self["FREQ"], s_para_values, "Y")
         elif port_1 == "E" and port_2 == "C":  # common base
-            self[sp_cbe] = self.processor.calc_cap_shunt_port_1(self["FREQ"], s_para_values, "S")
+            self[sp_cbe] = self.processor.calc_cap_shunt_port_1(self["FREQ"], s_para_values, "Y")
         elif port_1 == "E" and port_2 == "C":  # common base
-            self[sp_cbe] = self.processor.calc_cap_shunt_port_2(self["FREQ"], s_para_values, "S")
+            self[sp_cbe] = self.processor.calc_cap_shunt_port_2(self["FREQ"], s_para_values, "Y")
         elif port_1 == "C" and port_2 == "E":  # common base
-            self[sp_cbe] = self.processor.calc_cap_shunt_port_1(self["FREQ"], s_para_values, "S")
+            self[sp_cbe] = self.processor.calc_cap_shunt_port_1(self["FREQ"], s_para_values, "Y")
         else:
             raise NotImplementedError(
                 "DMT -> DataFrame -> calc_cbe: transistor configuration not implemented."
@@ -1912,15 +1928,21 @@ class DataFrame(DataProcessor, pd.DataFrame):
             Dataframe that contains CCE.
         """
         # get values
-        s_para_values = self.get_ss_para("S", port_1, port_2)
+        s_para_values = self.get_ss_para("Y", port_1, port_2)
 
         # put values in col of self
         pd.options.mode.chained_assignment = (
             None  # default='warn' , Markus: This should not warn here.
         )
-        self[specifiers.CAPACITANCE + ["C", "E"]] = self.processor.calc_cap_shunt_port_2(
-            self["FREQ"], s_para_values, "S"
-        )
+        if port_1 == "B" and port_2 == "C":
+            self[specifiers.CAPACITANCE + ["C", "E"]] = self.processor.calc_cap_shunt_port_2(
+                self["FREQ"], s_para_values, "Y"
+            )
+        else:
+            raise NotImplementedError(
+                "DMT -> DataFrame -> calc_cce: transistor configuration not implemented."
+            )
+
         pd.options.mode.chained_assignment = "warn"
         return self
 
@@ -1933,23 +1955,23 @@ class DataFrame(DataProcessor, pd.DataFrame):
             Dataframe that contains CBE.
         """
         # get values
-        s_para_values = self.get_ss_para("S", port_1, port_2)
+        s_para_values = self.get_ss_para("Y", port_1, port_2)
 
         sp_cbc = specifiers.CAPACITANCE + ["B", "C"]
 
         # put values in col of self
         if port_1 == "B" and port_2 == "C":
-            self[sp_cbc] = self.processor.calc_cap_series_thru(self["FREQ"], s_para_values, "S")
+            self[sp_cbc] = self.processor.calc_cap_series_thru(self["FREQ"], s_para_values, "Y")
         elif port_1 == "C" and port_2 == "B":
-            self[sp_cbc] = self.processor.calc_cap_series_thru(self["FREQ"], s_para_values, "S")
+            self[sp_cbc] = self.processor.calc_cap_series_thru(self["FREQ"], s_para_values, "Y")
         elif port_1 == "B" and port_2 == "E":
-            self[sp_cbc] = self.processor.calc_cap_shunt_port_1(self["FREQ"], s_para_values, "S")
+            self[sp_cbc] = self.processor.calc_cap_shunt_port_1(self["FREQ"], s_para_values, "Y")
         elif port_1 == "E" and port_2 == "B":
-            self[sp_cbc] = self.processor.calc_cap_shunt_port_2(self["FREQ"], s_para_values, "S")
+            self[sp_cbc] = self.processor.calc_cap_shunt_port_2(self["FREQ"], s_para_values, "Y")
         elif port_1 == "C" and port_2 == "E":
-            self[sp_cbc] = self.processor.calc_cap_shunt_port_1(self["FREQ"], s_para_values, "S")
+            self[sp_cbc] = self.processor.calc_cap_shunt_port_1(self["FREQ"], s_para_values, "Y")
         elif port_1 == "E" and port_2 == "C":
-            self[sp_cbc] = self.processor.calc_cap_shunt_port_2(self["FREQ"], s_para_values, "S")
+            self[sp_cbc] = self.processor.calc_cap_shunt_port_2(self["FREQ"], s_para_values, "Y")
         else:
             raise NotImplementedError(
                 "DMT -> DataFrame -> calc_cbe: transistor configuration not implemented."
@@ -2037,7 +2059,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
             for port2 in ports:
                 for kind in [sub_specifiers.REAL, sub_specifiers.IMAG]:
                     self.ensure_specifier_column(
-                        specifiers_ss_para.SS_PARA_Y + port1 + port2 + kind,
+                        specifiers_ss_para.SS_PARA_Y + [port1, port2] + kind,
                         ports=["B", "C"],
                     )
 
@@ -2054,14 +2076,14 @@ class DataFrame(DataProcessor, pd.DataFrame):
         for port1 in ports:
             for port2 in ports:
                 for kind in [sub_specifiers.REAL, sub_specifiers.IMAG]:
-                    y_para = specifiers_ss_para.SS_PARA_Y + port1 + port2 + kind
+                    y_para = specifiers_ss_para.SS_PARA_Y + [port1, port2] + kind
                     df_new[y_para] = 0
 
         # actual smoothing
         for port1 in ports:
             for port2 in ports:
                 for kind in [sub_specifiers.REAL, sub_specifiers.IMAG]:
-                    y_para = specifiers_ss_para.SS_PARA_Y + port1 + port2 + kind
+                    y_para = specifiers_ss_para.SS_PARA_Y + [port1, port2] + kind
                     for i in range(n_slices):
                         i_low = n_freq * i
                         i_upp = n_freq * (i + 1)
@@ -2095,9 +2117,9 @@ class DataFrame(DataProcessor, pd.DataFrame):
         # merge real and complex part, remove afterwards
         for port1 in ["B", "C"]:
             for port2 in ["B", "C"]:
-                y_para = specifiers_ss_para.SS_PARA_Y + port1 + port2
-                y_para_re = specifiers_ss_para.SS_PARA_Y + port1 + port2 + sub_specifiers.REAL
-                y_para_im = specifiers_ss_para.SS_PARA_Y + port1 + port2 + sub_specifiers.IMAG
+                y_para = specifiers_ss_para.SS_PARA_Y + [port1, port2]
+                y_para_re = specifiers_ss_para.SS_PARA_Y + [port1, port2] + sub_specifiers.REAL
+                y_para_im = specifiers_ss_para.SS_PARA_Y + [port1, port2] + sub_specifiers.IMAG
                 df_new[y_para] = df_new[y_para_re] + 1j * df_new[y_para_im]
                 df_new.drop(columns=[y_para_im, y_para_re])
 
@@ -2113,10 +2135,14 @@ class DataFrame(DataProcessor, pd.DataFrame):
         decimals : int, optional
             Rounding precision for the unique, None to turn off, by default 5
 
-        Returns
+        Yields
         -------
-        :class:`DMT.core.data_frame.IterUniqueRoundColumn`
-            Iterator over all unique values of this column
+        int
+            Index of current iteration
+        float
+            Value of the uniqued column
+        :class:`DMT.core.Dataframe`
+            Slice of the dataframe with the unique value
 
         Examples
         --------
@@ -2132,82 +2158,22 @@ class DataFrame(DataProcessor, pd.DataFrame):
                 ... # user action
 
         """
-        return IterUniqueRoundColumn(self, column, decimals=decimals)
-
-
-class IterUniqueRoundColumn(object):
-    """Iterator to iterate over rounded unique values of a column
-
-    Parameters
-    ----------
-    dataframe : :class:`DMT.core.Dataframe`
-        DMT (or parandas) dataframe with data including the column to iterate over.
-    column : :class:`DMT.core.SpecifierStr` or str
-        Column name to iterate over
-    decimals : int, optional
-        Rounding precision for the unique, None to turn off, by default 5
-
-    """
-
-    def __init__(self, dataframe, column, decimals=5):
-        self.index = 0  # start at 0
-        self.dataframe = dataframe
-        self.column = column
+        index = 0
 
         if decimals is None:
-            self.val_unique = np.unique(dataframe[column])
-            self.atol = None
+            val_unique = np.unique(self[column])
+            atol = None
         else:
-            self.val_unique = np.unique(np.round(dataframe[column], decimals=decimals))
-            self.atol = 5 * np.float_power(10, -(decimals + 1))
+            val_unique = np.unique(np.round(self[column], decimals=decimals))
+            atol = 5 * np.float_power(10, -(decimals + 1))
 
-    def __len__(self):
-        """Convenience to so len(iterator) can be used.
+        while index < len(val_unique):
+            val = val_unique[index]
 
-        Returns
-        -------
-        int
-            Length of the uniqued values
-        """
-        return len(self.val_unique)
+            if atol is None:
+                dataframe = self[self[column] == val]
+            else:
+                dataframe = self[np.isclose(self[column], val, atol=atol)]
 
-    def __iter__(self):
-        """Here self is returned -> this class itself is an iterator.
-
-        Returns
-        -------
-        :class:`DMT.core.data_frame.IterUniqueRoundColumn`
-            Iterator over all unique values of this column
-        """
-        return self
-
-    def __next__(self):
-        """This routine is magic and sets the iteration behavior.
-
-        Returns
-        -------
-        int
-            Index of current iteration
-        float
-            Value of the uniqued column
-        :class:`DMT.core.Dataframe`
-            Slice of the dataframe with the value
-
-        Raises
-        ------
-        StopIteration
-            As soon as all values are iterated
-        """
-        if self.index == len(self):
-            # end reached
-            raise StopIteration
-
-        val = self.val_unique[self.index]
-
-        if self.atol is None:
-            dataframe = self.dataframe[self.dataframe[self.column] == val]
-        else:
-            dataframe = self.dataframe[np.isclose(self.dataframe[self.column], val, atol=self.atol)]
-
-        self.index += 1
-        return self.index - 1, val, dataframe
+            yield index, val, dataframe
+            index += 1

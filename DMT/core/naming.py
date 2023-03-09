@@ -537,6 +537,7 @@ class _specifiers(GlobalObj, metaclass=Singleton):
     VELOCITY = SpecifierStr("VELO")
     GRADING = SpecifierStr("GRADING")
     RESISTANCE = SpecifierStr("R")
+    CONDUCTANCE = SpecifierStr("G")
     POWER = SpecifierStr("P")
     CURRENT = SpecifierStr("I")
     CAPACITANCE = SpecifierStr("C")
@@ -689,6 +690,7 @@ def get_pint_unit(self) -> pint.Unit:
         specifiers.CURRENT_DENSITY: unit_registry.ampere_per_square_meter,
         specifiers.TEMPERATURE: unit_registry.kelvin,
         specifiers.RESISTANCE: unit_registry.ohm,
+        specifiers.CONDUCTANCE: unit_registry.siemens,
         specifiers.POWER: unit_registry.watt,
         specifiers.TIME: unit_registry.second,
         specifiers.X: unit_registry.meter,
@@ -723,6 +725,7 @@ def get_descriptor(self):
         specifiers.CAPACITANCE: "capacitance",
         specifiers.VOLTAGE: "voltage",
         specifiers.RESISTANCE: "resistance",
+        specifiers.CONDUCTANCE: "conductance",
         specifiers.POWER: "power",
         specifiers.ENERGY: "energy",
     }
@@ -794,7 +797,7 @@ def to_tex(self, subscript="", superscript=""):
     elif self.specifier == specifiers.NET_DOPING:
         tex = r"N_{\mathrm{net}}"
     elif self.specifier == specifiers.ACCEPTORS:
-        tex = r"N_{\mathrm{A}}"
+        tex = r"N_{\mathrm{A}}col_ib"
     elif self.specifier == specifiers.DONNORS:
         tex = r"N_{\mathrm{D}}"
     elif self.specifier == specifiers.TIME:
@@ -1045,6 +1048,7 @@ natural_scales = {
     specifiers.X: 1e9,
     specifiers.POWER: 1e3,  # mW
     specifiers.RESISTANCE: 1,  # Ohm
+    specifiers.CONDUCTANCE: 1,  # Siemens
     specifiers.ENERGY: 1,  # eV
     specifiers.UNILATERAL_GAIN: 1,
     specifiers.NET_DOPING: 1e-6,  # 1/cm^3

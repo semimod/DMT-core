@@ -16,6 +16,8 @@ def test_unique_iterator():
 
     for index, vbc, data in df.iter_unique_col(COL_VBC):
         assert np.isclose(vbc, np.linspace(-1, 0, num=5)[index])
+        data.ensure_specifier_column(COL_VBE)
+        assert np.allclose(data[COL_VBE], np.linspace(0, 1, num=5)[index])
 
 
 if __name__ == "__main__":

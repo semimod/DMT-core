@@ -40,6 +40,7 @@ import logging
 import copy
 import re
 import numpy as np
+import pandas as pd
 import subprocess
 from pathlib import Path
 
@@ -774,7 +775,7 @@ class DutNgspice(DutCircuit):
                 for (para, value) in circuit_element.parameters:
                     if para in ["C", "R", "L"]:  # rename according to ngspice manual
                         str_temp.append(value)
-                    elif para in ["Vdc", "Vac"] and not isinstance(
+                    elif para in ["Vdc", "Vac", "Idc", "Iac"] and not isinstance(
                         value, float
                     ):  # just leave voltages from lines, as ngpsice directly changes the sources and not the parameters
                         pass
@@ -831,7 +832,8 @@ class DutNgspice(DutCircuit):
 
         # join the ac dataframes into one ac dataframe dfs_ac[0]
         df_ac = dfs_ac[0]
-        for df in dfs_ac[1:]:
+        for i_df in range(len(dfs_ac)):
+            df = dfs_ac[i_df]
             y_cols = []
             for col in df.columns:
                 try:
@@ -840,17 +842,17 @@ class DutNgspice(DutCircuit):
                 except AttributeError:
                     pass  # from AC dataframes ONLY the SS paras are copied other, rest is ignored
 
-            for y_param in y_cols:
-                df_ac[y_param] = df[y_param].to_numpy()
+            dfs_ac[i_df] = df[y_cols]
+
+        df_ac = pd.concat(dfs_ac, axis=1)
 
         # join the dc data to the ac data
         n_freq = len(np.unique(freqs[0]))
-        for col in df_dc.columns:
-            vals = df_dc[col].to_numpy()
-            vals = np.repeat(vals, n_freq)
-            df_ac[col] = vals
+        df_dc = DataFrame(df_dc.values.repeat(n_freq, axis=0), columns=df_dc.columns)
 
-        return df_ac
+        df_dc.reset_index(drop=True, inplace=True)
+        df_ac.reset_index(drop=True, inplace=True)
+        return pd.concat([df_dc, df_ac], axis=1)
 
 
 def _read_ngspice(filename):
@@ -963,35 +965,37 @@ def _read_clean_ngspice_df(filepath, nodes, reference_node, ac_ports):
     else:
         op_var_multi = False
 
-    new_df = DataFrame()
+    data = {}
     for col in cols:
         col_raw = col.upper()
         if "#BRANCH" in col_raw:  # current that we should save
             col_raw = col_raw.replace("#BRANCH", "")
             node = next(node for node in nodes if node in col_raw)
-            new_df[specifiers.CURRENT + node] = -df[col]  # we want the other current direction
+            data[specifiers.CURRENT + node] = -df[col]  # we want the other current direction
         elif col_raw[0:2] == "N_":  # found a node, will take the voltage
             node = col_raw[2:]
             if "_FORCED" in node:
-                new_df[
-                    specifiers.VOLTAGE + node.replace("_FORCED", "") + sub_specifiers.FORCED
-                ] = df[col]
+                data[specifiers.VOLTAGE + node.replace("_FORCED", "") + sub_specifiers.FORCED] = df[
+                    col
+                ]
             else:
-                new_df[specifiers.VOLTAGE + node] = df[col]
+                data[specifiers.VOLTAGE + node] = df[col]
         elif col_raw == "FREQUENCY":
-            new_df[specifiers.FREQUENCY] = np.real(df["frequency"].to_numpy())
+            data[specifiers.FREQUENCY] = np.real(df["frequency"].to_numpy())
 
         # add opvars
         if col_raw.startswith("@"):
             if op_var_multi:
                 dev_op_var = re.search(r"@(.*)\[(.*)\]", col_raw)
                 op_var = "{0}.{1}".format(*dev_op_var.groups()).upper()
-                new_df[op_var] = np.real(df[col].to_numpy())
+                data[op_var] = np.real(df[col].to_numpy())
                 op_vars.append(op_var)
             else:
                 op_var = re.search(r"\[(.*)\]", col_raw).groups()[0].upper()
-                new_df[op_var] = np.real(df[col].to_numpy())
+                data[op_var] = np.real(df[col].to_numpy())
                 op_vars.append(op_var)
+
+    new_df = DataFrame(data)
 
     # dirty: add the Y Parameters
     if is_ac:
