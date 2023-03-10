@@ -194,6 +194,7 @@ def get_circuit(self, use_build_in=True, topology="common_emitter", **kwargs):
 
     return Circuit(circuit_elements)
 
+
 def get_dut_sweep():
     col_vb = specifiers.VOLTAGE + "B"
     col_vc = specifiers.VOLTAGE + "C"
@@ -241,6 +242,7 @@ def get_dut_sweep():
     sim_con.run_and_read(force=True, remove_simulations=False)
 
     return duts, sweep
+
 
 def test_ngspice():
     col_vb = specifiers.VOLTAGE + "B"
