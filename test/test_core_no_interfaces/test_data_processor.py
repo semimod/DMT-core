@@ -4,7 +4,7 @@ from pathlib import Path
 from DMT.core import read_data, DataFrame, specifiers
 
 
-def test_data_processor_and_deem():
+def get_data_processor_and_deem():
     # load test measurements
     df = read_data(Path(__file__).parent / "test_data" / "Spar_vb.mdm")
     df_open = read_data(Path(__file__).parent / "test_data" / "dummy_open_freq.mdm")
@@ -12,6 +12,7 @@ def test_data_processor_and_deem():
 
     # correct data format of measurements
     nodes = ["B", "C", "E", "S"]
+    ports = ["B", "C"]
     df = df.clean_data(
         nodes,
         "E",
@@ -21,19 +22,23 @@ def test_data_processor_and_deem():
             "S_deemb(1,2)": None,
             "S_deemb(2,2)": None,
         },
-        ac_ports=["B", "C"],
+        ac_ports=ports,
     )
-    df_short = df_short.clean_data(nodes, "E", fallback={"1": "B", "2": "C"}, ac_ports=["B", "C"])
-    df_open = df_open.clean_data(nodes, "E", fallback={"1": "B", "2": "C"}, ac_ports=["B", "C"])
+    df_short = df_short.clean_data(nodes, "E", fallback={"1": "B", "2": "C"}, ac_ports=ports)
+    df_open = df_open.clean_data(nodes, "E", fallback={"1": "B", "2": "C"}, ac_ports=ports)
 
     # deembed
-    df = df.deembed_open(df_open, nodes)
-    df_short = df_short.deembed_open(df_open, nodes)
-    df = df.deembed_short(df_short, nodes)
+    df = df.deembed_open(df_open, ports)
+    df_short = df_short.deembed_open(df_open, ports)
+    df = df.deembed_short(df_short, ports)
 
     # calculate cbe
     df = df.calc_cbe()
     return df
+
+
+def test_data_processor_and_deem():
+    df = get_data_processor_and_deem()
 
 
 def test_cap_extraction_common_base():
@@ -254,7 +259,7 @@ if __name__ == "__main__":
     test_cap_extraction_common_base_reversed()
     test_cap_extraction_common_collector()
     test_cap_extraction_common_collector_reversed()
-    df_deemb = test_data_processor_and_deem()
+    df_deemb = get_data_processor_and_deem()
     profiler.disable()
     print("Runtime: " + str(datetime.now() - time_start))
 

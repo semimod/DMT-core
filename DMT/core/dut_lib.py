@@ -960,7 +960,7 @@ class DutLib(object):
                         dut.data[key] = dut.data[key].deembed(
                             df_open,
                             df_short,
-                            ports=dut.nodes,
+                            ports=dut.ac_ports,
                             ndevices=dut.ndevices,
                             ndevices_open=dut_open.ndevices,
                             ndevices_short=dut_short.ndevices,
@@ -988,7 +988,7 @@ class DutLib(object):
                             dut.data[key] = dut.data[key].deembed(
                                 df_open,
                                 df_short,
-                                ports=dut.nodes,
+                                ports=dut.ac_ports,
                                 ndevices=dut.ndevices,
                                 ndevices_open=dut_open.ndevices,
                                 ndevices_short=dut_short.ndevices,

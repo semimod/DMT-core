@@ -3,10 +3,19 @@ from pathlib import Path
 from DMT.core import read_data, DataFrame, specifiers, sub_specifiers
 
 
-def test_clean_data():
+def get_clean_data():
     data = read_data(Path(__file__).resolve().parent / "test_data" / "dummy_open_freq.mdm")
     data_clean = data.clean_data(nodes=["B", "E", "C"], reference_node="E", ac_ports=["B", "C"])
     return data_clean
+
+
+def test_clean_data():
+    data_clean = get_clean_data()
+    cols = data_clean.columns
+    assert specifiers.SS_PARA_S + ["B", "B"] in cols
+    assert specifiers.SS_PARA_S + ["C", "B"] in cols
+    assert specifiers.SS_PARA_S + ["B", "C"] in cols
+    assert specifiers.SS_PARA_S + ["C", "C"] in cols
 
 
 def test_clean_data_potentials():
@@ -94,11 +103,12 @@ def test_clean_data_throw_error():
 
 
 if __name__ == "__main__":
-    data_clean = test_clean_data()
+    test_clean_data()
     test_clean_data_potentials()
     test_clean_data_potential_mix()
     test_clean_data_potential_mix_2()
     test_clean_data_potential_mix_3()
     test_clean_data_throw_error()
 
-    # print(data_clean['S_BB'].to_numpy())
+    data_clean = get_clean_data()
+    print(data_clean["S_BB"].to_numpy())

@@ -831,10 +831,13 @@ class DutNgspice(DutCircuit):
                 raise IOError("DMT -> NGspice: frequencies of AC simulation data do not match.")
 
         # join the ac dataframes into one ac dataframe dfs_ac[0]
-        df_ac = dfs_ac[0]
         for i_df in range(len(dfs_ac)):
             df = dfs_ac[i_df]
-            y_cols = []
+            if i_df == 0:
+                y_cols = [specifiers.FREQUENCY]
+            else:
+                y_cols = []
+
             for col in df.columns:
                 try:
                     if col.specifier == specifiers.SS_PARA_Y:
