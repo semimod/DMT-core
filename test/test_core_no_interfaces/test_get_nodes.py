@@ -17,7 +17,6 @@ logging.basicConfig(
 
 
 def test_get_nodes_teledyne():
-
     nodes_tlm = DutType.tlm.get_nodes()
     fallback_tlm = {"L": "L", "S": "R", "M": "M", "LI": "", "SI": "", "C": ""}
     # vli             vc              vm              vl              vs              il              ic              is
@@ -47,7 +46,6 @@ def test_get_nodes_teledyne():
 
 
 def test_get_nodes_DotSeven():
-
     nodes_tlm = DutType.tlm.get_nodes()
     fallback_tlm = {"S1": "L", "S3": "R", "S2": "M", "F": "", "FORCE": "L", "GND": "R"}
     # VF              VS1             VS2             VS3             IForce          IGnd

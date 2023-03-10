@@ -155,7 +155,6 @@ class VAFile(object):
 
         self.root: str = name.name
         if files is None:
-
             if name.is_file():
                 self.read_structure(name.parent)
             elif code:
@@ -316,7 +315,7 @@ class VAFile(object):
         if not isinstance(path_to_target, Path):
             path_to_target = Path(path_to_target)
 
-        for (name, code) in self.iter_codes():
+        for name, code in self.iter_codes():
             path_to_vafile = path_to_target / name
             path_to_vafile.parent.mkdir(exist_ok=True, parents=True)
             if filter is not None:

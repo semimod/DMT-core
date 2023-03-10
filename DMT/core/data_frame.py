@@ -44,6 +44,7 @@ import pandas as pd
 
 # pylint: disable = too-many-lines
 
+
 # helper functions for Y Parameter smoothing
 def fun_re(freq, a1, a2, a3):
     """Fit function for real Y Parameters normalized."""
@@ -59,7 +60,6 @@ def fun_im(freq, a2, a3):
 
 
 class Series(pd.Series):
-
     _metadata = ["processor"]
 
     @property
@@ -1437,9 +1437,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
         """
 
         if forced_current:
-
             try:
-
                 df_RC = self.loc[np.isclose(self[specifiers.CURRENT + "B"], 0.0, atol=1e-6)]
                 df_RB = self.loc[np.isclose(self[specifiers.CURRENT + "C"], 0.0, atol=1e-6)]
             except KeyError:

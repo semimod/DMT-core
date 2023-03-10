@@ -620,7 +620,7 @@ class DutNgspice(DutCircuit):
         """
         str_return = ""
 
-        for (key, param) in dict_key_para.items():
+        for key, param in dict_key_para.items():
             if isinstance(param, str):
                 str_add = key + "=" + param + " "
             elif isinstance(param, (list, tuple)):
@@ -705,7 +705,7 @@ class DutNgspice(DutCircuit):
                         else:  # here all model parameters
                             str_model_parameters += "{0:s}={0:10.10e} ".format(para)
 
-                    for (key, val) in self.initial_conditions.items():
+                    for key, val in self.initial_conditions.items():
                         # dirty to allow debugging ngspice
                         str_model_parameters += "{0:s}={1:10.10e} ".format(key, val)
                     str_temp = (
@@ -724,7 +724,7 @@ class DutNgspice(DutCircuit):
                         else:  # here all model parameters
                             str_model_parameters += "{0:s}={0:10.10e} ".format(para)
 
-                    for (key, val) in self.initial_conditions.items():
+                    for key, val in self.initial_conditions.items():
                         # dirty to allow debugging ngspice
                         str_model_parameters += "{0:s}={1:10.10e} ".format(key, val)
                     str_temp = (
@@ -772,7 +772,7 @@ class DutNgspice(DutCircuit):
 
             else:
                 str_temp = []
-                for (para, value) in circuit_element.parameters:
+                for para, value in circuit_element.parameters:
                     if para in ["C", "R", "L"]:  # rename according to ngspice manual
                         str_temp.append(value)
                     elif para in ["Vdc", "Vac", "Idc", "Iac"] and not isinstance(
@@ -786,7 +786,7 @@ class DutNgspice(DutCircuit):
 
                 # find sim paras
                 sim_paras = ""
-                for (para, value) in circuit_element.parameters:
+                for para, value in circuit_element.parameters:
                     try:
                         float(value)
                     except ValueError:

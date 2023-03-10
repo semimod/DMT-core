@@ -65,7 +65,6 @@ def get_circuit(self, use_build_in=False, topology="common_emitter", **kwargs):
     )
 
     if topology == "common_emitter":
-
         # BASE NODE CONNECTION #############
         # metal resistance between contact base point and real collector
         try:
@@ -280,7 +279,6 @@ def get_sweep():
 
 
 def test_run_and_read():
-
     col_vbc = specifiers.VOLTAGE + ["B", "C"]
     col_vbe = specifiers.VOLTAGE + ["B", "E"]
     col_ib = specifiers.CURRENT + "B"

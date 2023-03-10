@@ -67,7 +67,6 @@ def get_circuit(self, use_build_in=True, topology="common_emitter", **kwargs):
     )
 
     if topology == "common_emitter":
-
         # BASE NODE CONNECTION #############
         # metal resistance between contact base point and real collector
         try:

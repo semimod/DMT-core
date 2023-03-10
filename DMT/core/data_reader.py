@@ -673,7 +673,6 @@ def read_ADS_bin(filename):
                 line = line[offset:]
 
         elif str_format == "Flags: complex":
-
             data = np.zeros((num_var, num_points), dtype=np.complex128)
             offset = 0
 

@@ -66,7 +66,6 @@ def test_dc_sweep():
 
 
 def test_sync_sweep():
-
     # VBC = 0.1
     sweepdef = [
         {
@@ -204,7 +203,6 @@ def test_sweepdef_errors():
 
 
 def test_sweep_swd():
-
     swd = SweepDef("FREQ", "LOG", value_def=[8, 9, 2])
     swds = [
         swd,
@@ -300,7 +298,6 @@ def test_sweep_swd():
 
 
 def test_sweep_temp():
-
     assert Sweep("gummel", sweepdef=[], othervar={"TEMP": 300}).get_temperature() == "T300.00K"
 
     assert (

@@ -22,7 +22,6 @@ logging.basicConfig(
 
 
 def compare_ngspice_ads_real_mc(mc):
-
     rth_de = McParameter(name="rth_de", value=0)
     try:
         mc.add(rth_de)

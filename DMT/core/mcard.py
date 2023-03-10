@@ -777,7 +777,7 @@ class MCard(McParameterCollection):
             raise IOError("Loading from file did not work!")
 
         if isinstance(modcard, list):
-            for (parameter_name, parameter_value) in modcard:
+            for parameter_name, parameter_value in modcard:
                 try:
                     # do not reset the limits if parameter is already in modelcard
                     self.set_values({parameter_name: parameter_value}, force=force)
@@ -807,7 +807,7 @@ class MCard(McParameterCollection):
                 except KeyError:
                     self.add(para)
         elif isinstance(modcard, dict):
-            for (parameter_name, parameter_value) in modcard.items():
+            for parameter_name, parameter_value in modcard.items():
                 if not parameter_name.startswith("__"):
                     try:
                         # do not reset the limits if parameter is already in modelcard

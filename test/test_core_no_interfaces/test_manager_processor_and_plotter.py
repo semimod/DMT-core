@@ -16,6 +16,7 @@ logging.basicConfig(
 
 def test_lib_import():
     """Test if the types are the correct subtypes."""
+
     # -->Define subroutine at first
     # --->Subroutine: filter_dut
     def filter_dut(dut_name):
@@ -107,6 +108,7 @@ def test_lib_import():
 
 def test_lib_import_lvl1():
     """Test if the types are the correct subtypes."""
+
     # -->Define subroutine at first
     # --->Subroutine: filter_dut
     def filter_dut(dut_name):
