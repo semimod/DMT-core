@@ -20,9 +20,9 @@
 
 from pint import UnitRegistry
 from pathlib import Path
-from pkg_resources import get_distribution
+from importlib.metadata import version
 
-version_pkg = get_distribution("DMT-core").version.split(".")
+version_pkg = version("DMT-core")
 try:
     from semver.version import Version as VersionInfo
 except ImportError:
