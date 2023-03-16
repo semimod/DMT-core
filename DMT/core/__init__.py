@@ -21,24 +21,19 @@
 from pint import UnitRegistry
 from pathlib import Path
 from importlib.metadata import version
+from packaging.version import Version as PyPIVersion
 
-version_pkg = version("DMT-core")
+version_pkg = PyPIVersion(version("DMT-core"))
 try:
     from semver.version import Version as VersionInfo
 except ImportError:
     from semver import VersionInfo
 
-if "rc" in version_pkg[2]:
-    _patch = version_pkg[2].split("rc")[0]
-    _rc = version_pkg[2][len(_patch) + 2 :]
-    __version__ = VersionInfo(
-        major=version_pkg[0],
-        minor=version_pkg[1],
-        patch=_patch,
-        prerelease="rc." + _rc,
-    )
-else:
-    __version__ = VersionInfo(major=version_pkg[0], minor=version_pkg[1], patch=version_pkg[2])
+version_pre = None
+if version_pkg.pre:
+    version_pre = ".".join(version_pkg.pre)
+
+__version__ = VersionInfo(*version_pkg.release, prerelease=version_pre, build=version_pkg.dev)
 
 # to get the next version:
 # __version__.next_version(x) - with x = "major", "minor", "patch", "prerelease"

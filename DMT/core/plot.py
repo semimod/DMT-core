@@ -1044,14 +1044,14 @@ class Plot(object):
             y = dict_line["y"]
 
             if self.x_axis_scale == "log":
-                x = np.abs(x)
+                x = np.array(np.abs(x))
             else:
-                x = np.real(x)
+                x = np.array(np.real(x))
 
             if self.y_axis_scale == "log":
-                y = np.abs(y)
+                y = np.array(np.abs(y))
             else:
-                y = np.real(y)
+                y = np.array(np.real(y))
 
             label = dict_line["label"]
             if label is not None:
