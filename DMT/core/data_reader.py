@@ -160,11 +160,8 @@ def read_hdf(filename, key):
 
 def read_mdm_blocks(block, n_row, n_col, n_iccap_vars, iccap_vars):
     data_raw = np.zeros([n_row, n_col + n_iccap_vars], dtype=np.float64)
-    # read in raw data
-    for i in range(n_row):
-        data_raw[i, :n_col] = block[n_col * i : n_col * (i + 1)]
-        data_raw[i, n_col : n_col + n_iccap_vars] = iccap_vars
-
+    data_raw[:, :n_col] = block.reshape(n_row, n_col)
+    data_raw[:, n_col : n_col + n_iccap_vars] = iccap_vars
     return data_raw
 
 
@@ -230,11 +227,6 @@ def read_mdm(filename):
             n_iccap_vars,
             np.array([value for key, value in iccap_vars.items()]),
         )
-        # read in raw data
-        # data_raw      =  np.zeros([n_row, n_col + n_iccap_vars ])
-        # for i in range(n_row):
-        #     data_raw[i,       :n_col             ]  =  block[ n_col*i : n_col*(i+1) ]
-        #     data_raw[i,  n_col:n_col+n_iccap_vars]  =  [value  for key,value in iccap_vars.items()]
 
         cols.extend([key for key, value in iccap_vars.items()])
         block_data.append(data_raw)
