@@ -2134,7 +2134,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
             Rounding precision for the unique, None to turn off, by default 5
 
         Yields
-        -------
+        ------
         int
             Index of current iteration
         float

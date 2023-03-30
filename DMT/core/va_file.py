@@ -34,8 +34,6 @@ class VACode(object):  # Storage
 
     Parameters
     ----------
-    name : str
-        Name of the code file (should include a relative path to the file which includes this one)
     code : str, optional
         Code of the file
     code_compressed : (str, int), optional
@@ -66,8 +64,8 @@ class VACode(object):  # Storage
 
         Parameters
         ----------
-        other : VAFileBase
-            Other VAFile to compare
+        other : VACode
+            Other VACode to compare
 
         Returns
         -------
@@ -123,8 +121,8 @@ class VACode(object):  # Storage
         self.code = zlib.decompress(code).decode("utf-8")
 
 
-class VAFile(object):
-    """Tree VA-File for VA-Code. The tree is chosen to correctly mirror possible file structures of multi-file VA-Codes
+class VAFileMap(object):
+    """Mapping for VA-Code. The mapping data type is chosen to correctly use possible file structures of multi-file VA-Codes
 
     Parameters
     ----------
@@ -266,6 +264,10 @@ class VAFile(object):
         """
         export = {"__root__": self.root}  # this should be not used somewhere!
         for name, vafile in self.iter_codes():
+            if name == "__root__":
+                raise IOError(
+                    "DMT.VACode: Error in exporting the VA-Code to dict because one file is named '__root__'."
+                )
             if compressed_code:
                 export[name] = vafile.code_compressed  # type: ignore
             else:
@@ -274,8 +276,8 @@ class VAFile(object):
         return export
 
     @classmethod
-    def import_dict(cls, data_import: dict, ignore_checksum: bool = False) -> VAFile:
-        """Imports a VAFile inclusive children from a (serialized) dictionary
+    def import_dict(cls, data_import: dict, ignore_checksum: bool = False) -> VAFileMap:
+        """Imports a full VAFileMap from a (serialized) dictionary
 
         Parameters
         ----------
@@ -286,7 +288,7 @@ class VAFile(object):
 
         Returns
         -------
-        VAFile
+        VAFileMap
             [description]
         """
         root = data_import.pop("__root__")
@@ -298,18 +300,22 @@ class VAFile(object):
             else:
                 files[name] = VACode(code_compressed=code, ignore_checksum=ignore_checksum)
 
-        return VAFile(name=root, files=files)
+        return VAFileMap(name=root, files=files)
 
     def write_files(
         self, path_to_target: Union[str, Path], filter: Optional[Callable[[str], str]] = None
     ):
-        """Writes the VAFile and all its descendants into the given target path. The file structure is written as read from the "original"
+        """Writes the all Verilog-A files from this mapping into the given target path. The file structure is written as read from the "original"
 
         Parameters
         ----------
         path_to_target : Union[str, Path]
             Path to target directory
         filter : callable, optional
+            Called with each code file as an argument. Can be used to filter out "non-compiling" additional code parts.
+            For example to remove VAE language extensions (spectre)::
+
+                lambda code: re.sub(r"\(\*.+\*\)", "", code)
 
         """
         if not isinstance(path_to_target, Path):
@@ -339,19 +345,19 @@ class VAFile(object):
         return len(self.files)
 
     def __eq__(self, other: object) -> bool:
-        """Allows comparing two VAFiles
+        """Allows comparing two VAFileMap objects
 
         Parameters
         ----------
         other : object
-            Only possible for other VAFiles.
+            Only possible for other VAFileMap objects.
 
         Returns
         -------
         bool
-            True if other VAFile has same root and same files.
+            True if other VAFileMap has same root and same files.
         """
-        if isinstance(other, VAFile):
+        if isinstance(other, VAFileMap):
             return self.root == other.root and self.files == other.files
 
         return NotImplemented

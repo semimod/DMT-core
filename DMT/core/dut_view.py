@@ -25,7 +25,7 @@ import _pickle as cpickle  # type: ignore
 # import pickle as cpickle
 import copy
 import logging
-from DMT.core import DatabaseManager, read_data, DataFrame, VAFile
+from DMT.core import DatabaseManager, read_data, DataFrame, VAFileMap
 from DMT.config import DATA_CONFIG
 from pathlib import Path
 import pandas as pd
@@ -171,7 +171,7 @@ class DutView(object):
             else:
                 self.list_copy = list_copy
 
-        self._list_va_file_contents: list[VAFile] = []
+        self._list_va_file_contents: list[VAFileMap] = []
 
         # attributes for data management
         self._separate_databases = separate_databases

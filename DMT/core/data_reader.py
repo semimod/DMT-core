@@ -298,9 +298,7 @@ def read_elpa(filename, header=2):
     n_row = int(n_row)  # but force it anyways!
 
     # fill the data into the 2-dimensional array data_raw
-    data_raw = np.empty([n_row, n_col])
-    for i in range(n_row):
-        data_raw[i, :] = list_lines[n_col * i : n_col * (i + 1)]
+    data_raw = np.array(list_lines).reshape(n_row, n_col)
 
     # initalize pd.Dataframe() and return it
     return DataFrame(data_raw, columns=columns)

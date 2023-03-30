@@ -5,8 +5,8 @@ Google released `raw experimental data <https://github.com/google/skywater-pdk-s
 
 In this example, we will show how to read all devices in the measurement data into a :ref:`DMT.DutLib<dut_lib>`. Also, it is shown how to access the data inside the library and finally how to document the measurement in LaTeX.
 
-The code
---------
+The Skywater read in code
+-------------------------
 
 .. literalinclude:: readin_dut_lib.py
 
@@ -14,6 +14,6 @@ The code
 The generated files
 -------------------
 
-.. figure:: /_static/readin_dut_lib/length_0_dot_50um_IDVG.png
+.. figure:: /_static/readin_dut_lib/length_0_dot_50um_ID_wVG.png
 
-.. figure:: /_static/readin_dut_lib/length_0_dot_50um_IDVG_mismatch.png
+.. figure:: /_static/readin_dut_lib/length_0_dot_50um_ID_wVG_mismatch.png

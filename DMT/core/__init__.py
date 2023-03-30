@@ -75,7 +75,7 @@ from .naming import natural_scales
 
 # compact modelling stuff
 from .mc_parameter import McParameter, McParameterCollection, McParameterComposition
-from .va_file import VAFile
+from .va_file import VAFileMap
 from .mcard import MCard
 from .technology import Technology
 from .circuit import Circuit, CircuitElement

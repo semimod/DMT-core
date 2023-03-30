@@ -57,36 +57,30 @@ DIODE = "diode"
 class CircuitElement(object):
     """Class that is used to describe netlist elements such as resistors, capacitors or inductors.
 
-    The possible CircuitElements define the DMT netlist format. Circuit simulators need to convert the DMT netlist format to their respective one.
+    The possible CircuitElements define the DMT netlist format. Circuit simulator interfaces need to convert the DMT netlist format to their respective one.
+
     This class has a special emphasis on good error messages and typesetting.
-
-    Possible element types:
-
-    * :py:const:`RESISTANCE`
-    * :py:const:`CAPACITANCE`Sequence
-    * :py:const:`SHORT`
-    * va_module -> could be a transistor
 
     Parameters
     ----------
-    element_type
-        Element type, for example: 'R' for resistor. possible values: 'V_Source', 'I_Source', 'R', 'C', 'L', 'Short' ,'va_module'
-    name
+    element_type : str
+        Element type, possible values see are :py:attr:`CircuitElement.possible_types`.
+    name : str
         Element name, for example: 'R1' for resistor 1. Names should be unique within their netlist.
-    contact_nodes
+    contact_nodes : tuple[str]
         Contact nodes of the element, for example: ('n__1', 'n__2')
-    parameters
+    parameters : list[tuple[str]]
         Parameters of the element, for example: [('R', '1k')]
 
     Attributes
     ----------
-    element_type
-        Element type, for example: 'R' for resistor
-    name
+    element_type : str
+        Element type, possible values see are :py:attr:`CircuitElement.possible_types`.
+    name : str
         Element name, for example: 'R1' for resistor 1
-    contact_nodes
+    contact_nodes : tuple[str]
         Contact nodes of the element, for example: ('n__1', 'n__2')
-    parameters
+    parameters : list[tuple[str]]
         Parameters of the element, for example: [('R', '1k')]
     """
 
@@ -230,13 +224,20 @@ class Circuit(object):
 
     Parameters
     ----------
-    circuit_elements
+    circuit_elements : List[Union[str, CircuitElement]]
         Either directly the netlist elements as a list of CircuitElements or strings (for equations)
 
     Attributes
     ----------
-    netlist
+    netlist : List[Union[str, CircuitElement]]
         Either directly the netlist elements as a list of CircuitElements or strings (for equations)
+
+    Raises
+    ------
+    NotImplementedError
+        Raised when the deprecated way of describing the circuit with a name is used.  Default circuit descriptions have been moved to the corresponding modelcard module.
+    TypeError
+        If one element of the circuit to create is neither a :class:`~DMT.core.circuit.CircuitElement` nor a simple str.
     """
 
     def __init__(self, circuit_elements: List[Union[str, CircuitElement]]):

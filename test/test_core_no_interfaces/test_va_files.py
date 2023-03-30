@@ -3,7 +3,7 @@
 import pytest
 import base64, zlib
 from pathlib import Path
-from DMT.core import VAFile
+from DMT.core import VAFileMap
 from DMT.core.va_file import VACode
 
 path_here = Path(__file__).resolve().parent
@@ -12,9 +12,9 @@ path_to_cmc_model = path_here / "test_va_code" / "diode_cmc_160823"
 
 def test_files():
     with pytest.raises(IOError) as exec_info:
-        root_error = VAFile("root.va", files={"leaf.va": VACode(code="test code")})
+        root_error = VAFileMap("root.va", files={"leaf.va": VACode(code="test code")})
 
-    va_file = VAFile(
+    va_file = VAFileMap(
         "diode_cmc.va",
         files={
             "diode_cmc.va": VACode(code="test code"),
@@ -32,7 +32,7 @@ def test_files():
 
 
 def test_structure_generation():
-    va_file = VAFile("diode_cmc.va")
+    va_file = VAFileMap("diode_cmc.va")
     va_file.read_structure(path_to_cmc_model)
 
     assert len(va_file) == 7
@@ -45,7 +45,7 @@ def test_structure_generation():
 
 
 def test_code_compression():
-    va_file = VAFile("diode_cmc.va")
+    va_file = VAFileMap("diode_cmc.va")
     va_file.read_structure(path_to_cmc_model)
 
     code_compressed, crc = va_file.files[va_file.root].code_compressed
@@ -60,19 +60,19 @@ def test_code_compression():
 
 
 def test_tree_hash():
-    va_file = VAFile("diode_cmc.va")
+    va_file = VAFileMap("diode_cmc.va")
     va_file.read_structure(path_to_cmc_model)
 
     assert va_file.get_tree_hash() == "199d457ec02425336859dfbee42dd5fd"
 
 
 def test_dict_export():
-    va_file = VAFile("diode_cmc.va")
+    va_file = VAFileMap("diode_cmc.va")
     va_file.read_structure(path_to_cmc_model)
 
     export_dict = va_file.export_dict()
 
-    va_file_imported = VAFile.import_dict(export_dict)
+    va_file_imported = VAFileMap.import_dict(export_dict)
 
     assert va_file_imported.get_tree_hash() == "199d457ec02425336859dfbee42dd5fd"
     assert (
@@ -85,7 +85,7 @@ def test_dict_export():
     )
 
     export_dict_compressed = va_file.export_dict(compressed_code=True)
-    va_file_imported_compressed = VAFile.import_dict(export_dict_compressed)
+    va_file_imported_compressed = VAFileMap.import_dict(export_dict_compressed)
 
     assert va_file_imported_compressed.get_tree_hash() == "199d457ec02425336859dfbee42dd5fd"
     assert (
@@ -99,7 +99,7 @@ def test_dict_export():
 
 
 def test_write_files():
-    va_file = VAFile("diode_cmc.va")
+    va_file = VAFileMap("diode_cmc.va")
     va_file.read_structure(path_to_cmc_model)
 
     target_path = path_here.parent / "tmp" / "test_write_vafile"
@@ -107,7 +107,7 @@ def test_write_files():
 
     assert (target_path / "DIODE_CMC_SIMKIT_macrodefs.include").is_file()
 
-    va_file_read = VAFile("diode_cmc.va")
+    va_file_read = VAFileMap("diode_cmc.va")
     va_file_read.read_structure(target_path)
 
     assert va_file == va_file_read  # compare

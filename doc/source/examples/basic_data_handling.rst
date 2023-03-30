@@ -1,8 +1,8 @@
 Basic data handling example
 ==============================
 
-The code
---------
+The example code
+----------------
 .. literalinclude:: basic_data_handling.py
 
 The generated files
