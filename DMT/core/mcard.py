@@ -294,11 +294,13 @@ class MCard(McParameterCollection):
         paras_new = []
         # Updated parameter properties
         for para_name, para_properties in vae_module.modelcard.items():
+            para_name = para_name.lower()
             try:
                 # para = next(para for para in self._paras if para.name == para_name)
                 para = self.get(para_name)
                 self.remove(para_name)
                 ty = type(para_properties.default)
+                para.val_type = ty  # type: ignore
 
                 if para.min > para_properties.min:
                     para.min = para_properties.min
@@ -311,7 +313,6 @@ class MCard(McParameterCollection):
                 para.unit = unit_converter[para_properties.unit]  # type: ignore
                 para.description = para_properties.description  # type: ignore
                 para.group = para_properties.group  # type: ignore
-                para.val_type = ty  # type: ignore
             except KeyError:
                 para = McParameter(
                     para_name,
@@ -394,7 +395,7 @@ class MCard(McParameterCollection):
                         continue
 
                     parameter_type = mo_parameter.group(1)
-                    parameter_name = mo_parameter.group(2)
+                    parameter_name = mo_parameter.group(2).lower()
                     parameter_default = mo_parameter.group(3)
 
                     parameter_default = parameter_default.replace(";", "")
