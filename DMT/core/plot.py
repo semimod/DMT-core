@@ -34,14 +34,15 @@ from colormath.color_objects import sRGBColor
 from DMT.core import natural_scales, sub_specifiers
 from DMT.external import tex_to_text, build_tex, build_svg, clean_tex_files, build_png, slugify
 
-if "PYQTGRAPH_QT_LIB" not in os.environ:  # user did not choose Backend. Try to force PySide2
-    # OLD: add PYQTGRAPH_QT_LIB environment variable.
-    # os.environ["PYQTGRAPH_QT_LIB"] = "PySide2"
-    # https://pyqtgraph.readthedocs.io/en/latest/how_to_use.html#pyqt-and-pyside
-    try:
-        import PySide2
-    except ImportError:
-        pass
+# if "PYQTGRAPH_QT_LIB" not in os.environ:
+#     # user did not choose Backend. Try to force PySide6 (best tested)
+#     try:
+#         import PySide6
+#     except ImportError:
+#         try:
+#             import PySide2
+#         except ImportError:
+#             pass
 
 try:
     import pyqtgraph
@@ -1208,7 +1209,7 @@ class Plot(object):
         ## Start Qt event loop unless running in interactive mode or using pyside.
         if show:
             if sys.flags.interactive != 1 or not hasattr(pyqtgraph.Qt.QtCore, "PYQT_VERSION"):
-                pyqt_widgets.QApplication.exec_()  # type: ignore
+                pyqt_widgets.QApplication.exec()  # type: ignore
 
         if only_widget:
             return self.pw_pg
@@ -1219,7 +1220,7 @@ class Plot(object):
         """Reshows the PyQtGraph main window and startes the Qt event loop"""
         if self.mw_pg is not None:
             self.mw_pg.show()
-            pyqt_widgets.QApplication.exec_()  # type: ignore
+            pyqt_widgets.QApplication.exec()  # type: ignore
 
     def _convert_mpl_to_pyqt(self, mpl_style):
         """Returns a corresponding PyQtGraph style for a given matplotlib style.

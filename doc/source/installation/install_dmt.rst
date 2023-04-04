@@ -132,6 +132,8 @@ As you can see `DMT-core` offers some installation variants with different depen
 +------------+------------------------------+
 | pyside2    | PySide2                      |
 +------------+------------------------------+
+| pyside6    | PySide6                      |
++------------+------------------------------+
 | pyqt5      | PyQt5                        |
 +------------+------------------------------+
 | smithplot  | matplotlib, pysmithplot-3.10 |
