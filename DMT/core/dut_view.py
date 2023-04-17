@@ -746,10 +746,18 @@ class DutView(object):
         ----------
         sweep : Sweep or str, optional
             In case of separate databases, the sweep must be given either directly or as string name
+
+        Returns
+        -------
+        bool
+            Is True if the database was loaded successfully
         """
         if self._separate_databases:
             if sweep is None:
-                return
+                return True
+                # raise IOError(
+                #     "DMT->DutView: If a separated database should be loaded, the sweep/databasefilename has to be given"
+                # )
 
             if isinstance(sweep, str):
                 if sweep == "all":
@@ -757,7 +765,7 @@ class DutView(object):
                     for file_db in self.save_dir.glob("**/*.h5"):
                         self._data.update(self.manager.load_db(file_db))
 
-                    return
+                    return True
                 else:
                     name = sweep
             else:
@@ -766,12 +774,14 @@ class DutView(object):
             try:
                 self._data.update(self.manager.load_db(self.get_db_dir(name)))
             except FileNotFoundError:
-                pass
+                return False
         else:
             try:
                 self._data = self.manager.load_db(self.get_db_dir())
             except FileNotFoundError:
-                pass
+                return False
+
+        return True
 
     def check_existence_sweep(self, sweep):
         """Return true, if the combination dut+sweep has already been simulated.
