@@ -1420,6 +1420,7 @@ class Plot(object):
         show_legend=True,
         legend_location=None,
         legend_to_name=None,
+        legend_columns=4,
         **kwargs,
     ):
         """Save plot in directory and return name of the tikz file.
@@ -1490,6 +1491,8 @@ class Plot(object):
             "upper right": "at={(0.98,0.98)}, anchor=north east,",
             "upper right outer": "at={(1.02,1.00)}, anchor=north west,",
             "right mid": "at={(0.98,0.70)}, anchor=north east,",
+            "below": f"at={{(0.5,-0.18)}}, anchor=north, legend columns={legend_columns},",
+            "above": f"at={{(0.5,1.03)}}, anchor=south, legend columns={legend_columns},",
             None: "at={(0.98,0.98)}, anchor=north east,",
         }
         if legend_location is None:

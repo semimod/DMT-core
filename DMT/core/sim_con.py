@@ -781,7 +781,7 @@ class SimCon(object, metaclass=Singleton):
                 return 0
 
 
-def _check_simulation_needed(i_sim, n_tot, dut=None, sweep=None):
+def _check_simulation_needed(i_sim, n_tot, dut=None, sweep=None, sweep_exists=None):
     """Function to check if the simulation is needed or already present in the database
 
     Parameter
