@@ -349,40 +349,39 @@ class DataProcessor(object):
 
     def y2a(self, y):
         """My own y2a routine since scikit rf does not have one. What a shame!"""
+        det_y = np.linalg.det(y)
         a = np.zeros(y.shape, dtype="complex")
-        for fidx in range(y.shape[0]):
-            det_y = np.linalg.det(y[fidx, :, :])
 
-            a[fidx, 0, 0] = -y[fidx, 1, 1] / y[fidx, 1, 0]
-            a[fidx, 0, 1] = -1.0 / y[fidx, 1, 0]
-            a[fidx, 1, 0] = -det_y / y[fidx, 1, 0]
-            a[fidx, 1, 1] = -y[fidx, 0, 0] / y[fidx, 1, 0]
+        a[:, 0, 0] = -y[:, 1, 1] / y[:, 1, 0]
+        a[:, 0, 1] = -1.0 / y[:, 1, 0]
+        a[:, 1, 0] = -det_y / y[:, 1, 0]
+        a[:, 1, 1] = -y[:, 0, 0] / y[:, 1, 0]
 
         return a
 
     def y2h(self, y):
         """My own y2h routine since scikit rf does not have one. What a shame!"""
         h = np.zeros(y.shape, dtype="complex")
-        for fidx in range(y.shape[0]):
-            det_y = np.linalg.det(y[fidx, :, :])
+        det_y = np.linalg.det(y)
+        inv_y_00 = 1.0 / y[:, 0, 0]
 
-            h[fidx, 0, 0] = 1
-            h[fidx, 1, 1] = det_y
-            h[fidx, 0, 1] = -y[fidx, 0, 1]
-            h[fidx, 1, 0] = y[fidx, 1, 0]
-            h[fidx, :, :] = h[fidx, :, :] / y[fidx, 0, 0]
+        h[:, 0, 0] = 1
+        h[:, 1, 1] = det_y
+        h[:, 0, 1] = -y[:, 0, 1]
+        h[:, 1, 0] = y[:, 1, 0]
+        h[:, :, :] = h[:, :, :] * inv_y_00[:, None, None]
 
         return h
 
     def a2y(self, a):
         """My own a2y routine since scikit rf does not have one. What a shame!"""
         y = np.zeros(a.shape, dtype="complex")
-        for fidx in range(a.shape[0]):
-            det_a = np.linalg.det(a[fidx, :, :])
-            y[fidx, 0, 0] = 1.0 / a[fidx, 0, 1] * a[fidx, 1, 1]
-            y[fidx, 1, 1] = 1.0 / a[fidx, 0, 1] * a[fidx, 0, 0]
-            y[fidx, 0, 1] = -1.0 / a[fidx, 0, 1] * det_a
-            y[fidx, 1, 0] = -1.0 / a[fidx, 0, 1]
+        inv_a_01 = 1.0 / a[:, 0, 1]
+        det_a = np.linalg.det(a)
+        y[:, 0, 0] = inv_a_01 * a[:, 1, 1]
+        y[:, 1, 1] = inv_a_01 * a[:, 0, 0]
+        y[:, 0, 1] = -inv_a_01 * det_a
+        y[:, 1, 0] = -inv_a_01
 
         return y
 

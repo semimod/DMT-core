@@ -669,42 +669,45 @@ def add(self: SpecifierStr, other: Union[SpecifierStr, str, List[Union[str, Spec
 
 SpecifierStr.__add__ = add
 
+unit_converter = {
+    specifiers_ss_para.SS_PARA_Y: unit_registry.siemens,
+    specifiers_ss_para.SS_PARA_H: unit_registry.dimensionless,
+    specifiers_ss_para.SS_PARA_S: unit_registry.dimensionless,
+    specifiers.UNILATERAL_GAIN: unit_registry.dimensionless,
+    specifiers.VOLTAGE: unit_registry.volt,
+    specifiers.CAPACITANCE: unit_registry.farad,
+    specifiers.CHARGE: unit_registry.coulomb,
+    specifiers.CHARGE_DENSITY: unit_registry.coulomb_per_square_meter,
+    specifiers.FREQUENCY: unit_registry.hertz,
+    specifiers.CURRENT: unit_registry.ampere,
+    specifiers.CURRENT_DENSITY: unit_registry.ampere_per_square_meter,
+    specifiers.TEMPERATURE: unit_registry.kelvin,
+    specifiers.RESISTANCE: unit_registry.ohm,
+    specifiers.CONDUCTANCE: unit_registry.siemens,
+    specifiers.POWER: unit_registry.watt,
+    specifiers.TIME: unit_registry.second,
+    specifiers.X: unit_registry.meter,
+    specifiers.TRANSIT_FREQUENCY: unit_registry.hertz,
+    specifiers.MAXIMUM_OSCILLATION_FREQUENCY: unit_registry.hertz,
+    specifiers.TRANSIT_TIME: unit_registry.second,
+    specifiers.TRANSCONDUCTANCE: unit_registry.siemens,
+    specifiers.ENERGY: unit_registry.volt,
+    specifiers.FIELD: unit_registry.volt / unit_registry.meter,
+    specifiers.DC_CURRENT_AMPLIFICATION: unit_registry.dimensionless,
+    specifiers.MAXIMUM_STABLE_GAIN: unit_registry.dimensionless,
+    specifiers.NET_DOPING: 1 / unit_registry.meter / unit_registry.meter / unit_registry.meter,
+    specifiers.ACCEPTORS: 1 / unit_registry.meter / unit_registry.meter / unit_registry.meter,
+    specifiers.DONNORS: 1 / unit_registry.meter / unit_registry.meter / unit_registry.meter,
+    specifiers.ELECTRONS: 1 / unit_registry.meter / unit_registry.meter / unit_registry.meter,
+    specifiers.HOLES: 1 / unit_registry.meter / unit_registry.meter / unit_registry.meter,
+}  # type: dict[SpecifierStr, pint.Unit]
+
 
 def get_pint_unit(self) -> pint.Unit:
     """Return the DMT base unit of this specifier as a pint unit"""
     if sub_specifiers.PHASE.sub_specifiers <= self.sub_specifiers:
         return unit_registry.degree
 
-    unit_converter = {
-        specifiers_ss_para.SS_PARA_Y: unit_registry.siemens,
-        specifiers_ss_para.SS_PARA_H: unit_registry.dimensionless,
-        specifiers_ss_para.SS_PARA_S: unit_registry.dimensionless,
-        specifiers.UNILATERAL_GAIN: unit_registry.dimensionless,
-        specifiers.VOLTAGE: unit_registry.volt,
-        specifiers.CAPACITANCE: unit_registry.farad,
-        specifiers.CHARGE: unit_registry.coulomb,
-        specifiers.CHARGE_DENSITY: unit_registry.coulomb_per_square_meter,
-        specifiers.FREQUENCY: unit_registry.hertz,
-        specifiers.CURRENT: unit_registry.ampere,
-        specifiers.CURRENT_DENSITY: unit_registry.ampere_per_square_meter,
-        specifiers.TEMPERATURE: unit_registry.kelvin,
-        specifiers.RESISTANCE: unit_registry.ohm,
-        specifiers.CONDUCTANCE: unit_registry.siemens,
-        specifiers.POWER: unit_registry.watt,
-        specifiers.TIME: unit_registry.second,
-        specifiers.X: unit_registry.meter,
-        specifiers.TRANSIT_FREQUENCY: unit_registry.hertz,
-        specifiers.MAXIMUM_OSCILLATION_FREQUENCY: unit_registry.hertz,
-        specifiers.TRANSIT_TIME: unit_registry.second,
-        specifiers.TRANSCONDUCTANCE: unit_registry.siemens,
-        specifiers.ENERGY: unit_registry.volt,
-        specifiers.FIELD: unit_registry.volt / unit_registry.meter,
-        specifiers.DC_CURRENT_AMPLIFICATION: unit_registry.dimensionless,
-        specifiers.MAXIMUM_STABLE_GAIN: unit_registry.dimensionless,
-        specifiers.NET_DOPING: 1 / unit_registry.meter / unit_registry.meter / unit_registry.meter,
-        specifiers.ACCEPTORS: 1 / unit_registry.meter / unit_registry.meter / unit_registry.meter,
-        specifiers.DONNORS: 1 / unit_registry.meter / unit_registry.meter / unit_registry.meter,
-    }  # type: dict[SpecifierStr, pint.Unit]
     try:
         return unit_converter[self.specifier]
     except KeyError as err:

@@ -1,7 +1,7 @@
 from datetime import datetime
 import numpy as np
 from pathlib import Path
-from DMT.core import read_data, DataFrame, specifiers
+from DMT.core import read_data, DataFrame, specifiers, DataProcessor
 
 
 def get_data_processor_and_deem():
@@ -245,14 +245,37 @@ def test_cap_extraction_common_collector_reversed():
     assert np.isclose(cbc, cbc_extract)
 
 
+def test_y2a():
+    # create a test dataframe
+    df = DataFrame()
+    freq = np.logspace(3, 10, 101)
+    gbe = 5e-3
+    gbc = 10e-3
+    gce = 15e-3
+    cbe = 15e-15
+    cbc = 10e-15
+    cce = 5e-15
+    # common base config PI network
+    g1 = gbe + 1j * 2 * np.pi * freq * cbe
+    g2 = gce + 1j * 2 * np.pi * freq * cce
+    g3 = gbc + 1j * 2 * np.pi * freq * cbc
+    y_common_e = np.zeros((len(freq), 2, 2), dtype=np.complex128)
+    y_common_e[:, 0, 0] = g1 + g2  # pylint: disable=unsupported-assignment-operation
+    y_common_e[:, 0, 1] = -g2  # pylint: disable=unsupported-assignment-operation
+    y_common_e[:, 1, 0] = -g2  # pylint: disable=unsupported-assignment-operation
+    y_common_e[:, 1, 1] = g2 + g3  # pylint: disable=unsupported-assignment-operation
+
+    dp = DataProcessor()
+    a = dp.y2a(y_common_e)
+    y = dp.a2y(a)
+
+    assert np.allclose(y_common_e, y)
+
+
 if __name__ == "__main__":
     from DMT.core import Plot
 
-    import cProfile, pstats, io
-
-    profiler = cProfile.Profile()
-    time_start = datetime.now()
-    profiler.enable()
+    test_y2a()
     test_cap_extraction_common_emitter()
     test_cap_extraction_common_emitter_reverse()
     test_cap_extraction_common_base()
@@ -260,15 +283,6 @@ if __name__ == "__main__":
     test_cap_extraction_common_collector()
     test_cap_extraction_common_collector_reversed()
     df_deemb = get_data_processor_and_deem()
-    profiler.disable()
-    print("Runtime: " + str(datetime.now() - time_start))
-
-    s = io.StringIO()
-    ps = pstats.Stats(profiler, stream=s).sort_stats("cumulative")
-
-    ps.print_stats(50)  # print the 50 methods with the longest cumulative time
-
-    print(s.getvalue())
     # plot the result
     plt_cbe = Plot("C_BE(V_BE)", style="bw")
     for freq_a in [1e9, 5e9, 10e9]:
