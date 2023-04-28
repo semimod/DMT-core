@@ -17,7 +17,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
-
+import pkgutil
 from pint import UnitRegistry
 from pathlib import Path
 from importlib.metadata import version
@@ -42,19 +42,15 @@ __version__ = VersionInfo(*version_pkg.release, prerelease=version_pre, build=ve
 
 name = "core"
 
-
 from . import constants
 
 # Helper
 from .singleton import Singleton
 from .hasher import create_md5_hash
-
-# one unit registry for all of DMT
-
-unit_registry = UnitRegistry()
 from DMT.config import DATA_CONFIG
 
-
+# one unit registry for all of DMT
+unit_registry = UnitRegistry()
 path_core = Path(__file__).resolve().parent
 unit_registry.load_definitions(str(path_core / "dmt_units.txt"))
 
@@ -106,7 +102,6 @@ from .data_reader import (
     read_feather,
 )
 
-
 # Simulation management
 from .sim_con import SimCon
 
@@ -128,7 +123,8 @@ from .docu_dut_lib import DocuDutLib
 # determine which modules are present
 core_exists = True  # always, without DMT is not possible
 try:
-    import DMT.extraction
+    pkgutil.find_loader("DMT.extraction")
+    # import DMT.extraction
 
     extraction_exists = True
 except ImportError:

@@ -239,6 +239,8 @@ def resolve_siunitx(label):
     """This function tries to remove siunitx expressions from given Tex expression."""
     regex_si = r"\\si({.*?})"
     regex_SI = r"\\SI({.*?})({.*?})"
+    regex_qty = r"\\qty({.*?})({.*?})"
+
     if "si" in label:
         pattern = re.compile(regex_si)
         for match in pattern.findall(label):
@@ -263,6 +265,20 @@ def resolve_siunitx(label):
 
             label = label.replace(match_unit, units)
 
+    if "qty" in label:
+        pattern = re.compile(regex_qty)
+        for match_number, match_unit in pattern.findall(label):
+            # match 0 is number
+            number = match_number[1:-1]
+            label = label.replace(match_number, number)
+
+            # match 1 is unit
+            units = match_unit[1:-1]
+            for key in SI_UNITS_CONVERTER:
+                units = units.replace(key, SI_UNITS_CONVERTER[key])
+
+            label = label.replace(match_unit, units)
+
     if "underline" in label:
         regex_underline = r"(\\underline{)([^{}]+)(})"
         pattern = re.compile(regex_underline)
@@ -273,6 +289,7 @@ def resolve_siunitx(label):
     # drop some tex things that are not understood by pandoc
     label = label.replace("\\si", "")
     label = label.replace("\\SI", "")
+    label = label.replace("\\qty", "")
     label = label.replace("\\,", " ")
 
     return label

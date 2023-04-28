@@ -27,11 +27,10 @@ import copy
 import numpy as np
 import warnings
 from typing import List, Union, Set, FrozenSet
+from pint import Unit
 from pint.formatting import siunitx_format_unit
-from more_itertools import unique_everseen
 from DMT.config import DATA_CONFIG
 from DMT.core import Singleton, unit_registry
-import pint
 
 UNIT_PREFIX = {
     1e-12: r"\tera",
@@ -411,7 +410,7 @@ class SpecifierStr(str):
     def __hash__(self):
         return hash(str(self))
 
-    def get_pint_unit(self) -> pint.Unit:
+    def get_pint_unit(self) -> Unit:
         """Declaration of function, to be set later
 
         Returns
@@ -700,10 +699,10 @@ unit_converter = {
     specifiers.DONNORS: 1 / unit_registry.meter / unit_registry.meter / unit_registry.meter,
     specifiers.ELECTRONS: 1 / unit_registry.meter / unit_registry.meter / unit_registry.meter,
     specifiers.HOLES: 1 / unit_registry.meter / unit_registry.meter / unit_registry.meter,
-}  # type: dict[SpecifierStr, pint.Unit]
+}  # type: dict[SpecifierStr, Unit]
 
 
-def get_pint_unit(self) -> pint.Unit:
+def get_pint_unit(self) -> Unit:
     """Return the DMT base unit of this specifier as a pint unit"""
     if sub_specifiers.PHASE.sub_specifiers <= self.sub_specifiers:
         return unit_registry.degree

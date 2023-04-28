@@ -27,6 +27,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Adjusted test_dut_ngspice to the new DutNgspice
 - Updated to pyqtgraph 0.13.1. QApplication in plot.py from QWidgets is tried to use, if this does not work, fall back to old implementation from Qt.QtGui
 - Renamed VAFile to VAFileMap to better reflect its nature. It is a mapping from filename (incl. rel path) to the file content (code).
+- Importing now only uses pkgutil.find_loader("DMT.extraction") to speed up importing in case extraction module is not used.
 
 ### Removed
 

@@ -409,7 +409,7 @@ class SimCon(object, metaclass=Singleton):
                     local_path=str(root),
                 )
             except (SCPException, paramiko.SSHException, TimeoutError) as err:
-                raise FileNotFoundError from err
+                raise FileNotFoundError() from err
 
             path_zip = sim_folder.with_suffix(".zip")
             with ZipFile(path_zip, "r") as zip_ref:
@@ -425,7 +425,7 @@ class SimCon(object, metaclass=Singleton):
                 )
             except (SCPException, paramiko.SSHException) as err:
                 # reraise it in order to allow run_and_read to go on and try again in 2 seconds
-                raise FileNotFoundError from err
+                raise FileNotFoundError() from err
 
     def copy_log_from_server(self, dut, sweep):
         """Collects the simulation log file from the server.
@@ -449,7 +449,7 @@ class SimCon(object, metaclass=Singleton):
             )
         except (SCPException, paramiko.SSHException) as err:
             # reraise it in order to allow run_and_read to go on and try again in 2 seconds
-            raise FileNotFoundError from err
+            raise FileNotFoundError() from err
 
     def run_simulations(self, sim_list):
         """Runs all given simulations in parallel.
