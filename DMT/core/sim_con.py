@@ -179,15 +179,17 @@ class SimCon(object, metaclass=Singleton):
                         n_tot += 1
                         sim["sweep_exists"] = False
 
+                # remove all simulations which are already exist
+                self.sim_list = [sim for sim in self.sim_list if not sim["sweep_exists"]]
+
                 sims_to_simulate = []
                 if n_tot > 0:
-                    # check which simulations are already run in the past
+                    # check which simulations are already run in the past but not imported
                     if parallel_read:
                         print("Checking which simulations need to be run in parallel:")
                         sims_checked = parallel(
                             delayed(_check_simulation_needed)(i_sim, n_tot, **sim)
                             for i_sim, sim in enumerate(self.sim_list)
-                            if not sim["sweep_exists"]
                         )
                     else:
                         print("Checking which simulations need to be run:")
@@ -195,13 +197,12 @@ class SimCon(object, metaclass=Singleton):
                         sims_checked = [
                             _check_simulation_needed(i_sim, n_tot, **sim)
                             for i_sim, sim in enumerate(self.sim_list)
-                            if not sim["sweep_exists"]
                         ]
 
                     print_progress_bar(n_tot, n_tot, prefix="Finish", length=50)
                     print("\n")  # new line after the progress bar
 
-                    # add data to the duts and filter simulations to do
+                    # add dalta to the duts and filter simuations to do
                     for sim_to_do, sim_checked in zip(
                         self.sim_list, sims_checked
                     ):  # as we are keeping the order, we can copy the data over
