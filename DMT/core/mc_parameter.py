@@ -883,7 +883,7 @@ class McParameterCollection(object):
         KeyError
             If the para was not in self.
         """
-        for name, value in dict_parameters.items():
+        for name, value in list(dict_parameters.items()):
             name = name.lower()
             try:
                 index = self.name.index(name)

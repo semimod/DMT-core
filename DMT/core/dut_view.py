@@ -867,9 +867,9 @@ class DutView(object):
         """
         key_parts = self.split_key(key)
 
-        # first check the best and most usefull way for a single temperature
+        # first check the best and most useful way for a single temperature
         for key_part in key_parts:
-            re_temp = re.search(r"T([0-9p\.]+)K", key_part)
+            re_temp = re.search(r"T?([0-9p\.]+)K", key_part)
             if re_temp:
                 try:
                     # always replace "p" with ".", if it is already with ".", it doesnt matter

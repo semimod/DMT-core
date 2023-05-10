@@ -343,8 +343,11 @@ class DutNgspice(DutCircuit):
         ac_statements = []
         for swd in sweepdefs:
             if swd.var_name == specifiers.FREQUENCY:
-                for freq in swd.values:
-                    ac_statements.append(f"ac lin 1 {freq:g} {freq:g}\n")
+                if swd.sweep_type == "LIN": # TODO: more nice
+                    ac_statements.append(f"ac lin {swd.value_def[2]:g} {swd.value_def[0]:g} {swd.value_def[1]:g}\n")
+                else:
+                    for freq in swd.values:
+                        ac_statements.append(f"ac lin 1 {freq:g} {freq:g}\n")
 
         if ac_statements:
             # remove all but one frequency from DF. We later put the "ac_statement" behind every DC point.
@@ -384,70 +387,97 @@ class DutNgspice(DutCircuit):
         except StopIteration:
             swd_tran = False
 
+        # create vectors for each voltage
+        one_ele_array = False
+        for voltage_source in voltage_sources:
+            vals = df[voltage_source.name].to_numpy()
+            if len(vals) == 1: #Ngspice does not support 1 element arrays ... so we just extend it.
+                vals = np.append(vals,vals)
+                one_ele_array = True
+            str_vec = "compose V_" + voltage_source.name + "_vec values " + "".join(["(" + str(val) + ") " for val in vals])
+            str_netlist += str_vec + "\n"
+
+            #compose ve_vec values 0 0 0 0 0 0 0 0 0 0 0
+
+        # TODO create vectors for each current source
+
+        n_bias = len(vals)
+        if one_ele_array: # special case: just one OP to simulate
+            n_bias = n_bias - 1
+        str_netlist += "let index=0\n"
+        str_netlist += "while index<" + str(int(n_bias)) + "\n"
+
+
         # so we have VOLTAGE sources and CURRENT sources and Frequency for every operating point.
-        for i_row, row in df.iterrows():
+        str_netlist += "    *set value of all voltage sources:\n"
+        for voltage_source in voltage_sources:
+            voltage_name = voltage_source.name
+            str_netlist += "    alter V_" + str(voltage_name) + " = V_" + str(voltage_name) + "_vec[index]\n"
+            #alter V_V_E = ve_vec[index]
+
+
+        # for current_source in current_sources:
+        #     current_name = current_source.name.replace("S", "_")
+        #     try:
+        #         current = row[current_name]
+        #     except KeyError:
+        #         current = 0
+        #     str_netlist += "alter I_" + str(current_name) + " = " + str(current) + "\n"
+
+        str_netlist += "    let index=index+1\n"
+
+        # DC operating point analysis
+        # str_netlist += 'load\n' #try to find previous analysis results
+        str_netlist += "    *perform DC analysis and write output:\n"
+        str_netlist += "    op\n"
+        # dc output statement
+
+        # #write to output
+        str_netlist += f"    wrdata output_ngspice_dc.ngspice alli allv {str_dc_output}\n"
+
+        # Add AC
+        # set all ac magnitudes to zero
+        str_netlist += "    *set AC mag of all sources equal zero\n"
+        for voltage_source in voltage_sources:
+            str_netlist += "    alter V_" + voltage_source.name + " ac=0\n"
+
+        # turn on one voltage source at a time and save the results of ac analysis
+        str_netlist += "    *turn on one AC source at a time and perform analysis\n"
+        for i_ac_statement, ac_statement in enumerate(ac_statements):
+            # turn on source
+
+            # ac analysis statement
+            # ngspice ac format: dec n_points f_start f_stop
+            # dmt sweep format : log_10(fstart) log_10(fstop) n_points
             for voltage_source in voltage_sources:
-                voltage_name = voltage_source.name
-                try:
-                    voltage = row[voltage_name]
-                except KeyError:
-                    voltage = 0
-                str_netlist += "alter V_" + str(voltage_name) + " = " + str(voltage) + "\n"
+                str_netlist += "    alter V_" + voltage_source.name + " ac=1\n"
+                str_netlist += "    " + ac_statement
+                # ac output statement -> move to end?
+                str_netlist += (
+                    "    wrdata output_ngspice_ac_" + voltage_source.name + ".ngspice alli allv\n"
+                )
 
-            for current_source in current_sources:
-                current_name = current_source.name.replace("S", "_")
-                try:
-                    current = row[current_name]
-                except KeyError:
-                    current = 0
-                str_netlist += "alter I_" + str(current_name) + " = " + str(current) + "\n"
+                # turn off source
+                str_netlist += "    alter V_" + voltage_source.name + " ac=0\n"
 
-            # DC operating point analysis
-            # str_netlist += 'load\n' #try to find previous analysis results
-            str_netlist += "op\n"
-            # dc output statement
+            if i_ac_statement==0:
+                str_netlist += "    unset wr_vecnames\n"
 
-            # #write to output
-            str_netlist += f"wrdata output_ngspice_dc.ngspice alli allv {str_dc_output}\n"
 
-            # Add AC
-            # set all ac magnitudes to zero
-            for voltage_source in voltage_sources:
-                str_netlist += "alter V_" + voltage_source.name + " ac=0\n"
+        # Add transients
+        if swd_tran:
+            for i_tr, freq in enumerate(swd_tran.value_def):
+                tau = 1 / freq
 
-            # turn on one voltage source at a time and save the results of ac analysis
-            for i_ac_statement, ac_statement in enumerate(ac_statements):
-                # turn on source
+                str_netlist += (
+                    "set wr_vecnames\n"
+                    + f"tran {tau/40} {3*tau}\n"
+                    + f"wrdata output_ngspice_tr_{i_row}_{i_tr}.ngspice_tr alli allv\n"
+                    + "unset wr_vecnames\n"
+                )
 
-                # ac analysis statement
-                # ngspice ac format: dec n_points f_start f_stop
-                # dmt sweep format : log_10(fstart) log_10(fstop) n_points
-                for voltage_source in voltage_sources:
-                    str_netlist += "alter V_" + voltage_source.name + " ac=1\n"
-                    str_netlist += ac_statement
-                    # ac output statement -> move to end?
-                    str_netlist += (
-                        "wrdata output_ngspice_ac_" + voltage_source.name + ".ngspice alli allv\n"
-                    )
-
-                    # turn off source
-                    str_netlist += "alter V_" + voltage_source.name + " ac=0\n"
-
-                if i_row == 0 and i_ac_statement == 0:
-                    str_netlist += "unset wr_vecnames\n"
-
-            # Add transients
-            if swd_tran:
-                for i_tr, freq in enumerate(swd_tran.value_def):
-                    tau = 1 / freq
-
-                    str_netlist += (
-                        "set wr_vecnames\n"
-                        + f"tran {tau/40} {3*tau}\n"
-                        + f"wrdata output_ngspice_tr_{i_row}_{i_tr}.ngspice_tr alli allv\n"
-                        + "unset wr_vecnames\n"
-                    )
-
+        str_netlist += "    unset wr_vecnames\n"
+        str_netlist += "end\n"
         str_netlist += ".endc\n" + ".end\n"
 
         logging.info("Added sweepdefs to input header.")
@@ -867,7 +897,7 @@ def _read_ngspice(filename):
     with open(filename) as my_file:
         list_lines = my_file.readlines()
 
-    # this seems to be printed for verilog modules... probably bracnh currents, however node is missing?
+    # this seems to be printed for verilog modules... probably branch currents, however node is missing?
     list_lines[0] = list_lines[0].replace("#no info", "#no_info")
 
     # get column names
@@ -881,7 +911,7 @@ def _read_ngspice(filename):
     # this omits the issue with line breaks produced e.g. by DEVICE
     list_lines = " ".join(list_lines[1:])
     list_lines = list_lines.split()
-    list_lines = np.array([float(i) for i in list_lines])
+    list_lines = np.array(list_lines, dtype=np.float64)
     n_col = float(len(split_header))
     n_row = float(len(list_lines) / n_col)
 
@@ -892,7 +922,7 @@ def _read_ngspice(filename):
         raise IOError(
             "DMT -> Data_reader: Encountered a weird number of rows in "
             + filename
-            + ". Contact Markus Mueller."
+            + "."
         )
 
     # check if n_col is an integer
@@ -902,7 +932,7 @@ def _read_ngspice(filename):
         raise IOError(
             "DMT -> Data_reader: Encountered a weird number of cols in "
             + filename
-            + ". Contact Markus Mueller."
+            + "."
         )
 
     # need to cast real valued stuff to complex...headache

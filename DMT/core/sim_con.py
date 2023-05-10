@@ -670,7 +670,7 @@ class SimCon(object, metaclass=Singleton):
                 if len(process_running) == 0 and len(sim_list) == 0:
                     finished = True
                 elif len(process_running) == self.n_core or len(sim_list) == 0:
-                    time.sleep(0.5)
+                    time.sleep(0.1)
 
         # print download status
         if self.scp_client is not None:

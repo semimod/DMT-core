@@ -233,6 +233,21 @@ class DutHdev(DutTcad):
                     + "/"
                 )
                 inp_str = inp_str + "\n" + bias_str
+            elif sub_sweep.sweep_type == "LOG":
+                bias_fun = "'LOG'"
+                ac_info = {
+                    "port1": "'" + self.ac_ports[0] + "'",
+                    "port2": "'" + self.ac_ports[1] + "'",
+                    "sweep_type": bias_fun,
+                    "freq_val": " ".join(["{0:3.2e}".format(val) for val in sub_sweep.value_def]),
+                }
+                # add sweep definition to inp file
+                bias_str = (
+                    "&AC_INFO "
+                    + "".join([name + "=" + str(value) + " " for name, value in ac_info.items()])
+                    + "/"
+                )
+                inp_str = inp_str + "\n" + bias_str
             else:
                 raise NotImplementedError
 
@@ -477,7 +492,11 @@ class DutHdev(DutTcad):
                 ac and len(dfs_inqu) > 0
             ):  # only one frequency simulated => post process (maybe also check for 1D)
                 if not len(freqs) == 2:
-                    raise IOError
+                    # use lowest frequency neq 0
+                    # freq_i = np.min(freqs[freqs>0])
+                    # df_iv = df
+                    pass
+
                 # post processing
                 # 1 general stuff
                 x = dfs_inqu[0]["X"].to_numpy()
@@ -854,14 +873,14 @@ class DutHdev(DutTcad):
 
         return mob
 
-    def get_intervalley_rate(self, semiconductor, valley_1, valley_2, field, temperature, doping):
+    def get_intervalley_rate(self, semiconductor, valley_1, valley_2, field, temperature, doping, grad=0):
         if not DutHdev.inited:
             self.init_()
 
         rec = np.zeros_like(field)
         for i in range(len(field)):
             rec[i] = hdev_py.get_intervalley_rate_py(
-                semiconductor, valley_1, valley_2, field[i], doping, temperature
+                semiconductor, valley_1, valley_2, field[i], doping, temperature, grad
             )
 
         return rec

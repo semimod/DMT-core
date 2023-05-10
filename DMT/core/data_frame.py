@@ -871,6 +871,13 @@ class DataFrame(DataProcessor, pd.DataFrame):
                 raise KeyError(
                     "The transconductance is missing in the given data frame and can not be calculated."
                 ) from err
+        elif specifier == specifiers.OUTPUT_CONDUCTANCE:
+            try:
+                self = self.calc_go()
+            except IOError as err:
+                raise KeyError(
+                    "The transconductance is missing in the given data frame and can not be calculated."
+                ) from err
         elif specifier in specifiers_ss_para:
             try:  # try tog et from S paras
                 self = self.convert_n_port_para(p_from="S", p_to=specifier, ports=ports)
@@ -2015,6 +2022,27 @@ class DataFrame(DataProcessor, pd.DataFrame):
             self.loc[:, specifiers.TRANSCONDUCTANCE] = self.processor.calc_gm(
                 self[col_ic].to_numpy(), self[col_vbe].to_numpy()
             )
+
+        return self
+
+    def calc_go(self):
+        """Calculates the DC output condutance of a BJT.
+
+        Returns
+        -------
+        :class:`DMT.core.DataFrame`
+            Dataframe that contains the TRANSCONDUCTANCE
+        """
+        col_ic = specifiers.CURRENT + "C"
+        col_vce_forced = specifiers.VOLTAGE + "C" + "E" + sub_specifiers.FORCED
+
+        # get voltages
+        self.ensure_specifier_column(col_vce_forced)
+        self.ensure_specifier_column(col_ic)
+
+        self.loc[:, specifiers.OUTPUT_CONDUCTANCE] = self.processor.calc_go(
+            self[col_ic].to_numpy(), self[col_vce_forced].to_numpy()
+        )
 
         return self
 

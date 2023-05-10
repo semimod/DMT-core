@@ -630,7 +630,7 @@ class DataProcessor(object):
         Parameters
         ----------
         freq         :  np.ndarray()
-            Frequencys that correspond to para_values.
+            Frequencies that correspond to para_values.
         para_values  :  np.ndarray()
             Small signal parameters of type p_type with shape [n_freq, n_port, n_port]
         p_type       :  string
@@ -652,7 +652,7 @@ class DataProcessor(object):
         Parameters
         ----------
         freq         :  np.ndarray()
-            Frequencys that correspond to para_values.
+            Frequencies that correspond to para_values.
         para_values  :  np.ndarray()
             Small signal parameters of type p_type with shape [n_freq, n_port, n_port]
         p_type       :  string
@@ -676,7 +676,7 @@ class DataProcessor(object):
         Parameters
         ----------
         freq         :  np.ndarray()
-            Frequencys that correspond to para_values.
+            Frequencies that correspond to para_values.
         para_values  :  np.ndarray()
             Small signal parameters of type p_type with shape [n_freq, n_port, n_port]
         p_type       :  string
@@ -700,7 +700,7 @@ class DataProcessor(object):
         Parameters
         ----------
         freq         :  np.ndarray()
-            Frequencys that correspond to para_values.
+            Frequencies that correspond to para_values.
         para_values  :  np.ndarray()
             Small signal parameters of type p_type with shape [n_freq, n_port, n_port]
         p_type       :  string
@@ -725,7 +725,7 @@ class DataProcessor(object):
         Parameters
         ----------
         freq         :  np.ndarray()
-            Frequencys that correspond to para_values.
+            Frequencies that correspond to para_values.
         para_values  :  np.ndarray()
             Small signal parameters of type p_type with shape [n_freq, n_port, n_port]
         p_type       :  string
@@ -987,3 +987,24 @@ class DataProcessor(object):
             )
 
         return np.where(gm <= 0.0, np.nan, gm)
+
+    def calc_go(self, ic, vce):
+        """Calculates the output conductance of a bjt or mosfet.
+
+        Parameters
+        ----------
+        ic  :  np.ndarray()
+            DC Collector current.
+        vc  :  np.ndarray()
+            c or d voltage
+
+        Returns
+        -------
+        go  :  np.ndarray()
+            The output conductance
+        """
+
+        go = np.zeros_like(ic)
+        go = np.gradient(ic, vce) 
+
+        return np.where(go <= 0.0, np.nan, go)

@@ -1404,6 +1404,7 @@ class Plot(object):
         build=False,
         clean=False,
         fontsize="normalsize",
+        line_width="very thick",
         svg=False,
         png=False,
         extension=None,
@@ -1447,6 +1448,8 @@ class Plot(object):
             Remove all files except the rendered picture after build, by default False
         fontsize : str, optional
             Latex fontsize, by default 'normalsize'.
+        line_width : str, optional
+            Pgfplots line width, by default 'very thick'.
         svg : bool, optional
             Build the figure to svg (suited for FrameMaker), by default False
         png : bool, optional
@@ -1491,19 +1494,24 @@ class Plot(object):
             legend_location = legend_pos[self.legend_location]
         else:
             legend_location = legend_pos[legend_location]
+
         if standalone:
             str_tikz_picture = (
                 "\\begin{tikzpicture}[font=\\"
                 + fontsize
                 + "]\n"
-                + "\\pgfplotsset{every axis/.append style={ultra thick},compat=1.5},\n"
+                + "\\pgfplotsset{every axis/.append style={" 
+                + line_width 
+                + "},compat=1.5},\n"
             )
         else:  # if this figure is used in other tex documents, the axis are trimed so that figures with different y-labels and ticks get displayed nicely
             str_tikz_picture = (
                 "\\begin{tikzpicture}[font=\\"
                 + fontsize
                 + ",trim axis left, trim axis right,tight background]\n"
-                + "\\pgfplotsset{every axis/.append style={very thick},compat=1.5},\n"
+                + "\\pgfplotsset{every axis/.append style={"
+                + line_width
+                + "},compat=1.5},\n"
             )
         str_height = "" if height is None else "height=" + height + ",\n"
         if width is None:
