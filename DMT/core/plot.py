@@ -1746,6 +1746,10 @@ class Plot(object):
             legend_to_name = ""
         else:
             legend_to_name = "legend to name={},\n".format(legend_to_name)
+    
+        str_shift_labels = ""
+        if fontsize =="normalsize":
+            str_shift_labels = "xlabel shift = -5 pt,\n ylabel shift = -5 pt,\n"
 
         ### header
         str_axis = (
@@ -1764,6 +1768,7 @@ class Plot(object):
             + str_limits
             + str_x_ticks
             + str_y_ticks
+            + str_shift_labels
             + "xmajorgrids,\n"
             + "enlargelimits=false,\n"
             + "scaled ticks=true,\n"

@@ -20,7 +20,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
-from enum import Flag, auto, unique
+from enum import IntFlag, auto, unique
 
 
 class DutTypeInt(object):
@@ -58,7 +58,7 @@ class DutTypeInt(object):
         nodes  :  list of strings
             List of strings
         """
-        return self.value.nodes
+        return self.nodes
 
     def get_string(self):
         """Return the string that describes this Dut_type.
@@ -149,9 +149,12 @@ class DutTypeInt(object):
     def bit_length(self):
         return self.value.bit_length()
 
+    def __sub__(self, other):
+        return self.value - other
+
 
 @unique  # do not allow same values for different types
-class DutType(Flag):
+class DutType(IntFlag):
     """
     Flags which represents all common devices that might need to be handled by DMT
 
