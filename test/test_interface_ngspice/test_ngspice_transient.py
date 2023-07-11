@@ -34,7 +34,7 @@ from DMT.ngspice import DutNgspice
 folder_path = Path(__file__).resolve().parent
 
 
-def get_circuit(self, use_build_in=True, topology="common_emitter", **kwargs):
+def get_circuit(self, use_build_in=False, topology="common_emitter", **kwargs):
     """
 
     Parameter
@@ -230,7 +230,7 @@ def get_dut():
         DutType.npn,
         input_circuit=mc_D21,
         reference_node="E",
-        copy_va_files=False,
+        copy_va_files=True,
         simulator_command="ngspice",
     )
 

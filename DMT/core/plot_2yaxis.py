@@ -358,6 +358,7 @@ class Plot2YAxis(object):
         hide_second_axis=False,
         show_legend=True,
         legend_location=None,
+        legend_columns=4,
         standalone=False,
         build=False,
         clean=False,
@@ -409,6 +410,7 @@ class Plot2YAxis(object):
             extension=extension,
             show_legend=show_legend,
             legend_location=legend_location,
+            legend_columns=legend_columns,
         )
         file_tikz_right = self.plot_right.save_tikz(
             directory,
@@ -420,6 +422,7 @@ class Plot2YAxis(object):
             extension=extension,
             show_legend=show_legend,
             legend_location=legend_location,
+            legend_columns=legend_columns,
         )
 
         # open, read and delete the tikz files
