@@ -412,6 +412,7 @@ if __name__ == "__main__":
     col_vbe = specifiers.VOLTAGE + ["B", "E"]
     col_ib = specifiers.CURRENT + "B"
     col_ic = specifiers.CURRENT + "C"
+    col_ft = specifiers.TRANSIT_FREQUENCY
 
     plt_gummel = Plot(
         r"$I_{\mathrm{C}}(V_{\mathrm{BE}})$",
@@ -427,6 +428,13 @@ if __name__ == "__main__":
         y_log=True,
         style="bw",
     )
+    plt_ft = Plot(
+        r"$f_{\mathrm{T}}(I_{\mathrm{C}})$",
+        x_label=r"$I_{\mathrm{C}}$",
+        x_log=True,
+        y_specifier=col_ft,
+        style="bw",
+    )
 
     for dut in duts:
         dut_name = dut.name[5:7]
@@ -434,6 +442,7 @@ if __name__ == "__main__":
 
         df.ensure_specifier_column(col_vbe, ports=dut.nodes)
         df.ensure_specifier_column(col_vbc, ports=dut.nodes)
+        df.ensure_specifier_column(col_ft, ports=dut.nodes)
 
         for _index, vbc, data in df.iter_unique_col(col_vbc, decimals=3):
             data = data[np.isclose(data[specifiers.FREQUENCY], 1e8)]
@@ -443,6 +452,11 @@ if __name__ == "__main__":
                 np.real(data[col_ic].to_numpy()),
                 label=dut_name + " $V_{{BC}} = {0:1.2f} V$".format(data[col_vbc].to_numpy()[0]),
             )
+            plt_ft.add_data_set(
+                np.real(data[col_ic].to_numpy()),
+                np.real(data[col_ft].to_numpy()),
+                label=dut_name + " $V_{{BC}} = {0:1.2f} V$".format(data[col_vbc].to_numpy()[0]),
+            )
             plt_ib.add_data_set(
                 np.real(data[col_vbe].to_numpy()),
                 np.real(data[col_ib].to_numpy()),
@@ -450,4 +464,5 @@ if __name__ == "__main__":
             )
 
     plt_ib.plot_pyqtgraph(show=False)
+    plt_ft.plot_pyqtgraph(show=False)
     plt_gummel.plot_pyqtgraph(show=True)

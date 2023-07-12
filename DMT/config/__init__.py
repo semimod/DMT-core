@@ -42,8 +42,7 @@ from DMT.external.os import recursive_copy
 # dmt default config
 path_config = Path(__file__).resolve().parent
 default_config_file = path_config / "DMT_config.yaml"
-with open(default_config_file) as yaml_data_file:
-    DATA_CONFIG = yaml.safe_load(yaml_data_file)
+DATA_CONFIG = yaml.safe_load(default_config_file.read_text())
 
 # dmt user config
 
@@ -65,16 +64,14 @@ else:
 
 data_user = {}
 try:
-    with user_config.open() as yaml_data_file:
-        data_user = yaml.safe_load(yaml_data_file)
+    data_user = yaml.safe_load(user_config.read_text())
 except FileNotFoundError:
     try:
-        user_config = Path.home() / ".DMT" / "DMT_config.yaml"
-        with user_config.open() as yaml_data_file:
-            data_user = yaml.safe_load(yaml_data_file)
+        user_config_old = Path.home() / ".DMT" / "DMT_config.yaml"
+        data_user = yaml.safe_load(user_config_old.read_text())
         warnings.warn(
             (
-                "The DMT user configuration file is moved. The new paths are:\n"
+                "The DMT user configuration file has been moved. The new paths are:\n"
                 + "Windows: %LOCALAPPDATA%\DMT\DMT_config.yaml\n"
                 + "Linux and MacOS: $XDG_CONFIG_HOME/DMT/DMT_config.yaml\n"
                 + "Defaulting to ~/.config/DMT/DMT_config.yaml"
@@ -83,6 +80,9 @@ except FileNotFoundError:
         )
     except FileNotFoundError:
         pass
+
+    user_config.parent.mkdir(exist_ok=True, parents=True)
+    user_config.write_text(yaml.safe_dump(data_user))
 
 if data_user:
     for key, value in DATA_CONFIG.items():
@@ -97,9 +97,7 @@ if data_user:
 
 # finally workspace path
 try:
-    local_config = Path("DMT_config.yaml")
-    with local_config.open() as yaml_data_file:
-        data_folder = yaml.safe_load(yaml_data_file)
+    data_folder = yaml.safe_load(Path("DMT_config.yaml").read_text())
 
     for key, value in DATA_CONFIG.items():
         if key in data_folder.keys():

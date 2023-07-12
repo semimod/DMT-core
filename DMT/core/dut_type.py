@@ -143,6 +143,12 @@ class DutTypeInt(object):
         except AttributeError:
             return DutTypeInt(self.value >= other, nodes=self.nodes)
 
+    def __sub__(self, other):
+        try:
+            return DutTypeInt(self.value - other.value, nodes=self.nodes)
+        except AttributeError:
+            return DutTypeInt(self.value - other, nodes=self.nodes)
+
     def __hash__(self):
         return hash((self.value, tuple(self.nodes), self.string))
 
