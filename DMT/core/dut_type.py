@@ -34,19 +34,20 @@ class DutTypeInt(object):
     """
 
     def __init__(self, value, nodes=None, string=None):
-        self.nodes = []
-        self.string = string
         try:
-            # is value a DutTypeInt?
             self.value = value.value
-            self.nodes = value.nodes
         except AttributeError:
-            # or is it a integer:
-            self.value = value
+            self.value = int(value)
 
-        # if nodes is self.nodes is still none or nodes was given as a parameter overwrite it!
         if nodes is not None:
             self.nodes = nodes
+        else:
+            try:
+                self.nodes = value.nodes
+            except AttributeError:
+                self.nodes = []
+
+        self.string = string
 
     def get_nodes(self):
         """Return the nodes that are typically found in this Dut_type. For convenience.
@@ -58,7 +59,7 @@ class DutTypeInt(object):
         nodes  :  list of strings
             List of strings
         """
-        return self.value.nodes
+        return self.nodes
 
     def get_string(self):
         """Return the string that describes this Dut_type.
@@ -116,8 +117,28 @@ class DutTypeInt(object):
         return self.value
 
     def is_subtype(self, other):
-        # only for pylint!
-        pass
+        """Test if a device is a subtype of an other device/devicetype
+
+        Ignores the flag_subtype!
+
+        Parameters
+        ----------
+        other : int, DutTypeInt
+        """
+        try:
+            val = int(self.value & other.value)
+        except AttributeError:
+            val = int(self.value & other)
+
+        # remove subtype flag..
+        n_subtype_1 = ~int(DutTypeFlag._flag_subtype_1.value)
+        n_subtype_2 = ~int(DutTypeFlag._flag_subtype_2.value)
+        n_subtype_3 = ~int(DutTypeFlag._flag_subtype_3.value)
+        n_subtype_4 = ~int(DutTypeFlag._flag_subtype_4.value)
+
+        val = (val & n_subtype_1) & (val & n_subtype_2) & (val & n_subtype_3) & (val & n_subtype_4)
+
+        return bool(val)
 
     def __lt__(self, other):
         try:
@@ -157,25 +178,24 @@ class DutTypeInt(object):
 
 
 @unique  # do not allow same values for different types
-class DutType(Flag):
+class DutTypeFlag(Flag):
     """
-    Flags which represents all common devices that might need to be handled by DMT
+    Flags which represents most common devices that might need to be handled by DMT
 
     Methods
     -------
     get_nodes(filename)
-        Returns the names of the nodes typicall found in the specified Dut_type
+        Returns the names of the nodes typicall found in the specified DutType
     """
 
-    # # get the main non mixed flags, there are pure integers because auto() does not return a value but it is a generator i don't really know how to use:
     _flag_subtype_1 = auto()
     _flag_subtype_2 = auto()
     _flag_subtype_3 = auto()
     _flag_subtype_4 = auto()
-    device = auto()
-    bulk = auto()
-    meas_struct = auto()
-    deemb_struct = auto()
+    flag_device = auto()
+    flag_bulk = auto()
+    flag_meas_struct = auto()
+    flag_deemb_struct = auto()
     flag_transistor = auto()
     flag_bjt = auto()
     flag_bjt_deemb = auto()
@@ -197,112 +217,90 @@ class DutType(Flag):
     flag_open = auto()
     flag_short = auto()
 
-    dummy = DutTypeInt(0)  # dummy is nothing! Use DutTypeInt to allow get_nodes
-
-    # now the mixed flags, these can be DutTypeInts as the numbers are already given:
-    transistor = DutTypeInt(device | flag_transistor)
-    bjt = DutTypeInt(transistor | flag_bjt, nodes=["B", "C", "E", "S"], string="bjt")
-    mos = DutTypeInt(transistor | flag_mos, nodes=["G", "D", "S", "B"], string="mos")
-    deem_bjt = DutTypeInt(
-        deemb_struct | flag_bjt_deemb, nodes=["B", "C", "E", "S"], string="bjt_deemb"
-    )  # because of node names :(
-    deem_mos = DutTypeInt(
-        deemb_struct | flag_mos_deemb, nodes=["G", "D", "S", "B"], string="mos_deemb"
-    )  # because of node names :(
-
-    npn = DutTypeInt(bjt | flag_npn, string="npn")  # nodes are inherited from bjt
-    pnp = DutTypeInt(bjt | flag_pnp, string="pnp")
-    n_mos = DutTypeInt(mos | flag_n_mos, string="nmos")
-    p_mos = DutTypeInt(mos | flag_p_mos, string="pmos")
-
-    diode = DutTypeInt(device | flag_diode, nodes=["C", "A"], string="diode")
-    pn_diode = DutTypeInt(diode | _flag_subtype_1, string="pn-diode")
-    pin_diode = DutTypeInt(diode | _flag_subtype_2, string="pin-diode")
-    cap = DutTypeInt(device | flag_cap, nodes=["C", "A"], string="capacitance")
-    res = DutTypeInt(device | flag_res, nodes=["C", "A"], string="resistor")
-
-    tlm = DutTypeInt(
-        meas_struct | flag_tlm, nodes=["L", "M", "R"], string="tlm"
-    )  # left, middle, right
-    tlmb = DutTypeInt(tlm | _flag_subtype_1, string="tlm-base")
-    tlmc = DutTypeInt(tlm | _flag_subtype_2, string="tlm-collector")
-    tlmbc = DutTypeInt(tlm | _flag_subtype_3, string="tlm-base-collector")
-
-    vdp = DutTypeInt(
-        meas_struct | flag_vdp, nodes=["A", "B", "C", "D"], string="vdp"
-    )  # four arbitrary contacts
-
-    deem_open_bjt = DutTypeInt(deem_bjt | flag_open, string="open")
-    deem_short_bjt = DutTypeInt(deem_bjt | flag_short, string="short")
-
-    deem_open_mos = DutTypeInt(deem_mos | flag_open, string="open")
-    deem_short_mos = DutTypeInt(deem_mos | flag_short, string="short")
-
-    tetrode = DutTypeInt(
-        meas_struct | flag_tetrode, nodes=["B1", "B2", "E", "C", "S"], string="tetrode"
-    )
-
-    cap_ac = DutTypeInt(
-        cap | meas_struct, nodes=["L", "R", "G", "S"], string="capacitance-ac"
-    )  # capacitance in GSG pads, each pad is one Capacitance, so S(1,1) and S(2,2) are wanted...
-
     def get_nodes(self):
         """
-        Return the nodes that are typically found in this Dut_type. For convenience.
+        Return the nodes that are typically found in this DutType. For convenience.
 
         Returns
         -------
         nodes  :  list of strings
             List of strings
         """
-        try:
-            return self.value.nodes
-        except AttributeError:
-            return ""
-            # raise IOError('DMT -> Dut_type: Tried to get the nodes of a non-mixed device.')
+        return ""
 
     def get_string(self):
         """
-        Return the string that describes this Dut_type.
+        Return the string that describes this DutType.
 
         Returns
         -------
         nodes  :  string
-            String that describes this Dut_type.
+            String that describes this DutType.
         """
-        try:
-            return self.string
-
-        except AttributeError:
-            return ""
-            # raise IOError('DMT -> Dut_type: Tried to get the nodes of a non-mixed device.')
+        return ""
 
     def __str__(self):
-        if self.value.string is not None:  # pylint: disable = no-member
-            return self.value.string  # pylint: disable = no-member
-        else:
-            return str(self.value.__class__)
+        return str(self.value.__class__)
 
-    def is_subtype(self, other):
-        """Test if a device is a subtype of an other device/devicetype
 
-        Ignores the flag_subtype!
+class DutType(object):
+    """concrete DutTypes to be used for DutViews"""
 
-        Parameters
-        ----------
-        other : int, DutTypeInt
-        """
-        try:
-            val = int(self.value & other.value)
-        except AttributeError:
-            val = int(self.value & other)
+    dummy = DutTypeInt(0)  # dummy is nothing! Use DutTypeInt to allow get_nodes
+    device = DutTypeInt(DutTypeFlag.flag_device)
+    bulk = DutTypeInt(DutTypeFlag.flag_bulk)
+    meas_struct = DutTypeInt(DutTypeFlag.flag_meas_struct)
+    deemb_struct = DutTypeInt(DutTypeFlag.flag_deemb_struct)
 
-        # remove subtype flag..
-        n_subtype_1 = ~int(DutType._flag_subtype_1.value)
-        n_subtype_2 = ~int(DutType._flag_subtype_2.value)
-        n_subtype_3 = ~int(DutType._flag_subtype_3.value)
-        n_subtype_4 = ~int(DutType._flag_subtype_4.value)
+    # now the mixed flags, are DutTypeInts as the numbers are already given:
+    transistor = DutTypeInt(device | DutTypeFlag.flag_transistor)
+    bjt = DutTypeInt(transistor | DutTypeFlag.flag_bjt, nodes=["B", "C", "E", "S"], string="bjt")
+    mos = DutTypeInt(transistor | DutTypeFlag.flag_mos, nodes=["G", "D", "S", "B"], string="mos")
+    deem_bjt = DutTypeInt(
+        deemb_struct | DutTypeFlag.flag_bjt_deemb,
+        nodes=["B", "C", "E", "S"],
+        string="bjt_deemb",
+    )  # because of node names :(
+    deem_mos = DutTypeInt(
+        deemb_struct | DutTypeFlag.flag_mos_deemb,
+        nodes=["G", "D", "S", "B"],
+        string="mos_deemb",
+    )  # because of node names :(
 
-        val = (val & n_subtype_1) & (val & n_subtype_2) & (val & n_subtype_3) & (val & n_subtype_4)
+    npn = DutTypeInt(bjt | DutTypeFlag.flag_npn, string="npn")  # nodes are inherited from bjt
+    pnp = DutTypeInt(bjt | DutTypeFlag.flag_pnp, string="pnp")
+    n_mos = DutTypeInt(mos | DutTypeFlag.flag_n_mos, string="nmos")
+    p_mos = DutTypeInt(mos | DutTypeFlag.flag_p_mos, string="pmos")
 
-        return bool(val)
+    diode = DutTypeInt(device | DutTypeFlag.flag_diode, nodes=["C", "A"], string="diode")
+    pn_diode = DutTypeInt(diode | DutTypeFlag._flag_subtype_1, string="pn-diode")
+    pin_diode = DutTypeInt(diode | DutTypeFlag._flag_subtype_2, string="pin-diode")
+    cap = DutTypeInt(device | DutTypeFlag.flag_cap, nodes=["C", "A"], string="capacitance")
+    res = DutTypeInt(device | DutTypeFlag.flag_res, nodes=["C", "A"], string="resistor")
+
+    tlm = DutTypeInt(
+        meas_struct | DutTypeFlag.flag_tlm, nodes=["L", "M", "R"], string="tlm"
+    )  # left, middle, right
+    tlmb = DutTypeInt(tlm | DutTypeFlag._flag_subtype_1, string="tlm-base")
+    tlmc = DutTypeInt(tlm | DutTypeFlag._flag_subtype_2, string="tlm-collector")
+    tlmbc = DutTypeInt(tlm | DutTypeFlag._flag_subtype_3, string="tlm-base-collector")
+
+    vdp = DutTypeInt(
+        meas_struct | DutTypeFlag.flag_vdp, nodes=["A", "B", "C", "D"], string="vdp"
+    )  # four arbitrary contacts
+
+    deem_open_bjt = DutTypeInt(deem_bjt | DutTypeFlag.flag_open, string="open")
+    deem_short_bjt = DutTypeInt(deem_bjt | DutTypeFlag.flag_short, string="short")
+
+    deem_open_mos = DutTypeInt(deem_mos | DutTypeFlag.flag_open, string="open")
+    deem_short_mos = DutTypeInt(deem_mos | DutTypeFlag.flag_short, string="short")
+
+    tetrode = DutTypeInt(
+        meas_struct | DutTypeFlag.flag_tetrode,
+        nodes=["B1", "B2", "E", "C", "S"],
+        string="tetrode",
+    )
+
+    cap_ac = DutTypeInt(
+        cap | meas_struct, nodes=["L", "R", "G", "S"], string="capacitance-ac"
+    )  # capacitance in GSG pads, each pad is one Capacitance, so S(1,1) and S(2,2) are wanted...
