@@ -37,6 +37,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - DataFrame.check_ss_cols: Fixed bug where column name was identified as a SS-Parameter falsely
 - DataFrame.get_ss_para: Checking for ALL found SS-Parameters not just one.
+- DutType: Now works with Python 3.11. Now the DutTypes are already "mixed" DutTypeFlag objects ready to be used.
 
 ## [1.7.0] - 2022.08.17
 
