@@ -826,9 +826,9 @@ class DutXyce(DutCircuit):
             ]
 
             #  the AC columns to account for forward and backward simulation
-            if self.dut_type.is_subtype(DutType.flag_bjt):
+            if self.dut_type.is_subtype(DutType.bjt):
                 ports = ["B", "C"]
-            elif self.dut_type.is_subtype(DutType.flag_mos):
+            elif self.dut_type.is_subtype(DutType.mos):
                 ports = ["G", "D"]
             else:
                 raise NotImplementedError("DutType not known!")
