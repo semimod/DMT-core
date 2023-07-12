@@ -37,48 +37,52 @@ import pkgutil
 import warnings
 import yaml
 from pathlib import Path
+from DMT.external.os import recursive_copy
 
 # dmt default config
 path_config = Path(__file__).resolve().parent
 default_config_file = path_config / "DMT_config.yaml"
-with open(default_config_file) as yaml_data_file:
-    DATA_CONFIG = yaml.safe_load(yaml_data_file)
+DATA_CONFIG = yaml.safe_load(default_config_file.read_text())
 
 # dmt user config
-data_user = {}
 
 if platform.system() == "Windows":
-    user_config = Path(os.getenv("LOCALAPPDATA")).expanduser()
+    user_config = os.getenv("LOCALAPPDATA")
 elif platform.system() == "Linux":
-    user_config = Path(
-        os.getenv("XDG_CONFIG_HOME") if os.getenv("XDG_CONFIG_HOME", False) else "~/.config"
-    ).expanduser()
+    user_config = os.getenv("XDG_CONFIG_HOME")
 elif platform.system() == "Darwin":
-    user_config = Path(
-        os.getenv("XDG_CONFIG_HOME") if os.getenv("XDG_CONFIG_HOME", False) else "~/.config"
-    ).expanduser()
+    user_config = os.getenv("XDG_CONFIG_HOME")
 else:
     raise OSError(
-        f"Unknown platform:{platform.system()}. Currently only Windows, Linux and MacOS are recognized"
+        f"Unknown platform:{platform.system()}. Currently only Windows, Linux and MacOS (Darwin) are recognized"
     )
 
-user_config = user_config / "DMT" / "DMT_config.yaml"
+if user_config:
+    user_config = Path(user_config).expanduser() / "DMT" / "DMT_config.yaml"
+else:
+    user_config = Path.home() / ".config" / "DMT" / "DMT_config.yaml"
+
+data_user = {}
 try:
-    with user_config.open() as yaml_data_file:
-        data_user = yaml.safe_load(yaml_data_file)
+    data_user = yaml.safe_load(user_config.read_text())
 except FileNotFoundError:
     try:
-        user_config = Path.home() / ".DMT" / "DMT_config.yaml"
-        with user_config.open() as yaml_data_file:
-            data_user = yaml.safe_load(yaml_data_file)
-        # warnings.warn(
-        #     "The DMT user configuration file is moved. The new paths are:",
-        #     "Windows: %LOCALAPPDATA%\DMT\DMT_config.yaml",
-        #     "Linux and MacOS: $XDG_CONFIG_HOME/DMT/DMT_config.yaml, defaulting to ~/.config/DMT/DMT_config.yaml",
-        #     category=DeprecationWarning,
-        # )
+        user_config_old = Path.home() / ".DMT" / "DMT_config.yaml"
+        data_user = yaml.safe_load(user_config_old.read_text())
+        warnings.warn(
+            (
+                "The DMT user configuration file has been moved. The new paths are:\n"
+                + "Windows: %LOCALAPPDATA%\DMT\DMT_config.yaml\n"
+                + "Linux and MacOS: $XDG_CONFIG_HOME/DMT/DMT_config.yaml\n"
+                + "Defaulting to ~/.config/DMT/DMT_config.yaml"
+            ),
+            category=DeprecationWarning,
+        )
     except FileNotFoundError:
         pass
+
+    user_config.parent.mkdir(exist_ok=True, parents=True)
+    user_config.write_text(yaml.safe_dump(data_user))
 
 if data_user:
     for key, value in DATA_CONFIG.items():
@@ -93,9 +97,7 @@ if data_user:
 
 # finally workspace path
 try:
-    local_config = Path("DMT_config.yaml")
-    with local_config.open() as yaml_data_file:
-        data_folder = yaml.safe_load(yaml_data_file)
+    data_folder = yaml.safe_load(Path("DMT_config.yaml").read_text())
 
     for key, value in DATA_CONFIG.items():
         if key in data_folder.keys():
@@ -158,9 +160,6 @@ def print_config(file_path=None):
         print(DATA_CONFIG)
     else:
         yaml.safe_dump(DATA_CONFIG, file_path)
-
-
-from DMT.external.os import recursive_copy
 
 
 def generate_libdoc_template(directory):

@@ -34,14 +34,15 @@ from colormath.color_objects import sRGBColor
 from DMT.core import natural_scales, sub_specifiers
 from DMT.external import tex_to_text, build_tex, build_svg, clean_tex_files, build_png, slugify
 
-if "PYQTGRAPH_QT_LIB" not in os.environ:  # user did not choose Backend. Try to force PySide2
-    # OLD: add PYQTGRAPH_QT_LIB environment variable.
-    # os.environ["PYQTGRAPH_QT_LIB"] = "PySide2"
-    # https://pyqtgraph.readthedocs.io/en/latest/how_to_use.html#pyqt-and-pyside
-    try:
-        import PySide2
-    except ImportError:
-        pass
+# if "PYQTGRAPH_QT_LIB" not in os.environ:
+#     # user did not choose Backend. Try to force PySide6 (best tested)
+#     try:
+#         import PySide6
+#     except ImportError:
+#         try:
+#             import PySide2
+#         except ImportError:
+#             pass
 
 try:
     import pyqtgraph
@@ -1044,14 +1045,14 @@ class Plot(object):
             y = dict_line["y"]
 
             if self.x_axis_scale == "log":
-                x = np.abs(x)
+                x = np.array(np.abs(x))
             else:
-                x = np.real(x)
+                x = np.array(np.real(x))
 
             if self.y_axis_scale == "log":
-                y = np.abs(y)
+                y = np.array(np.abs(y))
             else:
-                y = np.real(y)
+                y = np.array(np.real(y))
 
             label = dict_line["label"]
             if label is not None:
@@ -1098,7 +1099,7 @@ class Plot(object):
                         if not len(dict_line["x"]) == 0
                     ]
                 )
-                x_min = 0.9 * x_min if x_min > 0 else 1.1 * x_min
+                x_min = 0.95 * x_min if x_min > 0 else 1.05 * x_min
                 x_min_set = x_min * self.x_scale
             else:
                 x_min = 0
@@ -1117,7 +1118,7 @@ class Plot(object):
                         if not len(dict_line["x"]) == 0
                     ]
                 )
-                x_max = 1.1 * x_max if x_max > 0 else 0.9 * x_max
+                x_max = 1.05 * x_max if x_max > 0 else 0.95 * x_max
                 # x_max = np.ceil(1.1*x_max) if x_max > 0 else np.ceil(0.9*x_max)
                 x_max_set = x_max * self.x_scale
             else:
@@ -1153,7 +1154,9 @@ class Plot(object):
                     # y_min = (
                     #     np.min([np.min(dict_line["y"]) for dict_line in self.data])
                     # )
-                    y_min = 0.9 * y_min * self.y_scale if y_min > 0 else 1.1 * y_min * self.y_scale
+                    y_min = (
+                        0.95 * y_min * self.y_scale if y_min > 0 else 1.05 * y_min * self.y_scale
+                    )
                 except ValueError:
                     y_min = 0.0
                 # y_min = np.floor(0.9*y_min) if y_min > 0 else np.floor(1.1*y_min)
@@ -1177,7 +1180,9 @@ class Plot(object):
                     # y_max = (
                     #     np.max([np.max(dict_line["y"]) for dict_line in self.data])
                     # )
-                    y_max = 1.1 * y_max * self.y_scale if y_max > 0 else 0.9 * y_max * self.y_scale
+                    y_max = (
+                        1.05 * y_max * self.y_scale if y_max > 0 else 0.95 * y_max * self.y_scale
+                    )
                 except ValueError:
                     y_max = 1.0
             else:
@@ -1204,7 +1209,7 @@ class Plot(object):
         ## Start Qt event loop unless running in interactive mode or using pyside.
         if show:
             if sys.flags.interactive != 1 or not hasattr(pyqtgraph.Qt.QtCore, "PYQT_VERSION"):
-                pyqt_widgets.QApplication.exec_()  # type: ignore
+                pyqt_widgets.QApplication.exec()  # type: ignore
 
         if only_widget:
             return self.pw_pg
@@ -1215,7 +1220,7 @@ class Plot(object):
         """Reshows the PyQtGraph main window and startes the Qt event loop"""
         if self.mw_pg is not None:
             self.mw_pg.show()
-            pyqt_widgets.QApplication.exec_()  # type: ignore
+            pyqt_widgets.QApplication.exec()  # type: ignore
 
     def _convert_mpl_to_pyqt(self, mpl_style):
         """Returns a corresponding PyQtGraph style for a given matplotlib style.
@@ -1416,6 +1421,7 @@ class Plot(object):
         show_legend=True,
         legend_location=None,
         legend_to_name=None,
+        legend_columns=4,
         **kwargs,
     ):
         """Save plot in directory and return name of the tikz file.
@@ -1488,6 +1494,8 @@ class Plot(object):
             "upper right": "at={(0.98,0.98)}, anchor=north east,",
             "upper right outer": "at={(1.02,1.00)}, anchor=north west,",
             "right mid": "at={(0.98,0.70)}, anchor=north east,",
+            "below": f"at={{(0.5,-0.18)}}, anchor=north, legend columns={legend_columns},",
+            "above": f"at={{(0.5,1.03)}}, anchor=south, legend columns={legend_columns},",
             None: "at={(0.98,0.98)}, anchor=north east,",
         }
         if legend_location is None:

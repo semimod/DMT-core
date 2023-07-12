@@ -16,6 +16,7 @@ logging.basicConfig(
 
 def create_lib():
     """Create a dut lib."""
+
     # -->Define subroutine at first
     # --->Subroutine: filter_dut
     def filter_dut(dut_name):
@@ -109,7 +110,6 @@ def create_lib():
 
 
 def test_docu():
-
     lib_test = create_lib()
     docu = DocuDutLib(lib_test)
 

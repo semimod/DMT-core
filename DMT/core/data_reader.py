@@ -160,11 +160,8 @@ def read_hdf(filename, key):
 
 def read_mdm_blocks(block, n_row, n_col, n_iccap_vars, iccap_vars):
     data_raw = np.zeros([n_row, n_col + n_iccap_vars], dtype=np.float64)
-    # read in raw data
-    for i in range(n_row):
-        data_raw[i, :n_col] = block[n_col * i : n_col * (i + 1)]
-        data_raw[i, n_col : n_col + n_iccap_vars] = iccap_vars
-
+    data_raw[:, :n_col] = block.reshape(n_row, n_col)
+    data_raw[:, n_col : n_col + n_iccap_vars] = iccap_vars
     return data_raw
 
 
@@ -230,11 +227,6 @@ def read_mdm(filename):
             n_iccap_vars,
             np.array([value for key, value in iccap_vars.items()]),
         )
-        # read in raw data
-        # data_raw      =  np.zeros([n_row, n_col + n_iccap_vars ])
-        # for i in range(n_row):
-        #     data_raw[i,       :n_col             ]  =  block[ n_col*i : n_col*(i+1) ]
-        #     data_raw[i,  n_col:n_col+n_iccap_vars]  =  [value  for key,value in iccap_vars.items()]
 
         cols.extend([key for key, value in iccap_vars.items()])
         block_data.append(data_raw)
@@ -306,9 +298,7 @@ def read_elpa(filename, header=2):
     n_row = int(n_row)  # but force it anyways!
 
     # fill the data into the 2-dimensional array data_raw
-    data_raw = np.empty([n_row, n_col])
-    for i in range(n_row):
-        data_raw[i, :] = list_lines[n_col * i : n_col * (i + 1)]
+    data_raw = np.array(list_lines).reshape(n_row, n_col)
 
     # initalize pd.Dataframe() and return it
     return DataFrame(data_raw, columns=columns)
@@ -513,7 +503,8 @@ def read_DEVICE_bin(filename):
 
     # check if pseudo 2D simulation
     if "y" in df.columns:
-        if all((df["y"] == 0.0) | (df["y"] == df["y"].to_numpy()[-1])):
+        # if all((df["y"] == 0.0) | (df["y"] == df["y"].to_numpy()[-1])):
+        if len(df["y"].unique()) == 2:
             # all 'y' are either 0.0 or 1.0 -> 1D simulation: cut off the df
             df = df[df["y"] == 0.0]
             del df["y"]
@@ -672,7 +663,6 @@ def read_ADS_bin(filename):
                 line = line[offset:]
 
         elif str_format == "Flags: complex":
-
             data = np.zeros((num_var, num_points), dtype=np.complex128)
             offset = 0
 

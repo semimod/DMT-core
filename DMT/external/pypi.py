@@ -28,18 +28,45 @@ except ImportError:
     from semver import VersionInfo
 
 
-def get_file_idx(release, pattern=".whl"):
-    return next(file_a for file_a in release if re.search(pattern, file_a["filename"]))
-
-
 def get_pypi_url(package="DMT-core", version=None, pattern=".whl"):
+    """Obtains the download url to a file inside a pypi released package
+
+    Parameters
+    ----------
+    package : str, optional
+        Package name from which a file url is wanted, by default "DMT-core"
+    version : _type_, optional
+        Version of the release to be checked, by default None=newest release
+    pattern : str, optional
+        Pattern to search for inside the release, by default ".whl"
+
+    Raises
+    ------
+    IOError
+        If the package was not found on PyPi
+    IOError
+        Raised if pattern not found in any file of the release
+
+    Returns
+    -------
+    str
+        url to download the file from
+    """
     package = requests.get(f"https://pypi.python.org/pypi/{package:s}/json").json()
+    if "message" in package and package["message"] == "Not Found":
+        raise IOError("DMT->pypi: Package not found as a pypi python module.")
+
     if version is None:
         version = max(package["releases"].keys())
     # ... check compatibility
-    file_to_get = next(
-        file for file in package["releases"][version] if re.search(pattern, file["filename"])
-    )
+    try:
+        file_to_get = next(
+            file for file in package["releases"][version] if re.search(pattern, file["filename"])
+        )
+    except StopIteration as err:
+        raise IOError(
+            "DMT->pypi: Did not find any file name containing the given pattern."
+        ) from err
     return file_to_get["url"]
 
 
@@ -85,53 +112,52 @@ def extract_version(to_check):
     return str(to_check)
 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Obtain information about a module on pypi.org")
+parser = argparse.ArgumentParser(description="Obtain information about a module on pypi.org")
 
-    parser.add_argument(
-        "--check_version",
-        type=str,
-        help="Check if given version is a valid SemVer version and also a valid next version for the given package.",
-        required=False,
-        default=None,
-    )
-    parser.add_argument(
-        "--extract_version",
-        type=str,
-        help="Extracts the version from a commit tag.",
-        required=False,
-        default=None,
-    )
-    parser.add_argument(
-        "--wheel_link",
-        action="store_true",
-        help="Pass to obtain a wheel link.",
-        required=False,
-    )
-    parser.add_argument(
-        "--package",
-        type=str,
-        help="Package to query (default: %(default)s).",
-        default="DMT-core",
-        required=False,
-    )
-    parser.add_argument(
-        "--version",
-        type=str,
-        help="Version of the query. If None, the newest version is used (default: %(default)s).",
-        default=None,
-        required=False,
-    )
-    parser.add_argument(
-        "--pattern",
-        type=str,
-        help="Pattern to scan the different files of the release (default: %(default)s).",
-        default=".whl",
-        required=False,
-    )
-    # args = parser.parse_args()
-    # args = parser.parse_args("--extract_version Version_1.7.1-rc.1".split())
-    args = parser.parse_args("--check_version Version_1.7.1-rc.1".split())
+parser.add_argument(
+    "--check_version",
+    type=str,
+    help="Check if given version is a valid SemVer version and also a valid next version for the given package.",
+    required=False,
+    default=None,
+)
+parser.add_argument(
+    "--extract_version",
+    type=str,
+    help="Extracts the version from a commit tag.",
+    required=False,
+    default=None,
+)
+parser.add_argument(
+    "--wheel_link",
+    action="store_true",
+    help="Pass to obtain a wheel link.",
+    required=False,
+)
+parser.add_argument(
+    "--package",
+    type=str,
+    help="Package to query (default: %(default)s).",
+    default="DMT-core",
+    required=False,
+)
+parser.add_argument(
+    "--version",
+    type=str,
+    help="Version of the query. If None, the newest version is used (default: %(default)s).",
+    default=None,
+    required=False,
+)
+parser.add_argument(
+    "--pattern",
+    type=str,
+    help="Pattern to scan the different files of the release (default: %(default)s).",
+    default=".whl",
+    required=False,
+)
+
+if __name__ == "__main__":
+    args = parser.parse_args()
 
     if args.wheel_link:
         file_link = get_pypi_url(package=args.package, version=args.version, pattern=args.pattern)

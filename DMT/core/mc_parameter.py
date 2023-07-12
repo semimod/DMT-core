@@ -148,10 +148,13 @@ class McParameter(object):
         unit: Unit = unit_registry.dimensionless,
         description: str = "",
     ):
-
         if not isinstance(name, str):
-            raise IOError("DMT -> McParameter: Parameter name not a string.")
-        self.name = name.lower()  # always lower case...
+            raise IOError("DMT->McParameter: Parameter name not a string.")
+        if any(char.isupper() for char in name):
+            # always lower case...
+            raise IOError("DMT->McParameter: Parameter name must be all lower case.")
+
+        self.name = name
         self.inc_min = inc_min
         self.inc_max = inc_max
         if value_type == int:
@@ -910,9 +913,7 @@ class McParameterCollection(object):
                 else:
                     raise
 
-            dict_parameters[name] = self._paras[index].val_type(value)
-
-        self._values.update(dict_parameters)
+            self._values[name] = self._paras[index].val_type(value)
 
     def get_values(self, parameters):
         """Returns a list of the values of parameters.

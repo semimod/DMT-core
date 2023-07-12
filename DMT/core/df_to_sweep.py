@@ -101,7 +101,7 @@ def df_to_sweep(
     if not potential_common:  # no potential found
         # did not find anything :(
         raise IOError(
-            "DMT -> df_to_sweep: The user supplied voltages do not define unambiguous sweep conditions for the transistor. No common reference potential was found."
+            "DMT->df_to_sweep: The user supplied voltages do not define unambiguous sweep conditions for the transistor. No common reference potential was found."
         )
 
     def_sweep = [

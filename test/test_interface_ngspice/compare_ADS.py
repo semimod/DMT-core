@@ -21,7 +21,6 @@ logging.basicConfig(
 
 
 def compare_ngspice_ads():
-
     mc = McHicum(load_model_from_path=folder_path / "npn_full_sh.lib")
 
     ###### Disable branches

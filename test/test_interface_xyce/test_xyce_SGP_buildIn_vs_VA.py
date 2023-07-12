@@ -6,7 +6,7 @@ import logging
 import numpy as np
 from pathlib import Path
 
-from DMT.core import DutType, Sweep, specifiers, SimCon, Plot, MCard, VAFile
+from DMT.core import DutType, Sweep, specifiers, SimCon, Plot, MCard
 from DMT.core.circuit import (
     Circuit,
     CircuitElement,

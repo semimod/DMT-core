@@ -16,8 +16,8 @@ In ``DMT`` simulators are interfaced using the abstract classes :ref:`DutCircuit
 After these steps the simulation results are ready to be used. An example code how to make a circuit simulation is shown in the following.
 
 
-The code
---------
+The code for the simulation
+---------------------------
 .. literalinclude:: running_a_simulation.py
 
 The generated files

@@ -536,7 +536,6 @@ class DutHdev(DutTcad):
                     tau_bc = np.ones(len(df_iv))
 
                     try:
-
                         for i_row, row in enumerate(df_iv.iterrows()):
                             key_inqu = next(
                                 _key

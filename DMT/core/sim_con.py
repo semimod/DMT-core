@@ -158,34 +158,58 @@ class SimCon(object, metaclass=Singleton):
 
         with Parallel(n_jobs=n_jobs, verbose=10) as parallel:
             if not force:
-                # check which simulations really need to be run
-                n_tot = len(self.sim_list)
-                if parallel_read:
-                    print("Checking which simulations need to be run in parallel:")
-                    sims_checked = parallel(
-                        delayed(_check_simulation_needed)(i_sim, n_tot, **sim)
-                        for i_sim, sim in enumerate(self.sim_list)
-                    )
-                else:
-                    print("Checking which simulations need to be run:")
-                    # parallel not working with VAE modelcard currently since get_circuit is monkey patched
-                    sims_checked = [
-                        _check_simulation_needed(i_sim, n_tot, **sim)
-                        for i_sim, sim in enumerate(self.sim_list)
-                    ]
+                # check which simulations are already loaded into dut.data or saved as a database file
+                n_tot = 0
+                for sim in self.sim_list:
+                    dut = sim["dut"]
+                    sweep = sim["sweep"]
+                    dut_name = dut.name + str(dut.get_hash())
+                    sim_name = sweep.name + "_" + sweep.get_hash()
+                    if dut.check_existence_sweep(sweep):
+                        print(
+                            f"Simulation of DuT {dut_name} with sweep {sim_name} loaded from database.",
+                        )
+                        logging.info(
+                            "Simulation of DuT %s with sweep %s loaded from database.",
+                            dut_name,
+                            sim_name,
+                        )
+                        sim["sweep_exists"] = True
+                    else:
+                        n_tot += 1
+                        sim["sweep_exists"] = False
 
-                print_progress_bar(n_tot, n_tot, prefix="Finish", length=50)
-                print("\n")  # new line after the progress bar
+                # remove all simulations which are already exist
+                self.sim_list = [sim for sim in self.sim_list if not sim["sweep_exists"]]
 
                 sims_to_simulate = []
-                # add data to the duts and filter simulations to do
-                for sim_to_do, sim_checked in zip(
-                    self.sim_list, sims_checked
-                ):  # as we are keeping the order, we can copy the data over
-                    if sim_checked is None:
-                        sims_to_simulate.append(sim_to_do)
+                if n_tot > 0:
+                    # check which simulations are already run in the past but not imported
+                    if parallel_read:
+                        print("Checking which simulations need to be run in parallel:")
+                        sims_checked = parallel(
+                            delayed(_check_simulation_needed)(i_sim, n_tot, **sim)
+                            for i_sim, sim in enumerate(self.sim_list)
+                        )
                     else:
-                        sim_to_do["dut"].data.update(sim_checked)
+                        print("Checking which simulations need to be run:")
+                        # parallel not working with VAE modelcard currently since get_circuit is monkey patched
+                        sims_checked = [
+                            _check_simulation_needed(i_sim, n_tot, **sim)
+                            for i_sim, sim in enumerate(self.sim_list)
+                        ]
+
+                    print_progress_bar(n_tot, n_tot, prefix="Finish", length=50)
+                    print("\n")  # new line after the progress bar
+
+                    # add dalta to the duts and filter simuations to do
+                    for sim_to_do, sim_checked in zip(
+                        self.sim_list, sims_checked
+                    ):  # as we are keeping the order, we can copy the data over
+                        if sim_checked is None:
+                            sims_to_simulate.append(sim_to_do)
+                        else:
+                            sim_to_do["dut"].data.update(sim_checked)
 
                 run_sims = bool(sims_to_simulate)  # will be False if list is empty
 
@@ -389,7 +413,7 @@ class SimCon(object, metaclass=Singleton):
                     local_path=str(root),
                 )
             except (SCPException, paramiko.SSHException, TimeoutError) as err:
-                raise FileNotFoundError from err
+                raise FileNotFoundError() from err
 
             path_zip = sim_folder.with_suffix(".zip")
             with ZipFile(path_zip, "r") as zip_ref:
@@ -405,7 +429,7 @@ class SimCon(object, metaclass=Singleton):
                 )
             except (SCPException, paramiko.SSHException) as err:
                 # reraise it in order to allow run_and_read to go on and try again in 2 seconds
-                raise FileNotFoundError from err
+                raise FileNotFoundError() from err
 
     def copy_log_from_server(self, dut, sweep):
         """Collects the simulation log file from the server.
@@ -429,7 +453,7 @@ class SimCon(object, metaclass=Singleton):
             )
         except (SCPException, paramiko.SSHException) as err:
             # reraise it in order to allow run_and_read to go on and try again in 2 seconds
-            raise FileNotFoundError from err
+            raise FileNotFoundError() from err
 
     def run_simulations(self, sim_list):
         """Runs all given simulations in parallel.
@@ -761,7 +785,7 @@ class SimCon(object, metaclass=Singleton):
                 return 0
 
 
-def _check_simulation_needed(i_sim, n_tot, dut=None, sweep=None):
+def _check_simulation_needed(i_sim, n_tot, dut=None, sweep=None, sweep_exists=None):
     """Function to check if the simulation is needed or already present in the database
 
     Parameter
@@ -780,38 +804,29 @@ def _check_simulation_needed(i_sim, n_tot, dut=None, sweep=None):
     sim_name = sweep.name + "_" + sweep.get_hash()
     # print("Check: dut: {:s}, sweep: {:s}".format(dut_name, sim_name))
     print_progress_bar(i_sim, n_tot, prefix="Progress", length=50)
-    if dut.check_existence_sweep(sweep):
+    try:
+        # was it simulated already successfully ?
+        dut.validate_simulation_successful(sweep)
         print(
-            f"\n Simulation of DuT {dut_name} with sweep {sim_name} loaded from database.",
+            f"\n Simulation of DuT {dut_name} with sweep {sim_name} already done and results are valid, only data needs to be read.",
         )
-        logging.info("Simulation of DuT %s with sweep %s loaded from database.", dut_name, sim_name)
-    else:
-        # if not in dut.data and not in dut.db
-        try:
-            # was it simulated already successfully ?
-            dut.validate_simulation_successful(sweep)
-            print(
-                f"\n Simulation of DuT {dut_name} with sweep {sim_name} already done and results are valid, only data needs to be read.",
-            )
-            logging.info(
-                "Simulation of DuT %s with sweep %s already done and results are valid, only data needs to be read.",
-                dut_name,
-                sim_name,
-            )
-            logging.debug(
-                "The simulation folder of this simulation was %s", dut.get_sim_folder(sweep)
-            )
-            dut.add_data(sweep)
-        except SimulationFail:
-            print(
-                f"\n Simulation of DuT {dut_name} with sweep {sim_name} already done and failed.",
-            )
-        # except (SimulationUnsuccessful, FileNotFoundError, IndexError, struct.error):
-        except:  # all exceptions should be re-simulated
-            # ok simulate it!
-            dut.delete_sim_results(sweep, ignore_errors=True)  # remove for safety
-            logging.info("Simulation of DuT %s with sweep %s needed.", dut_name, sim_name)
-            return None
+        logging.info(
+            "Simulation of DuT %s with sweep %s already done and results are valid, only data needs to be read.",
+            dut_name,
+            sim_name,
+        )
+        logging.debug("The simulation folder of this simulation was %s", dut.get_sim_folder(sweep))
+        dut.add_data(sweep)
+    except SimulationFail:
+        print(
+            f"\n Simulation of DuT {dut_name} with sweep {sim_name} already done and failed.",
+        )
+    # except (SimulationUnsuccessful, FileNotFoundError, IndexError, struct.error):
+    except:  # all exceptions should be re-simulated
+        # ok simulate it!
+        dut.delete_sim_results(sweep, ignore_errors=True)  # remove for safety
+        logging.info("Simulation of DuT %s with sweep %s needed.", dut_name, sim_name)
+        return None
 
     return dut.data
 

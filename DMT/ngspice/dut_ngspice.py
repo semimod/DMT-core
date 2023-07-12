@@ -40,9 +40,8 @@ import logging
 import copy
 import re
 import numpy as np
+import pandas as pd
 import subprocess
-import multiprocessing
-from joblib import Parallel, delayed
 from pathlib import Path
 
 from DMT.config import COMMANDS
@@ -139,6 +138,7 @@ class DutNgspice(DutCircuit):
         netlist : str
         """
         use_osdi = bool(self.command_openvaf)  # False if None/null
+
         if isinstance(inp_circuit, MCard) or isinstance(inp_circuit, McParameterCollection):
             # save the modelcard, in case it was set inderectly via the input header!
             self._modelcard = copy.deepcopy(inp_circuit)
@@ -279,6 +279,7 @@ class DutNgspice(DutCircuit):
         # add pre_osdi
         if self._osdi_imports:
             print("\nPreparing OSDI Sources if needed.\n")
+
         for osdi in self._osdi_imports:
             try:
                 if osdi.suffix != ".osdi":
@@ -376,6 +377,8 @@ class DutNgspice(DutCircuit):
                 raise IOError(
                     "DMT->DutNgspice: Did not find voltage source for transient signal input."
                 )
+
+            # if swd_tran.
 
             sources_new = (
                 "V_V_{0} n_{0}_DC 0\n".format(swd_tran.contact)
@@ -525,36 +528,26 @@ class DutNgspice(DutCircuit):
         # are there transient simulations?
         files_tran = sorted(sim_file for sim_file in sim_folder.glob("*.ngspice_tr"))
 
-        n_jobs = len(files_dc_ac + files_tran)
-        cpu_count = multiprocessing.cpu_count()
-        n_jobs = n_jobs if n_jobs < cpu_count else cpu_count  # for parallel read
-        # parallel read is only worthwile if many files have to be read, otherwise overhead is to big
-        n_jobs = n_jobs if n_jobs > 20 else 1
-
-        dfs_dc_ac = []
-
-        with Parallel(n_jobs=n_jobs, verbose=10, batch_size=16) as parallel:
-            dfs_dc_ac = parallel(
-                _read_clean_ngspice_df(
-                    sim_file,
-                    self.nodes,
-                    self.reference_node,
-                    self.ac_ports,
-                )
-                for sim_file in files_dc_ac
-            )
-
-            keys_tr = [
-                self.join_key(self.get_sweep_key(sweep), sim_tr_file.stem[15:])
-                for sim_tr_file in files_tran
-            ]
-            dfs_tr = parallel(
-                _read_clean_ngspice_df_transient(sim_tr_file, self.reference_node, self.ac_ports)
-                for sim_tr_file in files_tran
-            )
-
         key = self.join_key(self.get_sweep_key(sweep), "iv")
+        dfs_dc_ac = [
+            _read_clean_ngspice_df(
+                sim_file,
+                self.nodes,
+                self.reference_node,
+                self.ac_ports,
+            )
+            for sim_file in files_dc_ac
+        ]
         self.data[key] = self.join(dfs_dc_ac)
+
+        keys_tr = [
+            self.join_key(self.get_sweep_key(sweep), sim_tr_file.stem[15:])
+            for sim_tr_file in files_tran
+        ]
+        dfs_tr = [
+            _read_clean_ngspice_df_transient(sim_tr_file, self.reference_node, self.ac_ports)
+            for sim_tr_file in files_tran
+        ]
 
         for key, df in zip(keys_tr, dfs_tr):
             self.data[key] = df
@@ -657,7 +650,7 @@ class DutNgspice(DutCircuit):
         """
         str_return = ""
 
-        for (key, param) in dict_key_para.items():
+        for key, param in dict_key_para.items():
             if isinstance(param, str):
                 str_add = key + "=" + param + " "
             elif isinstance(param, (list, tuple)):
@@ -742,7 +735,7 @@ class DutNgspice(DutCircuit):
                         else:  # here all model parameters
                             str_model_parameters += "{0:s}={0:10.10e} ".format(para)
 
-                    for (key, val) in self.initial_conditions.items():
+                    for key, val in self.initial_conditions.items():
                         # dirty to allow debugging ngspice
                         str_model_parameters += "{0:s}={1:10.10e} ".format(key, val)
                     str_temp = (
@@ -761,7 +754,7 @@ class DutNgspice(DutCircuit):
                         else:  # here all model parameters
                             str_model_parameters += "{0:s}={0:10.10e} ".format(para)
 
-                    for (key, val) in self.initial_conditions.items():
+                    for key, val in self.initial_conditions.items():
                         # dirty to allow debugging ngspice
                         str_model_parameters += "{0:s}={1:10.10e} ".format(key, val)
                     str_temp = (
@@ -809,10 +802,10 @@ class DutNgspice(DutCircuit):
 
             else:
                 str_temp = []
-                for (para, value) in circuit_element.parameters:
+                for para, value in circuit_element.parameters:
                     if para in ["C", "R", "L"]:  # rename according to ngspice manual
                         str_temp.append(value)
-                    elif para in ["Vdc", "Vac"] and not isinstance(
+                    elif para in ["Vdc", "Vac", "Idc", "Iac"] and not isinstance(
                         value, float
                     ):  # just leave voltages from lines, as ngpsice directly changes the sources and not the parameters
                         pass
@@ -823,7 +816,7 @@ class DutNgspice(DutCircuit):
 
                 # find sim paras
                 sim_paras = ""
-                for (para, value) in circuit_element.parameters:
+                for para, value in circuit_element.parameters:
                     try:
                         float(value)
                     except ValueError:
@@ -868,9 +861,13 @@ class DutNgspice(DutCircuit):
                 raise IOError("DMT -> NGspice: frequencies of AC simulation data do not match.")
 
         # join the ac dataframes into one ac dataframe dfs_ac[0]
-        df_ac = dfs_ac[0]
-        for df in dfs_ac[1:]:
-            y_cols = []
+        for i_df in range(len(dfs_ac)):
+            df = dfs_ac[i_df]
+            if i_df == 0:
+                y_cols = [specifiers.FREQUENCY]
+            else:
+                y_cols = []
+
             for col in df.columns:
                 try:
                     if col.specifier == specifiers.SS_PARA_Y:
@@ -878,17 +875,17 @@ class DutNgspice(DutCircuit):
                 except AttributeError:
                     pass  # from AC dataframes ONLY the SS paras are copied other, rest is ignored
 
-            for y_param in y_cols:
-                df_ac[y_param] = df[y_param].to_numpy()
+            dfs_ac[i_df] = df[y_cols]
+
+        df_ac = pd.concat(dfs_ac, axis=1)
 
         # join the dc data to the ac data
         n_freq = len(np.unique(freqs[0]))
-        for col in df_dc.columns:
-            vals = df_dc[col].to_numpy()
-            vals = np.repeat(vals, n_freq)
-            df_ac[col] = vals
+        df_dc = DataFrame(df_dc.values.repeat(n_freq, axis=0), columns=df_dc.columns)
 
-        return df_ac
+        df_dc.reset_index(drop=True, inplace=True)
+        df_ac.reset_index(drop=True, inplace=True)
+        return pd.concat([df_dc, df_ac], axis=1)
 
 
 def _read_ngspice(filename):
@@ -977,7 +974,6 @@ def _read_ngspice(filename):
     return DataFrame(data_raw, columns=split_header)
 
 
-@delayed
 def _read_clean_ngspice_df(filepath, nodes, reference_node, ac_ports):
     """From the df as read directly from ngspice, create a df that has DMT specifiers and is suitable for modeling."""
     df = _read_ngspice(filepath)
@@ -1002,35 +998,37 @@ def _read_clean_ngspice_df(filepath, nodes, reference_node, ac_ports):
     else:
         op_var_multi = False
 
-    new_df = DataFrame()
+    data = {}
     for col in cols:
         col_raw = col.upper()
         if "#BRANCH" in col_raw:  # current that we should save
             col_raw = col_raw.replace("#BRANCH", "")
             node = next(node for node in nodes if node in col_raw)
-            new_df[specifiers.CURRENT + node] = -df[col]  # we want the other current direction
+            data[specifiers.CURRENT + node] = -df[col]  # we want the other current direction
         elif col_raw[0:2] == "N_":  # found a node, will take the voltage
             node = col_raw[2:]
             if "_FORCED" in node:
-                new_df[
-                    specifiers.VOLTAGE + node.replace("_FORCED", "") + sub_specifiers.FORCED
-                ] = df[col]
+                data[specifiers.VOLTAGE + node.replace("_FORCED", "") + sub_specifiers.FORCED] = df[
+                    col
+                ]
             else:
-                new_df[specifiers.VOLTAGE + node] = df[col]
+                data[specifiers.VOLTAGE + node] = df[col]
         elif col_raw == "FREQUENCY":
-            new_df[specifiers.FREQUENCY] = np.real(df["frequency"].to_numpy())
+            data[specifiers.FREQUENCY] = np.real(df["frequency"].to_numpy())
 
         # add opvars
         if col_raw.startswith("@"):
             if op_var_multi:
                 dev_op_var = re.search(r"@(.*)\[(.*)\]", col_raw)
                 op_var = "{0}.{1}".format(*dev_op_var.groups()).upper()
-                new_df[op_var] = np.real(df[col].to_numpy())
+                data[op_var] = np.real(df[col].to_numpy())
                 op_vars.append(op_var)
             else:
                 op_var = re.search(r"\[(.*)\]", col_raw).groups()[0].upper()
-                new_df[op_var] = np.real(df[col].to_numpy())
+                data[op_var] = np.real(df[col].to_numpy())
                 op_vars.append(op_var)
+
+    new_df = DataFrame(data)
 
     # dirty: add the Y Parameters
     if is_ac:
@@ -1087,7 +1085,6 @@ def _read_clean_ngspice_df(filepath, nodes, reference_node, ac_ports):
     )
 
 
-@delayed
 def _read_clean_ngspice_df_transient(filepath, reference_node, ac_ports):
     """From the df as read directly from ngspice, create a df that has DMT specifiers and is suitable for modeling."""
     df = _read_ngspice(filepath)

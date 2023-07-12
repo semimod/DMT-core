@@ -14,7 +14,7 @@ def test_read_mdm():
     df = read_data(folder_path / "test_data" / "short_dc.mdm")
 
 
-def test_read_skywater_mdm():
+def test_read_skywater_mdm_1():
     req = requests.get(
         "https://raw.githubusercontent.com/google/skywater-pdk-sky130-raw-data/5738bf8753688baf2111d8d1b6a3e51a38a0bbeb/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8_w0p36u_l0p15u_m1(8701_9_10_IDVD).mdm"
     )
@@ -32,6 +32,8 @@ def test_read_skywater_mdm():
     assert np.allclose(df["VG"].unique(), np.linspace(0.0, 1.8, 6))
     assert np.allclose(df["VD"].unique(), np.linspace(0.0, 1.8, 37))
 
+
+def get_read_skywater_mdm():
     req = requests.get(
         "https://raw.githubusercontent.com/google/skywater-pdk-sky130-raw-data/5738bf8753688baf2111d8d1b6a3e51a38a0bbeb/sky130_fd_pr/cells/nfet_g5v0d10v5/sky130_fd_pr__nfet_g5v0d10v5_w0p420u_l0p500u_m1(2618_1_10_IDVD_D3).mdm"
     )
@@ -43,18 +45,20 @@ def test_read_skywater_mdm():
         file_tmp.unlink()
     else:
         raise IOError()
+    return df
 
+
+def test_read_skywater_mdm_2():
+    df = get_read_skywater_mdm()
     assert len(df) == 1212  # 6 VG, 101 VD, 2 VB
     assert all(df["VB"].unique() == np.array([0.0, -2.5]))
     assert np.allclose(df["VG"].unique(), np.linspace(0.0, 5.0, 6))
     assert np.allclose(df["VD"].unique(), np.linspace(0.0, 5.0, 101))
 
-    return df
-
 
 if __name__ == "__main__":
     test_read_mdm()
-    df = test_read_skywater_mdm()
+    df = get_read_skywater_mdm()
 
     sp_id = specifiers.CURRENT + ["D"]
     sp_ib = specifiers.CURRENT + ["B"]

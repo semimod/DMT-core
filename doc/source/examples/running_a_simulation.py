@@ -21,6 +21,7 @@ modelcard.load_model_parameters(
 )
 modelcard.update_from_vae(remove_old_parameters=True)
 
+
 # bind the correct get_circuit method in order to make it easily available for simulation
 def get_circuit(self):
     """

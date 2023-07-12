@@ -14,8 +14,9 @@ logging.basicConfig(
 )
 
 
-def test_lib_import():
+def get_lib_import():
     """Test if the types are the correct subtypes."""
+
     # -->Define subroutine at first
     # --->Subroutine: filter_dut
     def filter_dut(dut_name):
@@ -56,7 +57,6 @@ def test_lib_import():
     )
     lib.dut_ref = lib.duts[0]
 
-    # %%
     # --->Add the open and short dummies to the lib
     dut_short = DutMeas(
         database_dir=test_path / "tmp",
@@ -105,8 +105,15 @@ def test_lib_import():
     return lib
 
 
-def test_lib_import_lvl1():
+def test_lib_import():
+    lib = get_lib_import()
+
+    assert len(lib.duts) == 3
+
+
+def get_lib_import_lvl1():
     """Test if the types are the correct subtypes."""
+
     # -->Define subroutine at first
     # --->Subroutine: filter_dut
     def filter_dut(dut_name):
@@ -196,10 +203,14 @@ def test_lib_import_lvl1():
     return lib
 
 
+def test_lib_import_lvl1():
+    lib = get_lib_import_lvl1()
+    assert len(lib.duts) == 3
+
+
 if __name__ == "__main__":
-    lib_test = test_lib_import()
-    lib_test = test_lib_import_lvl1()
-    lib_test.save()
+    lib_test_a = get_lib_import()
+    lib_test = get_lib_import_lvl1()
 
     # --->Read freq related data with "298" and "freq_vbc" from duts
     ft_dfs = []

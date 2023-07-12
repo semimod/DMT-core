@@ -34,7 +34,7 @@ from DMT.ngspice import DutNgspice
 folder_path = Path(__file__).resolve().parent
 
 
-def get_circuit(self, use_build_in=True, topology="common_emitter", **kwargs):
+def get_circuit(self, use_build_in=False, topology="common_emitter", **kwargs):
     """
 
     Parameter
@@ -72,7 +72,6 @@ def get_circuit(self, use_build_in=True, topology="common_emitter", **kwargs):
     )
 
     if topology == "common_emitter":
-
         # BASE NODE CONNECTION #############
         # metal resistance between contact base point and real collector
         try:
@@ -231,8 +230,8 @@ def get_dut():
         DutType.npn,
         input_circuit=mc_D21,
         reference_node="E",
-        copy_va_files=False,
-        simulator_command="ngspice_osdi",
+        copy_va_files=True,
+        simulator_command="ngspice",
     )
 
 
@@ -259,7 +258,7 @@ if __name__ == "__main__":
 
     sim_con = SimCon(n_core=1, t_max=1000)
     sim_con.append_simulation(dut=dut_HICUM, sweep=sweep)
-    sim_con.run_and_read()
+    sim_con.run_and_read(force=True)
 
     i_op = 0
     i_freq = 0

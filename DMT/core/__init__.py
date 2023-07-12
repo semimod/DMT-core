@@ -17,28 +17,23 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
-
+import pkgutil
 from pint import UnitRegistry
 from pathlib import Path
-from pkg_resources import get_distribution
+from importlib.metadata import version
+from packaging.version import Version as PyPIVersion
 
-version_pkg = get_distribution("DMT-core").version.split(".")
+version_pkg = PyPIVersion(version("DMT-core"))
 try:
     from semver.version import Version as VersionInfo
 except ImportError:
     from semver import VersionInfo
 
-if "rc" in version_pkg[2]:
-    _patch = version_pkg[2].split("rc")[0]
-    _rc = version_pkg[2][len(_patch) + 2 :]
-    __version__ = VersionInfo(
-        major=version_pkg[0],
-        minor=version_pkg[1],
-        patch=_patch,
-        prerelease="rc." + _rc,
-    )
-else:
-    __version__ = VersionInfo(major=version_pkg[0], minor=version_pkg[1], patch=version_pkg[2])
+version_pre = None
+if version_pkg.pre:
+    version_pre = ".".join(version_pkg.pre)
+
+__version__ = VersionInfo(*version_pkg.release, prerelease=version_pre, build=version_pkg.dev)
 
 # to get the next version:
 # __version__.next_version(x) - with x = "major", "minor", "patch", "prerelease"
@@ -47,19 +42,15 @@ else:
 
 name = "core"
 
-
 from . import constants
 
 # Helper
 from .singleton import Singleton
 from .hasher import create_md5_hash
-
-# one unit registry for all of DMT
-
-unit_registry = UnitRegistry()
 from DMT.config import DATA_CONFIG
 
-
+# one unit registry for all of DMT
+unit_registry = UnitRegistry()
 path_core = Path(__file__).resolve().parent
 unit_registry.load_definitions(str(path_core / "dmt_units.txt"))
 
@@ -80,7 +71,7 @@ from .naming import natural_scales
 
 # compact modelling stuff
 from .mc_parameter import McParameter, McParameterCollection, McParameterComposition
-from .va_file import VAFile
+from .va_file import VAFileMap
 from .mcard import MCard
 from .technology import Technology
 from .circuit import Circuit, CircuitElement
@@ -111,7 +102,6 @@ from .data_reader import (
     read_feather,
 )
 
-
 # Simulation management
 from .sim_con import SimCon
 
@@ -133,7 +123,8 @@ from .docu_dut_lib import DocuDutLib
 # determine which modules are present
 core_exists = True  # always, without DMT is not possible
 try:
-    import DMT.extraction
+    pkgutil.find_loader("DMT.extraction")
+    # import DMT.extraction
 
     extraction_exists = True
 except ImportError:

@@ -930,12 +930,12 @@ class DutLib(object):
             deembedded = False
 
             # first find out, if any filter applies here. if yes, likely this data needs deembedding
-            for (meas_filter, deem_filter) in self.AC_filter_names:
+            for meas_filter, deem_filter in self.AC_filter_names:
                 if re.search(meas_filter, key, re.IGNORECASE):
                     requires_deemb = True
                     break
 
-            for (meas_filter, deem_filter) in self.AC_filter_names:
+            for meas_filter, deem_filter in self.AC_filter_names:
                 # check if df needs to be AC deembedded & find O&S structure
                 if re.search(meas_filter, key, re.IGNORECASE):
                     short_keys = []
@@ -960,7 +960,7 @@ class DutLib(object):
                         dut.data[key] = dut.data[key].deembed(
                             df_open,
                             df_short,
-                            ports=dut.nodes,
+                            ports=dut.ac_ports,
                             ndevices=dut.ndevices,
                             ndevices_open=dut_open.ndevices,
                             ndevices_short=dut_short.ndevices,
@@ -988,7 +988,7 @@ class DutLib(object):
                             dut.data[key] = dut.data[key].deembed(
                                 df_open,
                                 df_short,
-                                ports=dut.nodes,
+                                ports=dut.ac_ports,
                                 ndevices=dut.ndevices,
                                 ndevices_open=dut_open.ndevices,
                                 ndevices_short=dut_short.ndevices,
@@ -1126,7 +1126,7 @@ class DutLib(object):
         else:
             mres_tref = None
 
-            for (meas_filter, deem_filter) in self.DC_filter_names:
+            for meas_filter, deem_filter in self.DC_filter_names:
                 # get the short keys
                 short_keys = []
                 for short_key in dut_short.data.keys():
@@ -1145,7 +1145,6 @@ class DutLib(object):
                 for key in dut.data.keys():
                     # check if df needs to be DC deembedded
                     if re.search(meas_filter, key, re.IGNORECASE):
-
                         if len(short_keys) == 1:
                             mres = mres_tref
                         else:  # NOT TESTED!!!!

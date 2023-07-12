@@ -87,7 +87,6 @@ def test_mcard_load_compare():
 
 
 def test_set_va_code():
-
     mc = MCard(
         ["A"],
         "Q_HIC",

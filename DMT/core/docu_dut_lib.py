@@ -315,7 +315,9 @@ class DocuDutLib(object):
                             try:
                                 if not np.isclose(dut_property, val):
                                     ok = False
-                            except ValueError:  # tetrodes will not work like this (tuple dut_property)
+                            except (
+                                ValueError
+                            ):  # tetrodes will not work like this (tuple dut_property)
                                 pass
 
                     if ok:
@@ -522,7 +524,6 @@ class DocuDutLib(object):
                 temps = list(set(temps))
 
                 for temp in temps:
-
                     y_scale = 1
                     x_label = None  # autolabel
                     y_label = None

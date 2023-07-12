@@ -820,7 +820,6 @@ class DutXyce(DutCircuit):
                 df_main = df_main.join(df_ac)
 
         if col_ac_switch in df_main.columns:
-
             # get all AC columns, except frequency and ac_switch
             cols_ac_old = [
                 col for col in df_ac.columns if col not in [specifiers.FREQUENCY, col_ac_switch]

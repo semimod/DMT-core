@@ -19,16 +19,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - DutNgspice: Added native support for VA-modeled devices using OpenVAF
 - DutView: save_db now allows saving only some sweep_keys in case of separate databases
 - SweepDefTransSinus and SweepDefTransRamp: 2 different transient signal sweepdefs
+- PySide6 as an option to replace PySide2 in the long run
 
 ### Changed
 
 - DutNgspice now uses the verilog-code if a modelcard has one. This breaks the current behaviour. Next release will be 2.0.0
 - Adjusted test_dut_ngspice to the new DutNgspice
 - Updated to pyqtgraph 0.13.1. QApplication in plot.py from QWidgets is tried to use, if this does not work, fall back to old implementation from Qt.QtGui
+- Renamed VAFile to VAFileMap to better reflect its nature. It is a mapping from filename (incl. rel path) to the file content (code).
+- Importing now only uses pkgutil.find_loader("DMT.extraction") to speed up importing in case extraction module is not used.
 
 ### Removed
 
 - Removed gitlab.com repository from pipeline.
+
+## Fixed
+
+- DataFrame.check_ss_cols: Fixed bug where column name was identified as a SS-Parameter falsely
+- DataFrame.get_ss_para: Checking for ALL found SS-Parameters not just one.
 
 ## [1.7.0] - 2022.08.17
 

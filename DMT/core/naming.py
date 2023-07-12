@@ -27,11 +27,10 @@ import copy
 import numpy as np
 import warnings
 from typing import List, Union, Set, FrozenSet
+from pint import Unit
 from pint.formatting import siunitx_format_unit
-from more_itertools import unique_everseen
 from DMT.config import DATA_CONFIG
 from DMT.core import Singleton, unit_registry
-import pint
 
 UNIT_PREFIX = {
     1e-12: r"\tera",
@@ -411,7 +410,7 @@ class SpecifierStr(str):
     def __hash__(self):
         return hash(str(self))
 
-    def get_pint_unit(self) -> pint.Unit:
+    def get_pint_unit(self) -> Unit:
         """Declaration of function, to be set later
 
         Returns
@@ -487,7 +486,6 @@ class GlobalObj(object):
 # HOLY DEFINITION OF DMT NAMING CONVENTIONS #
 #############################################
 class _sub_specifiers(GlobalObj, metaclass=Singleton):
-
     PERIMETER = SpecifierStr("", sub_specifiers="PERI")
     AREA = SpecifierStr("", sub_specifiers="AREA")
     LENGTH = SpecifierStr("", sub_specifiers="LENGTH")
@@ -537,6 +535,7 @@ class _specifiers(GlobalObj, metaclass=Singleton):
     VELOCITY = SpecifierStr("VELO")
     GRADING = SpecifierStr("GRADING")
     RESISTANCE = SpecifierStr("R")
+    CONDUCTANCE = SpecifierStr("G")
     POWER = SpecifierStr("P")
     CURRENT = SpecifierStr("I")
     CAPACITANCE = SpecifierStr("C")
@@ -670,42 +669,45 @@ def add(self: SpecifierStr, other: Union[SpecifierStr, str, List[Union[str, Spec
 
 SpecifierStr.__add__ = add
 
+unit_converter = {
+    specifiers_ss_para.SS_PARA_Y: unit_registry.siemens,
+    specifiers_ss_para.SS_PARA_H: unit_registry.dimensionless,
+    specifiers_ss_para.SS_PARA_S: unit_registry.dimensionless,
+    specifiers.UNILATERAL_GAIN: unit_registry.dimensionless,
+    specifiers.VOLTAGE: unit_registry.volt,
+    specifiers.CAPACITANCE: unit_registry.farad,
+    specifiers.CHARGE: unit_registry.coulomb,
+    specifiers.CHARGE_DENSITY: unit_registry.coulomb_per_square_meter,
+    specifiers.FREQUENCY: unit_registry.hertz,
+    specifiers.CURRENT: unit_registry.ampere,
+    specifiers.CURRENT_DENSITY: unit_registry.ampere_per_square_meter,
+    specifiers.TEMPERATURE: unit_registry.kelvin,
+    specifiers.RESISTANCE: unit_registry.ohm,
+    specifiers.CONDUCTANCE: unit_registry.siemens,
+    specifiers.POWER: unit_registry.watt,
+    specifiers.TIME: unit_registry.second,
+    specifiers.X: unit_registry.meter,
+    specifiers.TRANSIT_FREQUENCY: unit_registry.hertz,
+    specifiers.MAXIMUM_OSCILLATION_FREQUENCY: unit_registry.hertz,
+    specifiers.TRANSIT_TIME: unit_registry.second,
+    specifiers.TRANSCONDUCTANCE: unit_registry.siemens,
+    specifiers.ENERGY: unit_registry.volt,
+    specifiers.FIELD: unit_registry.volt / unit_registry.meter,
+    specifiers.DC_CURRENT_AMPLIFICATION: unit_registry.dimensionless,
+    specifiers.MAXIMUM_STABLE_GAIN: unit_registry.dimensionless,
+    specifiers.NET_DOPING: 1 / unit_registry.meter / unit_registry.meter / unit_registry.meter,
+    specifiers.ACCEPTORS: 1 / unit_registry.meter / unit_registry.meter / unit_registry.meter,
+    specifiers.DONNORS: 1 / unit_registry.meter / unit_registry.meter / unit_registry.meter,
+    specifiers.ELECTRONS: 1 / unit_registry.meter / unit_registry.meter / unit_registry.meter,
+    specifiers.HOLES: 1 / unit_registry.meter / unit_registry.meter / unit_registry.meter,
+}  # type: dict[SpecifierStr, Unit]
 
-def get_pint_unit(self) -> pint.Unit:
+
+def get_pint_unit(self) -> Unit:
     """Return the DMT base unit of this specifier as a pint unit"""
     if sub_specifiers.PHASE.sub_specifiers <= self.sub_specifiers:
         return unit_registry.degree
 
-    unit_converter = {
-        specifiers_ss_para.SS_PARA_Y: unit_registry.siemens,
-        specifiers_ss_para.SS_PARA_H: unit_registry.dimensionless,
-        specifiers_ss_para.SS_PARA_S: unit_registry.dimensionless,
-        specifiers.UNILATERAL_GAIN: unit_registry.dimensionless,
-        specifiers.VOLTAGE: unit_registry.volt,
-        specifiers.CAPACITANCE: unit_registry.farad,
-        specifiers.CHARGE: unit_registry.coulomb,
-        specifiers.CHARGE_DENSITY: unit_registry.coulomb_per_square_meter,
-        specifiers.FREQUENCY: unit_registry.hertz,
-        specifiers.CURRENT: unit_registry.ampere,
-        specifiers.CURRENT_DENSITY: unit_registry.ampere_per_square_meter,
-        specifiers.TEMPERATURE: unit_registry.kelvin,
-        specifiers.RESISTANCE: unit_registry.ohm,
-        specifiers.POWER: unit_registry.watt,
-        specifiers.TIME: unit_registry.second,
-        specifiers.X: unit_registry.meter,
-        specifiers.TRANSIT_FREQUENCY: unit_registry.hertz,
-        specifiers.MAXIMUM_OSCILLATION_FREQUENCY: unit_registry.hertz,
-        specifiers.TRANSIT_TIME: unit_registry.second,
-        specifiers.TRANSCONDUCTANCE: unit_registry.siemens,
-        specifiers.OUTPUT_CONDUCTANCE: unit_registry.siemens,
-        specifiers.ENERGY: unit_registry.volt,
-        specifiers.FIELD: unit_registry.volt / unit_registry.meter,
-        specifiers.DC_CURRENT_AMPLIFICATION: unit_registry.dimensionless,
-        specifiers.MAXIMUM_STABLE_GAIN: unit_registry.dimensionless,
-        specifiers.NET_DOPING: 1 / unit_registry.meter / unit_registry.meter / unit_registry.meter,
-        specifiers.ACCEPTORS: 1 / unit_registry.meter / unit_registry.meter / unit_registry.meter,
-        specifiers.DONNORS: 1 / unit_registry.meter / unit_registry.meter / unit_registry.meter,
-    }  # type: dict[SpecifierStr, pint.Unit]
     try:
         return unit_converter[self.specifier]
     except KeyError as err:
@@ -725,6 +727,7 @@ def get_descriptor(self):
         specifiers.CAPACITANCE: "capacitance",
         specifiers.VOLTAGE: "voltage",
         specifiers.RESISTANCE: "resistance",
+        specifiers.CONDUCTANCE: "conductance",
         specifiers.POWER: "power",
         specifiers.ENERGY: "energy",
     }
@@ -798,7 +801,7 @@ def to_tex(self, subscript="", superscript=""):
     elif self.specifier == specifiers.NET_DOPING:
         tex = r"N_{\mathrm{net}}"
     elif self.specifier == specifiers.ACCEPTORS:
-        tex = r"N_{\mathrm{A}}"
+        tex = r"N_{\mathrm{A}}col_ib"
     elif self.specifier == specifiers.DONNORS:
         tex = r"N_{\mathrm{D}}"
     elif self.specifier == specifiers.TIME:
@@ -1042,7 +1045,7 @@ natural_scales = {
     specifiers.TRANSIT_FREQUENCY: 1e-9,
     specifiers.CAPACITANCE: 1e15,
     specifiers.CHARGE: 1e15,
-    specifiers.CURRENT_DENSITY: 1e15 / (1e6 * 1e6),  # fF/um^2
+    specifiers.CHARGE_DENSITY: 1e15 / (1e6 * 1e6),  # fF/um^2
     specifiers.SS_PARA_Y: 1e3,
     specifiers.DC_CURRENT_AMPLIFICATION: 1,
     specifiers.FREQUENCY: 1e-9,  # GHz
@@ -1050,6 +1053,7 @@ natural_scales = {
     specifiers.X: 1e9,
     specifiers.POWER: 1e3,  # mW
     specifiers.RESISTANCE: 1,  # Ohm
+    specifiers.CONDUCTANCE: 1,  # Siemens
     specifiers.ENERGY: 1,  # eV
     specifiers.UNILATERAL_GAIN: 1,
     specifiers.NET_DOPING: 1e-6,  # 1/cm^3

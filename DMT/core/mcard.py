@@ -43,7 +43,7 @@ except ImportError:
 
 import verilogae
 
-from DMT.core import unit_registry, VAFile
+from DMT.core import unit_registry, VAFileMap
 from DMT.core.mc_parameter import McParameterCollection, McParameter
 
 
@@ -217,7 +217,7 @@ class MCard(McParameterCollection):
         self._va_codes = None
         if va_codes is not None:
             if isinstance(va_codes, dict):
-                self._va_codes = VAFile.import_dict(va_codes, ignore_checksum=ignore_checksum)
+                self._va_codes = VAFileMap.import_dict(va_codes, ignore_checksum=ignore_checksum)
             else:
                 self._va_codes = va_codes
         elif va_file is not None:
@@ -227,12 +227,12 @@ class MCard(McParameterCollection):
             self.update_from_vae()
 
     @property
-    def va_codes(self) -> Union[VAFile, None]:
+    def va_codes(self) -> Union[VAFileMap, None]:
         """Return the attribute directly
 
         Returns
         -------
-        VAFile
+        VAFileMap
 
         """
         return self._va_codes
@@ -257,7 +257,7 @@ class MCard(McParameterCollection):
         if not isinstance(path_to_main_code, Path):
             path_to_main_code = Path(path_to_main_code)
 
-        self._va_codes = VAFile(path_to_main_code.name)
+        self._va_codes = VAFileMap(path_to_main_code.name)
         self._va_codes.read_structure(path_to_main_code.parent)
 
         if version is not None:
@@ -294,11 +294,13 @@ class MCard(McParameterCollection):
         paras_new = []
         # Updated parameter properties
         for para_name, para_properties in vae_module.modelcard.items():
+            para_name = para_name.lower()
             try:
                 # para = next(para for para in self._paras if para.name == para_name)
                 para = self.get(para_name)
                 self.remove(para_name)
                 ty = type(para_properties.default)
+                para.val_type = ty  # type: ignore
 
                 if para.min > para_properties.min:
                     para.min = para_properties.min
@@ -311,7 +313,6 @@ class MCard(McParameterCollection):
                 para.unit = unit_converter[para_properties.unit]  # type: ignore
                 para.description = para_properties.description  # type: ignore
                 para.group = para_properties.group  # type: ignore
-                para.val_type = ty  # type: ignore
             except KeyError:
                 para = McParameter(
                     para_name,
@@ -352,8 +353,9 @@ class MCard(McParameterCollection):
         remove_old_parameters : {True, False}, optional
             If False, parameters which are not found in the VA-File are not removed.
         """
-        print(
-            "DMT.MCard: Reading from VA-File using this Method is deprecated. Use update_from_vae!"
+        warnings.warn(
+            "DMT-MCard: Reading from VA-File using this method is deprecated. Use update_from_vae!",
+            category=DeprecationWarning,
         )
         paras_new = []
 
@@ -393,7 +395,7 @@ class MCard(McParameterCollection):
                         continue
 
                     parameter_type = mo_parameter.group(1)
-                    parameter_name = mo_parameter.group(2)
+                    parameter_name = mo_parameter.group(2).lower()
                     parameter_default = mo_parameter.group(3)
 
                     parameter_default = parameter_default.replace(";", "")
@@ -777,7 +779,7 @@ class MCard(McParameterCollection):
             raise IOError("Loading from file did not work!")
 
         if isinstance(modcard, list):
-            for (parameter_name, parameter_value) in modcard:
+            for parameter_name, parameter_value in modcard:
                 try:
                     # do not reset the limits if parameter is already in modelcard
                     self.set_values({parameter_name: parameter_value}, force=force)
@@ -807,7 +809,7 @@ class MCard(McParameterCollection):
                 except KeyError:
                     self.add(para)
         elif isinstance(modcard, dict):
-            for (parameter_name, parameter_value) in modcard.items():
+            for parameter_name, parameter_value in modcard.items():
                 if not parameter_name.startswith("__"):
                     try:
                         # do not reset the limits if parameter is already in modelcard

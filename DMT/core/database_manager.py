@@ -105,7 +105,7 @@ class DatabaseManager(object, metaclass=Singleton):
                     # prevent invisible column bug:
                     df = df.loc[:, ~df.columns.duplicated()]
                     if not df.columns.is_unique:
-                        raise IOError
+                        raise IOError()
 
                     data[key] = df
                 db.close()
@@ -201,8 +201,7 @@ class DatabaseManager(object, metaclass=Singleton):
         if not isinstance(db_dir, Path):
             db_dir = Path(db_dir)
 
-        if db_dir.exists():
-            db_dir.unlink()
+        db_dir.unlink(missing_ok=True)
 
     def save_df(self, df, file_name):
         """Save the data stored in df as file_name, where file_name is the direct path to the file.
