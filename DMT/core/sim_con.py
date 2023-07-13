@@ -336,7 +336,7 @@ class SimCon(object, metaclass=Singleton):
             sweep_folder = sim_folder.parts[-1]
             commands.append("rm -rf " + str(sim_path_on_server / dut_folder / sweep_folder))
 
-        #https://stackoverflow.com/questions/34181078/execute-command-and-wait-for-it-to-finish-with-python-paramiko?noredirect=1&lq=1
+        # https://stackoverflow.com/questions/34181078/execute-command-and-wait-for-it-to-finish-with-python-paramiko?noredirect=1&lq=1
         for command in commands:
             _stdin, stdout, _stderr = self.ssh_client.exec_command(command)
             stdout.channel.set_combine_stderr(True)

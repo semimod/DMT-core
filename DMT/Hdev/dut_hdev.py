@@ -591,7 +591,6 @@ class DutHdev(DutTcad):
                                 taup[j] = np.trapz(dp_dic[:j], x[:j])
                                 taun2[j] = np.trapz(dn2_dic[:j], x[:j])
 
-
                             tau = tau * constants.P_Q
                             taun = taun * constants.P_Q
                             taun2 = taun2 * constants.P_Q
@@ -872,7 +871,9 @@ class DutHdev(DutTcad):
 
         return mob
 
-    def get_intervalley_rate(self, semiconductor, valley_1, valley_2, field, temperature, doping, grad=0):
+    def get_intervalley_rate(
+        self, semiconductor, valley_1, valley_2, field, temperature, doping, grad=0
+    ):
         if not DutHdev.inited:
             self.init_()
 
@@ -890,9 +891,7 @@ class DutHdev(DutTcad):
 
         pop = np.zeros_like(doping)
         for i in range(len(doping)):
-            pop[i] = hdev_py.get_pop_py(
-                semiconductor, temperature, doping[i]
-            )
+            pop[i] = hdev_py.get_pop_py(semiconductor, temperature, doping[i])
 
         return pop
 

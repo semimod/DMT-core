@@ -1508,8 +1508,8 @@ class Plot(object):
                 "\\begin{tikzpicture}[font=\\"
                 + fontsize
                 + "]\n"
-                + "\\pgfplotsset{every axis/.append style={" 
-                + line_width 
+                + "\\pgfplotsset{every axis/.append style={"
+                + line_width
                 + "},compat=1.5},\n"
             )
         else:  # if this figure is used in other tex documents, the axis are trimed so that figures with different y-labels and ticks get displayed nicely
@@ -1754,9 +1754,9 @@ class Plot(object):
             legend_to_name = ""
         else:
             legend_to_name = "legend to name={},\n".format(legend_to_name)
-    
+
         str_shift_labels = ""
-        if fontsize =="normalsize":
+        if fontsize == "normalsize":
             str_shift_labels = "xlabel shift = -5 pt,\n ylabel shift = -5 pt,\n"
 
         ### header

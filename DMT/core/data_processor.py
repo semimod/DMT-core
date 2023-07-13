@@ -1004,6 +1004,6 @@ class DataProcessor(object):
         """
 
         go = np.zeros_like(ic)
-        go = np.gradient(ic, vce) 
+        go = np.gradient(ic, vce)
 
         return np.where(go <= 0.0, np.nan, go)

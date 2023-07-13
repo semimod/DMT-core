@@ -344,8 +344,10 @@ class DutNgspice(DutCircuit):
         ac_statements = []
         for swd in sweepdefs:
             if swd.var_name == specifiers.FREQUENCY:
-                if swd.sweep_type == "LIN": # TODO: more nice
-                    ac_statements.append(f"ac lin {swd.value_def[2]:g} {swd.value_def[0]:g} {swd.value_def[1]:g}\n")
+                if swd.sweep_type == "LIN":  # TODO: more nice
+                    ac_statements.append(
+                        f"ac lin {swd.value_def[2]:g} {swd.value_def[0]:g} {swd.value_def[1]:g}\n"
+                    )
                 else:
                     for freq in swd.values:
                         ac_statements.append(f"ac lin 1 {freq:g} {freq:g}\n")
@@ -394,30 +396,37 @@ class DutNgspice(DutCircuit):
         one_ele_array = False
         for voltage_source in voltage_sources:
             vals = df[voltage_source.name].to_numpy()
-            if len(vals) == 1: #Ngspice does not support 1 element arrays ... so we just extend it.
-                vals = np.append(vals,vals)
+            if (
+                len(vals) == 1
+            ):  # Ngspice does not support 1 element arrays ... so we just extend it.
+                vals = np.append(vals, vals)
                 one_ele_array = True
-            str_vec = "compose V_" + voltage_source.name + "_vec values " + "".join(["(" + str(val) + ") " for val in vals])
+            str_vec = (
+                "compose V_"
+                + voltage_source.name
+                + "_vec values "
+                + "".join(["(" + str(val) + ") " for val in vals])
+            )
             str_netlist += str_vec + "\n"
 
-            #compose ve_vec values 0 0 0 0 0 0 0 0 0 0 0
+            # compose ve_vec values 0 0 0 0 0 0 0 0 0 0 0
 
         # TODO create vectors for each current source
 
         n_bias = len(vals)
-        if one_ele_array: # special case: just one OP to simulate
+        if one_ele_array:  # special case: just one OP to simulate
             n_bias = n_bias - 1
         str_netlist += "let index=0\n"
         str_netlist += "while index<" + str(int(n_bias)) + "\n"
-
 
         # so we have VOLTAGE sources and CURRENT sources and Frequency for every operating point.
         str_netlist += "    *set value of all voltage sources:\n"
         for voltage_source in voltage_sources:
             voltage_name = voltage_source.name
-            str_netlist += "    alter V_" + str(voltage_name) + " = V_" + str(voltage_name) + "_vec[index]\n"
-            #alter V_V_E = ve_vec[index]
-
+            str_netlist += (
+                "    alter V_" + str(voltage_name) + " = V_" + str(voltage_name) + "_vec[index]\n"
+            )
+            # alter V_V_E = ve_vec[index]
 
         # for current_source in current_sources:
         #     current_name = current_source.name.replace("S", "_")
@@ -463,9 +472,8 @@ class DutNgspice(DutCircuit):
                 # turn off source
                 str_netlist += "    alter V_" + voltage_source.name + " ac=0\n"
 
-            if i_ac_statement==0:
+            if i_ac_statement == 0:
                 str_netlist += "    unset wr_vecnames\n"
-
 
         # Add transients
         if swd_tran:
@@ -916,21 +924,13 @@ def _read_ngspice(filename):
     if n_row.is_integer():
         n_row = int(n_row)
     else:
-        raise IOError(
-            "DMT -> Data_reader: Encountered a weird number of rows in "
-            + filename
-            + "."
-        )
+        raise IOError("DMT -> Data_reader: Encountered a weird number of rows in " + filename + ".")
 
     # check if n_col is an integer
     if n_col.is_integer():
         n_col = int(n_col)
     else:
-        raise IOError(
-            "DMT -> Data_reader: Encountered a weird number of cols in "
-            + filename
-            + "."
-        )
+        raise IOError("DMT -> Data_reader: Encountered a weird number of cols in " + filename + ".")
 
     # need to cast real valued stuff to complex...headache
     if is_ac:
