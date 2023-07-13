@@ -107,7 +107,7 @@ from .sim_con import SimCon
 
 # DutView tree
 from .dut_view import DutView
-from .dut_type import DutType
+from .dut_type import DutType, DutTypeFlag
 from .dut_lib import DutLib
 
 from .dut_meas import DutMeas

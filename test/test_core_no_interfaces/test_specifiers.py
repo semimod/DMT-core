@@ -132,7 +132,7 @@ def test_pretty_printing():
     assert col_ic.get_tex_unit() == "\\si{\\ampere}"
 
     with pytest.raises(IOError):
-        specifiers.ELECTRONS.get_pint_unit()
+        specifiers.SS_PARA_A.get_pint_unit()
 
     # labeling
     assert col_ic.to_tex() == "I_{\\mathrm{C}}"

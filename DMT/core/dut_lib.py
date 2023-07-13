@@ -26,7 +26,7 @@ import filecmp
 import numpy as np
 from pathlib import Path
 from joblib import Parallel, delayed
-from DMT.core import DutType, print_progress_bar, DutView
+from DMT.core import DutType, DutTypeFlag, print_progress_bar, DutView
 from DMT.exceptions import NoOpenDeembeddingDut, NoShortDeembeddingDut
 
 try:
@@ -216,9 +216,9 @@ class DutLib(object):
         self.is_deembedded_DC = is_deembedded_DC
 
         self.deem_open = (
-            DutType.flag_open
+            DutTypeFlag.flag_open
         )  # deem_open_bjt # look only for the flag not for the device!
-        self.deem_short = DutType.flag_short  # deem_short_bjt
+        self.deem_short = DutTypeFlag.flag_short  # deem_short_bjt
 
         self.duts = []  # The devices that shall be managed by this dut
         self._dut_ref = None  # The reference device of this technology
