@@ -795,6 +795,8 @@ class DataFrame(DataProcessor, pd.DataFrame):
                     self = self.calc_cce(port_1=ports[0], port_2=ports[1])
                 elif nodes[0] == "B" and nodes[1] == "C":  # CBC
                     self = self.calc_cbc(port_1=ports[0], port_2=ports[1])
+                elif nodes[0] == "G" and nodes[1] == "S":  # CGS
+                    self = self.calc_cgs(port_1=ports[0], port_2=ports[1])
                 else:
                     raise KeyError("The " + "".join(nodes) + " capacitance can not be calculated.")
             except IOError as err:
@@ -1883,6 +1885,45 @@ class DataFrame(DataProcessor, pd.DataFrame):
 
         # put values in col of self
         self["K"] = self.processor.calc_k(self["FREQ"], s_para_values, "S")
+        return self
+
+    def calc_cgs(self, port_1="B", port_2="C"):
+        """Calculates the gate-source capacitance CGS assuming PI equivalent circuit and common source configuration.
+
+        Returns
+        -------
+        :class:`DMT.core.DataFrame`
+            Dataframe that contains CBE.
+        """
+        # get values
+        s_para_values = self.get_ss_para("Y", port_1, port_2)
+
+        sp_cgs = specifiers.CAPACITANCE + ["G", "S"]
+
+        # put values in col of self
+        pd.options.mode.chained_assignment = (
+            None  # default='warn' , Markus: This should not warn here.
+        )
+        if port_1 == "G" and port_2 == "D":
+            self[sp_cgs] = self.processor.calc_cap_shunt_port_1(self["FREQ"], s_para_values, "Y")
+        elif port_1 == "D" and port_2 == "G":
+            self[sp_cgs] = self.processor.calc_cap_shunt_port_2(self["FREQ"], s_para_values, "Y")
+        elif port_1 == "G" and port_2 == "S":
+            self[sp_cgs] = self.processor.calc_cap_series_thru(self["FREQ"], s_para_values, "Y")
+        elif port_1 == "S" and port_2 == "B":
+            self[sp_cgs] = self.processor.calc_cap_series_thru(self["FREQ"], s_para_values, "Y")
+        elif port_1 == "S" and port_2 == "D":  # common base
+            self[sp_cgs] = self.processor.calc_cap_shunt_port_1(self["FREQ"], s_para_values, "Y")
+        elif port_1 == "S" and port_2 == "D":  # common base
+            self[sp_cgs] = self.processor.calc_cap_shunt_port_2(self["FREQ"], s_para_values, "Y")
+        elif port_1 == "D" and port_2 == "S":  # common base
+            self[sp_cgs] = self.processor.calc_cap_shunt_port_1(self["FREQ"], s_para_values, "Y")
+        else:
+            raise NotImplementedError(
+                "DMT -> DataFrame -> calc_cgs: transistor configuration not implemented."
+            )
+
+        pd.options.mode.chained_assignment = "warn"
         return self
 
     def calc_cbe(self, port_1="B", port_2="C"):
