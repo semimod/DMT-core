@@ -1,7 +1,7 @@
 import logging
 import shutil
 from pathlib import Path
-from DMT.core import DutMeas, DutType, DocuDutLib, DutLib, specifiers, sub_specifiers
+from DMT.core import DutMeas, DutType, DocuDutLib, DutLib, specifiers, sub_specifiers, Technology
 
 folder_path = Path(__file__).resolve().parent
 test_path = folder_path.parent
@@ -13,6 +13,23 @@ logging.basicConfig(
     filename=folder_path.parent.parent / "logs" / "test_dut_lib.log",
     filemode="w",
 )
+
+
+class TechDummy(Technology):
+    def __init__(self):
+        super().__init__(name="dummy")
+
+    @staticmethod
+    def deserialize():
+        return TechDummy()
+
+    def serialize(self):
+        return {
+            "class": str(self.__class__),
+            "args": [],
+            "kwargs": {},
+            "constructor": "deserialize",
+        }
 
 
 def create_lib():
@@ -39,6 +56,7 @@ def create_lib():
                 contact_config="CBEBC",
                 name="dut_meas_npn",
                 reference_node="E",
+                technology=TechDummy(),
             )
 
             return dut_transistor
@@ -70,6 +88,7 @@ def create_lib():
         die="y",
         width=float(0.25e-6),
         length=float(0.25e-6),
+        technology=TechDummy(),
     )
     dut_short.add_data(folder_path / "test_data" / "dummy_short_freq.mdm", key="ac")
     dut_short.add_data(folder_path / "test_data" / "short_dc.mdm", key="dc")
@@ -83,6 +102,7 @@ def create_lib():
         die="y",
         width=float(0.25e-6),
         length=float(0.25e-6),
+        technology=TechDummy(),
     )
     dut_open.add_data(folder_path / "test_data" / "dummy_open_freq.mdm", key="ac")
     lib.add_duts([dut_short, dut_open])
@@ -114,7 +134,6 @@ def test_docu():
     lib_test = create_lib()
     docu = DocuDutLib(lib_test)
     docu_path = folder_path.parent / "tmp" / "docu_dut_lib"
-
     docu.generate_docu(
         docu_path,
         plot_specs=[{"type": "gummel_vbc", "key": "fgummel"}],
@@ -137,7 +156,10 @@ def test_lib_save_load():
     lib_test = create_lib()
     lib_test.save()
 
-    lib_loaded = DutLib.load(folder_path.parent / "tmp" / "dut_lib_save")
+    lib_loaded = DutLib.load(
+        folder_path.parent / "tmp" / "dut_lib_save",
+        [TechDummy],
+    )
 
     ## some asserts
     assert len(lib_test.duts) == len(lib_loaded.duts)

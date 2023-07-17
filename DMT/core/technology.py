@@ -22,6 +22,7 @@ If a technology can use TRADICA, the class :class:`DMT.TRADICA.TechTradica` is r
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
+import abc
 from DMT.core.dut_type import DutType
 
 try:
@@ -47,10 +48,10 @@ class Technology(object):
     """
     name = ""
 
-    def __init__(self, name, scaling_builder=None):
+    def __init__(self, name):
         self.name = name
-        self.scaling_builder = scaling_builder
 
+    @abc.abstractmethod
     def print_tex(self, dut_ref, mcard):
         """Prints a technology description, mainly used for autodocumentation reasons.
 
@@ -66,9 +67,29 @@ class Technology(object):
             doc.append("Technology description missing")
         return doc
 
+    @abc.abstractmethod
     def get_bib_entries(self):
         """bibliograpy entries of a technology"""
         return ""
+
+    @abc.abstractmethod
+    def serialize(self):
+        """Return a dict which makes a constructor of the class callable
+
+        Returns
+        -------
+        dict
+            "class":
+            "args":
+            "kwargs":
+            "constructor":
+        """
+        return {
+            "class": str(self.__class__),
+            "args": [self.name],
+            "kwargs": {},
+            "constructor": None,
+        }
 
     def create_mcard_library(self, lib, mcard, path, dut_type=DutType.npn):
         """Creates a file containing model cards for all sizes of duts present in the lib.

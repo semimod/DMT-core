@@ -27,6 +27,14 @@ from DMT.core import print_progress_bar
 from DMT.core.dut_view import DutView
 
 
+try:
+    from semver.version import Version as VersionInfo
+except ImportError:
+    from semver import VersionInfo
+
+SEMVER_DUTMEAS_CURRENT = VersionInfo(major=1, minor=0)
+
+
 class DutMeas(DutView):
     """Subclass of DutView that is used to capture relevant methods and properties of measured data.
 
@@ -91,14 +99,13 @@ class DutMeas(DutView):
         database_dir,
         name,
         dut_type,
-        force=False,
         wafer=None,
         die=None,
         ndevices=1,
         deemb_name=None,
         **kwargs,
     ):
-        super().__init__(database_dir, name, dut_type, nodes=None, force=force, **kwargs)
+        super().__init__(database_dir, name, dut_type, **kwargs)
         self.wafer = wafer
         self.die = die
         self.ndevices = ndevices
@@ -108,12 +115,31 @@ class DutMeas(DutView):
         else:
             self.deemb_name = deemb_name
 
-        if self.width is not None:
-            try:
-                self.perimeter = (self.width + self.length) * 2
-                self.area = self.width * self.length
-            except TypeError:
-                pass  # if either spacer is None or width or length are tuples.
+    def info_json(self, **_kwargs):
+        return {
+            str(DutMeas): {
+                "__DutMeas__": str(SEMVER_DUTMEAS_CURRENT),
+                "parent": super(DutMeas, self).info_json(**_kwargs),
+                "wafer": self.wafer,
+                "die": self.die,
+                "ndevices": self.ndevices,
+                "deemb_name": self.deemb_name,
+            }
+        }
+
+    @classmethod
+    def from_json(cls, json_content, classes_technology):
+        if json_content["__DutMeas__"] != SEMVER_DUTMEAS_CURRENT:
+            raise NotImplementedError("DMT.DutMeas: Unknown version of DutMeas to load!")
+
+        dut_view = super().from_json(json_content["parent"], classes_technology)
+
+        dut_view.wafer = json_content["wafer"]
+        dut_view.die = json_content["die"]
+        dut_view.ndevices = json_content["ndevices"]
+        dut_view.deemb_name = json_content["deemb_name"]
+
+        return dut_view
 
     def run_simulation(self, sweep):
         """Raise a OSError. Measurements can not be simulated!
@@ -192,72 +218,6 @@ class DutMeas(DutView):
         """
         self.add_data(open_, key, force=True)
         logging.info("DMT -> DutMeas -> add_open(): Added an open to the DUT")
-
-    def deembed(self, filter_func, short_key="dummies/short", open_key="dummies/open"):
-        """Deembed some dataframes of this DutMeas object using a user supplied filter function.
-
-        Parameters
-        ----------
-        filter_func  :  callable object
-            This used supplied callable object, e.g. function, is called with each key in the DutView's database.
-            If True is returned, the dataframe corresponding to key is deembedded.
-        short_key    :  string
-            Default='/dummies/short'. Key that corresponds to the short dummy in the database.
-        open_key     :  string
-            Default='/dummies/open'. Key that corresponds to the open dummy in the database.
-
-        Returns
-        -------
-        self  :  DutMeas
-            The updated DutMeas object.
-
-        Notes
-        -----
-        todo: Delete this method since this functionality will be taken over by DutLib!
-        """
-        raise IOError("Obsolete")
-
-        # retrieve the short and open dummies
-        no_dummies = False
-        try:
-            df_short = self.data[short_key]
-            df_open = self.data[open_key]
-        except:
-            no_dummies = True
-
-        # find keys of dataframes that need to be deembedded
-        keys = [key for key in self.data.keys() if filter_func(key)]
-
-        if len(keys) > 0 and no_dummies:
-            raise IOError(
-                "DMT -> DutMeas -> deembed: Found keys that require deembedding, however no short or open dummies are present in this Dut."
-            )
-
-        if len(keys) == 0:  # some DUTs are only DC
-            return self
-
-        # go through each DataFrame where the function filter returns true and deembed()
-        i = 0
-        n_frames = len(self.data)
-        print_progress_bar(i, n_frames, prefix="Deembedding:", suffix="Complete\n", length=50)
-        for key in self.data.keys():
-            if filter_func(key):
-                i = i + 1
-                df = self.data[key]
-                self.data[key] = df.deembed(df_open, df_short, ports=self.nodes)
-                logging.info("DMT -> DutMeas -> deembed(): Deembedded dataframe with key %s.", key)
-                print_progress_bar(
-                    i, n_frames, prefix="Deembedding:", suffix="Complete\n", length=50
-                )
-
-        if (
-            self.ndevices > 1
-        ):  # if we have more than one device in parallel, normalize the currents to the area of one device
-            for key in self.data.keys():
-                df = self.data[key]
-                self.data[key] = df.parallel_norm(self.ndevices)
-
-        return self
 
     def get_output_data(self, sweep):
         raise NotImplementedError(

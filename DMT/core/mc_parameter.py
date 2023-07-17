@@ -692,7 +692,7 @@ class McParameterCollection(object):
     def dump_json(self, file_path, **kwargs):
         """Writes itself and the parameters in the collection to a file.
 
-        To manipulate what is written to the file, change :py:method::`DMT.core.mc_parameter.McParameterCollection.dumps_json()`
+        To manipulate what is written to the file, change :py:method::`DMT.core.mc_parameter.McParameterCollection.info_json()` and inherited methods
         """
         if not isinstance(file_path, Path):
             file_path = Path(file_path)

@@ -549,7 +549,7 @@ class DutLib(object):
         file_path.write_text(json.dumps(dict_content, indent=4), encoding="utf8")
 
     @staticmethod
-    def load(lib_directory):
+    def load(lib_directory, classes_technology, classes_dut_view=None):
         """Static class method. Loads a DutLib object from a pickle or json file with full path lib_directory.
 
         Parameters
@@ -615,10 +615,18 @@ class DutLib(object):
         # load all duts
         ignore_duts = copy.deepcopy(dut_lib.ignore_duts)
         dut_lib.ignore_duts = []  # load all duts, even the one who were ignored
-        for dir_name, dir_list, file_list in os.walk(dut_lib.save_dir / "duts"):  # find the duts
-            for file_dut in file_list:
-                if file_dut.endswith(".p"):
-                    dut_lib.duts.append(DutView.load_dut(os.path.join(dir_name, file_dut)))
+        # for dir_name, dir_list, file_list in os.walk(dut_lib.save_dir / "duts"):  # find the duts
+        #     for file_dut in file_list:
+        #         if file_dut.endswith(".json") or file_dut.endswith(".p"):
+        #             dut_lib.duts.append(DutView.load_dut(os.path.join(dir_name, file_dut)))
+        for file_dut in (dut_lib.save_dir / "duts").glob("**/*.json"):
+            dut_lib.duts.append(
+                DutView.load_dut(file_dut, classes_technology, classes_dut_view=classes_dut_view)
+            )
+        for file_dut in (dut_lib.save_dir / "duts").glob("**/*.p"):
+            dut_lib.duts.append(
+                DutView.load_dut(file_dut, classes_technology, classes_dut_view=classes_dut_view)
+            )
 
         # correct dut paths:
         if dut_lib.dut_ref_dut_dir is not None:
