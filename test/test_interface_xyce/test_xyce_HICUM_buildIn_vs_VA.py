@@ -5,7 +5,7 @@ import logging
 import numpy as np
 from pathlib import Path
 
-from DMT.core import DutType, Sweep, specifiers, SimCon, Plot, MCard
+from DMT.core import DutType, Sweep, specifiers, SimCon, Plot, MCard, DutView
 from DMT.core.circuit import (
     Circuit,
     CircuitElement,
@@ -280,6 +280,23 @@ def get_sweep():
     )
 
 
+def test_dut_xyce_save_load():
+    dut_orig = get_dut_build_in()
+    dut_orig.save()
+
+    dut_loaded = DutView.load_dut(dut_orig.save_dir / "dut.json", classes_dut_view=[DutXyce])
+
+    assert dut_orig.name == dut_loaded.name
+
+    dut_orig = get_dut_va()
+    dut_orig.save()
+
+    dut_loaded = DutView.load_dut(dut_orig.save_dir / "dut.json", classes_dut_view=[DutXyce])
+
+    assert dut_orig.name == dut_loaded.name
+    assert dut_orig._list_va_file_contents[0] == dut_loaded._list_va_file_contents[0]
+
+
 def test_run_and_read():
     col_vbc = specifiers.VOLTAGE + ["B", "C"]
     col_vbe = specifiers.VOLTAGE + ["B", "E"]
@@ -408,6 +425,7 @@ def test_run_and_read():
 
 
 if __name__ == "__main__":
+    test_dut_xyce_save_load()
     duts, sweep = test_run_and_read()
 
     col_vbc = specifiers.VOLTAGE + ["B", "C"]

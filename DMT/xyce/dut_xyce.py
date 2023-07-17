@@ -74,12 +74,13 @@ class DutXyce(DutCircuit):
         self,
         database_dir,
         dut_type,
-        input_circuit,
+        inp_circuit,
         name="xyce_",
         simulator_command=None,
         simulator_arguments=None,
         simulator_options=None,
         build_xyce_plugin_command="buildxyceplugin",
+        inp_name="xyce_circuit.cir",
         **kwargs,
     ):
         if simulator_command is None:
@@ -100,11 +101,11 @@ class DutXyce(DutCircuit):
             database_dir,
             name,
             dut_type,
-            input_circuit,
+            inp_circuit,
             simulator_command=simulator_command,
             simulator_options=simulator_options,
             simulator_arguments=simulator_arguments,
-            inp_name="xyce_circuit.cir",
+            inp_name=inp_name,
             **kwargs,
         )
 
