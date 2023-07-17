@@ -23,7 +23,8 @@
 
 import logging
 import re
-from DMT.core import print_progress_bar
+from typing import List, Dict
+from DMT.core import Technology
 from DMT.core.dut_view import DutView
 
 
@@ -78,20 +79,15 @@ class DutMeas(DutView):
     Methods
     -------
     run_simulation(sweep)
-        Return a NotImplemented exception. Measurements can not be simulated!
+        Raises NotImplementedError since measurements can not be simulated!
     get_hash()
         Return a unique hash based on some attributes of the DutMeas object.
     add_short(short, key='/dummies/short', force=True)
         Add a short dummy to the database of this DutMeas object.
     add_open(short, key='/dummies/short', force=True)
         Add an open dummy to the database of this DutMeas object.
-    deembed(filter_func, short_key='/dummies/short', open_key='/dummies/open')
-        Deembed some dataframes of this DutMeas object using a user supplied filter function.
-    clean_data()
-        Clean the dataframe columns of the DataFrame objects in this DutMeas objects database.
     get_output_data(sweep)
         Raises NotImplementedError since a measurement can not return its output files.
-
     """
 
     def __init__(
@@ -115,7 +111,21 @@ class DutMeas(DutView):
         else:
             self.deemb_name = deemb_name
 
-    def info_json(self, **_kwargs):
+    def info_json(self, **_kwargs) -> Dict:
+        """Returns a dict with serializeable content for the json file to create.
+
+        The topmost dict MUST have only one key: The string casted class name.
+        Inside the parameters are:
+
+            * A version key,
+            * all extra parameters of DutMeas compared to DutView and
+            * the info_json of DutView.
+
+        Returns
+        -------
+        dict
+            str(DutMeas): serialized content
+        """
         return {
             str(DutMeas): {
                 "__DutMeas__": str(SEMVER_DUTMEAS_CURRENT),
@@ -128,7 +138,23 @@ class DutMeas(DutView):
         }
 
     @classmethod
-    def from_json(cls, json_content, classes_technology):
+    def from_json(cls, json_content: Dict, classes_technology: List[type[Technology]]) -> "DutMeas":
+        """Static class method. Loads a DutMeas object from a pickle file with full path save_dir.
+
+        Calls the from_json method of DutView with all dictionary inside the "parent" keyword. Afterwards the additional parameters are set correctly.
+
+        Parameters
+        ----------
+        json_content  :  dict
+            Readed dictionary from a saved json DutMeas.
+        classes_technology : List[type[Technology]]
+            All possible technologies this loaded DutMeas can have. One will be choosen according to the serialized technology loaded from the file.
+
+        Returns
+        -------
+        DutMeas
+            Loaded object.
+        """
         if json_content["__DutMeas__"] != SEMVER_DUTMEAS_CURRENT:
             raise NotImplementedError("DMT.DutMeas: Unknown version of DutMeas to load!")
 

@@ -79,10 +79,17 @@ class Technology(object):
         Returns
         -------
         dict
-            "class":
-            "args":
-            "kwargs":
-            "constructor":
+            Has 1 required ("class") and 3 optional keys
+
+                * "class": always str(self.__class__), this is used to identify the correct technology during loading!
+                * "constructor": Name of the STATIC constructor method to call to create the technology. If not set, __init__ is used.
+                * "args": List of arguments to pass to the constructor
+                * "kwargs": List of keyword arguments to pass to the constructor
+
+            While loading a DutView the deserializiaton will be called like::
+
+                tech = getattr(cls_technology, serialized_technology["constructor"])(*args, **kwargs)
+
         """
         return {
             "class": str(self.__class__),

@@ -26,6 +26,7 @@ import copy
 import logging
 from pathlib import Path
 import pandas as pd
+from typing import List, Dict
 
 try:
     from semver.version import Version as VersionInfo
@@ -40,6 +41,7 @@ from DMT.core import (
     DutTypeFlag,
     DutTypeInt,
     DutType,
+    Technology,
 )
 from DMT.config import DATA_CONFIG
 
@@ -501,7 +503,7 @@ class DutView(object):
         )
 
     def save(self, **kwargs):
-        """Save this DutView as a json file and the also the data into the database on the hard drive."""
+        """Save this DutView as a json file and the also the data into the database on the hard drive. The kwargs are passed on to :py:method::`DMT.core.dut_view.DutView.info_json()` or the overwritten method."""
         self.save_dir.mkdir(parents=True, exist_ok=True)
         self._database_dir = self._database_dir.resolve()  # convert to absolute path
 
@@ -510,7 +512,15 @@ class DutView(object):
         self.dut_dir.write_text(json.dumps(self.info_json(**kwargs), indent=4), encoding="utf8")
 
     def info_json(self, **_kwargs):
-        """Returns a dict with serializeable content for the json file to create. Add the info about the concrete subclass to create here!"""
+        """Returns a dict with serializeable content for the json file to create.
+
+        Add the info about the concrete subclass to create here! See :py:method::`DMT.core.dut_meas.DutMeas.info_json()` for an example implementation.
+
+        Returns
+        -------
+        dict
+            serialized dictionary ready to be dumped to json.
+        """
         if self.technology is None:
             tech = tech
         else:
@@ -524,7 +534,7 @@ class DutView(object):
             ],
             "separate_databases": self._separate_databases,
             "database_dir": str(self._database_dir),
-            "dut_type": self.dut_type.serialize_dict(),
+            "dut_type": self.dut_type.serialize(),
             "name": self.name,
             "nodes": self.nodes,
             "ac_ports": self.ac_ports,
@@ -549,6 +559,7 @@ class DutView(object):
 
     def __getstate__(self):
         """Return state values to be pickled. Implemented according `to <https://www.ibm.com/developerworks/library/l-pypers/index.html>`_ .
+
         Notes
         -----
         ..todo:
@@ -567,18 +578,26 @@ class DutView(object):
         self.__dict__["_data"] = {}
 
     @staticmethod
-    def load_dut(file_dut, classes_technology, classes_dut_view=None):
+    def load_dut(
+        file_dut,
+        classes_technology: List[type[Technology]] = None,
+        classes_dut_view: List[type["DutView"]] = None,
+    ) -> "DutView":
         """Static class method. Loads a DutView object from a pickle file with full path save_dir.
 
         Parameters
         ----------
         file_dut  :  str or os.Pathlike
-            Path to the pickled DutView object that shall be loaded.
+            Path to the json or pickle DutView file that shall be loaded.
+        classes_technology : List[type[Technology]]
+            All possible technologies this loaded DutView can have. One will be choosen according to the serialized technology loaded from the file.
+        classes_dut_view : List[type[DutView]]
+            All possible DutViews this loaded DutView can be. One will be choosen according to the serialized dutview class name loaded from the file.
 
         Returns
         -------
-        obj  :  DutView()
-            Loaded object from the pickle file.
+        DutView
+            Loaded object.
         """
         if not isinstance(file_dut, Path):
             file_dut = Path(file_dut)
@@ -622,27 +641,46 @@ class DutView(object):
         return dut
 
     @classmethod
-    def from_json(cls, json_content, classes_technology):
+    def from_json(cls, json_content: Dict, classes_technology: List[type[Technology]]) -> "DutView":
+        """Static class method. Loads a DutView object from a pickle file with full path save_dir.
+
+        Parameters
+        ----------
+        json_content  :  dict
+            Readed dictionary from a saved json DutView.
+        classes_technology : List[type[Technology]]
+            All possible technologies this loaded DutView can have. One will be choosen according to the serialized technology loaded from the file.
+
+        Returns
+        -------
+        DutView
+            Loaded object.
+        """
         if json_content["__DutView__"] != SEMVER_DUTVIEW_CURRENT:
             raise NotImplementedError("DMT.DutView: Unknown version of DutView to load!")
 
         serialized_technology = json_content["technology"]
-        cls_technology = next(
-            cls_tech
-            for cls_tech in classes_technology
-            if str(cls_tech) == serialized_technology["class"]
-        )
-        args = serialized_technology.get("args", [])
-        kwargs = serialized_technology.get("kwargs", {})
-        if serialized_technology.get("constructor", None) is None:
-            tech = cls_technology(*args, **kwargs)
+        if serialized_technology is None:
+            tech = None
         else:
-            tech = getattr(cls_technology, serialized_technology["constructor"])(*args, **kwargs)
+            cls_technology = next(
+                cls_tech
+                for cls_tech in classes_technology
+                if str(cls_tech) == serialized_technology["class"]
+            )
+            args = serialized_technology.get("args", [])
+            kwargs = serialized_technology.get("kwargs", {})
+            if serialized_technology.get("constructor", None) is None:
+                tech = cls_technology(*args, **kwargs)
+            else:
+                tech = getattr(cls_technology, serialized_technology["constructor"])(
+                    *args, **kwargs
+                )
 
         dut_view = cls(
             json_content["database_dir"],
             json_content["name"],
-            DutType.deserialize_dict(json_content["dut_type"]),
+            DutType.deserialize(json_content["dut_type"]),
             reference_node=json_content["reference_node"],
             copy_va_files=json_content["copy_va_files"],
             force=False,

@@ -177,7 +177,7 @@ class DutTypeInt(object):
     def bit_length(self):
         return self.value.bit_length()
 
-    def serialize_dict(self):
+    def serialize(self):
         "Converts the DutTypeInt into a dictionary with only strings (ready to be serealized to json)"
         dut_type = repr(self)
         i_start = 1  # cut away starting "<"
@@ -256,7 +256,7 @@ class DutTypeFlag(Flag):
     def __str__(self):
         return str(self.value.__class__)
 
-    def serialize_dict(self):
+    def serialize(self):
         "Converts the DutTypeFlag into a dictionary with only strings (ready to be serealized to json)"
         dut_type = repr(self)
         i_start = 1  # cut away starting "<"
@@ -333,7 +333,7 @@ class DutType(object):
     )  # capacitance in GSG pads, each pad is one Capacitance, so S(1,1) and S(2,2) are wanted...
 
     @classmethod
-    def deserialize_dict(cls, dict_loaded):
+    def deserialize(cls, dict_loaded):
         """Static class method to create a DutType from a loaded dictionary.
 
         Returns

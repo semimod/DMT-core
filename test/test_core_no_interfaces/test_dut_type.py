@@ -50,18 +50,14 @@ def test_to_string():
 
 
 def test_serialize():
-    assert DutType.tetrode == DutType.deserialize_dict(DutType.tetrode.serialize_dict())
-    assert DutType.pin_diode == DutType.deserialize_dict(DutType.pin_diode.serialize_dict())
-    assert DutType.tlmbc == DutType.deserialize_dict(DutType.tlmbc.serialize_dict())
-    assert DutType.deem_short_bjt == DutType.deserialize_dict(
-        DutType.deem_short_bjt.serialize_dict()
-    )
-    assert DutType.deem_short_mos == DutType.deserialize_dict(
-        DutType.deem_short_mos.serialize_dict()
-    )
+    assert DutType.tetrode == DutType.deserialize(DutType.tetrode.serialize())
+    assert DutType.pin_diode == DutType.deserialize(DutType.pin_diode.serialize())
+    assert DutType.tlmbc == DutType.deserialize(DutType.tlmbc.serialize())
+    assert DutType.deem_short_bjt == DutType.deserialize(DutType.deem_short_bjt.serialize())
+    assert DutType.deem_short_mos == DutType.deserialize(DutType.deem_short_mos.serialize())
 
     with warnings.catch_warnings(record=True):
-        DutType.deserialize_dict(
+        DutType.deserialize(
             {
                 "DutType": "DMT.core.dut_type.DutTypeInt",
                 "string": "definitily_newer_used_dut_type_name!!",

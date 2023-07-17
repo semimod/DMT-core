@@ -27,7 +27,8 @@ import numpy as np
 import json
 from pathlib import Path
 from joblib import Parallel, delayed
-from DMT.core import DutType, DutTypeFlag, print_progress_bar, DutView
+from typing import List
+from DMT.core import DutType, DutTypeFlag, print_progress_bar, DutView, Technology
 from DMT.exceptions import NoOpenDeembeddingDut, NoShortDeembeddingDut
 
 try:
@@ -522,13 +523,13 @@ class DutLib(object):
         self.ignore_duts = ignore_duts  # but save the list ignore
 
         dict_content = {
-            "deem_types": [deem_type.serialize_dict() for deem_type in self.deem_types],
+            "deem_types": [deem_type.serialize() for deem_type in self.deem_types],
             "AC_filter_names": self.AC_filter_names,
             "DC_filter_names": self.DC_filter_names,
             "is_deembedded_AC": self.is_deembedded_AC,
             "is_deembedded_DC": self.is_deembedded_DC,
-            "deem_open": self.deem_open.serialize_dict(),
-            "deem_short": self.deem_short.serialize_dict(),
+            "deem_open": self.deem_open.serialize(),
+            "deem_short": self.deem_short.serialize(),
             # self.duts = []  # the Duts will be loaded from the saved files not by saving the list here.
             "dut_ref_dut_dir": str(self.dut_ref_dut_dir),
             "dut_intrinsic_dut_dir": str(self.dut_intrinsic_dut_dir),
@@ -549,18 +550,28 @@ class DutLib(object):
         file_path.write_text(json.dumps(dict_content, indent=4), encoding="utf8")
 
     @staticmethod
-    def load(lib_directory, classes_technology, classes_dut_view=None):
+    def load(
+        lib_directory,
+        classes_technology: List[type[Technology]] = None,
+        classes_dut_view: List[type["DutView"]] = None,
+    ) -> "DutLib":
         """Static class method. Loads a DutLib object from a pickle or json file with full path lib_directory.
 
         Parameters
         ----------
         lib_directory  :  str or os.Pathlike
             Path to the direcotry that contains a pickled DutLib object that shall be loaded.
+        classes_technology : List[type[Technology]]
+            All possible technologies this loaded DutView can have. One will be choosen according to the serialized technology loaded from the file.
+        classes_dut_view : List[type[DutView]]
+            All possible DutViews this loaded DutView can be. One will be choosen according to the serialized dutview class name loaded from the file.
+
+
 
         Returns
         -------
-        obj  :  DutLib()
-            Loaded object from the pickle file.
+        DutLib
+            Loaded object from the json or pickle file.
         """
         # pylint: disable=unused-variable
         lib_directory = Path(lib_directory).resolve()
@@ -571,7 +582,7 @@ class DutLib(object):
                 raise IOError("DMT.DutLib: Tried to load a DutLib with unkown version.")
 
             deem_types = [
-                DutType.deserialize_dict(deem_type) for deem_type in json_content["deem_types"]
+                DutType.deserialize(deem_type) for deem_type in json_content["deem_types"]
             ]
             dut_lib = DutLib(
                 deem_types=deem_types,
@@ -582,8 +593,8 @@ class DutLib(object):
                 n_jobs=json_content["n_jobs"],
             )
 
-            dut_lib.deem_short = DutType.deserialize_dict(json_content["deem_short"])
-            dut_lib.deem_open = DutType.deserialize_dict(json_content["deem_open"])
+            dut_lib.deem_short = DutType.deserialize(json_content["deem_short"])
+            dut_lib.deem_open = DutType.deserialize(json_content["deem_open"])
 
             dut_lib.dut_ref_dut_dir = json_content["dut_ref_dut_dir"]
             dut_lib.dut_intrinsic_dut_dir = json_content["dut_intrinsic_dut_dir"]
@@ -624,9 +635,7 @@ class DutLib(object):
                 DutView.load_dut(file_dut, classes_technology, classes_dut_view=classes_dut_view)
             )
         for file_dut in (dut_lib.save_dir / "duts").glob("**/*.p"):
-            dut_lib.duts.append(
-                DutView.load_dut(file_dut, classes_technology, classes_dut_view=classes_dut_view)
-            )
+            dut_lib.duts.append(DutView.load_dut(file_dut))
 
         # correct dut paths:
         if dut_lib.dut_ref_dut_dir is not None:
