@@ -31,11 +31,12 @@ import pandas as pd
 import warnings
 import _pickle as cpickle
 from pathlib import Path
+from pyarrow.lib import ArrowInvalid
 
 from DMT.config import DATA_CONFIG
 from DMT.core.data_frame import DataFrame
 from DMT.core.singleton import Singleton
-from DMT.core.naming import SpecifierStr
+from DMT.core.naming import SpecifierStr, get_specifier_from_string
 
 
 class DatabaseManager(object, metaclass=Singleton):
@@ -176,10 +177,6 @@ class DatabaseManager(object, metaclass=Singleton):
                     warnings.simplefilter("ignore")
                     db.put(key, df)
 
-                # cast back
-                # for col in df.columns:
-                #     df = df.rename(columns={SpecifierStr.string_from_load(col):col})
-
                 df = df.rename(columns=dict_reconvert)
             db.close()
         else:
@@ -191,7 +188,7 @@ class DatabaseManager(object, metaclass=Singleton):
             df.__class__ = DataFrame
 
     def del_db(self, db_dir):
-        """Delete the .h5 database for dut.
+        """Delete the database file for a dut.
 
         Parameters
         ----------
@@ -218,21 +215,52 @@ class DatabaseManager(object, metaclass=Singleton):
 
         file_name.parent.mkdir(parents=True, exist_ok=True)
 
-        df.to_pickle(str(file_name))
+        dict_convert = {}
+        for col in df.columns:
+            try:
+                dict_convert[col] = col.string_to_save()
+            except AttributeError:
+                pass
+        df_save = df.rename(columns=dict_convert, inplace=False)
+        df_save.to_feather(str(file_name), version=2, compression="lz4")
 
-    def load_df(self, file_name):
+    def load_df(self, file_name, to_specifier=True):
         """Load the data stored in file_name, where file_name is the direct path to the file.
 
         Parameters
         ----------
         file_name  :  str
             Direct path to the file
+        to_specifier : bool
+            If True, the column names are cast to specifiers. Only neeeded for feather files. Default is True.
 
         Returns
         -------
         df  :  DMT.core.DataFrame
             Loaded dataframe object.
         """
-        df = pd.read_pickle(str(file_name))
-        df.__class__ = DataFrame
+        try:
+            df = pd.read_feather(str(file_name))
+            df.__class__ = DataFrame
+
+            if to_specifier:
+                # here we should cast
+                dict_reconvert = {}
+                for col in df.columns:
+                    specifier = SpecifierStr.string_from_load(col)
+                    if not isinstance(specifier, SpecifierStr):
+                        # did not work so try default cast
+                        specifier = get_specifier_from_string(col)
+
+                    dict_reconvert[col] = specifier
+
+                df.rename(columns=dict_reconvert, inplace=True)
+                # prevent invisible column bug:
+                df = df.loc[:, ~df.columns.duplicated()]
+                if not df.columns.is_unique:
+                    raise IOError()
+
+        except ArrowInvalid:
+            df = pd.read_pickle(str(file_name))
+            df.__class__ = DataFrame
         return df

@@ -52,6 +52,7 @@ setuptools.setup(
         "scikit-rf",
         "reprint",
         "pandas",
+        "pyarrow",
         "joblib",
         "pytest",
         "pint",
