@@ -520,7 +520,7 @@ class DutView(object):
             serialized dictionary ready to be dumped to json.
         """
         if self.technology is None:
-            tech = tech
+            tech = self.technology
         else:
             tech = self.technology.serialize()
         return {

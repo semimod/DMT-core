@@ -5,7 +5,7 @@ import types
 import logging
 import numpy as np
 from pathlib import Path
-from DMT.core import DutType, Sweep, specifiers, SimCon, Plot, MCard
+from DMT.core import DutType, Sweep, specifiers, SimCon, Plot, MCard, DutView
 from DMT.core.circuit import (
     Circuit,
     CircuitElement,
@@ -257,6 +257,17 @@ def get_dut_sweep():
     return duts, sweep
 
 
+def test_dut_ngspice_save_load():
+    duts, _sweep = get_dut_sweep()
+
+    dut_orig = duts[0]
+    dut_orig.save()
+
+    dut_loaded = DutView.load_dut(dut_orig.save_dir / "dut.json", classes_dut_view=[DutNgspice])
+
+    assert dut_orig.name == dut_loaded.name
+
+
 def test_ngspice():
     col_vb = specifiers.VOLTAGE + "B"
     col_vc = specifiers.VOLTAGE + "C"
@@ -327,6 +338,7 @@ def test_ngspice():
 
 
 if __name__ == "__main__":
+    test_dut_ngspice_save_load()
     duts, sweep = get_dut_sweep()
 
     col_vbc = specifiers.VOLTAGE + ["B", "C"]

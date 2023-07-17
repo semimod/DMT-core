@@ -92,7 +92,7 @@ class DutNgspice(DutCircuit):
         self,
         database_dir,
         dut_type,
-        input_circuit,
+        inp_circuit,
         name="ngspice_",
         simulator_options=None,
         simulator_command=None,
@@ -100,6 +100,7 @@ class DutNgspice(DutCircuit):
         initial_conditions={},
         command_openvaf=COMMANDS["OPENVAF"],
         copy_va_files=False,
+        inp_name="ngspice_circuit.ckt",
         **kwargs,
     ):
         if simulator_command is None:
@@ -125,11 +126,11 @@ class DutNgspice(DutCircuit):
             database_dir,
             name,
             dut_type,
-            input_circuit,
+            inp_circuit,
             simulator_command=simulator_command,
             simulator_options=simulator_options,
             simulator_arguments=simulator_arguments,
-            inp_name="ngspice_circuit.ckt",
+            inp_name=inp_name,
             copy_va_files=copy_va_files,
             **kwargs,
         )
@@ -271,7 +272,7 @@ class DutNgspice(DutCircuit):
                         # if not: add to "to_compile"
                         self._osdi_imports.append(path_va)
 
-        self._osdi_imports = set(self._osdi_imports)  # unique...
+        self._osdi_imports = list(set(self._osdi_imports))  # unique...
         str_netlist += "\n* Netlist\n"
 
         # add elements:
