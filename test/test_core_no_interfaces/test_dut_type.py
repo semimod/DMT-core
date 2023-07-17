@@ -31,6 +31,10 @@ def test_subtypes():
     assert not DutType.tlmb.is_subtype(
         DutType.pn_diode
     )  # USE THIS!! To test for flags and not for special devices!
+    assert DutType.tlmb.is_subtype(DutType.tlm)
+
+    assert DutType.npn.is_subtype(DutType.bjt)
+    assert DutType.npn.is_subtype(DutType.transistor)
 
 
 def test_get_nodes():
@@ -41,11 +45,23 @@ def test_get_nodes():
 
 def test_to_string():
     npn = DutType.deem_open_bjt
-    assert str(npn) == "open"
+    assert str(npn) == "open-bjt"
+
+
+def test_serialize():
+    assert DutType.tetrode == DutType.deserialize_dict(DutType.tetrode.serialize_dict())
+    assert DutType.pin_diode == DutType.deserialize_dict(DutType.pin_diode.serialize_dict())
+    assert DutType.tlmbc == DutType.deserialize_dict(DutType.tlmbc.serialize_dict())
+    assert DutType.deem_short_bjt == DutType.deserialize_dict(
+        DutType.deem_short_bjt.serialize_dict()
+    )
+    assert DutType.deem_short_mos == DutType.deserialize_dict(
+        DutType.deem_short_mos.serialize_dict()
+    )
 
 
 if __name__ == "__main__":
     test_subtypes()
     test_get_nodes()
     test_to_string()
-    dummy = 1
+    test_serialize()
