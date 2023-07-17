@@ -336,8 +336,11 @@ class SimCon(object, metaclass=Singleton):
             sweep_folder = sim_folder.parts[-1]
             commands.append("rm -rf " + str(sim_path_on_server / dut_folder / sweep_folder))
 
+        # https://stackoverflow.com/questions/34181078/execute-command-and-wait-for-it-to-finish-with-python-paramiko?noredirect=1&lq=1
         for command in commands:
-            self.ssh_client.exec_command(command)
+            _stdin, stdout, _stderr = self.ssh_client.exec_command(command)
+            stdout.channel.set_combine_stderr(True)
+            _output = stdout.readlines()
 
         with NamedTemporaryFile() as path_zip:  # dut.get_sim_folder(sweep).relative_to(dut.sim_dir)
             with ZipFile(path_zip, "w") as zip_ref:
@@ -691,7 +694,7 @@ class SimCon(object, metaclass=Singleton):
                 if len(process_running) == 0 and len(sim_list) == 0:
                     finished = True
                 elif len(process_running) == self.n_core or len(sim_list) == 0:
-                    time.sleep(0.5)
+                    time.sleep(0.1)
 
         # print download status
         if self.scp_client is not None:

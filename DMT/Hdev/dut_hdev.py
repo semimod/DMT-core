@@ -305,6 +305,21 @@ class DutHdev(DutTcad):
                     + "/"
                 )
                 inp_str = inp_str + "\n" + bias_str
+            elif sub_sweep.sweep_type == "LOG":
+                bias_fun = "'LOG'"
+                ac_info = {
+                    "port1": "'" + self.ac_ports[0] + "'",
+                    "port2": "'" + self.ac_ports[1] + "'",
+                    "sweep_type": bias_fun,
+                    "freq_val": " ".join(["{0:3.2e}".format(val) for val in sub_sweep.value_def]),
+                }
+                # add sweep definition to inp file
+                bias_str = (
+                    "&AC_INFO "
+                    + "".join([name + "=" + str(value) + " " for name, value in ac_info.items()])
+                    + "/"
+                )
+                inp_str = inp_str + "\n" + bias_str
             else:
                 raise NotImplementedError
 
@@ -549,7 +564,11 @@ class DutHdev(DutTcad):
                 ac and len(dfs_inqu) > 0
             ):  # only one frequency simulated => post process (maybe also check for 1D)
                 if not len(freqs) == 2:
-                    raise IOError
+                    # use lowest frequency neq 0
+                    # freq_i = np.min(freqs[freqs>0])
+                    # df_iv = df
+                    pass
+
                 # post processing
                 # 1 general stuff
                 x = dfs_inqu[0]["X"].to_numpy()
@@ -557,7 +576,7 @@ class DutHdev(DutTcad):
                 junctions = (
                     np.where(np.sign(d[:-1]) != np.sign(d[1:]))[0] + 1
                 )  # detect sign changes
-                if junctions != []:  # no junction found
+                if junctions.size > 0:  # no junction found
                     xje = x[junctions[0]]
                     xjc = x[junctions[1]]
 
@@ -600,12 +619,17 @@ class DutHdev(DutTcad):
                                 for _key in self.data.keys()
                                 if "acinqu" in _key
                                 and "op" + str(i_row + 1) in _key
-                                and "port1" in _key
+                                and "dVb" in _key
                             )
 
                             # get the necessary data
                             df_ac_inqu_i = self.data[key_ac_inqu]
                             dn_dic = df_ac_inqu_i["re_d_n_x"].to_numpy() / gm[i_row + 1]
+                            try:
+                                dn2_dic = df_ac_inqu_i["re_d_n2_x"].to_numpy() / gm[i_row + 1]
+                            except KeyError:
+                                dn2_dic = df_ac_inqu_i["re_d_n_x"].to_numpy() / gm[i_row + 1]
+
                             dp_dic = df_ac_inqu_i["re_d_p_x"].to_numpy() / gm[i_row + 1]
                             droh_dic = dp_dic - dn_dic
                             # transit time
@@ -618,6 +642,9 @@ class DutHdev(DutTcad):
                             xbc = x[index_bc]
 
                             tau = np.zeros(len(x))
+                            taup = np.zeros(len(x))
+                            taun = np.zeros(len(x))
+                            taun2 = np.zeros(len(x))
                             for j, x_ in enumerate(x):
                                 if x_ <= xbe:
                                     tau[j] += np.trapz(dp_dic[:j], x[:j])
@@ -632,7 +659,14 @@ class DutHdev(DutTcad):
                                         dp_dic[:j], x[:j]
                                     )
 
+                                taun[j] = np.trapz(dn_dic[:j], x[:j])
+                                taup[j] = np.trapz(dp_dic[:j], x[:j])
+                                taun2[j] = np.trapz(dn2_dic[:j], x[:j])
+
                             tau = tau * constants.P_Q
+                            taun = taun * constants.P_Q
+                            taun2 = taun2 * constants.P_Q
+                            taup = taup * constants.P_Q
 
                             tau_e[i_row] = np.trapz(dp_dic[:index_be], x[:index_be]) * constants.P_Q
                             tau_be[i_row] = (
@@ -655,6 +689,9 @@ class DutHdev(DutTcad):
                             #     tau[j] = constants.P_Q * np.trapz(dm_dic[:j], x[:j])
 
                             self.data[key_inqu][specifiers.TRANSIT_TIME] = tau
+                            self.data[key_inqu]["TAUP"] = taup
+                            self.data[key_inqu]["TAUN"] = taun
+                            self.data[key_inqu]["TAUN2"] = taun2
 
                         df_iv["tau_e"] = tau_e
                         df_iv["tau_be"] = tau_be
@@ -906,17 +943,29 @@ class DutHdev(DutTcad):
 
         return mob
 
-    def get_intervalley_rate(self, semiconductor, valley_1, valley_2, field, temperature, doping):
+    def get_intervalley_rate(
+        self, semiconductor, valley_1, valley_2, field, temperature, doping, grad=0
+    ):
         if not DutHdev.inited:
             self.init_()
 
         rec = np.zeros_like(field)
         for i in range(len(field)):
             rec[i] = hdev_py.get_intervalley_rate_py(
-                semiconductor, valley_1, valley_2, field[i], doping, temperature
+                semiconductor, valley_1, valley_2, field[i], doping, temperature, grad
             )
 
         return rec
+
+    def get_pop(self, semiconductor, temperature, doping):
+        if not DutHdev.inited:
+            self.init_()
+
+        pop = np.zeros_like(doping)
+        for i in range(len(doping)):
+            pop[i] = hdev_py.get_pop_py(semiconductor, temperature, doping[i])
+
+        return pop
 
     def get_mobility_paras(self, semi, valley):
         if not DutHdev.inited:

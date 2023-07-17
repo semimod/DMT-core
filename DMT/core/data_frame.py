@@ -795,6 +795,8 @@ class DataFrame(DataProcessor, pd.DataFrame):
                     self = self.calc_cce(port_1=ports[0], port_2=ports[1])
                 elif nodes[0] == "B" and nodes[1] == "C":  # CBC
                     self = self.calc_cbc(port_1=ports[0], port_2=ports[1])
+                elif nodes[0] == "G" and nodes[1] == "S":  # CGS
+                    self = self.calc_cgs(port_1=ports[0], port_2=ports[1])
                 else:
                     raise KeyError("The " + "".join(nodes) + " capacitance can not be calculated.")
             except IOError as err:
@@ -864,6 +866,13 @@ class DataFrame(DataProcessor, pd.DataFrame):
         elif specifier == specifiers.TRANSCONDUCTANCE:
             try:
                 self = self.calc_gm()
+            except IOError as err:
+                raise KeyError(
+                    "The transconductance is missing in the given data frame and can not be calculated."
+                ) from err
+        elif specifier == specifiers.OUTPUT_CONDUCTANCE:
+            try:
+                self = self.calc_go()
             except IOError as err:
                 raise KeyError(
                     "The transconductance is missing in the given data frame and can not be calculated."
@@ -1878,6 +1887,45 @@ class DataFrame(DataProcessor, pd.DataFrame):
         self["K"] = self.processor.calc_k(self["FREQ"], s_para_values, "S")
         return self
 
+    def calc_cgs(self, port_1="B", port_2="C"):
+        """Calculates the gate-source capacitance CGS assuming PI equivalent circuit and common source configuration.
+
+        Returns
+        -------
+        :class:`DMT.core.DataFrame`
+            Dataframe that contains CBE.
+        """
+        # get values
+        s_para_values = self.get_ss_para("Y", port_1, port_2)
+
+        sp_cgs = specifiers.CAPACITANCE + ["G", "S"]
+
+        # put values in col of self
+        pd.options.mode.chained_assignment = (
+            None  # default='warn' , Markus: This should not warn here.
+        )
+        if port_1 == "G" and port_2 == "D":
+            self[sp_cgs] = self.processor.calc_cap_shunt_port_1(self["FREQ"], s_para_values, "Y")
+        elif port_1 == "D" and port_2 == "G":
+            self[sp_cgs] = self.processor.calc_cap_shunt_port_2(self["FREQ"], s_para_values, "Y")
+        elif port_1 == "G" and port_2 == "S":
+            self[sp_cgs] = self.processor.calc_cap_series_thru(self["FREQ"], s_para_values, "Y")
+        elif port_1 == "S" and port_2 == "B":
+            self[sp_cgs] = self.processor.calc_cap_series_thru(self["FREQ"], s_para_values, "Y")
+        elif port_1 == "S" and port_2 == "D":  # common base
+            self[sp_cgs] = self.processor.calc_cap_shunt_port_1(self["FREQ"], s_para_values, "Y")
+        elif port_1 == "S" and port_2 == "D":  # common base
+            self[sp_cgs] = self.processor.calc_cap_shunt_port_2(self["FREQ"], s_para_values, "Y")
+        elif port_1 == "D" and port_2 == "S":  # common base
+            self[sp_cgs] = self.processor.calc_cap_shunt_port_1(self["FREQ"], s_para_values, "Y")
+        else:
+            raise NotImplementedError(
+                "DMT -> DataFrame -> calc_cgs: transistor configuration not implemented."
+            )
+
+        pd.options.mode.chained_assignment = "warn"
+        return self
+
     def calc_cbe(self, port_1="B", port_2="C"):
         """Calculates the base-emitter junction capacitance CBE assuming PI equivalent circuit and common emitter configuration.
 
@@ -2026,6 +2074,27 @@ class DataFrame(DataProcessor, pd.DataFrame):
             self.loc[:, specifiers.TRANSCONDUCTANCE] = self.processor.calc_gm(
                 self[col_ic].to_numpy(), self[col_vbe].to_numpy()
             )
+
+        return self
+
+    def calc_go(self):
+        """Calculates the DC output condutance of a BJT.
+
+        Returns
+        -------
+        :class:`DMT.core.DataFrame`
+            Dataframe that contains the TRANSCONDUCTANCE
+        """
+        col_ic = specifiers.CURRENT + "C"
+        col_vce_forced = specifiers.VOLTAGE + "C" + "E" + sub_specifiers.FORCED
+
+        # get voltages
+        self.ensure_specifier_column(col_vce_forced)
+        self.ensure_specifier_column(col_ic)
+
+        self.loc[:, specifiers.OUTPUT_CONDUCTANCE] = self.processor.calc_go(
+            self[col_ic].to_numpy(), self[col_vce_forced].to_numpy()
+        )
 
         return self
 

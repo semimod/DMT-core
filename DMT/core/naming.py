@@ -566,6 +566,7 @@ class _specifiers(GlobalObj, metaclass=Singleton):
     # only derived quantities here
     DC_CURRENT_AMPLIFICATION = SpecifierStr("BETA")
     TRANSCONDUCTANCE = SpecifierStr("GM")
+    OUTPUT_CONDUCTANCE = SpecifierStr("GO")
     TRANSIT_FREQUENCY = SpecifierStr("F_T")
     MAXIMUM_OSCILLATION_FREQUENCY = SpecifierStr("F_MAX")
     MAXIMUM_AVAILABLE_GAIN = SpecifierStr("MAG")
@@ -793,6 +794,8 @@ def to_tex(self, subscript="", superscript=""):
         tex = r"f_{\mathrm{" + subscript + r"}}"
     elif self.specifier == specifiers.TRANSCONDUCTANCE:
         tex = r"g_{\mathrm{m," + subscript + r"}}"
+    elif self.specifier == specifiers.OUTPUT_CONDUCTANCE:
+        tex = r"g_{\mathrm{o," + subscript + r"}}"
     elif self.specifier == specifiers.TEMPERATURE:
         tex = r"T_{\mathrm{" + subscript + r"}}"
     elif self.specifier == specifiers.NET_DOPING:
@@ -1038,6 +1041,7 @@ natural_scales = {
     specifiers.CURRENT_DENSITY: 1e3 / (1e6 * 1e6),  # mA/um^2
     specifiers.MAXIMUM_OSCILLATION_FREQUENCY: 1e-9,
     specifiers.TRANSCONDUCTANCE: 1,
+    specifiers.OUTPUT_CONDUCTANCE: 1,
     specifiers.TRANSIT_FREQUENCY: 1e-9,
     specifiers.CAPACITANCE: 1e15,
     specifiers.CHARGE: 1e15,
