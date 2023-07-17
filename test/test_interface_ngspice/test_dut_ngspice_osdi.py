@@ -240,7 +240,7 @@ def sim_ngspice(sweep, build_in):
         command_openvaf = "openvaf"
 
     dut = DutNgspice(
-        None,
+        folder_path.parent / "tmp" / "duts",
         DutType.npn,
         mc_D21,
         simulator_command=command,
@@ -249,6 +249,7 @@ def sim_ngspice(sweep, build_in):
         nodes="C,B,E,S,T",
         reference_node="E",
         get_circuit_arguments={"use_build_in": build_in},
+        force=True,
     )
     sim_con = SimCon()
 

@@ -193,6 +193,16 @@ class DutView(object):
                 "DMT.DutView: The DutView name must not be a valid absolute directory path!"
             )
         self.name = name
+        self._copy_va_files = copy_va_files
+        # files to be copied into simulation directory
+        if list_copy is None:
+            self.list_copy = []
+        else:
+            if not isinstance(list_copy, list):
+                self.list_copy = [list_copy]
+            else:
+                self.list_copy = list_copy
+        self._list_va_file_contents: list[VAFileMap] = []
 
         # if the dut already exists and no force -> error!
         if self.save_dir:
@@ -206,18 +216,6 @@ class DutView(object):
                 raise IOError(
                     "DMT.DutView: Created a DutView with a save_dir which already exists. Better load that one or remove it."
                 )
-
-        self._copy_va_files = copy_va_files
-        # files to be copied into simulation directory
-        if list_copy is None:
-            self.list_copy = []
-        else:
-            if not isinstance(list_copy, list):
-                self.list_copy = [list_copy]
-            else:
-                self.list_copy = list_copy
-
-        self._list_va_file_contents: list[VAFileMap] = []
 
         # attributes for data management
         self._separate_databases = separate_databases
@@ -641,7 +639,12 @@ class DutView(object):
         return dut
 
     @classmethod
-    def from_json(cls, json_content: Dict, classes_technology: List[type[Technology]]) -> "DutView":
+    def from_json(
+        cls,
+        json_content: Dict,
+        classes_technology: List[type[Technology]],
+        subclass_kwargs: Dict = None,
+    ) -> "DutView":
         """Static class method. Loads a DutView object from a pickle file with full path save_dir.
 
         Parameters
@@ -650,6 +653,9 @@ class DutView(object):
             Readed dictionary from a saved json DutView.
         classes_technology : List[type[Technology]]
             All possible technologies this loaded DutView can have. One will be choosen according to the serialized technology loaded from the file.
+        subclass_args: List = None,
+            Positional arguments needed
+        subclass_kwargs: Dict = None,
 
         Returns
         -------
@@ -677,10 +683,14 @@ class DutView(object):
                     *args, **kwargs
                 )
 
+        if subclass_kwargs is None:
+            subclass_kwargs = {}
+
         dut_view = cls(
-            json_content["database_dir"],
-            json_content["name"],
-            DutType.deserialize(json_content["dut_type"]),
+            database_dir=json_content["database_dir"],
+            name=json_content["name"],
+            dut_type=DutType.deserialize(json_content["dut_type"]),
+            **subclass_kwargs,
             reference_node=json_content["reference_node"],
             copy_va_files=json_content["copy_va_files"],
             force=False,

@@ -205,9 +205,10 @@ def get_dut_build_in():
     modelcard.update_from_vae(remove_old_parameters=True)
     modelcard.get_circuit = types.MethodType(get_circuit, modelcard)
     return DutXyce(
-        None,
+        folder_path.parent / "tmp" / "duts",
         DutType.npn,
         modelcard,
+        force=True,
         name="Xyce_BI_",
         nodes="C,B,E,S,T",
         copy_va_files=True,
@@ -229,9 +230,10 @@ def get_dut_va():
     modelcard.update_from_vae(remove_old_parameters=True)
     modelcard.get_circuit = types.MethodType(get_circuit, modelcard)
     return DutXyce(
-        None,
+        folder_path.parent / "tmp" / "duts",
         DutType.npn,
         modelcard,
+        force=True,
         name="Xyce_VA_",
         nodes="C,B,E,S,T",
         copy_va_files=True,

@@ -220,8 +220,22 @@ def get_dut_sweep():
     mc_D21.update_from_vae(remove_old_parameters=True)
     mc_D21.get_circuit = types.MethodType(get_circuit, mc_D21)
 
-    dut = DutNgspice(None, DutType.npn, mc_D21, nodes="C,B,E,S,T", reference_node="E")
-    # dut = DutXyce(None, DutType.npn, mc_D21, nodes="C,B,E,S,T", reference_node="E")
+    dut = DutNgspice(
+        folder_path.parent / "tmp" / "duts",
+        DutType.npn,
+        mc_D21,
+        nodes="C,B,E,S,T",
+        reference_node="E",
+        force=True,
+    )
+    # dut = DutXyce(
+    #     folder_path.parent / "tmp" / "duts",
+    #     DutType.npn,
+    #     mc_D21,
+    #     nodes="C,B,E,S,T",
+    #     reference_node="E",
+    #     force=True,
+    # )
     duts = [dut]
 
     # create a sweep

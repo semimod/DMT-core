@@ -25,7 +25,15 @@ Author: Mario Krattenmacher | Mario.Krattenmacher@semimod.de
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 import copy
 import logging
-from DMT.core import create_md5_hash, DutView
+from typing import List, Dict
+from DMT.core import create_md5_hash, DutView, Technology
+
+try:
+    from semver.version import Version as VersionInfo
+except ImportError:
+    from semver import VersionInfo
+
+SEMVER_DUTTCAD_CURRENT = VersionInfo(major=1, minor=0)
 
 
 class DutTcad(DutView):
@@ -119,6 +127,67 @@ class DutTcad(DutView):
             "Successfully created input header of dut %s%s!", self.name, str(self.get_hash())
         )
         logging.debug("Content:\n%s", self._inp_header)
+
+    def info_json(self, **_kwargs) -> Dict:
+        """Returns a dict with serializeable content for the json file to create.
+
+        The topmost dict MUST have only one key: The string casted class name.
+        Inside the parameters are:
+
+            * A version key,
+            * all extra parameters of DutTcad compared to DutView and
+            * the info_json of DutView.
+
+        Returns
+        -------
+        dict
+            str(DutTcad): serialized content
+        """
+        return {
+            str(DutTcad): {
+                "__DutTcad__": str(SEMVER_DUTTCAD_CURRENT),
+                "parent": super(DutTcad, self).info_json(**_kwargs),
+                "inp_header": self.inp_header,
+            }
+        }
+
+    @classmethod
+    def from_json(
+        cls,
+        json_content: Dict,
+        classes_technology: List[type[Technology]],
+        subclass_kwargs: Dict = None,
+    ) -> "DutTcad":
+        """Static class method. Loads a DutTcad object from a pickle file with full path save_dir.
+
+        Calls the from_json method of DutView with all dictionary inside the "parent" keyword. Afterwards the additional parameters are set correctly.
+
+        Parameters
+        ----------
+        json_content  :  dict
+            Readed dictionary from a saved json DutTcad.
+        classes_technology : List[type[Technology]]
+            All possible technologies this loaded DutTcad can have. One will be choosen according to the serialized technology loaded from the file.
+        subclass_kwargs : Dict, optional
+            Additional kwargs necessary to create the concrete subclassed DutView.
+
+        Returns
+        -------
+        DutTcad
+            Loaded object.
+        """
+        if json_content["__DutTcad__"] != SEMVER_DUTTCAD_CURRENT:
+            raise NotImplementedError("DMT.DutTcad: Unknown version of DutTcad to load!")
+
+        if subclass_kwargs is None:
+            subclass_kwargs = {}
+        subclass_kwargs["inp_structure"] = json_content["inp_header"]
+
+        dut_view = super().from_json(
+            json_content["parent"], classes_technology, subclass_kwargs=subclass_kwargs
+        )
+
+        return dut_view
 
     def get_hash(self):
         """Returns a md5 hash generated from self.inp_header, if it is not set, this will return False!

@@ -697,6 +697,11 @@ class McParameterCollection(object):
         if not isinstance(file_path, Path):
             file_path = Path(file_path)
 
+        str_content = self.dumps_json(**kwargs)
+
+        file_path.write_text(str_content, encoding="utf8")
+
+    def dumps_json(self, **kwargs):
         content = []
         for para in sorted(self.paras, key=lambda x: (x.group, x.name)):
             content.append(para.dict_json())
@@ -709,7 +714,7 @@ class McParameterCollection(object):
         str_content = str_content[:-1]
         str_content += "]"
 
-        file_path.write_text(str_content, encoding="utf8")
+        return str_content
 
     @classmethod
     def load_json(
@@ -744,8 +749,43 @@ class McParameterCollection(object):
         if not isinstance(file_path, Path):
             file_path = Path(file_path)
 
-        with file_path.open("r", encoding="utf8") as file_json:
-            content = json.load(file_json)
+        return cls.loads_json(
+            file_path.read_text(encoding="utf8"),
+            directory_va_file=directory_va_file,
+            ignore_checksum=ignore_checksum,
+        )
+
+    @classmethod
+    def loads_json(
+        cls,
+        s: str,
+        directory_va_file: Union[str, Path, None] = None,
+        ignore_checksum: bool = False,
+    ) -> McParameterCollection:
+        """Loads the json string, creates the McParameterCollection (or inherited) and adds the McParameters.
+
+        Parameters
+        ----------
+        file_path : Union[str, Path]
+            string with the json.
+        directory_va_file : Union[str, Path, None], optional
+            If a relative path to a va_file is set in the modelcard, pass the absolute path to the start folder here, by default None.
+            This can be used to load old json modelcards from before saving the full code with the parameters.
+        ignore_checksum : bool, optional
+            When the code is saved compressed, a checksum is saved with it. If you want to ignore the checksum set this to true, by default False
+
+
+        Returns
+        -------
+        McParameterCollection
+            The loaded collection
+
+        Raises
+        ------
+        IOError
+            If the collection dictionary is not found in the json file.
+        """
+        content = json.loads(s)
 
         collection = None
         for dict_content in content:
