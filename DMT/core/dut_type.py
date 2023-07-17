@@ -20,6 +20,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
+import warnings
 from enum import Flag, auto, unique
 
 
@@ -359,7 +360,17 @@ class DutType(object):
 
                 dut_type = dut_type_int
             # just be sure...
-            dut_type.nodes = dict_loaded["nodes"]
+            if dut_type is None:
+                warnings.warn(
+                    "DMT.DutType: Did not find the loaded duttype with the string '"
+                    + dict_loaded["string"]
+                    + "' in the current DMT version."
+                )
+                dut_type = DutTypeInt(
+                    dict_loaded["value"], string=dict_loaded["string"], nodes=dict_loaded["nodes"]
+                )
+            else:
+                dut_type.nodes = dict_loaded["nodes"]
         else:
             raise IOError(
                 "DMT.DutType: I dont know how to deserealize the DutType: " + dict_loaded["DutType"]

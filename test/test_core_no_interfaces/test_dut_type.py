@@ -1,5 +1,6 @@
 """ Testing the class DMT.core.DutType """
 
+import warnings
 import logging
 from pathlib import Path
 
@@ -58,6 +59,17 @@ def test_serialize():
     assert DutType.deem_short_mos == DutType.deserialize_dict(
         DutType.deem_short_mos.serialize_dict()
     )
+
+    with warnings.catch_warnings(record=True):
+        DutType.deserialize_dict(
+            {
+                "DutType": "DMT.core.dut_type.DutTypeInt",
+                "string": "definitily_newer_used_dut_type_name!!",
+                "value": -1,
+                "nodes": ["abc", "efd"],
+                "__DutType__": "1.0.0",
+            }
+        )
 
 
 if __name__ == "__main__":
