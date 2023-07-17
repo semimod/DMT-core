@@ -43,6 +43,12 @@ import numpy as np
 import pandas as pd
 import subprocess
 from pathlib import Path
+from typing import List, Dict
+
+try:
+    from semver.version import Version as VersionInfo
+except ImportError:
+    from semver import VersionInfo
 
 from DMT.config import COMMANDS
 from DMT.core import (
@@ -55,10 +61,13 @@ from DMT.core import (
     sub_specifiers,
     McParameterCollection,
     SweepDef,
+    Technology,
 )
 from DMT.core.circuit import SGP_BJT, VOLTAGE, CURRENT, HICUML2_HBT, SHORT, DIODE
 
 from DMT.exceptions import SimulationUnsuccessful
+
+SEMVER_DUTNGSPICE_CURRENT = VersionInfo(major=1, minor=0)
 
 
 class DutNgspice(DutCircuit):
@@ -124,6 +133,71 @@ class DutNgspice(DutCircuit):
             copy_va_files=copy_va_files,
             **kwargs,
         )
+
+    def info_json(self, **_kwargs) -> Dict:
+        """Returns a dict with serializeable content for the json file to create.
+
+        The topmost dict MUST have only one key: The string casted class name.
+        Inside the parameters are:
+
+            * A version key,
+            * all extra parameters of DutNgspice compared to DutCircuit and
+            * the info_json of DutCircuit.
+
+        Returns
+        -------
+        dict
+            str(DutNgspice): serialized content
+        """
+
+        return {
+            str(DutNgspice): {
+                "__DutNgspice__": str(SEMVER_DUTNGSPICE_CURRENT),
+                "parent": super(DutNgspice, self).info_json(**_kwargs),
+                "initial_conditions": self.initial_conditions,
+                "devices_op_vars": self.devices_op_vars,
+                "_osdi_imports": self._osdi_imports,
+                "command_openvaf": self.command_openvaf,
+            }
+        }
+
+    @classmethod
+    def from_json(
+        cls,
+        json_content: Dict,
+        classes_technology: List[type[Technology]],
+        subclass_kwargs: Dict = None,
+    ) -> "DutNgspice":
+        """Static class method. Loads a DutNgspice object from a json or pickle file with full path save_dir.
+
+        Calls the from_json method of DutView with all dictionary inside the "parent" keyword. Afterwards the additional parameters are set correctly.
+
+        Parameters
+        ----------
+        json_content  :  dict
+            Readed dictionary from a saved json DutNgspice.
+        classes_technology : List[type[Technology]]
+            All possible technologies this loaded DutNgspice can have. One will be choosen according to the serialized technology loaded from the file.
+        subclass_kwargs : Dict, optional
+            Additional kwargs necessary to create the concrete subclassed DutView.
+
+        Returns
+        -------
+        DutNgspice
+            Loaded object.
+        """
+        if json_content["__DutNgspice__"] != SEMVER_DUTNGSPICE_CURRENT:
+            raise NotImplementedError("DMT.DutNgspice: Unknown version of DutNgspice to load!")
+
+        dut_view = super().from_json(
+            json_content["parent"], classes_technology, subclass_kwargs=subclass_kwargs
+        )
+        dut_view.initial_conditions = json_content["initial_conditions"]
+        dut_view.devices_op_vars = json_content["devices_op_vars"]
+        dut_view._osdi_imports = json_content["_osdi_imports"]
+        dut_view.command_openvaf = json_content["command_openvaf"]
+
+        return dut_view
 
     def create_inp_header(self, inp_circuit: Union[MCard, McParameterCollection, Circuit]):
         """Creates the input header of the given circuit description and returns it.

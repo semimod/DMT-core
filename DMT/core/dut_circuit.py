@@ -160,14 +160,12 @@ class DutCircuit(DutView):
         if self._modelcard is not None:
             modelcard = self._modelcard.dumps_json()
         return {
-            str(DutCircuit): {
-                "__DutCircuit__": str(SEMVER_DUTCIRCUIT_CURRENT),
-                "parent": super(DutCircuit, self).info_json(**_kwargs),
-                "inp_header": self.inp_header,
-                "simulator_options": self.simulator_options,
-                "get_circuit_arguments": self.get_circuit_arguments,
-                "modelcard": modelcard,
-            }
+            "__DutCircuit__": str(SEMVER_DUTCIRCUIT_CURRENT),
+            "parent": super(DutCircuit, self).info_json(**_kwargs),
+            "inp_header": self.inp_header,
+            "simulator_options": self.simulator_options,
+            "get_circuit_arguments": self.get_circuit_arguments,
+            "modelcard": modelcard,
         }
 
     @classmethod
@@ -195,7 +193,7 @@ class DutCircuit(DutView):
         DutTcad
             Loaded object.
         """
-        if json_content["__DutCircuit"] != SEMVER_DUTCIRCUIT_CURRENT:
+        if json_content["__DutCircuit__"] != SEMVER_DUTCIRCUIT_CURRENT:
             raise NotImplementedError("DMT.DutCircuit: Unknown version of DutCircuit to load!")
 
         if subclass_kwargs is None:

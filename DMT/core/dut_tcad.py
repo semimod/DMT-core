@@ -144,11 +144,9 @@ class DutTcad(DutView):
             str(DutTcad): serialized content
         """
         return {
-            str(DutTcad): {
-                "__DutTcad__": str(SEMVER_DUTTCAD_CURRENT),
-                "parent": super(DutTcad, self).info_json(**_kwargs),
-                "inp_header": self.inp_header,
-            }
+            "__DutTcad__": str(SEMVER_DUTTCAD_CURRENT),
+            "parent": super(DutTcad, self).info_json(**_kwargs),
+            "inp_header": self.inp_header,
         }
 
     @classmethod

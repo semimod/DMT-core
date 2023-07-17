@@ -28,6 +28,12 @@ import numpy as np
 import pandas as pd
 import time
 from pathlib import Path
+from typing import List, Dict
+
+try:
+    from semver.version import Version as VersionInfo
+except ImportError:
+    from semver import VersionInfo
 
 from DMT.config import DATA_CONFIG
 from DMT.core import (
@@ -43,6 +49,7 @@ from DMT.core import (
     DataFrame,
     constants,
     print_progress_bar,
+    Technology,
 )
 from DMT.core.circuit import (
     Circuit,
@@ -56,6 +63,8 @@ from DMT.core.circuit import (
     SGP_BJT,
 )
 from DMT.exceptions import SimulationUnsuccessful, SimulationFail
+
+SEMVER_DUTXYCE_CURRENT = VersionInfo(major=1, minor=0)
 
 
 class DutXyce(DutCircuit):
@@ -105,6 +114,66 @@ class DutXyce(DutCircuit):
                 "It could work for non-VA Duts, but needs testing.",
                 "Verilog Xyce does not work for sure.",
             )
+
+    def info_json(self, **_kwargs) -> Dict:
+        """Returns a dict with serializeable content for the json file to create.
+
+        The topmost dict MUST have only one key: The string casted class name.
+        Inside the parameters are:
+
+            * A version key,
+            * all extra parameters of DutXyce compared to DutCircuit and
+            * the info_json of DutCircuit.
+
+        Returns
+        -------
+        dict
+            str(DutXyce): serialized content
+        """
+
+        return {
+            str(DutXyce): {
+                "__DutXyce__": str(SEMVER_DUTXYCE_CURRENT),
+                "parent": super(DutXyce, self).info_json(**_kwargs),
+                "build_xyce_plugin_command": self.build_xyce_plugin_command,
+                "_va_plugins_to_compile": self._va_plugins_to_compile,
+            }
+        }
+
+    @classmethod
+    def from_json(
+        cls,
+        json_content: Dict,
+        classes_technology: List[type[Technology]],
+        subclass_kwargs: Dict = None,
+    ) -> "DutXyce":
+        """Static class method. Loads a DutXyce object from a json or pickle file with full path save_dir.
+
+        Calls the from_json method of DutView with all dictionary inside the "parent" keyword. Afterwards the additional parameters are set correctly.
+
+        Parameters
+        ----------
+        json_content  :  dict
+            Readed dictionary from a saved json DutNgspice.
+        classes_technology : List[type[Technology]]
+            All possible technologies this loaded DutNgspice can have. One will be choosen according to the serialized technology loaded from the file.
+        subclass_kwargs : Dict, optional
+            Additional kwargs necessary to create the concrete subclassed DutView.
+
+        Returns
+        -------
+        DutXyce
+            Loaded object.
+        """
+        if json_content["__DutXyce__"] != SEMVER_DUTXYCE_CURRENT:
+            raise NotImplementedError("DMT.DutXyce: Unknown version of DutXyce to load!")
+
+        dut_view = super().from_json(
+            json_content["parent"], classes_technology, subclass_kwargs=subclass_kwargs
+        )
+        dut_view.build_xyce_plugin_command = json_content["build_xyce_plugin_command"]
+        dut_view._va_plugins_to_compile = json_content["_va_plugins_to_compile"]
+        return dut_view
 
     def create_inp_header(self, inp_circuit):
         """Creates the input header of the given circuit description and returns it.
