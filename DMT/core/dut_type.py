@@ -176,6 +176,19 @@ class DutTypeInt(object):
     def bit_length(self):
         return self.value.bit_length()
 
+    def serialize_dict(self):
+        "Converts the DutTypeInt into a dictionary with only strings (ready to be serealized to json)"
+        dut_type = repr(self)
+        i_start = 1  # cut away starting "<"
+        i_end = dut_type.find(" object")
+        return {
+            "DutType": dut_type[i_start:i_end],
+            "string": self.string,
+            "value": self.value,
+            "nodes": self.nodes,
+            "__DutType__": "1.0.0",
+        }
+
 
 @unique  # do not allow same values for different types
 class DutTypeFlag(Flag):
@@ -226,7 +239,7 @@ class DutTypeFlag(Flag):
         nodes  :  list of strings
             List of strings
         """
-        return ""
+        return []
 
     def get_string(self):
         """
@@ -241,6 +254,19 @@ class DutTypeFlag(Flag):
 
     def __str__(self):
         return str(self.value.__class__)
+
+    def serialize_dict(self):
+        "Converts the DutTypeFlag into a dictionary with only strings (ready to be serealized to json)"
+        dut_type = repr(self)
+        i_start = 1  # cut away starting "<"
+        i_end = dut_type.find(":")
+        return {
+            "DutType": dut_type[i_start:i_end],
+            "string": self.get_string(),
+            "value": self.value,
+            "nodes": self.get_nodes(),
+            "__DutType__": "1.0.0",
+        }
 
 
 class DutType(object):
@@ -304,3 +330,29 @@ class DutType(object):
     cap_ac = DutTypeInt(
         cap | meas_struct, nodes=["L", "R", "G", "S"], string="capacitance-ac"
     )  # capacitance in GSG pads, each pad is one Capacitance, so S(1,1) and S(2,2) are wanted...
+
+    @classmethod
+    def deserialize_dict(cls, dict_loaded):
+        """Static class method to create a DutType from a loaded dictionary.
+
+        Returns
+        -------
+        DutTypeInt or DutTypeFlag
+            DutType ready to be used.
+        """
+        if "DutTypeFlag" in dict_loaded["DutType"]:
+            dut_type = getattr(DutTypeFlag, dict_loaded["DutType"].split(".")[1])
+            # just be sure...
+            dut_type.nodes = dict_loaded["nodes"]
+            dut_type.string = dict_loaded["string"]
+        elif "DutTypeInt" in dict_loaded["DutType"]:
+            dut_type = getattr(cls, dict_loaded["string"])
+            # just be sure...
+            dut_type.nodes = dict_loaded["nodes"]
+            dut_type.string = dict_loaded["string"]
+        else:
+            raise IOError(
+                "DMT.DutType: I dont know how to deserealize the DutType: " + dict_loaded["DutType"]
+            )
+
+        return dut_type

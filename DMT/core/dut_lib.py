@@ -24,16 +24,24 @@ import copy
 import re
 import filecmp
 import numpy as np
+import json
 from pathlib import Path
 from joblib import Parallel, delayed
 from DMT.core import DutType, DutTypeFlag, print_progress_bar, DutView
 from DMT.exceptions import NoOpenDeembeddingDut, NoShortDeembeddingDut
 
 try:
+    from semver.version import Version as VersionInfo
+except ImportError:
+    from semver import VersionInfo
+
+try:
     from pylatex import Section, Subsection, SmallText, Tabular, NoEscape, Center
     from DMT.external.pylatex import Tex
 except ImportError:
     pass
+
+SEMVER_DUTLIB_CURRENT = VersionInfo(major=1, minor=0)
 
 
 class __Filter(object):
@@ -303,9 +311,13 @@ class DutLib(object):
     def save_dir(self, path):
         """Ensures an empty folder for the DutLib"""
         path = Path(path).resolve()
-        if (path / "dut_lib.p").is_file():
+        if (path / "dut_lib.json").is_file():
             raise FileExistsError(
                 "The path you chose is already used by an other library! Either delete the already existing library or load it."
+            )
+        if (path / "dut_lib.p").is_file():
+            raise FileExistsError(
+                "The path you chose is already used by an older library! Either delete the already existing library or load it."
             )
 
         self._save_dir = path
@@ -449,25 +461,33 @@ class DutLib(object):
             self.duts.append(duts)
 
     def save(self):
-        """Save the DutLib to save_dir."""
+        """Save the DutLib to save_dir.
+
+        The DutLib will be saved as a json file and in the folder "duts" there will be the DutViews.
+        It will save all the DutViews including the ignored ones.
+
+        """
         assert self.save_dir is not None
 
-        if not os.path.isabs(self.save_dir):
-            self._save_dir = os.path.abspath(self.save_dir)
+        if not self.save_dir.is_absolute():
+            self._save_dir = self.save_dir.absolute()
 
-        if not os.path.exists(self.save_dir):
-            os.makedirs(self.save_dir)
+        self.save_dir.mkdir(parents=True, exist_ok=True)
 
         ignore_duts = copy.deepcopy(self.ignore_duts)
         self.ignore_duts = []  # save all duts, even the one who were ignored
         for dut in self.duts:
-            if dut.database_dir != os.path.join(self.save_dir, "duts"):
+            if dut.database_dir != self.save_dir / "duts":
                 try:  # if enough data available, sort by wafer and dies
-                    directory = os.path.join(
-                        self.save_dir, "duts", "wafer_" + str(dut.wafer), "die_" + str(dut.die)
+                    directory = (
+                        self.save_dir
+                        / "duts"
+                        / ("wafer_" + str(dut.wafer))
+                        / ("die_" + str(dut.die))
                     )
+
                 except:
-                    directory = os.path.join(self.save_dir, "duts")
+                    directory = self.save_dir / "duts"
                 dut.database_dir = directory
 
             dut.save()
@@ -500,12 +520,37 @@ class DutLib(object):
                 )
 
         self.ignore_duts = ignore_duts  # but save the list ignore
-        with open(os.path.join(self.save_dir, "dut_lib.p"), "wb") as handle:
-            cpickle.dump(self, handle)
+
+        dict_content = {
+            "deem_types": [deem_type.serialize_dict() for deem_type in self.deem_types],
+            "AC_filter_names": self.AC_filter_names,
+            "DC_filter_names": self.DC_filter_names,
+            "is_deembedded_AC": self.is_deembedded_AC,
+            "is_deembedded_DC": self.is_deembedded_DC,
+            "deem_open": self.deem_open.serialize_dict(),
+            "deem_short": self.deem_short.serialize_dict(),
+            # self.duts = []  # the Duts will be loaded from the saved files not by saving the list here.
+            "dut_ref_dut_dir": str(self.dut_ref_dut_dir),
+            "dut_intrinsic_dut_dir": str(self.dut_intrinsic_dut_dir),
+            "dut_internal_dut_dir": str(self.dut_internal_dut_dir),
+            "ignore_duts": "["
+            + ",".join(dut_name for dut_name in self.ignore_duts)
+            + "]",  # list of names which are not returned while iteration
+            "n_jobs": self.n_jobs,
+            "wafer": self.wafer,
+            "date_tapeout": self.date_tapeout,
+            "date_received": self.date_received,
+            "__DutLib__": str(
+                SEMVER_DUTLIB_CURRENT
+            ),  # make versions, so we can introduce compatibility here!}
+        }
+
+        file_path = self.save_dir / "dut_lib.json"
+        file_path.write_text(json.dumps(dict_content, indent=4), encoding="utf8")
 
     @staticmethod
     def load(lib_directory):
-        """Static class method. Loads a DutLib object from a pickle file with full path lib_directory.
+        """Static class method. Loads a DutLib object from a pickle or json file with full path lib_directory.
 
         Parameters
         ----------
@@ -519,9 +564,44 @@ class DutLib(object):
         """
         # pylint: disable=unused-variable
         lib_directory = Path(lib_directory).resolve()
-        with (lib_directory / "dut_lib.p").open(mode="rb") as handle:
-            dut_lib = cpickle.load(handle)
-            dut_lib._save_dir = Path(dut_lib.save_dir)  # pylint: disable=protected-access
+        if (lib_directory / "dut_lib.json").exists():
+            with (lib_directory / "dut_lib.json").open("r", encoding="utf8") as file_json:
+                json_content = json.load(file_json)
+            if not json_content["__DutLib__"] == SEMVER_DUTLIB_CURRENT:
+                raise IOError("DMT.DutLib: Tried to load a DutLib with unkown version.")
+
+            deem_types = [
+                DutType.deserialize_dict(deem_type) for deem_type in json_content["deem_types"]
+            ]
+            dut_lib = DutLib(
+                deem_types=deem_types,
+                AC_filter_names=json_content["AC_filter_names"],
+                DC_filter_names=json_content["DC_filter_names"],
+                is_deembedded_DC=json_content["is_deembedded_DC"],
+                is_deembedded_AC=json_content["is_deembedded_AC"],
+                n_jobs=json_content["n_jobs"],
+            )
+
+            dut_lib.deem_short = DutType.deserialize_dict(json_content["deem_short"])
+            dut_lib.deem_open = DutType.deserialize_dict(json_content["deem_open"])
+
+            dut_lib.dut_ref_dut_dir = json_content["dut_ref_dut_dir"]
+            dut_lib.dut_intrinsic_dut_dir = json_content["dut_intrinsic_dut_dir"]
+            dut_lib.dut_internal_dut_dir = json_content["dut_internal_dut_dir"]
+
+            dut_lib.ignore_duts = json_content["ignore_duts"]
+            dut_lib.wafer = json_content["wafer"]
+            dut_lib.date_tapeout = json_content["date_tapeout"]
+            dut_lib.date_received = json_content["date_received"]
+
+        elif (lib_directory / "dut_lib.p").exists():
+            with (lib_directory / "dut_lib.p").open(mode="rb") as handle:
+                dut_lib = cpickle.load(handle)
+                dut_lib._save_dir = Path(dut_lib.save_dir)  # pylint: disable=protected-access
+        else:
+            raise IOError(
+                "DMT.DutLib: Loading failed since no DutLib file was found (supported are json and pickle)."
+            )
 
         save_dir_old = ""
         # need to cast paths? This is needed when the machine is changed -> new absolute paths...
