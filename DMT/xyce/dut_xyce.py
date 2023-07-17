@@ -50,6 +50,7 @@ from DMT.core import (
     constants,
     print_progress_bar,
     Technology,
+    VAFileMap,
 )
 from DMT.core.circuit import (
     Circuit,
@@ -131,13 +132,16 @@ class DutXyce(DutCircuit):
         dict
             str(DutXyce): serialized content
         """
+        va_plugins_to_compile = []
+        for path, va_file in self._va_plugins_to_compile:
+            va_plugins_to_compile.append((str(path), va_file.export_dict()))
 
         return {
             str(DutXyce): {
                 "__DutXyce__": str(SEMVER_DUTXYCE_CURRENT),
                 "parent": super(DutXyce, self).info_json(**_kwargs),
                 "build_xyce_plugin_command": self.build_xyce_plugin_command,
-                "_va_plugins_to_compile": self._va_plugins_to_compile,
+                "_va_plugins_to_compile": va_plugins_to_compile,
             }
         }
 
@@ -173,7 +177,11 @@ class DutXyce(DutCircuit):
             json_content["parent"], classes_technology, subclass_kwargs=subclass_kwargs
         )
         dut_view.build_xyce_plugin_command = json_content["build_xyce_plugin_command"]
-        dut_view._va_plugins_to_compile = json_content["_va_plugins_to_compile"]
+        dut_view._va_plugins_to_compile = []
+
+        for path, va_file in json_content["_va_plugins_to_compile"]:
+            dut_view._va_plugins_to_compile.append((Path(path), VAFileMap.import_dict(va_file)))
+
         return dut_view
 
     def create_inp_header(self, inp_circuit):
