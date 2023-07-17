@@ -52,13 +52,18 @@ unit_converter = {
     "sec": unit_registry.second,
     "A": unit_registry.ampere,
     "A^2s": unit_registry.ampere * unit_registry.ampere * unit_registry.second,
-    "A/V^3": unit_registry.ampere / unit_registry.volt/ unit_registry.volt/ unit_registry.volt,
+    "A/V^3": unit_registry.ampere / unit_registry.volt / unit_registry.volt / unit_registry.volt,
     "V": unit_registry.volt,
     "1/V": 1 / unit_registry.volt,
     "V^-1": 1 / unit_registry.volt,
-    "V^-1/m^2": 1 / unit_registry.volt/ unit_registry.meter/ unit_registry.meter,
-    "V^-1/m^4": 1 / unit_registry.volt/ unit_registry.meter/ unit_registry.meter/ unit_registry.meter/ unit_registry.meter,
-    "V^-0.5": 1 / unit_registry.volt, #TODO
+    "V^-1/m^2": 1 / unit_registry.volt / unit_registry.meter / unit_registry.meter,
+    "V^-1/m^4": 1
+    / unit_registry.volt
+    / unit_registry.meter
+    / unit_registry.meter
+    / unit_registry.meter
+    / unit_registry.meter,
+    "V^-0.5": 1 / unit_registry.volt,  # TODO
     "K": unit_registry.kelvin,
     "J/K": unit_registry.joule / unit_registry.kelvin,
     "1/K": 1 / unit_registry.kelvin,
@@ -66,7 +71,7 @@ unit_converter = {
     "C": unit_registry.celsius,
     "ohm": unit_registry.ohm,
     "Ohm": unit_registry.ohm,
-    "Ohm/sq": unit_registry.ohm, #TODO
+    "Ohm/sq": unit_registry.ohm,  # TODO
     "Ohm m^2": unit_registry.ohm * unit_registry.meter * unit_registry.meter,
     "F": unit_registry.farad,
     "Coul": unit_registry.coulomb,
@@ -79,7 +84,10 @@ unit_converter = {
     "m/V": unit_registry.meter / unit_registry.volt,
     "m": unit_registry.meter,
     "m^2": unit_registry.meter * unit_registry.meter,
-    "m^2/V/s": unit_registry.meter * unit_registry.meter / unit_registry.volt / unit_registry.second,
+    "m^2/V/s": unit_registry.meter
+    * unit_registry.meter
+    / unit_registry.volt
+    / unit_registry.second,
     "Am^-1": unit_registry.ampere / unit_registry.meter,
     "Am^-2": unit_registry.ampere / unit_registry.meter / unit_registry.meter,
     "Am^-3": unit_registry.ampere / unit_registry.meter / unit_registry.meter / unit_registry.meter,
@@ -93,7 +101,7 @@ unit_converter = {
     "Fm^-2": unit_registry.farad / unit_registry.meter / unit_registry.meter,
     "cm^-3": 1 / unit_registry.meter / unit_registry.meter / unit_registry.meter,  # mhm centi ?
     "Vm^-1": unit_registry.volt / unit_registry.meter,
-    "m^-3": 1 / unit_registry.meter/ unit_registry.meter/ unit_registry.meter,
+    "m^-3": 1 / unit_registry.meter / unit_registry.meter / unit_registry.meter,
     "Vm": unit_registry.volt * unit_registry.meter,
     "VA^-1m": unit_registry.volt / unit_registry.ampere * unit_registry.meter,
     "VA^-1m^2": unit_registry.volt
