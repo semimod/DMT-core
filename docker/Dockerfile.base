@@ -1,3 +1,7 @@
+# build with:
+# docker login registry.gitlab.com
+# docker pull registry.gitlab.com/dmt-development/dmt-core:base
+# docker build -f Dockerfile.base -t registry.gitlab.com/dmt-development/dmt-core:base .
 FROM ubuntu:22.04
 
 # python stuff and runtime dependencies
@@ -53,6 +57,6 @@ RUN \
 # pip
 RUN pip install --upgrade pip
 RUN pip install setuptools scipy numpy scikit-rf reprint pandas h5py tables cython sphinx_rtd_theme pylint pylatex pylatexenc pint pytest pytest-cov sphinx numpydoc pypandoc anybadge twine numba pyqtgraph matplotlib PySide2 cycler pyyaml joblib more_itertools paramiko scp colormath semver black
-RUN pip install python-levenshtein fuzzywuzzy verilogae==0.9b4 git+https://github.com/SuperKogito/sphinxcontrib-pdfembed
+RUN pip install python-levenshtein fuzzywuzzy verilogae git+https://github.com/SuperKogito/sphinxcontrib-pdfembed
 
 # more Python dependencies add on bottom to not disturb the build chain
