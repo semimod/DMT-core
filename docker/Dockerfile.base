@@ -1,3 +1,9 @@
+# build with:
+# docker login registry.gitlab.com
+# docker pull registry.gitlab.com/dmt-development/dmt-core:base
+# docker build -f Dockerfile.base -t registry.gitlab.com/dmt-development/dmt-core:base .
+#   use --no-cache in case you want to update everything...
+# docker push registry.gitlab.com/dmt-development/dmt-core:base
 FROM ubuntu:22.04
 
 # python stuff and runtime dependencies
@@ -6,7 +12,7 @@ RUN apt-get update \
     python3-pip python3-dev graphviz cmake vim bc libsz2 libgl1 libgl1-mesa-dev libfontconfig1-dev libxkbcommon-x11-dev \
     libgtk-3-dev '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev \
     libxcb-util-dev libfftw3-dev libsuitesparse-dev libblas-dev liblapack-dev libxaw7 libxaw7-dev libx11-6 libx11-dev  \
-    libreadline8 libxmu6 git curl
+    libreadline8 libxmu6 git curl wget
 
 # create user
 ENV USERNAME dmt_user
@@ -53,6 +59,6 @@ RUN \
 # pip
 RUN pip install --upgrade pip
 RUN pip install setuptools scipy numpy scikit-rf reprint pandas h5py tables cython sphinx_rtd_theme pylint pylatex pylatexenc pint pytest pytest-cov sphinx numpydoc pypandoc anybadge twine numba pyqtgraph matplotlib PySide2 cycler pyyaml joblib more_itertools paramiko scp colormath semver black
-RUN pip install python-levenshtein fuzzywuzzy verilogae==0.9b4 git+https://github.com/SuperKogito/sphinxcontrib-pdfembed
+RUN pip install python-levenshtein fuzzywuzzy verilogae git+https://github.com/SuperKogito/sphinxcontrib-pdfembed
 
 # more Python dependencies add on bottom to not disturb the build chain
