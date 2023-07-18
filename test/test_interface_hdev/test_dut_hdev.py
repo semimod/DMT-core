@@ -22,6 +22,7 @@ logging.basicConfig(
 
 folder_path = Path(__file__).resolve().parent
 
+
 def test_dut_hdev():
     # define a hdev input structure, look into the "n3_hbt" function for details
     # hint: have a look into the n3_hbt function to understand how a 1D HBT is defined in detail! Also check out the Hdev manual https://gitlab.com/metroid120/hdev_simulator
