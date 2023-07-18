@@ -2,6 +2,8 @@
 # docker login registry.gitlab.com
 # docker pull registry.gitlab.com/dmt-development/dmt-core:builder_ngspice
 # docker build -f Dockerfile.builder_ngspice -t registry.gitlab.com/dmt-development/dmt-core:builder_ngspice .
+#   use --no-cache in case you want to update everything...
+# docker push registry.gitlab.com/dmt-development/dmt-core:builder_ngspice
 FROM ubuntu:22.04 as BUILDER
 
 # environment installation
