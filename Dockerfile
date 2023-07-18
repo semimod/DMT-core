@@ -8,5 +8,8 @@ RUN cd /home/local/bin && wget "https://gitlab.com/metroid120/hdev_simulator/-/j
 COPY . /dmt/
 RUN cd /dmt && mkdir logs && pip install  --upgrade --upgrade-strategy eager -e .[full]
 
+# make a short test to ensure that the container is good...
+RUN cd /dmt && pytest --cov=DMT/ test/test_core_no_interfaces/
+
 # apply read-write rights to some files inside the container for everyone 
 RUN chmod --recursive a+rw /dmt && chmod --recursive a+rw /home/local/bin 
