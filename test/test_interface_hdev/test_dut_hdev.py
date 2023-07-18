@@ -20,6 +20,7 @@ logging.basicConfig(
     filemode="w",
 )
 
+folder_path = Path(__file__).resolve().parent
 
 def test_dut_hdev():
     # define a hdev input structure, look into the "n3_hbt" function for details
@@ -30,10 +31,11 @@ def test_dut_hdev():
 
     # Create a DUT using DMT.core.DutHdev, which is used for simulation control
     dut = DutHdev(
-        None,
+        folder_path.parent / "tmp" / "duts",
         DutType.npn,
         inp,
         reference_node="E",
+        force=True,
     )
 
     # define an output sweep using the hdevpy function get_sweep
