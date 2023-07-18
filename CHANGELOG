@@ -20,6 +20,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - DutView: save_db now allows saving only some sweep_keys in case of separate databases
 - SweepDefTransSinus and SweepDefTransRamp: 2 different transient signal sweepdefs
 - PySide6 as an option to replace PySide2 in the long run
+- Technology.serialize(): Added an abstract method for Technology to make the subclasses savable using json.
+- DutTypeFlag.serialize() and DutTypeInt.serialize(): Added methods to make the classes savable using json.
 
 ### Changed
 
@@ -28,6 +30,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Updated to pyqtgraph 0.13.1. QApplication in plot.py from QWidgets is tried to use, if this does not work, fall back to old implementation from Qt.QtGui
 - Renamed VAFile to VAFileMap to better reflect its nature. It is a mapping from filename (incl. rel path) to the file content (code).
 - Importing now only uses pkgutil.find_loader("DMT.extraction") to speed up importing in case extraction module is not used.
+- DutView: Now saves itself using json only. Loaded is kept using pickle as a fallback.
+- DutLib: Now saves itself using json only. Loaded is kept using pickle as a fallback.
 
 ### Removed
 

@@ -1,5 +1,6 @@
 """ Testing the class DMT.core.DutType """
 
+import warnings
 import logging
 from pathlib import Path
 
@@ -31,6 +32,10 @@ def test_subtypes():
     assert not DutType.tlmb.is_subtype(
         DutType.pn_diode
     )  # USE THIS!! To test for flags and not for special devices!
+    assert DutType.tlmb.is_subtype(DutType.tlm)
+
+    assert DutType.npn.is_subtype(DutType.bjt)
+    assert DutType.npn.is_subtype(DutType.transistor)
 
 
 def test_get_nodes():
@@ -41,11 +46,30 @@ def test_get_nodes():
 
 def test_to_string():
     npn = DutType.deem_open_bjt
-    assert str(npn) == "open"
+    assert str(npn) == "open-bjt"
+
+
+def test_serialize():
+    assert DutType.tetrode == DutType.deserialize(DutType.tetrode.serialize())
+    assert DutType.pin_diode == DutType.deserialize(DutType.pin_diode.serialize())
+    assert DutType.tlmbc == DutType.deserialize(DutType.tlmbc.serialize())
+    assert DutType.deem_short_bjt == DutType.deserialize(DutType.deem_short_bjt.serialize())
+    assert DutType.deem_short_mos == DutType.deserialize(DutType.deem_short_mos.serialize())
+
+    with warnings.catch_warnings(record=True):
+        DutType.deserialize(
+            {
+                "DutType": "DMT.core.dut_type.DutTypeInt",
+                "string": "definitily_newer_used_dut_type_name!!",
+                "value": -1,
+                "nodes": ["abc", "efd"],
+                "__DutType__": "1.0.0",
+            }
+        )
 
 
 if __name__ == "__main__":
     test_subtypes()
     test_get_nodes()
     test_to_string()
-    dummy = 1
+    test_serialize()

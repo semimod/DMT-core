@@ -33,8 +33,16 @@ Author: Mario Krattenmacher | Mario.Krattenmacher@semimod.de
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 import copy
 from collections import OrderedDict
-from DMT.core import create_md5_hash, DutView, McParameterCollection, DutType
+from typing import List, Dict
+from DMT.core import create_md5_hash, DutView, McParameterCollection, DutType, Technology
 from DMT.core.mcard import MCard
+
+try:
+    from semver.version import Version as VersionInfo
+except ImportError:
+    from semver import VersionInfo
+
+SEMVER_DUTCIRCUIT_CURRENT = VersionInfo(major=1, minor=0)
 
 
 class DutCircuit(DutView):
@@ -108,7 +116,7 @@ class DutCircuit(DutView):
         value : str, list[string] or valid for create_inp_header
         """
         value = copy.deepcopy(value)
-        self._inp_circuit = None  # is set in create_inp_header
+        self._inp_circuit = None
         self._data = {}  # empty the data dict!
         if isinstance(value, str):
             try:
@@ -130,7 +138,77 @@ class DutCircuit(DutView):
 
             self._inp_header = inp_header
         else:
+            self._inp_circuit = copy.deepcopy(value)
             self._inp_header = self.create_inp_header(value)
+
+    def info_json(self, **_kwargs) -> Dict:
+        """Returns a dict with serializeable content for the json file to create.
+
+        The topmost dict MUST have only one key: The string casted class name.
+        Inside the parameters are:
+
+            * A version key,
+            * all extra parameters of DutCircuit compared to DutView and
+            * the info_json of DutView.
+
+        Returns
+        -------
+        dict
+            str(DutCircuit): serialized content
+        """
+        modelcard = None
+        if self._modelcard is not None:
+            modelcard = self._modelcard.dumps_json()
+        return {
+            "__DutCircuit__": str(SEMVER_DUTCIRCUIT_CURRENT),
+            "parent": super(DutCircuit, self).info_json(**_kwargs),
+            "inp_header": self.inp_header,
+            "simulator_options": self.simulator_options,
+            "get_circuit_arguments": self.get_circuit_arguments,
+            "modelcard": modelcard,
+        }
+
+    @classmethod
+    def from_json(
+        cls,
+        json_content: Dict,
+        classes_technology: List[type[Technology]],
+        subclass_kwargs: Dict = None,
+    ) -> "DutCircuit":
+        """Static class method. Loads a DutCircuit object from a pickle file with full path save_dir.
+
+        Calls the from_json method of DutView with all dictionary inside the "parent" keyword. Afterwards the additional parameters are set correctly.
+
+        Parameters
+        ----------
+        json_content  :  dict
+            Readed dictionary from a saved json DutCircuit.
+        classes_technology : List[type[Technology]]
+            All possible technologies this loaded DutCircuit can have. One will be choosen according to the serialized technology loaded from the file.
+        subclass_kwargs : Dict, optional
+            Additional kwargs necessary to create the concrete subclassed DutView.
+
+        Returns
+        -------
+        DutTcad
+            Loaded object.
+        """
+        if json_content["__DutCircuit__"] != SEMVER_DUTCIRCUIT_CURRENT:
+            raise NotImplementedError("DMT.DutCircuit: Unknown version of DutCircuit to load!")
+
+        if subclass_kwargs is None:
+            subclass_kwargs = {}
+        subclass_kwargs["inp_circuit"] = json_content["inp_header"]
+
+        dut_view = super().from_json(
+            json_content["parent"], classes_technology, subclass_kwargs=subclass_kwargs
+        )
+
+        dut_view._modelcard = json_content["modelcard"]
+        dut_view.simulator_options = json_content["simulator_options"]
+        dut_view.get_circuit_arguments = json_content["get_circuit_arguments"]
+
+        return dut_view
 
     @property
     def modelcard(self):
