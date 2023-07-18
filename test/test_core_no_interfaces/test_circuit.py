@@ -130,10 +130,6 @@ def test_circuit():
             ]
         )
 
-    # outdated and now forbidden
-    with pytest.raises(NotImplementedError):
-        Circuit("common_emitter")
-
     # also test the default circuit as this has to be implemented in the subclass
     mcard = MCard(["A", "D"], default_subckt_name="dio", default_module_name="diova")
     with pytest.raises(NotImplementedError):

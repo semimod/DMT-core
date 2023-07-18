@@ -123,7 +123,6 @@ class CircuitElement(object):
         name: str,
         contact_nodes: Iterable[str],
         parameters: Optional[Union[List[Tuple[str, str]], MCard, McParameterCollection]] = None,
-        method: Optional[Callable] = None,
     ):
         if isinstance(parameters, MCard) or isinstance(parameters, McParameterCollection):
             CircuitElement.possible_types.append(parameters.default_module_name)  # type: ignore
@@ -207,13 +206,6 @@ class CircuitElement(object):
 
         self.parameters = parameters
 
-        if method is not None:
-            warnings.warn(
-                "method will be deprecated in future DMT releases. This feature is not needed anymore since VAE is mature.",
-                category=DeprecationWarning,
-            )
-        self.method = method
-
     def __repr__(self):
         str_nodes = ",".join(self.contact_nodes)
         return f"DMT.CircuitElement:{self.name:s} model {self.element_type:s} nodes {str_nodes:s}"
@@ -234,18 +226,11 @@ class Circuit(object):
 
     Raises
     ------
-    NotImplementedError
-        Raised when the deprecated way of describing the circuit with a name is used.  Default circuit descriptions have been moved to the corresponding modelcard module.
     TypeError
         If one element of the circuit to create is neither a :class:`~DMT.core.circuit.CircuitElement` nor a simple str.
     """
 
     def __init__(self, circuit_elements: List[Union[str, CircuitElement]]):
-        if isinstance(circuit_elements, str):
-            raise NotImplementedError(
-                "The default circuit has been moved into the corresponding module. Access the circuit from there!"
-            )
-
         for i_element, element in enumerate(circuit_elements):
             if not isinstance(element, (CircuitElement, str)):
                 raise TypeError(

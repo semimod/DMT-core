@@ -1383,21 +1383,3 @@ class McParameterCollection(object):
             return self.eq_paras(other)
 
         return NotImplemented
-
-
-class McParameterComposition(McParameterCollection):
-    """Deprecated name for the mc parameter collection"""
-
-    def __init__(
-        self,
-        __McParameterComposition__: Union[
-            VersionInfo, str, float
-        ] = "1.0.0",  # as until now there is only v1.0.0 around we have no issues here.
-        **kwargs,
-    ):
-        warnings.warn(
-            "McParameterComposition is deprecated. It was renamed to McParameterCollection to avoid confusion with the composition design pattern.\nMcParameterCompostion will be deleted in the next major release.",
-            category=DeprecationWarning,
-        )
-
-        super().__init__(**kwargs)

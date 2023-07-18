@@ -70,7 +70,7 @@ from .naming import get_sub_specifiers
 from .naming import natural_scales
 
 # compact modelling stuff
-from .mc_parameter import McParameter, McParameterCollection, McParameterComposition
+from .mc_parameter import McParameter, McParameterCollection
 from .va_file import VAFileMap
 from .mcard import MCard
 from .technology import Technology
