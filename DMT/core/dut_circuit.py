@@ -242,7 +242,9 @@ class DutCircuit(DutView):
         -----
         Also account for dut.name?
         """
-        if self.inp_header is None:
+        if (
+            not self.inp_header
+        ):  # if the input header is empty, no circuit was given. So this device is an empty hull currently -> No hash
             return False
 
         if self._list_va_file_contents:
@@ -251,6 +253,7 @@ class DutCircuit(DutView):
             ]  # directly use the hash here - hash of hash should be ok :)
         else:
             list_va = []
+
         return create_md5_hash(self.inp_header, *self.list_copy, *list_va)
 
     def create_inp_header(self, inp_circuit):

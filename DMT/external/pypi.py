@@ -77,7 +77,14 @@ def check_version(to_check, package="DMT-core"):
     to_check = VersionInfo.parse(to_check)
     if to_check.prerelease is not None and not to_check.prerelease.startswith("rc."):
         raise IOError("The DMT naming schneme is: X.Y.Z-rc.A")
+
+    # try:
     package = requests.get(f"https://pypi.python.org/pypi/{package:s}/json").json()
+    if package["message"] == "Not Found":
+        # did not find package on pypi
+        # so any version which is parseable is ok
+        return str(to_check)
+
     latest_version = max(package["releases"].keys())
 
     version_pkg = latest_version.split(".")
@@ -94,6 +101,7 @@ def check_version(to_check, package="DMT-core"):
         latest_version = VersionInfo(
             major=version_pkg[0], minor=version_pkg[1], patch=version_pkg[2]
         )
+    # except
 
     if to_check > latest_version:
         return str(to_check)

@@ -626,10 +626,7 @@ class DutLib(object):
         # load all duts
         ignore_duts = copy.deepcopy(dut_lib.ignore_duts)
         dut_lib.ignore_duts = []  # load all duts, even the one who were ignored
-        # for dir_name, dir_list, file_list in os.walk(dut_lib.save_dir / "duts"):  # find the duts
-        #     for file_dut in file_list:
-        #         if file_dut.endswith(".json") or file_dut.endswith(".p"):
-        #             dut_lib.duts.append(DutView.load_dut(os.path.join(dir_name, file_dut)))
+
         for file_dut in (dut_lib.save_dir / "duts").glob("**/*.json"):
             dut_lib.duts.append(
                 DutView.load_dut(file_dut, classes_technology, classes_dut_view=classes_dut_view)

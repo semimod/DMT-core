@@ -205,7 +205,7 @@ class DutView(object):
         self._list_va_file_contents: list[VAFileMap] = []
 
         # if the dut already exists and no force -> error!
-        if self.save_dir:
+        if self.save_dir.exists():
             if force:
                 # delete the saved database
                 self.del_db()
@@ -508,6 +508,10 @@ class DutView(object):
         self.save_db()
 
         self.dut_dir.write_text(json.dumps(self.info_json(**kwargs), indent=4), encoding="utf8")
+
+        if self.dut_dir.with_suffix(".p").exists:
+            # it there is still a "old" pickle file in the directory -> remove it
+            self.dut_dir.with_suffix(".p").unlink()
 
     def info_json(self, **_kwargs):
         """Returns a dict with serializeable content for the json file to create.

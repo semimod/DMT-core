@@ -196,7 +196,7 @@ class DutTcad(DutView):
         -------
         str or False
         """
-        if self.inp_header is None:
+        if not self.inp_header:
             return False
 
         # i have to ensure always correct hash for a dut... sorry
