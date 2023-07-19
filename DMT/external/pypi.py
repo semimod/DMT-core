@@ -80,7 +80,7 @@ def check_version(to_check, package="DMT-core"):
 
     # try:
     package = requests.get(f"https://pypi.python.org/pypi/{package:s}/json").json()
-    if package["message"] == "Not Found":
+    if package.get("message") == "Not Found":
         # did not find package on pypi
         # so any version which is parseable is ok
         return str(to_check)

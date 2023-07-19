@@ -509,7 +509,7 @@ class DutView(object):
 
         self.dut_dir.write_text(json.dumps(self.info_json(**kwargs), indent=4), encoding="utf8")
 
-        if self.dut_dir.with_suffix(".p").exists:
+        if self.dut_dir.with_suffix(".p").exists():
             # it there is still a "old" pickle file in the directory -> remove it
             self.dut_dir.with_suffix(".p").unlink()
 
