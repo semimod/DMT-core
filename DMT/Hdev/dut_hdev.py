@@ -30,9 +30,8 @@ import numpy as np
 import pandas as pd
 import logging
 import h5py
-from typing import cast
 import shutil
-from typing import List, Dict
+from typing import cast, List, Dict
 
 try:
     from semver.version import Version as VersionInfo

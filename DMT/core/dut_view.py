@@ -617,9 +617,14 @@ class DutView(object):
 
             # the key on the first dictionary is the class
             clsstr_dut_view = list(json_content.keys())[0]
-            cls_dut_view = next(
-                cls_dv for cls_dv in classes_dut_view if str(cls_dv) == clsstr_dut_view
-            )
+            try:
+                cls_dut_view = next(
+                    cls_dv for cls_dv in classes_dut_view if str(cls_dv) == clsstr_dut_view
+                )
+            except StopIteration as err:
+                raise IOError(
+                    "DMT.DutLib: Encountered unknown DutView class while loading the library"
+                ) from err
 
             dut = cls_dut_view.from_json(json_content[clsstr_dut_view], classes_technology)
 
@@ -673,11 +678,16 @@ class DutView(object):
         if serialized_technology is None:
             tech = None
         else:
-            cls_technology = next(
-                cls_tech
-                for cls_tech in classes_technology
-                if str(cls_tech) == serialized_technology["class"]
-            )
+            try:
+                cls_technology = next(
+                    cls_tech
+                    for cls_tech in classes_technology
+                    if str(cls_tech) == serialized_technology["class"]
+                )
+            except StopIteration as err:
+                raise IOError(
+                    "DMT.DutLib: Encountered unknown Technology class while loading the library."
+                ) from err
             args = serialized_technology.get("args", [])
             kwargs = serialized_technology.get("kwargs", {})
             if serialized_technology.get("constructor", None) is None:

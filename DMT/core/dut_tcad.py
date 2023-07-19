@@ -182,7 +182,9 @@ class DutTcad(DutView):
         subclass_kwargs["inp_structure"] = json_content["inp_header"]
 
         dut_view = super().from_json(
-            json_content["parent"], classes_technology, subclass_kwargs=subclass_kwargs
+            json_content["parent"],
+            classes_technology,
+            subclass_kwargs=subclass_kwargs,
         )
 
         return dut_view
