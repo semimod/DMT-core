@@ -11,6 +11,7 @@ variables:
 stages:
   - format
   - test
+  - trigger_doc_stage
   - create_release
   - release
 
@@ -66,6 +67,13 @@ test_DMT:
       coverage_report:
         coverage_format: cobertura
         path: coverage.xml
+
+trigger_doc_job:
+  stage: trigger_doc_stage
+  needs:
+    - job: test_DMT
+  trigger:
+    project: dmt-development/dmt-doc
 
 test_dependencies:
   image: python:3.10-bullseye
