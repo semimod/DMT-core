@@ -600,12 +600,6 @@ class DutNgspice(DutCircuit):
         # get sweep folder
         sim_folder = self.get_sim_folder(sweep)
 
-        # find .ngspice file
-        for my_file in os.listdir(sim_folder):
-            filename = os.fsdecode(my_file)
-            if filename.endswith(".ngspice"):
-                break
-
         # find .ngspice files (these are DC and AC)
         files_dc_ac = [sim_file for sim_file in sim_folder.glob("*.ngspice")]
         # are there transient simulations?
