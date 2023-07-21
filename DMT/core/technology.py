@@ -57,7 +57,7 @@ class Technology(object):
 
         Parameters
         ----------
-        dut_ref : :class:`~DMT.core.DutView`
+        dut_ref : :class:`~:class:`~DMT.core.dut_view.DutView``
             Can be used to obtain tech quanties... (or to generate a TRADICA input file :) )
         mcard : :class:`~DMT.core.McParameterCollection`
             A Modelcard that contains all parameters that are required for scaling, as well as the parameters that shall be scaled.

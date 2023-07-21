@@ -32,8 +32,8 @@ logging.basicConfig(
 def get_circuit(self, use_build_in=True, topology="common_emitter", **kwargs):
     """
 
-    Parameter
-    ------------
+    Parameters
+    ----------
     circuit_type : str
         For allowed types, see above
     modelcard : :class:`~DMT.hl2.mc_hicum.McHicum`
