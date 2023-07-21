@@ -70,6 +70,8 @@ test_DMT:
 
 trigger_doc_job:
   stage: trigger_doc_stage
+  rules:
+    - if: $CI_COMMIT_BRANCH =~ /main/
   needs:
     - job: test_DMT
   trigger:
