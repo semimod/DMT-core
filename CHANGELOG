@@ -4,7 +4,17 @@ All changes of DMT starting from version 1.3.0 will be documented in this file. 
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.0.0-rc.1] - 2022.11.10
+## [Unreleased]
+
+### Deleted
+
+- Removed the documentation from this repository and moved it to https://gitlab.com/dmt-development/dmt-doc
+
+### Fixed
+
+- Proper DutView.save_dir check at instance creation
+
+## [2.0.0] - 2023.06.19
 
 ### Added
 
