@@ -754,7 +754,7 @@ class DataProcessor(object):
         Parameters
         ----------
         freq         :  np.ndarray()
-            Frequencys that correspond to para_values.
+            Frequencies that correspond to para_values.
         para_values  :  np.ndarray()
             Small signal parameters of type p_type with shape [n_freq, n_port, n_port]
         p_type       :  string
@@ -782,7 +782,7 @@ class DataProcessor(object):
         Parameters
         ----------
         freq         :  np.ndarray()
-            Frequencys that correspond to para_values.
+            Frequencies that correspond to para_values.
         para_values  :  np.ndarray()
             Small signal parameters of type p_type with shape [n_freq, n_port, n_port]
         p_type       :  string
@@ -836,7 +836,7 @@ class DataProcessor(object):
         Parameters
         ----------
         freq         :  np.ndarray()
-            Frequencys that correspond to para_values.
+            Frequencies that correspond to para_values.
         para_values  :  np.ndarray()
             Small signal parameters of type p_type with shape [n_freq, n_port, n_port]
         p_type       :  string
@@ -853,6 +853,32 @@ class DataProcessor(object):
         cbe = np.imag(y_para_values[:, 0, 0] + y_para_values[:, 0, 1]) / (2.0 * np.pi * freq)
 
         return cbe
+
+    def calc_cap_total_port_1(self, freq, para_values, p_type):
+        """Calculates the total capacitance at port 1 assuming a Pi equivalent circuit capacitance cgg from the small signal parameters para_values.
+
+        Parameters
+        ----------
+        freq         :  np.ndarray()
+            Frequenciess that correspond to para_values.
+        para_values  :  np.ndarray()
+            Small signal parameters of type p_type with shape [n_freq, n_port, n_port]
+        p_type       :  string
+            Type of the small signal parameters in para_values.
+
+        Returns
+        -------
+        cgg           :  np.ndarray()
+            Total capacitance at port 1.
+        """
+        y_para_values = self.convert_n_port_para(para_values, p_type, "Y")
+
+        # calculate cbe from y para
+        cgg = np.imag(y_para_values[:, 0, 0]) / (2.0 * np.pi * freq)
+
+        return cgg
+
+
 
     def calc_cap_series_thru(self, freq, para_values, p_type):
         """Calculates the the series-thru junction capacitance cbc from the small signal parameters para_values.

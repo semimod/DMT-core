@@ -797,6 +797,8 @@ class DataFrame(DataProcessor, pd.DataFrame):
                     self = self.calc_cbc(port_1=ports[0], port_2=ports[1])
                 elif nodes[0] == "G" and nodes[1] == "S":  # CGS
                     self = self.calc_cgs(port_1=ports[0], port_2=ports[1])
+                elif nodes[0] == "G" and nodes[1] == "G":  # CGS
+                    self = self.calc_cgg(port_1=ports[0], port_2=ports[1])
                 else:
                     raise KeyError("The " + "".join(nodes) + " capacitance can not be calculated.")
             except IOError as err:
@@ -1921,6 +1923,33 @@ class DataFrame(DataProcessor, pd.DataFrame):
         else:
             raise NotImplementedError(
                 "DMT -> DataFrame -> calc_cgs: transistor configuration not implemented."
+            )
+
+        pd.options.mode.chained_assignment = "warn"
+        return self
+
+    def calc_cgg(self, port_1="G", port_2="D"):
+        """Calculates the total gate capacitance CGG assuming PI equivalent circuit and common source configuration.
+
+        Returns
+        -------
+        :class:`DMT.core.DataFrame`
+            Dataframe that contains CBE.
+        """
+        # get values
+        s_para_values = self.get_ss_para("Y", port_1, port_2)
+
+        sp_cgg = specifiers.CAPACITANCE + ["G", "G"]
+
+        # put values in col of self
+        pd.options.mode.chained_assignment = (
+            None  # default='warn' , Markus: This should not warn here.
+        )
+        if port_1 == "G" and port_2 == "D":
+            self[sp_cgg] = self.processor.calc_cap_total_port_1(self["FREQ"], s_para_values, "Y")
+        else:
+            raise NotImplementedError(
+                "DMT -> DataFrame -> calc_cgg: transistor configuration not implemented."
             )
 
         pd.options.mode.chained_assignment = "warn"
