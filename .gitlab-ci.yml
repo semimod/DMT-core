@@ -89,7 +89,7 @@ test_dependencies_python3p10:
   script:
     - pip install pytest
     - pip install --upgrade --upgrade-strategy eager -e .[HDF5,pyqtgraph,develop,latex,remote]
-    - pytest --cov=DMT/ test/test_core_no_interfaces/
+    - pytest test/test_core_no_interfaces/
 
     # HDF5
     - pip install -e .[HDF5]
@@ -144,7 +144,7 @@ test_python3p8:
   script:
     - pip install pytest
     - pip install --upgrade --upgrade-strategy eager -e .[HDF5,pyqtgraph,develop,latex,remote]
-    - pytest --cov=DMT/ test/test_core_no_interfaces/
+    - pytest test/test_core_no_interfaces/
 
 test_python3p9:
   image: python:3.9-bullseye
@@ -158,7 +158,7 @@ test_python3p9:
   script:
     - pip install pytest
     - pip install --upgrade --upgrade-strategy eager -e .[HDF5,pyqtgraph,develop,latex,remote]
-    - pytest --cov=DMT/ test/test_core_no_interfaces/
+    - pytest test/test_core_no_interfaces/
 
 test_python3p11:
   image: python:3.11-bullseye
@@ -172,7 +172,7 @@ test_python3p11:
   script:
     - pip install pytest
     - pip install --upgrade --upgrade-strategy eager -e .[HDF5,pyqtgraph,develop,latex,remote]
-    - pytest --cov=DMT/ test/test_core_no_interfaces/
+    - pytest test/test_core_no_interfaces/
 
 wheel_to_pypi:
   image: registry.gitlab.com/dmt-development/dmt-core:base
