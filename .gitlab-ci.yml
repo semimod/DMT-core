@@ -77,7 +77,7 @@ trigger_doc_job:
   trigger:
     project: dmt-development/dmt-doc
 
-test_dependencies:
+test_dependencies_python3p10:
   image: python:3.10-bullseye
   stage: test
   rules:
@@ -87,10 +87,9 @@ test_dependencies:
   needs:
     - job: check_format
   script:
-    - pip install matplotlib # scikit-rf 0.24.0 issue
-    - pip install --upgrade --upgrade-strategy eager -e . # upgrade to everything new in the first pip install
-    - python3 test/test_core_no_interfaces/test_MCard.py
-    # test all optional variants
+    - pip install pytest
+    - pip install --upgrade --upgrade-strategy eager -e .[HDF5,pyqtgraph,develop,latex,remote]
+    - pytest --cov=DMT/ test/test_core_no_interfaces/
 
     # HDF5
     - pip install -e .[HDF5]
@@ -133,6 +132,47 @@ test_dependencies:
     - python3 test/test_core_no_interfaces/test_MCard.py
     - pip uninstall -y paramiko scp
 
+test_python3p8:
+  image: python:3.8-bullseye
+  stage: test
+  rules:
+    - if: $CI_COMMIT_BRANCH =~ /main/
+    - if: $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
+      when: manual
+  needs:
+    - job: check_format
+  script:
+    - pip install pytest
+    - pip install --upgrade --upgrade-strategy eager -e .[HDF5,pyqtgraph,develop,latex,remote]
+    - pytest --cov=DMT/ test/test_core_no_interfaces/
+
+test_python3p9:
+  image: python:3.9-bullseye
+  stage: test
+  rules:
+    - if: $CI_COMMIT_BRANCH =~ /main/
+    - if: $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
+      when: manual
+  needs:
+    - job: check_format
+  script:
+    - pip install pytest
+    - pip install --upgrade --upgrade-strategy eager -e .[HDF5,pyqtgraph,develop,latex,remote]
+    - pytest --cov=DMT/ test/test_core_no_interfaces/
+
+test_python3p11:
+  image: python:3.11-bullseye
+  stage: test
+  rules:
+    - if: $CI_COMMIT_BRANCH =~ /main/
+    - if: $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
+      when: manual
+  needs:
+    - job: check_format
+  script:
+    - pip install pytest
+    - pip install --upgrade --upgrade-strategy eager -e .[HDF5,pyqtgraph,develop,latex,remote]
+    - pytest --cov=DMT/ test/test_core_no_interfaces/
 
 wheel_to_pypi:
   image: registry.gitlab.com/dmt-development/dmt-core:base
