@@ -54,9 +54,7 @@ def test_dc_sweep():
     # name:     dummy-sweep
     # sweepdef: sweepdef defined above related opering points
     # othervar: othervar defined above related T, geometries
-    sweep = Sweep(
-        "dummy-sweep", sweepdef=sweepdef, othervar=othervar
-    )  # create the Sweep object
+    sweep = Sweep("dummy-sweep", sweepdef=sweepdef, othervar=othervar)  # create the Sweep object
     df = (
         sweep.create_df()
     )  # we can also create the sweep's dataframe, where the output variables are Nans.
@@ -319,10 +317,7 @@ def test_sweep_swd():
 
 
 def test_sweep_temp():
-    assert (
-        Sweep("gummel", sweepdef=[], othervar={"TEMP": 300}).get_temperature()
-        == "T300.00K"
-    )
+    assert Sweep("gummel", sweepdef=[], othervar={"TEMP": 300}).get_temperature() == "T300.00K"
 
     assert (
         Sweep(
@@ -401,9 +396,7 @@ def test_tran_sweep():
     sweep = Sweep(
         "test",
         sweepdef=[
-            SweepDefTransRamp(
-                value_def=frequencies, amp=1, phase=0, contact="B", sweep_order=2
-            ),
+            SweepDefTransRamp(value_def=frequencies, amp=1, phase=0, contact="B", sweep_order=2),
             SweepDefSync(col_vc, master=col_vb, offset=0, sweep_order=1),
             SweepDefConst(col_vb, value_def=0.87, sweep_order=1),
             SweepDefConst(col_ve, value_def=0, sweep_order=0),
