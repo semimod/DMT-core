@@ -43,7 +43,7 @@ import numpy as np
 import pandas as pd
 import subprocess
 from pathlib import Path
-from typing import List, Dict
+from typing import List, Dict, Type
 
 try:
     from semver.version import Version as VersionInfo
@@ -166,7 +166,7 @@ class DutNgspice(DutCircuit):
     def from_json(
         cls,
         json_content: Dict,
-        classes_technology: List[type[Technology]],
+        classes_technology: List[Type[Technology]],
         subclass_kwargs: Dict = None,
     ) -> "DutNgspice":
         """Static class method. Loads a DutNgspice object from a json or pickle file with full path save_dir.
@@ -177,7 +177,7 @@ class DutNgspice(DutCircuit):
         ----------
         json_content  :  dict
             Readed dictionary from a saved json DutNgspice.
-        classes_technology : List[type[Technology]]
+        classes_technology : List[Type[Technology]]
             All possible technologies this loaded DutNgspice can have. One will be choosen according to the serialized technology loaded from the file.
         subclass_kwargs : Dict, optional
             Additional kwargs necessary to create the concrete subclassed DutView.
@@ -361,7 +361,9 @@ class DutNgspice(DutCircuit):
                     # compile needed ? Could be compiled by a "parallel" simulation
                     if not osdi.with_suffix(".osdi").is_file():
                         process = subprocess.run(
-                            [self.command_openvaf, osdi.name], shell=False, cwd=osdi.parent
+                            [self.command_openvaf, osdi.name],
+                            shell=False,
+                            cwd=osdi.parent,
                         )
                         if process.returncode != 0:
                             raise OSError(
@@ -376,7 +378,9 @@ class DutNgspice(DutCircuit):
                 # import from relative location
                 # compile always needed
                 process = subprocess.run(
-                    [self.command_openvaf, osdi], shell=False, cwd=self.get_sim_folder(sweep)
+                    [self.command_openvaf, osdi],
+                    shell=False,
+                    cwd=self.get_sim_folder(sweep),
                 )
                 if process.returncode != 0:
                     raise OSError(
@@ -639,7 +643,9 @@ class DutNgspice(DutCircuit):
         with open(sim_log) as my_log:
             log_content = my_log.read()
         search_obj_time = re.search(
-            r"User time(.+?)Total stopwatch time", log_content, flags=re.IGNORECASE | re.DOTALL
+            r"User time(.+?)Total stopwatch time",
+            log_content,
+            flags=re.IGNORECASE | re.DOTALL,
         )
         if search_obj_time:
             logging.info("Simulation times: %s.", search_obj_time.group(1))

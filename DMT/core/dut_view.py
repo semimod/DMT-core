@@ -26,7 +26,7 @@ import copy
 import logging
 from pathlib import Path
 import pandas as pd
-from typing import List, Dict
+from typing import List, Dict, Type
 
 try:
     from semver.version import Version as VersionInfo
@@ -582,8 +582,8 @@ class DutView(object):
     @staticmethod
     def load_dut(
         file_dut,
-        classes_technology: List[type[Technology]] = None,
-        classes_dut_view: List[type["DutView"]] = None,
+        classes_technology: List[Type[Technology]] = None,
+        classes_dut_view: List[Type["DutView"]] = None,
     ) -> "DutView":
         """Static class method. Loads a DutView object from a pickle file with full path save_dir.
 
@@ -591,9 +591,9 @@ class DutView(object):
         ----------
         file_dut  :  str or os.Pathlike
             Path to the json or pickle DutView file that shall be loaded.
-        classes_technology : List[type[Technology]]
+        classes_technology : List[Type[Technology]]
             All possible technologies this loaded DutView can have. One will be choosen according to the serialized technology loaded from the file.
-        classes_dut_view : List[type[DutView]]
+        classes_dut_view : List[Type[DutView]]
             All possible DutViews this loaded DutView can be. One will be choosen according to the serialized dutview class name loaded from the file.
 
         Returns
@@ -651,7 +651,7 @@ class DutView(object):
     def from_json(
         cls,
         json_content: Dict,
-        classes_technology: List[type[Technology]],
+        classes_technology: List[Type[Technology]],
         subclass_kwargs: Dict = None,
     ) -> "DutView":
         """Static class method. Loads a DutView object from a pickle file with full path save_dir.
@@ -660,7 +660,7 @@ class DutView(object):
         ----------
         json_content  :  dict
             Readed dictionary from a saved json DutView.
-        classes_technology : List[type[Technology]]
+        classes_technology : List[Type[Technology]]
             All possible technologies this loaded DutView can have. One will be choosen according to the serialized technology loaded from the file.
         subclass_args: List = None,
             Positional arguments needed
@@ -786,7 +786,10 @@ class DutView(object):
                 # try special import
                 self.import_output_data(data)
 
-        logging.info("DMT -> DutView -> add_data(): Added a dataframe with key %s to the dut.", key)
+        logging.info(
+            "DMT -> DutView -> add_data(): Added a dataframe with key %s to the dut.",
+            key,
+        )
 
     def remove_data(self, key):
         """Remove a measurement or simulation dataframe from the DutView's data.
