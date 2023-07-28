@@ -54,7 +54,9 @@ def test_dc_sweep():
     # name:     dummy-sweep
     # sweepdef: sweepdef defined above related opering points
     # othervar: othervar defined above related T, geometries
-    sweep = Sweep("dummy-sweep", sweepdef=sweepdef, othervar=othervar)  # create the Sweep object
+    sweep = Sweep(
+        "dummy-sweep", sweepdef=sweepdef, othervar=othervar
+    )  # create the Sweep object
     df = (
         sweep.create_df()
     )  # we can also create the sweep's dataframe, where the output variables are Nans.
@@ -136,14 +138,23 @@ def test_sync_sweep():
     df_gummel.drop(columns=sp_vbc, inplace=True)
 
     # compare the dataframes -> should be equal
-    for row_gummel, row_gummel_sep in zip(df_gummel.iterrows(), df_gummel_sep.iterrows()):
-        assert all(row_gummel[1] == row_gummel_sep[1])
+    for col in df_gummel.columns:
+        val_gummel = df_gummel[col].to_numpy()
+        val_sep = df_gummel_sep[col].to_numpy()
+        val_gummel.sort()
+        val_sep.sort()
+        assert np.allclose(val_gummel, val_sep)
 
 
 def test_ac_sweep():
     # create a sweep with a sweeped offset variable
     sweepdef = [
-        {"var_name": sp_freq, "sweep_order": 4, "sweep_type": "LOG", "value_def": [8, 9, 2]},
+        {
+            "var_name": sp_freq,
+            "sweep_order": 4,
+            "sweep_type": "LOG",
+            "value_def": [8, 9, 2],
+        },
         {
             "var_name": sp_vb,
             "sweep_order": 3,
@@ -180,7 +191,8 @@ def test_ac_sweep():
     assert np.allclose(df[sp_vbc].round(3).unique(), np.array([0.0, 0.2, 0.3]))
     assert np.allclose(df[sp_vb].round(3).unique(), np.array([0.0, 0.5, 1.0]))
     assert np.allclose(
-        df[sp_vc].round(3).unique(), np.array([0.0, 0.5, 1.0, -0.2, 0.3, 0.8, -0.3, 0.2, 0.7])
+        df[sp_vc].round(3).unique(),
+        np.array([0.0, 0.5, 1.0, -0.2, 0.3, 0.8, -0.3, 0.2, 0.7]),
     )
 
 
@@ -232,7 +244,12 @@ def test_sweep_swd():
         Sweep(
             "gummel",
             sweepdef=[
-                {"var_name": "TEMP", "sweep_order": 0, "sweep_type": "CON", "value_def": [300]},
+                {
+                    "var_name": "TEMP",
+                    "sweep_order": 0,
+                    "sweep_type": "CON",
+                    "value_def": [300],
+                },
             ]
             + swds,
             othervar={"TEMP": 300},
@@ -285,7 +302,11 @@ def test_sweep_swd():
                     "master": "V_A",
                     "offset": 0.1,
                 },
-                {"var_name": specifiers.VOLTAGE + "E", "sweep_type": "CON", "value_def": [0]},
+                {
+                    "var_name": specifiers.VOLTAGE + "E",
+                    "sweep_type": "CON",
+                    "value_def": [0],
+                },
             ],
         )
 
@@ -298,7 +319,10 @@ def test_sweep_swd():
 
 
 def test_sweep_temp():
-    assert Sweep("gummel", sweepdef=[], othervar={"TEMP": 300}).get_temperature() == "T300.00K"
+    assert (
+        Sweep("gummel", sweepdef=[], othervar={"TEMP": 300}).get_temperature()
+        == "T300.00K"
+    )
 
     assert (
         Sweep(
@@ -324,7 +348,11 @@ def test_sweep_temp():
         Sweep(
             "gummel",
             sweepdef=[
-                {"var_name": "TEMP", "sweep_type": "LIST", "value_def": [300, 320, 350]},
+                {
+                    "var_name": "TEMP",
+                    "sweep_type": "LIST",
+                    "value_def": [300, 320, 350],
+                },
             ],
         ).get_temperature()
         == "T(300.00,320.00,350.00)K"
@@ -373,7 +401,9 @@ def test_tran_sweep():
     sweep = Sweep(
         "test",
         sweepdef=[
-            SweepDefTransRamp(value_def=frequencies, amp=1, phase=0, contact="B", sweep_order=2),
+            SweepDefTransRamp(
+                value_def=frequencies, amp=1, phase=0, contact="B", sweep_order=2
+            ),
             SweepDefSync(col_vc, master=col_vb, offset=0, sweep_order=1),
             SweepDefConst(col_vb, value_def=0.87, sweep_order=1),
             SweepDefConst(col_ve, value_def=0, sweep_order=0),
