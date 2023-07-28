@@ -297,9 +297,27 @@ class SweepDef(object):
             try:
                 self.values = self.master.values + self.offset
             except TypeError:
+                if isinstance(self.offset_var, SpecifierStr) and len(self.offset_var.nodes) == 2:
+                    # this is most likely a voltage synced V_BC sweep (or sth like that)
+                    if (self.offset_var.nodes[0] == self.master_var.nodes[0]) and (
+                        self.offset_var.nodes[1] == self.var_name.nodes[0]
+                    ):
+                        # V_BC
+                        op = np.subtract
+                    elif (self.offset_var.nodes[1] == self.master_var.nodes[0]) and (
+                        self.offset_var.nodes[0] == self.var_name.nodes[0]
+                    ):
+                        # V_CB
+                        op = np.add
+                    else:
+                        # no cluse
+                        op = np.add
+                else:
+                    op = np.add
+
                 self.values = np.zeros((self.offset.values.size, self.master.values.size))
                 for i_col in range(self.values.shape[0]):
-                    self.values[i_col, :] = self.master.values + self.offset.values[i_col]
+                    self.values[i_col, :] = op(self.master.values, self.offset.values[i_col])
                 self.values = np.concatenate(self.values)
 
         elif self.sweep_type == "SINUS":

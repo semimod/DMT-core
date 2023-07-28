@@ -25,7 +25,7 @@ Author: Mario Krattenmacher | Mario.Krattenmacher@semimod.de
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 import copy
 import logging
-from typing import List, Dict
+from typing import List, Dict, Type
 from DMT.core import create_md5_hash, DutView, Technology
 
 try:
@@ -124,7 +124,9 @@ class DutTcad(DutView):
             self._inp_header = self.create_inp_header(value)
 
         logging.info(
-            "Successfully created input header of dut %s%s!", self.name, str(self.get_hash())
+            "Successfully created input header of dut %s%s!",
+            self.name,
+            str(self.get_hash()),
         )
         logging.debug("Content:\n%s", self._inp_header)
 
@@ -153,7 +155,7 @@ class DutTcad(DutView):
     def from_json(
         cls,
         json_content: Dict,
-        classes_technology: List[type[Technology]],
+        classes_technology: List[Type[Technology]],
         subclass_kwargs: Dict = None,
     ) -> "DutTcad":
         """Static class method. Loads a DutTcad object from a pickle file with full path save_dir.
@@ -164,7 +166,7 @@ class DutTcad(DutView):
         ----------
         json_content  :  dict
             Readed dictionary from a saved json DutTcad.
-        classes_technology : List[type[Technology]]
+        classes_technology : List[Type[Technology]]
             All possible technologies this loaded DutTcad can have. One will be choosen according to the serialized technology loaded from the file.
         subclass_kwargs : Dict, optional
             Additional kwargs necessary to create the concrete subclassed DutView.
