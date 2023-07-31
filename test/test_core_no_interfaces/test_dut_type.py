@@ -17,6 +17,15 @@ logging.basicConfig(
 )
 
 
+def test_unique():
+    """DuType values should be unique."""
+    values = [
+        getattr(DutType, dt).value for dt in dir(DutType) if hasattr(getattr(DutType, dt), "value")
+    ]
+
+    assert len(values) == len(set(values))
+
+
 def test_subtypes():
     """Test if the types are the correct subtypes."""
 
@@ -36,6 +45,10 @@ def test_subtypes():
 
     assert DutType.npn.is_subtype(DutType.bjt)
     assert DutType.npn.is_subtype(DutType.transistor)
+    assert not DutType.npn.is_subtype(DutType.mos)
+
+    assert DutType.n_mos.is_subtype(DutType.mos)
+    assert not DutType.n_mos.is_subtype(DutType.bjt)
 
 
 def test_get_nodes():
@@ -69,6 +82,7 @@ def test_serialize():
 
 
 if __name__ == "__main__":
+    test_unique()
     test_subtypes()
     test_get_nodes()
     test_to_string()
