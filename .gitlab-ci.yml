@@ -35,7 +35,7 @@ test_DMT:
   needs:
     - job: check_format
   script:
-    - pip install --upgrade --upgrade-strategy eager -e .[develop,HDF5,latex,remote]
+    - pip install --upgrade --upgrade-strategy eager -e .[develop,HDF5,latex,remote,pyside6]
     - pytest --cov=DMT/ test/test_core_no_interfaces/
     - pytest --cov=DMT/ --cov-append test/test_interface_ngspice/test_*.py
     - pytest --cov=DMT/ --cov-append test/test_interface_xyce/test_*.py
@@ -88,7 +88,7 @@ test_dependencies_python3p10:
     - job: check_format
   script:
     - pip install pytest
-    - pip install --upgrade --upgrade-strategy eager -e .[HDF5,pyqtgraph,develop,latex,remote]
+    - pip install --upgrade --upgrade-strategy eager -e .[HDF5,pyqtgraph,develop,latex,remote,pyside6]
     - pytest test/test_core_no_interfaces/
 
     # HDF5
@@ -143,7 +143,7 @@ test_python3p8:
     - job: check_format
   script:
     - pip install pytest
-    - pip install --upgrade --upgrade-strategy eager -e .[HDF5,pyqtgraph,develop,latex,remote]
+    - pip install --upgrade --upgrade-strategy eager -e .[HDF5,pyqtgraph,develop,latex,remote,pyside6]
     - pytest test/test_core_no_interfaces/
 
 test_python3p9:
@@ -157,7 +157,7 @@ test_python3p9:
     - job: check_format
   script:
     - pip install pytest
-    - pip install --upgrade --upgrade-strategy eager -e .[HDF5,pyqtgraph,develop,latex,remote]
+    - pip install --upgrade --upgrade-strategy eager -e .[HDF5,pyqtgraph,develop,latex,remote,pyside6]
     - pytest test/test_core_no_interfaces/
 
 test_python3p11:
@@ -171,7 +171,7 @@ test_python3p11:
     - job: check_format
   script:
     - pip install pytest
-    - pip install --upgrade --upgrade-strategy eager -e .[HDF5,pyqtgraph,develop,latex,remote]
+    - pip install --upgrade --upgrade-strategy eager -e .[HDF5,pyqtgraph,develop,latex,remote,pyside6]
     - pytest test/test_core_no_interfaces/
 
 wheel_to_pypi:
@@ -222,7 +222,7 @@ sbom:
   needs:
     - job: wheel_to_pypi
   script:
-     - pip install --upgrade --upgrade-strategy eager -e .[develop,HDF5,latex,remote]
+     - pip install --upgrade --upgrade-strategy eager -e .[develop,HDF5,latex,remote,pyside6]
      - pip install cyclonedx-bom
      - cyclonedx-bom -e
   artifacts:
