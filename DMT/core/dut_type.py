@@ -126,20 +126,18 @@ class DutTypeInt(object):
         ----------
         other : int, DutTypeInt
         """
-        try:
-            val = int(self & other)
-        except AttributeError:
-            val = self.value & other
-
         # remove subtype flag..
-        val_subtype_flags = ~(
+        val_subtype_flags = (
             DutTypeFlag._flag_subtype_1
             | DutTypeFlag._flag_subtype_2
             | DutTypeFlag._flag_subtype_3
             | DutTypeFlag._flag_subtype_4
         )
+        self_wo_subtype = self.value & ~(val_subtype_flags.value)
+        other_wo_subtype = other.value & ~(val_subtype_flags.value)
 
-        return bool(val_subtype_flags.value & val)
+        res = self_wo_subtype & other_wo_subtype
+        return res == other
 
     def __lt__(self, other):
         try:
@@ -223,10 +221,10 @@ class DutTypeFlag(Flag):
     flag_deem = auto()
     flag_vdp = auto()
 
-    flag_npn = auto()
-    flag_pnp = auto()
-    flag_n_mos = auto()
-    flag_p_mos = auto()
+    # flag_npn = auto()
+    # flag_pnp = auto()
+    # flag_n_mos = auto()
+    # flag_p_mos = auto()
 
     flag_open = auto()
     flag_short = auto()
@@ -294,10 +292,16 @@ class DutType(object):
         string="mos_deemb",
     )  # because of node names :(
 
-    npn = DutTypeInt(bjt | DutTypeFlag.flag_npn, string="npn")  # nodes are inherited from bjt
-    pnp = DutTypeInt(bjt | DutTypeFlag.flag_pnp, string="pnp")
-    n_mos = DutTypeInt(mos | DutTypeFlag.flag_n_mos, string="nmos")
-    p_mos = DutTypeInt(mos | DutTypeFlag.flag_p_mos, string="pmos")
+    # npn = DutTypeInt(bjt | DutTypeFlag.flag_npn, string="npn")  # nodes are inherited from bjt
+    npn = DutTypeInt(
+        bjt | DutTypeFlag._flag_subtype_1, string="npn"
+    )  # nodes are inherited from bjt
+    # pnp = DutTypeInt(bjt | DutTypeFlag.flag_pnp, string="pnp")
+    pnp = DutTypeInt(bjt | DutTypeFlag._flag_subtype_2, string="pnp")
+    # n_mos = DutTypeInt(mos | DutTypeFlag.flag_n_mos, string="nmos")
+    n_mos = DutTypeInt(mos | DutTypeFlag._flag_subtype_1, string="nmos")
+    # p_mos = DutTypeInt(mos | DutTypeFlag.flag_p_mos, string="pmos")
+    p_mos = DutTypeInt(mos | DutTypeFlag._flag_subtype_2, string="pmos")
 
     diode = DutTypeInt(device | DutTypeFlag.flag_diode, nodes=["C", "A"], string="diode")
     pn_diode = DutTypeInt(diode | DutTypeFlag._flag_subtype_1, string="pn-diode")

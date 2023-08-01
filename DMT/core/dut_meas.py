@@ -23,7 +23,7 @@
 
 import logging
 import re
-from typing import List, Dict
+from typing import List, Dict, Type
 from DMT.core import Technology
 from DMT.core.dut_view import DutView
 
@@ -138,7 +138,7 @@ class DutMeas(DutView):
         }
 
     @classmethod
-    def from_json(cls, json_content: Dict, classes_technology: List[type[Technology]]) -> "DutMeas":
+    def from_json(cls, json_content: Dict, classes_technology: List[Type[Technology]]) -> "DutMeas":
         """Static class method. Loads a DutMeas object from a pickle file with full path save_dir.
 
         Calls the from_json method of DutView with all dictionary inside the "parent" keyword. Afterwards the additional parameters are set correctly.
@@ -147,7 +147,7 @@ class DutMeas(DutView):
         ----------
         json_content  :  dict
             Readed dictionary from a saved json DutMeas.
-        classes_technology : List[type[Technology]]
+        classes_technology : List[Type[Technology]]
             All possible technologies this loaded DutMeas can have. One will be choosen according to the serialized technology loaded from the file.
 
         Returns

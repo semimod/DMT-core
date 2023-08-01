@@ -27,7 +27,7 @@ import numpy as np
 import json
 from pathlib import Path
 from joblib import Parallel, delayed
-from typing import List
+from typing import List, Type
 from DMT.core import DutType, DutTypeFlag, print_progress_bar, DutView, Technology
 from DMT.exceptions import NoOpenDeembeddingDut, NoShortDeembeddingDut
 
@@ -552,8 +552,8 @@ class DutLib(object):
     @staticmethod
     def load(
         lib_directory,
-        classes_technology: List[type[Technology]] = None,
-        classes_dut_view: List[type["DutView"]] = None,
+        classes_technology: List[Type[Technology]] = None,
+        classes_dut_view: List[Type["DutView"]] = None,
     ) -> "DutLib":
         """Static class method. Loads a DutLib object from a pickle or json file with full path lib_directory.
 
@@ -561,9 +561,9 @@ class DutLib(object):
         ----------
         lib_directory  :  str or os.Pathlike
             Path to the direcotry that contains a pickled DutLib object that shall be loaded.
-        classes_technology : List[type[Technology]]
+        classes_technology : List[Type[Technology]]
             All possible technologies this loaded DutView can have. One will be choosen according to the serialized technology loaded from the file.
-        classes_dut_view : List[type[DutView]]
+        classes_dut_view : List[Type[DutView]]
             All possible DutViews this loaded DutView can be. One will be choosen according to the serialized dutview class name loaded from the file.
 
 
@@ -744,11 +744,19 @@ class DutLib(object):
             for i_dev, dev in enumerate(dev_list):
                 self.deembed_dut_AC(dev, open_list[0], short_list[0])
                 print_progress_bar(
-                    i_dev, len(dev_list), prefix="Deembedding AC:", suffix=dev.name, length=50
+                    i_dev,
+                    len(dev_list),
+                    prefix="Deembedding AC:",
+                    suffix=dev.name,
+                    length=50,
                 )
 
             print_progress_bar(
-                len(dev_list), len(dev_list), prefix="Deembedding AC:", suffix=dev.name, length=50
+                len(dev_list),
+                len(dev_list),
+                prefix="Deembedding AC:",
+                suffix=dev.name,
+                length=50,
             )
             self.is_deembedded_AC = True
             return
@@ -824,12 +832,20 @@ class DutLib(object):
                 raise NoShortDeembeddingDut("For " + dev.name + " no Short was found.")
             else:
                 print_progress_bar(
-                    i_dev, len(dev_list), prefix="Deembedding AC:", suffix=dev.name, length=50
+                    i_dev,
+                    len(dev_list),
+                    prefix="Deembedding AC:",
+                    suffix=dev.name,
+                    length=50,
                 )
                 self.deembed_dut_AC(dev, suitable_opens[0], suitable_shorts[0])
 
             print_progress_bar(
-                len(dev_list), len(dev_list), prefix="Deembedding AC:", suffix=dev.name, length=50
+                len(dev_list),
+                len(dev_list),
+                prefix="Deembedding AC:",
+                suffix=dev.name,
+                length=50,
             )
 
             # Deembed DC data if required
@@ -925,11 +941,19 @@ class DutLib(object):
                         forced_current=forced_current,
                     )
                 print_progress_bar(
-                    i_dev, len(dev_list), prefix="Deembedding DC:", suffix=dev.name, length=50
+                    i_dev,
+                    len(dev_list),
+                    prefix="Deembedding DC:",
+                    suffix=dev.name,
+                    length=50,
                 )
 
             print_progress_bar(
-                len(dev_list), len(dev_list), prefix="Deembedding DC:", suffix="finish", length=50
+                len(dev_list),
+                len(dev_list),
+                prefix="Deembedding DC:",
+                suffix="finish",
+                length=50,
             )
             self.is_deembedded_DC = True
             return mres
@@ -982,7 +1006,11 @@ class DutLib(object):
                 raise NoShortDeembeddingDut("For " + dev.name + " no short was found.")
             else:
                 print_progress_bar(
-                    i_dev, len(dev_list), prefix="Deembedding DC:", suffix=dev.name, length=50
+                    i_dev,
+                    len(dev_list),
+                    prefix="Deembedding DC:",
+                    suffix=dev.name,
+                    length=50,
                 )
                 mres = self.deembed_dut_DC(
                     dev,
@@ -994,7 +1022,11 @@ class DutLib(object):
                 )
 
         print_progress_bar(
-            len(dev_list), len(dev_list), prefix="Deembedding DC:", suffix=dev.name, length=50
+            len(dev_list),
+            len(dev_list),
+            prefix="Deembedding DC:",
+            suffix=dev.name,
+            length=50,
         )
 
         self.is_deembedded_DC = True
@@ -1180,7 +1212,13 @@ class DutLib(object):
                         dut.data[key] = df.parallel_norm(dut.ndevices, *dut.ac_ports)
 
     def deembed_dut_DC(
-        self, dut, dut_short, function_dut=None, function_df=None, t_ref=300, forced_current=False
+        self,
+        dut,
+        dut_short,
+        function_dut=None,
+        function_df=None,
+        t_ref=300,
+        forced_current=False,
     ):
         """Deembeds all DC_measurements in GSG-Pads.
 
@@ -1249,7 +1287,8 @@ class DutLib(object):
                             key_temperature = dut.get_key_temperature(key)
                             for short_key in short_keys:
                                 if np.isclose(
-                                    key_temperature, dut_short.get_key_temperature(short_key)
+                                    key_temperature,
+                                    dut_short.get_key_temperature(short_key),
                                 ):
                                     break
                             df_short = dut_short.data[short_key]

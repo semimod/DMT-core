@@ -28,7 +28,7 @@ import numpy as np
 import pandas as pd
 import time
 from pathlib import Path
-from typing import List, Dict
+from typing import List, Dict, Type
 
 try:
     from semver.version import Version as VersionInfo
@@ -149,7 +149,7 @@ class DutXyce(DutCircuit):
     def from_json(
         cls,
         json_content: Dict,
-        classes_technology: List[type[Technology]],
+        classes_technology: List[Type[Technology]],
         subclass_kwargs: Dict = None,
     ) -> "DutXyce":
         """Static class method. Loads a DutXyce object from a json or pickle file with full path save_dir.
@@ -160,7 +160,7 @@ class DutXyce(DutCircuit):
         ----------
         json_content  :  dict
             Readed dictionary from a saved json DutNgspice.
-        classes_technology : List[type[Technology]]
+        classes_technology : List[Type[Technology]]
             All possible technologies this loaded DutNgspice can have. One will be choosen according to the serialized technology loaded from the file.
         subclass_kwargs : Dict, optional
             Additional kwargs necessary to create the concrete subclassed DutView.
@@ -484,7 +484,10 @@ class DutXyce(DutCircuit):
         # compile plugins if needed and also add to arguments
         if self._va_plugins_to_compile:
             print_progress_bar(
-                0, len(self._va_plugins_to_compile), prefix="Compiling Xyce plugins", length=50
+                0,
+                len(self._va_plugins_to_compile),
+                prefix="Compiling Xyce plugins",
+                length=50,
             )
             processes = []
             for path_plugin, vafile in self._va_plugins_to_compile:
@@ -596,7 +599,12 @@ class DutXyce(DutCircuit):
         if swd_ac is not None:
             if "ac_switch" in str_netlist:
                 tmp_sweep.sweepdef.append(
-                    SweepDef(SpecifierStr("ac_switch"), "LIST", sweep_order=1000, value_def=[0, 1])
+                    SweepDef(
+                        SpecifierStr("ac_switch"),
+                        "LIST",
+                        sweep_order=1000,
+                        value_def=[0, 1],
+                    )
                 )  # just use a very high sweep order to make sure it is the last one...
                 str_ac_switch = " ac_switch"
 
@@ -751,7 +759,8 @@ class DutXyce(DutCircuit):
                 self.delete_sim_results(sweep)
         else:
             logging.info(
-                "Read the Xyce simulation output data of the from the file %s.", filepaths[0]
+                "Read the Xyce simulation output data of the from the file %s.",
+                filepaths[0],
             )
 
     def _import_xyce_results(self, *filepaths):
