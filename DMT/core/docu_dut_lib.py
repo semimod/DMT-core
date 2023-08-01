@@ -29,7 +29,15 @@ from DMT.core.plot import MIX, PLOT_STYLES, natural_scales, Plot
 from DMT.external.os import recursive_copy, rmtree
 
 try:
-    from pylatex import Section, Subsection, SmallText, Tabular, NoEscape, Center, Figure
+    from pylatex import (
+        Section,
+        Subsection,
+        SmallText,
+        Tabular,
+        NoEscape,
+        Center,
+        Figure,
+    )
     from pylatex.base_classes import Arguments
     from DMT.external.pylatex import SubFile, Tex, CommandInput, CommandLabel
 except ImportError:
@@ -293,7 +301,10 @@ class DocuDutLib(object):
     """
 
     def __init__(
-        self, dut_lib: DutLib, devices: Optional[Sequence[Mapping[str, object]]] = None, date=None
+        self,
+        dut_lib: DutLib,
+        devices: Optional[Sequence[Mapping[str, object]]] = None,
+        date=None,
     ):
         self.dut_lib = dut_lib
 
@@ -445,7 +456,10 @@ class DocuDutLib(object):
                 if i == 0:
                     pass
                 else:
-                    plot_specs[0], plot_specs[i] = plot_specs[i], plot_specs[0]  # swap elements
+                    plot_specs[0], plot_specs[i] = (
+                        plot_specs[i],
+                        plot_specs[0],
+                    )  # swap elements
 
                 break
 
@@ -472,10 +486,8 @@ class DocuDutLib(object):
                     continue  # no plot_type in plot_defaults for this plot_spec
 
                 # overwrite defaults with plot_spec
-                try:
-                    legend_location = plot_spec["legend_location"]
-                except KeyError:
-                    pass
+                legend_location = plot_spec.get("legend_location", legend_location)
+                at_specifier = plot_spec.get("at_specifier", at_specifier)
 
                 if not isinstance(at_specifier, list):
                     at_specifier = [at_specifier]
@@ -483,7 +495,11 @@ class DocuDutLib(object):
                 quantities_to_ensure = [quantity_x, quantity_y] + at_specifier
                 if "mark_ft" in plot_type:
                     quantities_to_ensure.append(specifiers.TRANSIT_FREQUENCY)
-                    peaks = {"vbe": [], "jc": [], "vbc": []}  # store peak ft values for later
+                    peaks = {
+                        "vbe": [],
+                        "jc": [],
+                        "vbc": [],
+                    }  # store peak ft values for later
 
                 at_scale = []
                 for at_ in at_specifier:
@@ -497,13 +513,8 @@ class DocuDutLib(object):
 
                     at_scale.append(at_scale_)
 
-                print("Generating plot of type " + plot_type + " for dut " + dut.name + " ...")
-                name = [
-                    "dut_",
-                    dut.name,
-                    "_",
-                    plot_type,
-                ]
+                print(f"Generating plot of type {plot_type} for dut {dut.name} ...")
+                name = ["dut_", dut.name, "_", plot_type]
                 if specifiers.TEMPERATURE in plot_spec.keys():
                     name.append("atT" + str(plot_spec[specifiers.TEMPERATURE]) + "K")
                 if specifiers.FREQUENCY in plot_spec.keys():
@@ -515,7 +526,7 @@ class DocuDutLib(object):
                 name = "_".join(name)
 
                 # calc drawn emitter windows area
-                AE0_drawn = dut.width * dut.length * dut.contact_config.count("E")
+                AE0_drawn = dut.width * dut.length * dut.contact_config.count("E") * dut.ndevices
 
                 # find temperatures
                 temps = []
@@ -567,9 +578,17 @@ class DocuDutLib(object):
 
                         match = False
                         if plot_spec["exact_match"]:
-                            match = plot_spec["key"] == dut.split_key(key)[-1]
+                            if isinstance(plot_spec["key"], str):
+                                match = plot_spec["key"] == dut.split_key(key)[-1]
+                            else:
+                                match = dut.split_key(key)[-1] in plot_spec["key"]
                         else:
-                            match = plot_spec["key"] in key
+                            if isinstance(plot_spec["key"], str):
+                                match = plot_spec["key"] in key
+                            else:
+                                match = any(
+                                    plot_spec_key in key for plot_spec_key in plot_spec["key"]
+                                )
 
                         if match:
                             df = dut.data[key]
@@ -662,7 +681,8 @@ class DocuDutLib(object):
                                     zip(at_specifier, units, at_scale)
                                 ):
                                     df_filter = np.logical_and(
-                                        df_filter, np.isclose(df[speci], point[i], rtol=1e-3)
+                                        df_filter,
+                                        np.isclose(df[speci], point[i], rtol=1e-3),
                                     )
                                     if at_str != r"$":
                                         at_str += r",\,"
@@ -700,7 +720,9 @@ class DocuDutLib(object):
                                     index_peak_ft = np.argmax(ft)
                                     try:
                                         vbe_new = np.linspace(
-                                            x[index_peak_ft - 10], x[index_peak_ft + 10], 201
+                                            x[index_peak_ft - 10],
+                                            x[index_peak_ft + 10],
+                                            201,
                                         )  # may error
                                     except IndexError:
                                         vbe_new = np.linspace(
@@ -786,7 +808,9 @@ class DocuDutLib(object):
                         self.plts.append(plt)
 
     def generate_all_plots(
-        self, target_base_path: Union[str, Path], save_tikz_settings: Optional[Dict] = None
+        self,
+        target_base_path: Union[str, Path],
+        save_tikz_settings: Optional[Dict] = None,
     ):
         """Generates the plot tex and pdf files.
 
