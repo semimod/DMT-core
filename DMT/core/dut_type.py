@@ -74,27 +74,39 @@ class DutTypeInt(object):
 
     def __and__(self, other):
         try:
-            return DutTypeInt(self.value & other.value, string=self.get_string(), nodes=self.nodes)
+            return DutTypeInt(
+                self.value & other.value, string=self.get_string(), nodes=self.nodes
+            )
         except AttributeError:
-            return DutTypeInt(self.value & other, string=self.get_string(), nodes=self.nodes)
+            return DutTypeInt(
+                self.value & other, string=self.get_string(), nodes=self.nodes
+            )
 
     def __rand__(self, other):
         return self.__and__(other)
 
     def __xor__(self, other):
         try:
-            return DutTypeInt(self.value ^ other.value, string=self.get_string(), nodes=self.nodes)
+            return DutTypeInt(
+                self.value ^ other.value, string=self.get_string(), nodes=self.nodes
+            )
         except AttributeError:
-            return DutTypeInt(self.value ^ other, string=self.get_string(), nodes=self.nodes)
+            return DutTypeInt(
+                self.value ^ other, string=self.get_string(), nodes=self.nodes
+            )
 
     def __rxor__(self, other):
         return self.__xor__(other)
 
     def __or__(self, other):
         try:
-            return DutTypeInt(self.value | other.value, string=self.get_string(), nodes=self.nodes)
+            return DutTypeInt(
+                self.value | other.value, string=self.get_string(), nodes=self.nodes
+            )
         except AttributeError:
-            return DutTypeInt(self.value | other, string=self.get_string(), nodes=self.nodes)
+            return DutTypeInt(
+                self.value | other, string=self.get_string(), nodes=self.nodes
+            )
 
     def __ror__(self, other):
         return self.__or__(other)
@@ -127,47 +139,86 @@ class DutTypeInt(object):
         other : int, DutTypeInt
         """
         # remove subtype flag..
-        val_subtype_flags = (
-            DutTypeFlag._flag_subtype_1
-            | DutTypeFlag._flag_subtype_2
-            | DutTypeFlag._flag_subtype_3
-            | DutTypeFlag._flag_subtype_4
-        )
-        self_wo_subtype = self.value & ~(val_subtype_flags.value)
-        other_wo_subtype = other.value & ~(val_subtype_flags.value)
+        # val_subtype_flags = (
+        #     DutTypeFlag._flag_subtype_1
+        #     | DutTypeFlag._flag_subtype_2
+        #     | DutTypeFlag._flag_subtype_3
+        #     | DutTypeFlag._flag_subtype_4
+        # )
+        if DutTypeFlag._flag_subtype_1 & self:
+            self_wo_subtype = self - DutTypeFlag._flag_subtype_1
+        elif DutTypeFlag._flag_subtype_2 & self:
+            self_wo_subtype = self - DutTypeFlag._flag_subtype_2
+        elif DutTypeFlag._flag_subtype_3 & self:
+            self_wo_subtype = self - DutTypeFlag._flag_subtype_3
+        elif DutTypeFlag._flag_subtype_4 & self:
+            self_wo_subtype = self - DutTypeFlag._flag_subtype_4
+        else:
+            self_wo_subtype = self
+
+        if DutTypeFlag._flag_subtype_1 & other:
+            other_wo_subtype = other - DutTypeFlag._flag_subtype_1
+        elif DutTypeFlag._flag_subtype_2 & other:
+            other_wo_subtype = other - DutTypeFlag._flag_subtype_2
+        elif DutTypeFlag._flag_subtype_3 & other:
+            other_wo_subtype = other - DutTypeFlag._flag_subtype_3
+        elif DutTypeFlag._flag_subtype_4 & other:
+            other_wo_subtype = other - DutTypeFlag._flag_subtype_4
+        else:
+            other_wo_subtype = other
 
         res = self_wo_subtype & other_wo_subtype
         return res == other
 
     def __lt__(self, other):
         try:
-            return DutTypeInt(self.value < other.value, string=self.get_string(), nodes=self.nodes)
+            return DutTypeInt(
+                self.value < other.value, string=self.get_string(), nodes=self.nodes
+            )
         except AttributeError:
-            return DutTypeInt(self.value < other, string=self.get_string(), nodes=self.nodes)
+            return DutTypeInt(
+                self.value < other, string=self.get_string(), nodes=self.nodes
+            )
 
     def __le__(self, other):
         try:
-            return DutTypeInt(self.value <= other.value, string=self.get_string(), nodes=self.nodes)
+            return DutTypeInt(
+                self.value <= other.value, string=self.get_string(), nodes=self.nodes
+            )
         except AttributeError:
-            return DutTypeInt(self.value <= other, string=self.get_string(), nodes=self.nodes)
+            return DutTypeInt(
+                self.value <= other, string=self.get_string(), nodes=self.nodes
+            )
 
     def __gt__(self, other):
         try:
-            return DutTypeInt(self.value > other.value, string=self.get_string(), nodes=self.nodes)
+            return DutTypeInt(
+                self.value > other.value, string=self.get_string(), nodes=self.nodes
+            )
         except AttributeError:
-            return DutTypeInt(self.value > other, string=self.get_string(), nodes=self.nodes)
+            return DutTypeInt(
+                self.value > other, string=self.get_string(), nodes=self.nodes
+            )
 
     def __ge__(self, other):
         try:
-            return DutTypeInt(self.value >= other.value, string=self.get_string(), nodes=self.nodes)
+            return DutTypeInt(
+                self.value >= other.value, string=self.get_string(), nodes=self.nodes
+            )
         except AttributeError:
-            return DutTypeInt(self.value >= other, string=self.get_string(), nodes=self.nodes)
+            return DutTypeInt(
+                self.value >= other, string=self.get_string(), nodes=self.nodes
+            )
 
     def __sub__(self, other):
         try:
-            return DutTypeInt(self.value - other.value, string=self.get_string(), nodes=self.nodes)
+            return DutTypeInt(
+                self.value - other.value, string=self.get_string(), nodes=self.nodes
+            )
         except AttributeError:
-            return DutTypeInt(self.value - other, string=self.get_string(), nodes=self.nodes)
+            return DutTypeInt(
+                self.value - other, string=self.get_string(), nodes=self.nodes
+            )
 
     def __hash__(self):
         return hash((self.value, tuple(self.nodes), self.string))
@@ -271,7 +322,9 @@ class DutTypeFlag(Flag):
 class DutType(object):
     """concrete DutTypes to be used for DutViews"""
 
-    dummy = DutTypeInt(0, string="dummy")  # dummy is nothing! Use DutTypeInt to allow get_nodes
+    dummy = DutTypeInt(
+        0, string="dummy"
+    )  # dummy is nothing! Use DutTypeInt to allow get_nodes
     device = DutTypeInt(DutTypeFlag.flag_device, string="device")
     bulk = DutTypeInt(DutTypeFlag.flag_bulk, string="bulk")
     meas_struct = DutTypeInt(DutTypeFlag.flag_meas_struct, string="meas_struct")
@@ -279,8 +332,12 @@ class DutType(object):
 
     # now the mixed flags, are DutTypeInts as the numbers are already given:
     transistor = DutTypeInt(device | DutTypeFlag.flag_transistor, string="transistor")
-    bjt = DutTypeInt(transistor | DutTypeFlag.flag_bjt, nodes=["B", "C", "E", "S"], string="bjt")
-    mos = DutTypeInt(transistor | DutTypeFlag.flag_mos, nodes=["G", "D", "S", "B"], string="mos")
+    bjt = DutTypeInt(
+        transistor | DutTypeFlag.flag_bjt, nodes=["B", "C", "E", "S"], string="bjt"
+    )
+    mos = DutTypeInt(
+        transistor | DutTypeFlag.flag_mos, nodes=["G", "D", "S", "B"], string="mos"
+    )
     deem_bjt = DutTypeInt(
         deemb_struct | DutTypeFlag.flag_bjt_deemb,
         nodes=["B", "C", "E", "S"],
@@ -303,10 +360,14 @@ class DutType(object):
     # p_mos = DutTypeInt(mos | DutTypeFlag.flag_p_mos, string="pmos")
     p_mos = DutTypeInt(mos | DutTypeFlag._flag_subtype_2, string="pmos")
 
-    diode = DutTypeInt(device | DutTypeFlag.flag_diode, nodes=["C", "A"], string="diode")
+    diode = DutTypeInt(
+        device | DutTypeFlag.flag_diode, nodes=["C", "A"], string="diode"
+    )
     pn_diode = DutTypeInt(diode | DutTypeFlag._flag_subtype_1, string="pn-diode")
     pin_diode = DutTypeInt(diode | DutTypeFlag._flag_subtype_2, string="pin-diode")
-    cap = DutTypeInt(device | DutTypeFlag.flag_cap, nodes=["C", "A"], string="capacitance")
+    cap = DutTypeInt(
+        device | DutTypeFlag.flag_cap, nodes=["C", "A"], string="capacitance"
+    )
     res = DutTypeInt(device | DutTypeFlag.flag_res, nodes=["C", "A"], string="resistor")
 
     tlm = DutTypeInt(
@@ -371,13 +432,16 @@ class DutType(object):
                     + "' in the current DMT version."
                 )
                 dut_type = DutTypeInt(
-                    dict_loaded["value"], string=dict_loaded["string"], nodes=dict_loaded["nodes"]
+                    dict_loaded["value"],
+                    string=dict_loaded["string"],
+                    nodes=dict_loaded["nodes"],
                 )
             else:
                 dut_type.nodes = dict_loaded["nodes"]
         else:
             raise IOError(
-                "DMT.DutType: I dont know how to deserealize the DutType: " + dict_loaded["DutType"]
+                "DMT.DutType: I dont know how to deserealize the DutType: "
+                + dict_loaded["DutType"]
             )
 
         return dut_type
