@@ -28,6 +28,12 @@ import numpy as np
 import pandas as pd
 import time
 from pathlib import Path
+from typing import List, Dict, Type
+
+try:
+    from semver.version import Version as VersionInfo
+except ImportError:
+    from semver import VersionInfo
 
 from DMT.config import DATA_CONFIG
 from DMT.core import (
@@ -43,6 +49,8 @@ from DMT.core import (
     DataFrame,
     constants,
     print_progress_bar,
+    Technology,
+    VAFileMap,
 )
 from DMT.core.circuit import (
     Circuit,
@@ -57,6 +65,8 @@ from DMT.core.circuit import (
 )
 from DMT.exceptions import SimulationUnsuccessful, SimulationFail
 
+SEMVER_DUTXYCE_CURRENT = VersionInfo(major=1, minor=0)
+
 
 class DutXyce(DutCircuit):
     """Class to interface the Xyce circuit simulator"""
@@ -65,12 +75,13 @@ class DutXyce(DutCircuit):
         self,
         database_dir,
         dut_type,
-        input_circuit,
+        inp_circuit,
         name="xyce_",
         simulator_command=None,
         simulator_arguments=None,
         simulator_options=None,
         build_xyce_plugin_command="buildxyceplugin",
+        inp_name="xyce_circuit.cir",
         **kwargs,
     ):
         if simulator_command is None:
@@ -91,11 +102,11 @@ class DutXyce(DutCircuit):
             database_dir,
             name,
             dut_type,
-            input_circuit,
+            inp_circuit,
             simulator_command=simulator_command,
             simulator_options=simulator_options,
             simulator_arguments=simulator_arguments,
-            inp_name="xyce_circuit.cir",
+            inp_name=inp_name,
             **kwargs,
         )
 
@@ -105,6 +116,73 @@ class DutXyce(DutCircuit):
                 "It could work for non-VA Duts, but needs testing.",
                 "Verilog Xyce does not work for sure.",
             )
+
+    def info_json(self, **_kwargs) -> Dict:
+        """Returns a dict with serializeable content for the json file to create.
+
+        The topmost dict MUST have only one key: The string casted class name.
+        Inside the parameters are:
+
+            * A version key,
+            * all extra parameters of DutXyce compared to DutCircuit and
+            * the info_json of DutCircuit.
+
+        Returns
+        -------
+        dict
+            str(DutXyce): serialized content
+        """
+        va_plugins_to_compile = []
+        for path, va_file in self._va_plugins_to_compile:
+            va_plugins_to_compile.append((str(path), va_file.export_dict()))
+
+        return {
+            str(DutXyce): {
+                "__DutXyce__": str(SEMVER_DUTXYCE_CURRENT),
+                "parent": super(DutXyce, self).info_json(**_kwargs),
+                "build_xyce_plugin_command": self.build_xyce_plugin_command,
+                "_va_plugins_to_compile": va_plugins_to_compile,
+            }
+        }
+
+    @classmethod
+    def from_json(
+        cls,
+        json_content: Dict,
+        classes_technology: List[Type[Technology]],
+        subclass_kwargs: Dict = None,
+    ) -> "DutXyce":
+        """Static class method. Loads a DutXyce object from a json or pickle file with full path save_dir.
+
+        Calls the from_json method of DutView with all dictionary inside the "parent" keyword. Afterwards the additional parameters are set correctly.
+
+        Parameters
+        ----------
+        json_content  :  dict
+            Readed dictionary from a saved json DutNgspice.
+        classes_technology : List[Type[Technology]]
+            All possible technologies this loaded DutNgspice can have. One will be choosen according to the serialized technology loaded from the file.
+        subclass_kwargs : Dict, optional
+            Additional kwargs necessary to create the concrete subclassed DutView.
+
+        Returns
+        -------
+        DutXyce
+            Loaded object.
+        """
+        if json_content["__DutXyce__"] != SEMVER_DUTXYCE_CURRENT:
+            raise NotImplementedError("DMT.DutXyce: Unknown version of DutXyce to load!")
+
+        dut_view = super().from_json(
+            json_content["parent"], classes_technology, subclass_kwargs=subclass_kwargs
+        )
+        dut_view.build_xyce_plugin_command = json_content["build_xyce_plugin_command"]
+        dut_view._va_plugins_to_compile = []
+
+        for path, va_file in json_content["_va_plugins_to_compile"]:
+            dut_view._va_plugins_to_compile.append((Path(path), VAFileMap.import_dict(va_file)))
+
+        return dut_view
 
     def create_inp_header(self, inp_circuit):
         """Creates the input header of the given circuit description and returns it.
@@ -406,7 +484,10 @@ class DutXyce(DutCircuit):
         # compile plugins if needed and also add to arguments
         if self._va_plugins_to_compile:
             print_progress_bar(
-                0, len(self._va_plugins_to_compile), prefix="Compiling Xyce plugins", length=50
+                0,
+                len(self._va_plugins_to_compile),
+                prefix="Compiling Xyce plugins",
+                length=50,
             )
             processes = []
             for path_plugin, vafile in self._va_plugins_to_compile:
@@ -518,7 +599,12 @@ class DutXyce(DutCircuit):
         if swd_ac is not None:
             if "ac_switch" in str_netlist:
                 tmp_sweep.sweepdef.append(
-                    SweepDef(SpecifierStr("ac_switch"), "LIST", sweep_order=1000, value_def=[0, 1])
+                    SweepDef(
+                        SpecifierStr("ac_switch"),
+                        "LIST",
+                        sweep_order=1000,
+                        value_def=[0, 1],
+                    )
                 )  # just use a very high sweep order to make sure it is the last one...
                 str_ac_switch = " ac_switch"
 
@@ -673,7 +759,8 @@ class DutXyce(DutCircuit):
                 self.delete_sim_results(sweep)
         else:
             logging.info(
-                "Read the Xyce simulation output data of the from the file %s.", filepaths[0]
+                "Read the Xyce simulation output data of the from the file %s.",
+                filepaths[0],
             )
 
     def _import_xyce_results(self, *filepaths):

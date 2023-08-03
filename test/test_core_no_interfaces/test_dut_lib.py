@@ -1,6 +1,7 @@
 import logging
+import shutil
 from pathlib import Path
-from DMT.core import DutMeas, DutType, DocuDutLib, DutLib, specifiers, sub_specifiers
+from DMT.core import DutMeas, DutType, DocuDutLib, DutLib, specifiers, sub_specifiers, Technology
 
 folder_path = Path(__file__).resolve().parent
 test_path = folder_path.parent
@@ -12,6 +13,23 @@ logging.basicConfig(
     filename=folder_path.parent.parent / "logs" / "test_dut_lib.log",
     filemode="w",
 )
+
+
+class TechDummy(Technology):
+    def __init__(self):
+        super().__init__(name="dummy")
+
+    @staticmethod
+    def deserialize():
+        return TechDummy()
+
+    def serialize(self):
+        return {
+            "class": str(self.__class__),
+            "args": [],
+            "kwargs": {},
+            "constructor": "deserialize",
+        }
 
 
 def create_lib():
@@ -38,13 +56,14 @@ def create_lib():
                 contact_config="CBEBC",
                 name="dut_meas_npn",
                 reference_node="E",
+                technology=TechDummy(),
             )
 
             return dut_transistor
 
     # --->Arrange DMT class to dmt
     lib = DutLib(
-        save_dir=test_path / "tmp",
+        save_dir=test_path / "tmp" / "dut_lib_save",
         force=True,
         AC_filter_names=[("freq_vbc", "ac")],
         DC_filter_names=[("fgummel", "dc")],
@@ -69,6 +88,7 @@ def create_lib():
         die="y",
         width=float(0.25e-6),
         length=float(0.25e-6),
+        technology=TechDummy(),
     )
     dut_short.add_data(folder_path / "test_data" / "dummy_short_freq.mdm", key="ac")
     dut_short.add_data(folder_path / "test_data" / "short_dc.mdm", key="dc")
@@ -82,6 +102,7 @@ def create_lib():
         die="y",
         width=float(0.25e-6),
         length=float(0.25e-6),
+        technology=TechDummy(),
     )
     dut_open.add_data(folder_path / "test_data" / "dummy_open_freq.mdm", key="ac")
     lib.add_duts([dut_short, dut_open])
@@ -112,9 +133,9 @@ def create_lib():
 def test_docu():
     lib_test = create_lib()
     docu = DocuDutLib(lib_test)
-
+    docu_path = folder_path.parent / "tmp" / "docu_dut_lib"
     docu.generate_docu(
-        folder_path.parent / "tmp" / "docu_dut_lib",
+        docu_path,
         plot_specs=[{"type": "gummel_vbc", "key": "fgummel"}],
         show=False,  # not possible in CI/CD
         save_tikz_settings={
@@ -128,6 +149,42 @@ def test_docu():
         },
     )
 
+    shutil.rmtree(docu_path)
+
+
+def test_lib_save_load():
+    lib_test = create_lib()
+    lib_test.save()
+
+    lib_loaded = DutLib.load(
+        folder_path.parent / "tmp" / "dut_lib_save",
+        [TechDummy],
+    )
+
+    ## some asserts
+    assert len(lib_test.duts) == len(lib_loaded.duts)
+    assert lib_test.dut_ref_dut_dir == lib_loaded.dut_ref_dut_dir
+    assert lib_test.wafer == lib_loaded.wafer
+
+    for dut_test in lib_test:
+        # find dut in lib_loaded
+        # compare data
+        for dut_load in lib_loaded:
+            if dut_test.name == dut_load.name:
+                assert dut_test.dut_type == dut_load.dut_type
+                key = ""
+                if "open" in dut_test.name:
+                    key = "ac"
+                elif "short" in dut_test.name:
+                    key = "dc"
+                elif "dut_meas_npn" in dut_test.name:
+                    key = "T298.00K/freq_vbc_0p3"
+
+                assert dut_test.data[key].equals(dut_load.data[key])
+
+    shutil.rmtree(lib_test.save_dir)
+
 
 if __name__ == "__main__":
-    lib_test = test_docu()
+    # lib_test = test_docu()
+    test_lib_save_load()

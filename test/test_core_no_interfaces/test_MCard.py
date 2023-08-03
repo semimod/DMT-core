@@ -140,7 +140,7 @@ def test_set_va_code():
     os.remove(file_name_compressed)
 
     # test the regex for minimal working environment..
-    mc_saved.read_va_file_boundaries()
+    mc_saved.update_from_vae(remove_old_parameters=True)
 
     assert mc_saved.default_module_name == "DIODE_CMC"
     assert len(mc_saved.paras) == 102

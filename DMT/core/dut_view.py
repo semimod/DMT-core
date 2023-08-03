@@ -21,14 +21,31 @@ import os
 import re
 import shutil
 import _pickle as cpickle  # type: ignore
-
-# import pickle as cpickle
+import json
 import copy
 import logging
-from DMT.core import DatabaseManager, read_data, DataFrame, VAFileMap
-from DMT.config import DATA_CONFIG
 from pathlib import Path
 import pandas as pd
+from typing import List, Dict, Type
+
+try:
+    from semver.version import Version as VersionInfo
+except ImportError:
+    from semver import VersionInfo
+
+from DMT.core import (
+    DatabaseManager,
+    read_data,
+    DataFrame,
+    VAFileMap,
+    DutTypeFlag,
+    DutTypeInt,
+    DutType,
+    Technology,
+)
+from DMT.config import DATA_CONFIG
+
+SEMVER_DUTVIEW_CURRENT = VersionInfo(major=1, minor=0)
 
 
 class DutView(object):
@@ -140,8 +157,11 @@ class DutView(object):
         database_dir,
         name,
         dut_type,
+        *,
+        reference_node,
         copy_va_files=True,
         force=False,
+        loading=False,
         separate_databases=False,
         list_copy=None,
         t_max=None,
@@ -156,11 +176,23 @@ class DutView(object):
         contact_config=None,
         flavor=None,
         ac_ports=None,
-        reference_node=None,
         nodes=None,
         inp_name=None,
         va_code_filter=None,
     ):
+        if database_dir is None:
+            self._database_dir = DATA_CONFIG["directories"]["database"]
+        else:
+            if isinstance(database_dir, Path):
+                self._database_dir = database_dir.expanduser().resolve()
+            else:
+                self._database_dir = Path(database_dir).expanduser().resolve()
+
+        if os.path.isabs(name):
+            raise IOError(
+                "DMT.DutView: The DutView name must not be a valid absolute directory path!"
+            )
+        self.name = name
         self._copy_va_files = copy_va_files
         # files to be copied into simulation directory
         if list_copy is None:
@@ -170,25 +202,26 @@ class DutView(object):
                 self.list_copy = [list_copy]
             else:
                 self.list_copy = list_copy
-
         self._list_va_file_contents: list[VAFileMap] = []
+
+        # if the dut already exists and no force -> error!
+        if self.save_dir.exists():
+            if force:
+                # delete the saved database
+                self.del_db()
+                self.del_dut()
+            elif loading:
+                pass
+            else:
+                raise IOError(
+                    "DMT.DutView: Created a DutView with a save_dir which already exists. Better load that one or remove it."
+                )
 
         # attributes for data management
         self._separate_databases = separate_databases
         self._data = {}  # this is now hidden
-        if database_dir is None:
-            self._database_dir = DATA_CONFIG["directories"]["database"]
-        else:
-            if isinstance(database_dir, Path):
-                self._database_dir = database_dir.expanduser().resolve()
-            else:
-                self._database_dir = Path(database_dir).expanduser().resolve()
 
-        self.dut_type = dut_type
-
-        if os.path.isabs(name):
-            raise IOError("The DuT name must not be a valid absolute directory path!")
-        self.name = name
+        self.dut_type: DutTypeFlag | DutTypeInt = dut_type
 
         self.manager = DatabaseManager()
         if nodes is None:
@@ -218,19 +251,6 @@ class DutView(object):
         else:
             self.sim_args = simulator_arguments
 
-        if force:
-            # delete the saved database
-            if self.save_dir is not None:
-                self.del_db()
-                self.del_dut()
-
-        # try to reload this Dut if it already exists!
-        if self.save_dir and not force:
-            pickle = Path(self.dut_dir)
-            if pickle.is_file():
-                existing_dut = DutView.load_dut(self.dut_dir)
-                self.__dict__.update(existing_dut.__dict__)
-
         self.sim_dir = sim_dir
 
         self.technology = technology
@@ -240,15 +260,9 @@ class DutView(object):
         self.length = length
         self.nfinger = nfinger
         try:
-            # if ( # was
-            #     (width is not None)
-            #     and (length is not None)
-            #     and (not isinstance(length, tuple) and (not isinstance(width, tuple)))
-            # ):
             self.perimeter = (self.width + self.length) * 2  # type: ignore
             self.area = self.width * self.length  # type: ignore
         except TypeError:
-            # else:
             self.perimeter = None
             self.area = None
 
@@ -433,7 +447,7 @@ class DutView(object):
 
     @property
     def dut_dir(self):
-        return self.save_dir / "dut.p"
+        return self.save_dir / "dut.json"
 
     @property
     def data(self):
@@ -486,19 +500,68 @@ class DutView(object):
             sweep.get_hash(),
         )
 
-    def save(self):
-        """Save this DutView as a pickled .p file and the also the data into the database on the hard drive."""
+    def save(self, **kwargs):
+        """Save this DutView as a json file and the also the data into the database on the hard drive. The kwargs are passed on to :py:method::`DMT.core.dut_view.DutView.info_json()` or the overwritten method."""
         self.save_dir.mkdir(parents=True, exist_ok=True)
         self._database_dir = self._database_dir.resolve()  # convert to absolute path
 
         self.save_db()
-        with open(self.dut_dir, "wb") as handle:
-            cpickle.dump(self, handle)
-        # with warnings.catch_warnings():
-        # warnings.simplefilter('ignore', tb.NaturalNameWarning)
+
+        self.dut_dir.write_text(json.dumps(self.info_json(**kwargs), indent=4), encoding="utf8")
+
+        if self.dut_dir.with_suffix(".p").exists():
+            # it there is still a "old" pickle file in the directory -> remove it
+            self.dut_dir.with_suffix(".p").unlink()
+
+    def info_json(self, **_kwargs):
+        """Returns a dict with serializeable content for the json file to create.
+
+        Add the info about the concrete subclass to create here! See :py:method::`DMT.core.dut_meas.DutMeas.info_json()` for an example implementation.
+
+        Returns
+        -------
+        dict
+            serialized dictionary ready to be dumped to json.
+        """
+        if self.technology is None:
+            tech = self.technology
+        else:
+            tech = self.technology.serialize()
+        return {
+            "__DutView__": str(SEMVER_DUTVIEW_CURRENT),
+            "copy_va_files": self._copy_va_files,
+            "list_copy": [str(to_copy) for to_copy in self.list_copy],
+            "list_va_file_contents": [
+                va_file.export_dict() for va_file in self._list_va_file_contents
+            ],
+            "separate_databases": self._separate_databases,
+            "database_dir": str(self._database_dir),
+            "dut_type": self.dut_type.serialize(),
+            "name": self.name,
+            "nodes": self.nodes,
+            "ac_ports": self.ac_ports,
+            "reference_node": self.reference_node,
+            "inp_name": self.inp_name,
+            "sim_command": self.sim_command,
+            "va_code_filter": self.va_code_filter,
+            "sim_args": self.sim_args,
+            "sim_dir": str(self.sim_dir),
+            "technology": tech,
+            "contact_config": self.contact_config,
+            "flavor": self.flavor,
+            "width": self.width,
+            "length": self.length,
+            "nfinger": self.nfinger,
+            "t_max": self.t_max,
+            "simulate_on_server": self.simulate_on_server,
+            "zip_result": self.zip_result,
+            "open_deembedded_with": self.open_deembedded_with,
+            "short_deembedded_with": self.short_deembedded_with,
+        }
 
     def __getstate__(self):
         """Return state values to be pickled. Implemented according `to <https://www.ibm.com/developerworks/library/l-pypers/index.html>`_ .
+
         Notes
         -----
         ..todo:
@@ -517,24 +580,59 @@ class DutView(object):
         self.__dict__["_data"] = {}
 
     @staticmethod
-    def load_dut(file_dut):
+    def load_dut(
+        file_dut,
+        classes_technology: List[Type[Technology]] = None,
+        classes_dut_view: List[Type["DutView"]] = None,
+    ) -> "DutView":
         """Static class method. Loads a DutView object from a pickle file with full path save_dir.
 
         Parameters
         ----------
         file_dut  :  str or os.Pathlike
-            Path to the pickled DutView object that shall be loaded.
+            Path to the json or pickle DutView file that shall be loaded.
+        classes_technology : List[Type[Technology]]
+            All possible technologies this loaded DutView can have. One will be choosen according to the serialized technology loaded from the file.
+        classes_dut_view : List[Type[DutView]]
+            All possible DutViews this loaded DutView can be. One will be choosen according to the serialized dutview class name loaded from the file.
 
         Returns
         -------
-        obj  :  DutView()
-            Loaded object from the pickle file.
+        DutView
+            Loaded object.
         """
         if not isinstance(file_dut, Path):
             file_dut = Path(file_dut)
 
-        with file_dut.open(mode="rb") as handle:
-            dut = cpickle.load(handle)
+        if file_dut.suffix == ".json":
+            from DMT.core import _DEFAULT_DUT_VIEWS
+
+            if classes_dut_view is None:
+                classes_dut_view = _DEFAULT_DUT_VIEWS
+            else:
+                classes_dut_view += _DEFAULT_DUT_VIEWS
+
+            with file_dut.open("r", encoding="utf8") as file_json:
+                json_content = json.load(file_json)
+
+            # the key on the first dictionary is the class
+            clsstr_dut_view = list(json_content.keys())[0]
+            try:
+                cls_dut_view = next(
+                    cls_dv for cls_dv in classes_dut_view if str(cls_dv) == clsstr_dut_view
+                )
+            except StopIteration as err:
+                raise IOError(
+                    "DMT.DutLib: Encountered unknown DutView class while loading the library"
+                ) from err
+
+            dut = cls_dut_view.from_json(json_content[clsstr_dut_view], classes_technology)
+
+        elif file_dut.suffix == ".p":
+            with file_dut.open(mode="rb") as handle:
+                dut = cpickle.load(handle)
+        else:
+            raise IOError("DMT.DutView: I can not load an file ending on " + file_dut.suffix)
 
         # check the dirs:
         # obtain database_dir from file_dut
@@ -548,6 +646,95 @@ class DutView(object):
             dut.sim_dir = DATA_CONFIG["directories"]["simulation"]
 
         return dut
+
+    @classmethod
+    def from_json(
+        cls,
+        json_content: Dict,
+        classes_technology: List[Type[Technology]],
+        subclass_kwargs: Dict = None,
+    ) -> "DutView":
+        """Static class method. Loads a DutView object from a pickle file with full path save_dir.
+
+        Parameters
+        ----------
+        json_content  :  dict
+            Readed dictionary from a saved json DutView.
+        classes_technology : List[Type[Technology]]
+            All possible technologies this loaded DutView can have. One will be choosen according to the serialized technology loaded from the file.
+        subclass_args: List = None,
+            Positional arguments needed
+        subclass_kwargs: Dict = None,
+
+        Returns
+        -------
+        DutView
+            Loaded object.
+        """
+        if json_content["__DutView__"] != SEMVER_DUTVIEW_CURRENT:
+            raise NotImplementedError("DMT.DutView: Unknown version of DutView to load!")
+
+        serialized_technology = json_content["technology"]
+        if serialized_technology is None:
+            tech = None
+        else:
+            try:
+                cls_technology = next(
+                    cls_tech
+                    for cls_tech in classes_technology
+                    if str(cls_tech) == serialized_technology["class"]
+                )
+            except StopIteration as err:
+                raise IOError(
+                    "DMT.DutLib: Encountered unknown Technology class while loading the library."
+                ) from err
+            args = serialized_technology.get("args", [])
+            kwargs = serialized_technology.get("kwargs", {})
+            if serialized_technology.get("constructor", None) is None:
+                tech = cls_technology(*args, **kwargs)
+            else:
+                tech = getattr(cls_technology, serialized_technology["constructor"])(
+                    *args, **kwargs
+                )
+
+        if subclass_kwargs is None:
+            subclass_kwargs = {}
+
+        dut_view = cls(
+            database_dir=json_content["database_dir"],
+            name=json_content["name"],
+            dut_type=DutType.deserialize(json_content["dut_type"]),
+            **subclass_kwargs,
+            reference_node=json_content["reference_node"],
+            copy_va_files=json_content["copy_va_files"],
+            force=False,
+            loading=True,
+            separate_databases=json_content["separate_databases"],
+            list_copy=json_content["list_copy"],
+            t_max=json_content["t_max"],
+            sim_dir=json_content["sim_dir"],
+            simulate_on_server=json_content["simulate_on_server"],
+            simulator_command=json_content["sim_command"],
+            simulator_arguments=json_content["sim_args"],
+            technology=tech,
+            width=json_content["width"],
+            length=json_content["length"],
+            nfinger=json_content["nfinger"],
+            contact_config=json_content["contact_config"],
+            flavor=json_content["flavor"],
+            ac_ports=json_content["ac_ports"],
+            nodes=json_content["nodes"],
+            inp_name=json_content["inp_name"],
+            va_code_filter=json_content["va_code_filter"],
+        )
+
+        dut_view._list_va_file_contents = [
+            VAFileMap.import_dict(va_file) for va_file in json_content["list_va_file_contents"]
+        ]
+        dut_view.zip_result = json_content["zip_result"]
+        dut_view.open_deembedded_with = json_content["open_deembedded_with"]
+        dut_view.short_deembedded_with = json_content["short_deembedded_with"]
+        return dut_view
 
     def add_data(self, data, key=None, force=True, **kwargs):
         """Add a measurement or simulation data to the DutView's data.
@@ -599,7 +786,10 @@ class DutView(object):
                 # try special import
                 self.import_output_data(data)
 
-        logging.info("DMT -> DutView -> add_data(): Added a dataframe with key %s to the dut.", key)
+        logging.info(
+            "DMT -> DutView -> add_data(): Added a dataframe with key %s to the dut.",
+            key,
+        )
 
     def remove_data(self, key):
         """Remove a measurement or simulation dataframe from the DutView's data.

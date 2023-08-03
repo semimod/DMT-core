@@ -121,7 +121,7 @@ class McSkywater(MCard):
         """Here the modelcard defines it's default simulation circuit.
 
         Parameters
-        -----------
+        ----------
         use_build_in : {False, True}, optional
             Creates a circuit for the modelcard using the build-in model
         topology : optional

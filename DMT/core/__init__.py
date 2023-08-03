@@ -70,7 +70,7 @@ from .naming import get_sub_specifiers
 from .naming import natural_scales
 
 # compact modelling stuff
-from .mc_parameter import McParameter, McParameterCollection, McParameterComposition
+from .mc_parameter import McParameter, McParameterCollection
 from .va_file import VAFileMap
 from .mcard import MCard
 from .technology import Technology
@@ -106,8 +106,8 @@ from .data_reader import (
 from .sim_con import SimCon
 
 # DutView tree
+from .dut_type import DutType, DutTypeFlag, DutTypeInt
 from .dut_view import DutView
-from .dut_type import DutType, DutTypeFlag
 from .dut_lib import DutLib
 
 from .dut_meas import DutMeas
@@ -117,6 +117,7 @@ from .dut_circuit import DutCircuit
 
 from .dut_tcad import DutTcad
 
+_DEFAULT_DUT_VIEWS = [DutView, DutMeas, DutDummy, DutCircuit, DutTcad]
 # docu
 from .docu_dut_lib import DocuDutLib
 

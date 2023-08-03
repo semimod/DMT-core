@@ -30,8 +30,13 @@ import numpy as np
 import pandas as pd
 import logging
 import h5py
-from typing import cast
 import shutil
+from typing import cast, List, Dict, Type
+
+try:
+    from semver.version import Version as VersionInfo
+except ImportError:
+    from semver import VersionInfo
 
 from DMT.core import (
     DutTcad,
@@ -43,6 +48,7 @@ from DMT.core import (
     get_specifier_from_string,
     constants,
     DutType,
+    Technology,
 )
 from DMT.config import DATA_CONFIG
 
@@ -60,6 +66,8 @@ hdev_iv_fallback = {
     "T_LATTICE": None,
     "T_CPU": None,
 }
+
+SEMVER_DUTHDEV_CURRENT = VersionInfo(major=1, minor=0)
 
 
 class DutHdev(DutTcad):
@@ -92,7 +100,14 @@ class DutHdev(DutTcad):
     inited = False
 
     def __init__(
-        self, database_dir, dut_type, inp_structure, name="hdev_", simulator_command=None, **kwargs
+        self,
+        database_dir,
+        dut_type,
+        inp_structure,
+        name="hdev_",
+        simulator_command=None,
+        inp_name="hdev_inp.din",
+        **kwargs
     ):
         if simulator_command is None:
             simulator_command = COMMANDS["Hdev"]
@@ -103,9 +118,65 @@ class DutHdev(DutTcad):
             dut_type,
             inp_structure,
             simulator_command=simulator_command,
-            inp_name="hdev_inp.din",
+            inp_name=inp_name,
             **kwargs,
         )
+
+    def info_json(self, **_kwargs) -> Dict:
+        """Returns a dict with serializeable content for the json file to create.
+
+        The topmost dict MUST have only one key: The string casted class name.
+        Inside the parameters are:
+
+            * A version key,
+            * all extra parameters of DutHdev compared to DutTcad and
+            * the info_json of DutTcad.
+
+        Returns
+        -------
+        dict
+            str(DutHdev): serialized content
+        """
+
+        return {
+            str(DutHdev): {
+                "__DutHdev__": str(SEMVER_DUTHDEV_CURRENT),
+                "parent": super(DutHdev, self).info_json(**_kwargs),
+            }
+        }
+
+    @classmethod
+    def from_json(
+        cls,
+        json_content: Dict,
+        classes_technology: List[Type[Technology]],
+        subclass_kwargs: Dict = None,
+    ) -> "DutHdev":
+        """Static class method. Loads a DutHdev object from a json or pickle file with full path save_dir.
+
+        Calls the from_json method of DutView with all dictionary inside the "parent" keyword. Afterwards the additional parameters are set correctly.
+
+        Parameters
+        ----------
+        json_content  :  dict
+            Readed dictionary from a saved json DutHdev.
+        classes_technology : List[Type[Technology]]
+            All possible technologies this loaded DutHdev can have. One will be choosen according to the serialized technology loaded from the file.
+        subclass_kwargs : Dict, optional
+            Additional kwargs necessary to create the concrete subclassed DutView.
+
+        Returns
+        -------
+        DutHdev
+            Loaded object.
+        """
+        if json_content["__DutHdev__"] != SEMVER_DUTHDEV_CURRENT:
+            raise NotImplementedError("DMT.DutHdev: Unknown version of DutHdev to load!")
+
+        dut_view = super().from_json(
+            json_content["parent"], classes_technology, subclass_kwargs=subclass_kwargs
+        )
+        return dut_view
 
     def create_inp_header(self, inp_):
         """Creates the inp_header from the given parameters.
@@ -465,7 +536,8 @@ class DutHdev(DutTcad):
             df_iv = df_iv.real2cmplx()
             for _col in df_iv.columns:
                 df_iv.rename(
-                    columns={_col: get_specifier_from_string(_col, nodes=self.nodes)}, inplace=True
+                    columns={_col: get_specifier_from_string(_col, nodes=self.nodes)},
+                    inplace=True,
                 )
 
             if not df_iv.columns.is_unique:
@@ -483,7 +555,8 @@ class DutHdev(DutTcad):
                 df_iv.ensure_specifier_column(specifiers.TRANSIT_FREQUENCY, ports=["B", "C"])
                 df_iv.ensure_specifier_column(specifiers.TRANSCONDUCTANCE, ports=["B", "C"])
                 df_iv.ensure_specifier_column(
-                    specifiers.SS_PARA_Y + "C" + "B" + sub_specifiers.REAL, ports=["B", "C"]
+                    specifiers.SS_PARA_Y + "C" + "B" + sub_specifiers.REAL,
+                    ports=["B", "C"],
                 )
             except KeyError:
                 pass
@@ -804,7 +877,11 @@ class DutHdev(DutTcad):
 
         elif sub_sweep.sweep_type.startswith("LIST"):
             bias_fun = "'TAB'"  # we convert to list, to support list=1 setting used by DMT in Hdev
-            bias_info = {"cont_name": cont_name, "bias_fun": bias_fun, "bias_val": sub_sweep.values}
+            bias_info = {
+                "cont_name": cont_name,
+                "bias_fun": bias_fun,
+                "bias_val": sub_sweep.values,
+            }
         else:
             raise NotImplementedError
 
@@ -851,7 +928,17 @@ class DutHdev(DutTcad):
             for i in range(len(field)):
                 if doping > 0:
                     mob[i] = hdev_py.get_mobility_py(
-                        semiconductor, valley, field[i], 1, 1, 1, temperature, 0, doping, 0, grading
+                        semiconductor,
+                        valley,
+                        field[i],
+                        1,
+                        1,
+                        1,
+                        temperature,
+                        0,
+                        doping,
+                        0,
+                        grading,
                     )
                     # def get_mobility_py(semi_name     ,valley,f       , ec_l, ec_r, dim, t, dens, don, acc,  grad):
                 else:

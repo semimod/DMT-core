@@ -102,7 +102,7 @@ def read_data(filename, key=None, **kwargs):
         if key is None:
             key = "/df"
         df = read_hdf(filename, key)
-    elif extension == ".feather":
+    elif extension in [".feather", ".fth"]:
         df = read_feather(filename)
     else:
         raise IOError(

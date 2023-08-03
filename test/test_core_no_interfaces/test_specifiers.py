@@ -107,8 +107,8 @@ def column_save_load():
     a = DataFrame({SpecifierStr("V", "B"): [1]})
 
     dbm = DatabaseManager()
-    dbm.save_df(a, test_path / "tmp" / "test_df.p")
-    b = dbm.load_df(test_path / "tmp" / "test_df.p")
+    dbm.save_df(a, test_path / "tmp" / "test_df.fth")
+    b = dbm.load_df(test_path / "tmp" / "test_df.fth")
 
     assert isinstance(a.columns[0], SpecifierStr)
     assert isinstance(b.columns[0], SpecifierStr)

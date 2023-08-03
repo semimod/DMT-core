@@ -2102,9 +2102,9 @@ def save_or_show(plts, show=True, location=None, **kwargs):
 
     if show:
         for plt in plts[:-1]:
-            plt.plot_py(show=False)
+            plt.plot_pyqtgraph(show=False)
 
-        plts[-1].plot_py(show=True)
+        plts[-1].plot_pyqtgraph(show=True)
     else:
         for plt in plts:
             plt.save_tikz(

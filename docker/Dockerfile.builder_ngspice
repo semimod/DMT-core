@@ -1,3 +1,9 @@
+# build with:
+# docker login registry.gitlab.com
+# docker pull registry.gitlab.com/dmt-development/dmt-core:builder_ngspice
+# docker build -f Dockerfile.builder_ngspice -t registry.gitlab.com/dmt-development/dmt-core:builder_ngspice .
+#   use --no-cache in case you want to update everything...
+# docker push registry.gitlab.com/dmt-development/dmt-core:builder_ngspice
 FROM ubuntu:22.04 as BUILDER
 
 # environment installation
@@ -8,9 +14,9 @@ RUN apt-get update \
     liblapack-dev git libreadline-dev curl
 
 # build ngspice to test DutNGSpice
-RUN cd /home \
-    && wget -O ngspice.tar.gz https://sourceforge.net/projects/ngspice/files/ng-spice-rework/39/ngspice-39.tar.gz/download \
+RUN cd /home \ 
+    && wget -O ngspice.tar.gz https://sourceforge.net/projects/ngspice/files/ng-spice-rework/40/ngspice-40.tar.gz/download \
     && tar -xf ngspice.tar.gz \
-    && cd ngspice-39 \
+    && cd ngspice-40 \
     && chmod +rwx compile_linux.sh \
     && ./compile_linux.sh --disable-debug

@@ -36,8 +36,8 @@ col_ic = specifiers.CURRENT + "C"
 def get_circuit(self, use_build_in=False, topology="common_emitter", **kwargs):
     """
 
-    Parameter
-    ------------
+    Parameters
+    ----------
     circuit_type : str
         For allowed types, see above
     modelcard : :class:`~DMT.hl2.mc_hicum.McHicum`
@@ -240,7 +240,7 @@ def sim_ngspice(sweep, build_in):
         command_openvaf = "openvaf"
 
     dut = DutNgspice(
-        None,
+        folder_path.parent / "tmp" / "duts",
         DutType.npn,
         mc_D21,
         simulator_command=command,
@@ -249,6 +249,7 @@ def sim_ngspice(sweep, build_in):
         nodes="C,B,E,S,T",
         reference_node="E",
         get_circuit_arguments={"use_build_in": build_in},
+        force=True,
     )
     sim_con = SimCon()
 

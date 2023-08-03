@@ -1,3 +1,9 @@
+# build with:
+# docker login registry.gitlab.com
+# docker pull registry.gitlab.com/dmt-development/dmt-core:builder_xyce
+# docker build -f Dockerfile.builder_xyce -t registry.gitlab.com/dmt-development/dmt-core:builder_xyce .
+#   use --no-cache in case you want to update everything...
+# docker push registry.gitlab.com/dmt-development/dmt-core:builder_xyce
 FROM ubuntu:22.04 as BUILDER
 
 # environment installation

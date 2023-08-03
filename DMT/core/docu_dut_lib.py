@@ -359,7 +359,7 @@ class DocuDutLib(object):
         self.create_all_plots(plot_specs)
 
         # TODO
-        # technology
+        # technology -> one lib can have more than one technology...
         # mcard
         # ADD data from mcard simulation
 

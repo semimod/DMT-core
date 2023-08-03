@@ -52,6 +52,7 @@ setuptools.setup(
         "scikit-rf",
         "reprint",
         "pandas",
+        "pyarrow",
         "joblib",
         "pytest",
         "pint",
@@ -62,6 +63,7 @@ setuptools.setup(
         "h5py",
         "cycler",
         "colormath",
+        "requests",
     ],
     extras_require=EXTRAS_REQUIRE,
 )

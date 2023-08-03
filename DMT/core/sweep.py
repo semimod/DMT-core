@@ -31,7 +31,14 @@ import copy
 from typing import Dict, List, Mapping, Type, Optional, Union, Set
 import numpy as np
 from itertools import product
-from DMT.core import create_md5_hash, specifiers, sub_specifiers, SpecifierStr, DataFrame, SweepDef
+from DMT.core import (
+    create_md5_hash,
+    specifiers,
+    sub_specifiers,
+    SpecifierStr,
+    DataFrame,
+    SweepDef,
+)
 from DMT.core.sweep_def import (
     SweepDefLinear,
     SweepDefList,
@@ -289,7 +296,9 @@ def get_sweepdef(
             # the circuit only allows to sweep VB VC VE, which are forced due to the circuit topology
             sweepdef = [
                 SweepDefConst(
-                    _SPEC_VOLTAGE + reference_potential.nodes[0], sweep_order=0, value_def=0
+                    _SPEC_VOLTAGE + reference_potential.nodes[0],
+                    sweep_order=0,
+                    value_def=0,
                 ),
                 SweepDefConst(outer_sweep_voltage, sweep_order=1, value_def=outer_potentials),
                 SweepDefList(
