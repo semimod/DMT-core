@@ -695,6 +695,7 @@ unit_converter = {
     specifiers.FIELD: unit_registry.volt / unit_registry.meter,
     specifiers.DC_CURRENT_AMPLIFICATION: unit_registry.dimensionless,
     specifiers.MAXIMUM_STABLE_GAIN: unit_registry.dimensionless,
+    specifiers.OUTPUT_CONDUCTANCE: unit_registry.siemens,
     specifiers.NET_DOPING: 1 / unit_registry.meter / unit_registry.meter / unit_registry.meter,
     specifiers.ACCEPTORS: 1 / unit_registry.meter / unit_registry.meter / unit_registry.meter,
     specifiers.DONNORS: 1 / unit_registry.meter / unit_registry.meter / unit_registry.meter,

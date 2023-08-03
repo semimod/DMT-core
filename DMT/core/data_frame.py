@@ -797,7 +797,9 @@ class DataFrame(DataProcessor, pd.DataFrame):
                     self = self.calc_cbc(port_1=ports[0], port_2=ports[1])
                 elif nodes[0] == "G" and nodes[1] == "S":  # CGS
                     self = self.calc_cgs(port_1=ports[0], port_2=ports[1])
-                elif nodes[0] == "G" and nodes[1] == "G":  # CGS
+                elif nodes[0] == "G" and nodes[1] == "D":  # CGD
+                    self = self.calc_cgd(port_1=ports[0], port_2=ports[1])
+                elif nodes[0] == "G" and nodes[1] == "G":  # CGG
                     self = self.calc_cgg(port_1=ports[0], port_2=ports[1])
                 else:
                     raise KeyError("The " + "".join(nodes) + " capacitance can not be calculated.")
@@ -874,7 +876,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
                 ) from err
         elif specifier == specifiers.OUTPUT_CONDUCTANCE:
             try:
-                self = self.calc_go()
+                self = self.calc_go(ports=ports)
             except IOError as err:
                 raise KeyError(
                     "The transconductance is missing in the given data frame and can not be calculated."
@@ -2021,6 +2023,29 @@ class DataFrame(DataProcessor, pd.DataFrame):
         pd.options.mode.chained_assignment = "warn"
         return self
 
+
+    def calc_cgd(self, port_1="G", port_2="D"):
+        """Calculates the gate-drain capacitance CGD.
+
+        Returns
+        -------
+        :class:`DMT.core.DataFrame`
+            Dataframe that contains CGD.
+        """
+        # get values
+        s_para_values = self.get_ss_para("Y", port_1, port_2)
+
+        sp_cgd = specifiers.CAPACITANCE + ["G", "D"]
+
+        # put values in col of self
+        if port_1 == "G" and port_2 == "D":
+            self[sp_cgd] = self.processor.calc_cap_series_thru(self["FREQ"], s_para_values, "Y")
+        else:
+            raise NotImplementedError(
+                "DMT -> DataFrame -> calc_cbe: transistor configuration not implemented."
+            )
+        return self
+
     def calc_cbc(self, port_1="B", port_2="C"):
         """Calculates the base-collector junction capacitance CBC.
 
@@ -2106,16 +2131,26 @@ class DataFrame(DataProcessor, pd.DataFrame):
 
         return self
 
-    def calc_go(self):
-        """Calculates the DC output condutance of a BJT.
+    def calc_go(self, ports=None):
+        """Calculates the DC output condutance of a BJT or generic transistor in common emitter/source configuration.
+
+        Arguments
+        --------
+        ports : [str], None
+            If None, BJT contact ports are assumed. Else it is assumed that ports[2] is the 
+            grounded contact, ports[0] is the input port (gate/base) and ports[1] is the output port.
 
         Returns
         -------
         :class:`DMT.core.DataFrame`
             Dataframe that contains the TRANSCONDUCTANCE
         """
-        col_ic = specifiers.CURRENT + "C"
-        col_vce_forced = specifiers.VOLTAGE + "C" + "E" + sub_specifiers.FORCED
+        if ports == None: #assume HBT
+            col_ic = specifiers.CURRENT + "C"
+            col_vce_forced = specifiers.VOLTAGE + "C" + "E" + sub_specifiers.FORCED
+        else:
+            col_ic = specifiers.CURRENT + ports[1]
+            col_vce_forced = specifiers.VOLTAGE + ports[1] + ports[2] + sub_specifiers.FORCED
 
         # get voltages
         self.ensure_specifier_column(col_vce_forced)
