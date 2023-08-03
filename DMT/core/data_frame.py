@@ -2023,7 +2023,6 @@ class DataFrame(DataProcessor, pd.DataFrame):
         pd.options.mode.chained_assignment = "warn"
         return self
 
-
     def calc_cgd(self, port_1="G", port_2="D"):
         """Calculates the gate-drain capacitance CGD.
 
@@ -2137,7 +2136,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
         Arguments
         --------
         ports : [str], None
-            If None, BJT contact ports are assumed. Else it is assumed that ports[2] is the 
+            If None, BJT contact ports are assumed. Else it is assumed that ports[2] is the
             grounded contact, ports[0] is the input port (gate/base) and ports[1] is the output port.
 
         Returns
@@ -2145,7 +2144,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
         :class:`DMT.core.DataFrame`
             Dataframe that contains the TRANSCONDUCTANCE
         """
-        if ports == None: #assume HBT
+        if ports == None:  # assume HBT
             col_ic = specifiers.CURRENT + "C"
             col_vce_forced = specifiers.VOLTAGE + "C" + "E" + sub_specifiers.FORCED
         else:

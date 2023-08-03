@@ -175,8 +175,6 @@ def get_sweepdef(
     assert inner_sweep_voltage is not None
     assert outer_sweep_voltage is not None
 
-
-
     if _SPEC_VOLTAGE in inner_sweep_voltage and _SPEC_VOLTAGE in outer_sweep_voltage:
         # classical decision: Efficient short code vs cryptic. Not sure which is better here.
         # -> try general code: transform voltage definition into appropriate "coordinate" system, where the voltages become independent from each other.
@@ -306,12 +304,8 @@ def get_sweepdef(
     # check if there is a third voltage (which must be constant), for example for BULK or SUBSTRATE nodes
     try:
         cols = list(data.columns)
-        potential_one_third = (
-            _SPEC_VOLTAGE + col_third.nodes[0] + col_third.sub_specifiers
-        )
-        potential_two_third = (
-            _SPEC_VOLTAGE + col_third.nodes[1] + col_third.sub_specifiers
-        )
+        potential_one_third = _SPEC_VOLTAGE + col_third.nodes[0] + col_third.sub_specifiers
+        potential_two_third = _SPEC_VOLTAGE + col_third.nodes[1] + col_third.sub_specifiers
         v_third = data[potential_one_third].to_numpy() - data[potential_two_third].to_numpy()
 
         # get the outermost sweeporder
@@ -711,7 +705,9 @@ class Sweep(object):
         str
             MD5 hash that corresponds to this sweep.
         """
-        sweep_string = " ".join([self.name, str(self.sweepdef), str(self.outputdef), str(self.othervar)])
+        sweep_string = " ".join(
+            [self.name, str(self.sweepdef), str(self.outputdef), str(self.othervar)]
+        )
         return create_md5_hash(sweep_string)
 
     def set_values(self):

@@ -878,8 +878,6 @@ class DataProcessor(object):
 
         return cgg
 
-
-
     def calc_cap_series_thru(self, freq, para_values, p_type):
         """Calculates the the series-thru junction capacitance cbc from the small signal parameters para_values.
 
