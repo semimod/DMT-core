@@ -84,7 +84,7 @@ class DutCircuit(DutView):
         database_dir: str,
         name: str,
         dut_type: DutType,
-        inp_circuit,
+        input_circuit,
         simulator_options: dict = None,
         get_circuit_arguments: dict = None,
         **kwargs
@@ -106,7 +106,7 @@ class DutCircuit(DutView):
         # save for later use
         self._inp_circuit = None
         self._modelcard = None
-        self.inp_header = inp_circuit
+        self.inp_header = input_circuit
 
     @property
     def inp_header(self):
@@ -204,7 +204,7 @@ class DutCircuit(DutView):
 
         if subclass_kwargs is None:
             subclass_kwargs = {}
-        subclass_kwargs["inp_circuit"] = json_content["inp_header"]
+        subclass_kwargs["input_circuit"] = json_content["inp_header"]
 
         dut_view = super().from_json(
             json_content["parent"], classes_technology, subclass_kwargs=subclass_kwargs

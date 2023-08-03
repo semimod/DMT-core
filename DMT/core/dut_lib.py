@@ -581,6 +581,10 @@ class DutLib(object):
             if not json_content["__DutLib__"] == SEMVER_DUTLIB_CURRENT:
                 raise IOError("DMT.DutLib: Tried to load a DutLib with unkown version.")
 
+            for key, value in json_content.items():
+                if value == "None":
+                    json_content[key] = None
+
             deem_types = [
                 DutType.deserialize(deem_type) for deem_type in json_content["deem_types"]
             ]
@@ -616,9 +620,11 @@ class DutLib(object):
 
         save_dir_old = ""
         # need to cast paths? This is needed when the machine is changed -> new absolute paths...
-        if (
-            lib_directory != dut_lib.save_dir
-        ):  # dut_lib.save_dir is the old absolute path of the lib
+        if dut_lib.save_dir is None:
+            # write to internal value to avoid consistency check
+            dut_lib._save_dir = lib_directory  # pylint: disable=protected-access
+        elif lib_directory != dut_lib.save_dir:
+            # dut_lib.save_dir is the old absolute path of the lib
             save_dir_old = str(dut_lib.save_dir)
             # write to internal value to avoid consistency check
             dut_lib._save_dir = lib_directory  # pylint: disable=protected-access

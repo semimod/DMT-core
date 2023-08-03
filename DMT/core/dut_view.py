@@ -252,6 +252,8 @@ class DutView(object):
         else:
             self.sim_args = simulator_arguments
 
+        if not isinstance(sim_dir, Path):
+            sim_dir = Path(sim_dir)
         self.sim_dir = sim_dir
 
         self.technology = technology

@@ -92,7 +92,7 @@ class DutNgspice(DutCircuit):
         self,
         database_dir,
         dut_type,
-        inp_circuit,
+        input_circuit,
         name="ngspice_",
         simulator_options=None,
         simulator_command=None,
@@ -126,7 +126,7 @@ class DutNgspice(DutCircuit):
             database_dir,
             name,
             dut_type,
-            inp_circuit,
+            input_circuit,
             simulator_command=simulator_command,
             simulator_options=simulator_options,
             simulator_arguments=simulator_arguments,
@@ -157,7 +157,7 @@ class DutNgspice(DutCircuit):
                 "parent": super(DutNgspice, self).info_json(**_kwargs),
                 "initial_conditions": self.initial_conditions,
                 "devices_op_vars": self.devices_op_vars,
-                "_osdi_imports": self._osdi_imports,
+                "_osdi_imports": [str(osdi) for osdi in self._osdi_imports],
                 "command_openvaf": self.command_openvaf,
             }
         }
@@ -195,7 +195,7 @@ class DutNgspice(DutCircuit):
         )
         dut_view.initial_conditions = json_content["initial_conditions"]
         dut_view.devices_op_vars = json_content["devices_op_vars"]
-        dut_view._osdi_imports = json_content["_osdi_imports"]
+        dut_view._osdi_imports = [Path(osdi) for osdi in json_content["_osdi_imports"]]
         dut_view.command_openvaf = json_content["command_openvaf"]
 
         return dut_view
