@@ -138,9 +138,9 @@ class SimCon(object, metaclass=Singleton):
 
         Returns
         -------
-        boolean
+        all_sims_success : boolean
             True, if no simulation failed. This means it is also true if no simulation was run at all.
-        boolean
+        run_sims : boolean
             True, if any simulation was started. False if all simulations were read from hard disk.
         """
         # reduce number of jobs if we only read a very low number of simulations

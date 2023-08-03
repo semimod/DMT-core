@@ -474,7 +474,10 @@ class DutNgspice(DutCircuit):
         # create vectors for each voltage
         one_ele_array = False
         for voltage_source in voltage_sources:
-            vals = df[voltage_source.name].to_numpy()
+            try:
+                vals = df[voltage_source.name].to_numpy()
+            except KeyError:  # assume that a voltage not specified in the sweep is grounded
+                vals = np.zeros_like(0, shape=len(df))
             if (
                 len(vals) == 1
             ):  # Ngspice does not support 1 element arrays ... so we just extend it.

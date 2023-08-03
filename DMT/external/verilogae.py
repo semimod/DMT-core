@@ -78,6 +78,7 @@ def get_param_list(meq_function, all_parameters=False, info=None):
                 func_params += get_param_list(dependence, all_parameters=all_parameters)
 
     # unique it!
+    func_params = [para.lower() for para in func_params]  # make sure lower case
     func_params = list(OrderedDict.fromkeys(func_params))
 
     if all_parameters:
