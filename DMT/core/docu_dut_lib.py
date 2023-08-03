@@ -19,9 +19,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 import copy
 import datetime
+import numpy as np
 from pathlib import Path
 from typing import Dict, List, Mapping, Sequence, Optional, Union
-import numpy as np
+from joblib import Parallel, delayed
 from scipy import interpolate
 from DMT.config import COMMAND_TEX, DATA_CONFIG
 from DMT.core import DutType, DutLib, specifiers, sub_specifiers, specifiers_ss_para
@@ -29,7 +30,16 @@ from DMT.core.plot import MIX, PLOT_STYLES, natural_scales, Plot
 from DMT.external.os import recursive_copy, rmtree
 
 try:
-    from pylatex import Section, Subsection, SmallText, Tabular, NoEscape, Center, Figure
+    from pylatex import (
+        Section,
+        Subsection,
+        Subsubsection,
+        SmallText,
+        Tabular,
+        NoEscape,
+        Center,
+        Figure,
+    )
     from pylatex.base_classes import Arguments
     from DMT.external.pylatex import SubFile, Tex, CommandInput, CommandLabel
 except ImportError:
@@ -293,7 +303,10 @@ class DocuDutLib(object):
     """
 
     def __init__(
-        self, dut_lib: DutLib, devices: Optional[Sequence[Mapping[str, object]]] = None, date=None
+        self,
+        dut_lib: DutLib,
+        devices: Optional[Sequence[Mapping[str, object]]] = None,
+        date=None,
     ):
         self.dut_lib = dut_lib
 
@@ -319,6 +332,10 @@ class DocuDutLib(object):
                                 ValueError
                             ):  # tetrodes will not work like this (tuple dut_property)
                                 pass
+                        else:
+                            dut_property = getattr(dut, device_spec)
+                            if val != dut_property:
+                                ok = False
 
                     if ok:
                         print("Found device " + dut.name + ".")
@@ -363,14 +380,15 @@ class DocuDutLib(object):
         # mcard
         # ADD data from mcard simulation
 
-        if show:
-            if len(self.plts) > 1:
-                for plt in self.plts[:-1]:
-                    plt.plot_pyqtgraph(show=False)
+        if show and len(self.plts) > 1:
+            for plt in self.plts[:-1]:
+                plt.plot_pyqtgraph(show=False)
 
             self.plts[-1].plot_pyqtgraph(show=True)
 
         self.generate_all_plots(target_base_path, save_tikz_settings)
+
+        # sleep(30)
 
         self.create_documentation(target_base_path)
 
@@ -445,7 +463,10 @@ class DocuDutLib(object):
                 if i == 0:
                     pass
                 else:
-                    plot_specs[0], plot_specs[i] = plot_specs[i], plot_specs[0]  # swap elements
+                    plot_specs[0], plot_specs[i] = (
+                        plot_specs[i],
+                        plot_specs[0],
+                    )  # swap elements
 
                 break
 
@@ -460,6 +481,8 @@ class DocuDutLib(object):
             print("Chosen plot style: " + style)
 
             for dut in self.duts:
+                if dut.dut_type != plot_spec["dut_type"]:
+                    continue
                 # load default settings of plot
                 try:
                     x_log = PLOT_DEFAULTS[dut.dut_type][plot_type]["x_log"]
@@ -472,10 +495,8 @@ class DocuDutLib(object):
                     continue  # no plot_type in plot_defaults for this plot_spec
 
                 # overwrite defaults with plot_spec
-                try:
-                    legend_location = plot_spec["legend_location"]
-                except KeyError:
-                    pass
+                legend_location = plot_spec.get("legend_location", legend_location)
+                at_specifier = plot_spec.get("at_specifier", at_specifier)
 
                 if not isinstance(at_specifier, list):
                     at_specifier = [at_specifier]
@@ -483,7 +504,11 @@ class DocuDutLib(object):
                 quantities_to_ensure = [quantity_x, quantity_y] + at_specifier
                 if "mark_ft" in plot_type:
                     quantities_to_ensure.append(specifiers.TRANSIT_FREQUENCY)
-                    peaks = {"vbe": [], "jc": [], "vbc": []}  # store peak ft values for later
+                    peaks = {
+                        "vbe": [],
+                        "jc": [],
+                        "vbc": [],
+                    }  # store peak ft values for later
 
                 at_scale = []
                 for at_ in at_specifier:
@@ -497,13 +522,8 @@ class DocuDutLib(object):
 
                     at_scale.append(at_scale_)
 
-                print("Generating plot of type " + plot_type + " for dut " + dut.name + " ...")
-                name = [
-                    "dut_",
-                    dut.name,
-                    "_",
-                    plot_type,
-                ]
+                print(f"Generating plot of type {plot_type} for dut {dut.name} ...")
+                name = ["dut_", dut.name, "_", plot_type]
                 if specifiers.TEMPERATURE in plot_spec.keys():
                     name.append("atT" + str(plot_spec[specifiers.TEMPERATURE]) + "K")
                 if specifiers.FREQUENCY in plot_spec.keys():
@@ -515,7 +535,7 @@ class DocuDutLib(object):
                 name = "_".join(name)
 
                 # calc drawn emitter windows area
-                AE0_drawn = dut.width * dut.length * dut.contact_config.count("E")
+                AE0_drawn = dut.width * dut.length * dut.contact_config.count("E") * dut.ndevices
 
                 # find temperatures
                 temps = []
@@ -524,7 +544,7 @@ class DocuDutLib(object):
                 temps = list(set(temps))
 
                 for temp in temps:
-                    y_scale = 1
+                    y_scale = None
                     x_label = None  # autolabel
                     y_label = None
                     if (
@@ -567,9 +587,17 @@ class DocuDutLib(object):
 
                         match = False
                         if plot_spec["exact_match"]:
-                            match = plot_spec["key"] == dut.split_key(key)[-1]
+                            if isinstance(plot_spec["key"], str):
+                                match = plot_spec["key"] == dut.split_key(key)[-1]
+                            else:
+                                match = dut.split_key(key)[-1] in plot_spec["key"]
                         else:
-                            match = plot_spec["key"] in key
+                            if isinstance(plot_spec["key"], str):
+                                match = plot_spec["key"] in key
+                            else:
+                                match = any(
+                                    plot_spec_key in key for plot_spec_key in plot_spec["key"]
+                                )
 
                         if match:
                             df = dut.data[key]
@@ -662,7 +690,8 @@ class DocuDutLib(object):
                                     zip(at_specifier, units, at_scale)
                                 ):
                                     df_filter = np.logical_and(
-                                        df_filter, np.isclose(df[speci], point[i], rtol=1e-3)
+                                        df_filter,
+                                        np.isclose(df[speci], point[i], rtol=1e-3),
                                     )
                                     if at_str != r"$":
                                         at_str += r",\,"
@@ -700,7 +729,9 @@ class DocuDutLib(object):
                                     index_peak_ft = np.argmax(ft)
                                     try:
                                         vbe_new = np.linspace(
-                                            x[index_peak_ft - 10], x[index_peak_ft + 10], 201
+                                            x[index_peak_ft - 10],
+                                            x[index_peak_ft + 10],
+                                            201,
                                         )  # may error
                                     except IndexError:
                                         vbe_new = np.linspace(
@@ -786,7 +817,9 @@ class DocuDutLib(object):
                         self.plts.append(plt)
 
     def generate_all_plots(
-        self, target_base_path: Union[str, Path], save_tikz_settings: Optional[Dict] = None
+        self,
+        target_base_path: Union[str, Path],
+        save_tikz_settings: Optional[Dict] = None,
     ):
         """Generates the plot tex and pdf files.
 
@@ -817,13 +850,13 @@ class DocuDutLib(object):
             base_path = Path(target_base_path)
 
         save_tikz_settings_defaults = {
-            "width": "3in",
-            "height": "5in",
+            "width": "3.5in",
+            "height": "4in",
             "standalone": True,
             "svg": False,
             "build": True,
             "mark_repeat": 20,
-            "clean": False,  # Remove all files except *.pdf files in plots
+            "clean": True,  # Remove all files except *.pdf files in plots
         }
 
         if save_tikz_settings is None:
@@ -833,37 +866,42 @@ class DocuDutLib(object):
                 if not key in save_tikz_settings.keys():
                     save_tikz_settings[key] = save_tikz_settings[key]
 
-        for plt in self.plts:
-            plot_path = (
-                base_path / "figs" / plt.dut_name / ("T" + str(plt.temp) + "K") / plt.plot_type
-            )
+        paths = Parallel(n_jobs=20, verbose=10)(
+            _build_plot(plt, base_path, save_tikz_settings) for plt in self.plts
+        )
+        for i_plt, plt in enumerate(self.plts):
+            plt.path = paths[i_plt]
+        # for plt in self.plts:
+        #     plot_path = (
+        #         base_path / "figs" / plt.dut_name / ("T" + str(plt.temp) + "K") / plt.plot_type
+        #     )
 
-            if plt.plot_type == "tj_jc_at_vbc":
-                plot_path = (
-                    base_path
-                    / "figs"
-                    / plt.dut_name
-                    / ("T" + str(plt.temp) + "K")
-                    / (plt.plot_type + "rth_" + "{0:1.1f}".format(plt.dut.rth * 1e-3) + "kWperK")
-                )
+        #     if plt.plot_type == "tj_jc_at_vbc":
+        #         plot_path = (
+        #             base_path
+        #             / "figs"
+        #             / plt.dut_name
+        #             / ("T" + str(plt.temp) + "K")
+        #             / (plt.plot_type + "rth_" + "{0:1.1f}".format(plt.dut.rth * 1e-3) + "kWperK")
+        #         )
 
-            if plot_path.exists():
-                rmtree(plot_path)
+        #     if plot_path.exists():
+        #         rmtree(plot_path)
 
-            plot_path.mkdir(parents=True, exist_ok=True)
+        #     plot_path.mkdir(parents=True, exist_ok=True)
 
-            # special output from plot_spec
-            save_tikz_settings_tmp = copy.deepcopy(save_tikz_settings)
-            for special in ["width", "height"]:
-                try:
-                    save_tikz_settings_tmp[special] = plt.plot_spec[special]
-                except KeyError:
-                    continue
+        #     # special output from plot_spec
+        #     save_tikz_settings_tmp = copy.deepcopy(save_tikz_settings)
+        #     for special in ["width", "height"]:
+        #         try:
+        #             save_tikz_settings_tmp[special] = plt.plot_spec[special]
+        #         except KeyError:
+        #             continue
 
-            plt.legend_location = "upper right outer"
-            filename = plt.save_tikz(plot_path, **save_tikz_settings_tmp)
+        #     plt.legend_location = "upper right outer"
+        #     filename = plt.save_tikz(plot_path, **save_tikz_settings_tmp)
 
-            plt.path = plot_path / filename.replace("tex", "pdf")
+        #     plt.path = plot_path / filename.replace("tex", "pdf")
 
     def create_documentation(self, target_base_path: Union[str, Path]):
         """Generates the other tex files from the template.
@@ -927,44 +965,87 @@ class DocuDutLib(object):
         # subfile that contains all plots
         plots_tex = SubFile(master="../documentation.tex")
         doc = Tex()
-        for dut in self.duts:
-            with doc.create(Section(dut.name)):
-                plts_for_this_dut = []
-                for plt in self.plts:
-                    if plt.dut == dut:
-                        plts_for_this_dut.append(plt)
+        dut_types = set([dut.dut_type for dut in self.duts])
+        duts_sorted = sorted(self.duts, key=lambda dut_a: (dut_a.dut_type, dut_a.name))
+        for dut_type in dut_types:
+            duts_filtered = [dut for dut in duts_sorted if dut.dut_type == dut_type]
+            with doc.create(Section(dut_type.string)):
+                for dut in duts_filtered:
+                    with doc.create(Subsection(dut.name)):
+                        plts_for_this_dut = []
+                        for plt in self.plts:
+                            if plt.dut == dut:
+                                plts_for_this_dut.append(plt)
 
-                temps = []
-                for plt in plts_for_this_dut:
-                    temps.append(plt.temp)
-
-                temps = list(set(temps))
-
-                for temp in temps:
-                    with doc.create(Subsection("T=" + str(temp) + "K")):
+                        temps = []
                         for plt in plts_for_this_dut:
-                            if plt.temp == temp:
-                                # check if plot exists:
-                                # Why? The plots are added as images not as tikz plots Oo
-                                if plt.path.is_file():
-                                    doc.append(NoEscape(r"\FloatBarrier "))
-                                    with doc.create(Figure(position="ht!")) as _plot:
-                                        _plot.append(
-                                            NoEscape(r"\setlength\figurewidth{\textwidth}")
-                                        )
-                                        # _plot.append(CommandInput(arguments=Arguments(plt.path)))
-                                        _plot.add_image('"' + str(plt.path) + '"')
-                                        _plot.add_caption(
-                                            NoEscape(
-                                                PLOT_DEFAULTS[dut.dut_type][plt.plot_type]["tex"]
-                                            )
-                                        )
-                                        # _plot.append(CommandLabel(arguments=Argument(plt.dut_name + plt.)))
+                            temps.append(plt.temp)
 
-                                    doc.append(NoEscape(r"\FloatBarrier "))
+                        temps = list(set(temps))
+
+                        for temp in temps:
+                            with doc.create(Subsubsection("T=" + str(temp) + "K", label=False)):
+                                for plt in plts_for_this_dut:
+                                    if plt.temp == temp:
+                                        # check if plot exists:
+                                        # Why? The plots are added as images not as tikz plots Oo
+                                        if plt.path.is_file():
+                                            doc.append(NoEscape(r"\FloatBarrier "))
+                                            with doc.create(Figure(position="ht!")) as _plot:
+                                                _plot.append(
+                                                    NoEscape(r"\setlength\figurewidth{\textwidth}")
+                                                )
+                                                # _plot.append(CommandInput(arguments=Arguments(plt.path)))
+                                                _plot.add_image(
+                                                    '"'
+                                                    + str(plt.path.relative_to(destination))
+                                                    + '"'
+                                                )
+                                                _plot.add_caption(
+                                                    NoEscape(
+                                                        PLOT_DEFAULTS[dut.dut_type][plt.plot_type][
+                                                            "tex"
+                                                        ]
+                                                    )
+                                                )
+                                                # _plot.append(CommandLabel(arguments=Argument(plt.dut_name + plt.)))
+
+                                            doc.append(NoEscape(r"\FloatBarrier "))
 
         # put into subfile
         plots_tex.append(doc)
 
         lib_tex.generate_tex(str(destination / "content" / "lib_overview"))
         plots_tex.generate_tex(str(destination / "content" / "lib_plots"))
+
+
+@delayed
+def _build_plot(plt, base_path, save_tikz_settings):
+    plot_path = base_path / "figs" / plt.dut_name / ("T" + str(plt.temp) + "K") / plt.plot_type
+
+    if plt.plot_type == "tj_jc_at_vbc":
+        plot_path = (
+            base_path
+            / "figs"
+            / plt.dut_name
+            / ("T" + str(plt.temp) + "K")
+            / (plt.plot_type + "rth_" + "{0:1.1f}".format(plt.dut.rth * 1e-3) + "kWperK")
+        )
+
+    if plot_path.exists():
+        rmtree(plot_path)
+
+    plot_path.mkdir(parents=True, exist_ok=True)
+
+    # special output from plot_spec
+    save_tikz_settings_tmp = copy.deepcopy(save_tikz_settings)
+    for special in ["width", "height"]:
+        try:
+            save_tikz_settings_tmp[special] = plt.plot_spec[special]
+        except KeyError:
+            continue
+
+    plt.legend_location = "upper right outer"
+    filename = plt.save_tikz(plot_path, **save_tikz_settings_tmp)
+
+    return plot_path / filename.replace("tex", "pdf")

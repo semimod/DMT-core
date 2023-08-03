@@ -44,6 +44,7 @@ from DMT.core import (
     Technology,
 )
 from DMT.config import DATA_CONFIG
+from DMT.exceptions import UnknownColumnError
 
 SEMVER_DUTVIEW_CURRENT = VersionInfo(major=1, minor=0)
 
@@ -883,6 +884,15 @@ class DutView(object):
                     ac_ports=self.ac_ports,
                     **kwargs,
                 )
+            except UnknownColumnError as err:
+                raise UnknownColumnError(
+                    "The DutView is "
+                    + self.name
+                    + " of DutType "
+                    + self.dut_type.get_string()
+                    + " with the ac_ports "
+                    + str(self.ac_ports)
+                ) from err
 
             self.data[key] = df
 

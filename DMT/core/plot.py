@@ -32,7 +32,14 @@ from pathlib import Path
 from cycler import cycler
 from colormath.color_objects import sRGBColor
 from DMT.core import natural_scales, sub_specifiers
-from DMT.external import tex_to_text, build_tex, build_svg, clean_tex_files, build_png, slugify
+from DMT.external import (
+    tex_to_text,
+    build_tex,
+    build_svg,
+    clean_tex_files,
+    build_png,
+    slugify,
+)
 
 # if "PYQTGRAPH_QT_LIB" not in os.environ:
 #     # user did not choose Backend. Try to force PySide6 (best tested)
@@ -475,7 +482,9 @@ class Plot(object):
 
         if style == BLACK_WHITE:
             self._cycler = (
-                cycler("color", ["black"]) * cycler("linestyle", "-") * cycler("marker", markers)
+                cycler("color", ["black"])
+                * cycler("linestyle", "-")
+                * cycler("marker", markers)
             )
 
         elif style == BLACK_SOLID:
@@ -507,7 +516,9 @@ class Plot(object):
         elif style == MARKERS:
             # matplotlib.rcParams['axes.prop_cycle'] = cycler('marker', [char for char in 'oxs+v^*<>.']) * cycler(color= ['k'])
             self._cycler = (
-                cycler("color", ["black"]) * cycler("linestyle", " ") * cycler("marker", markers)
+                cycler("color", ["black"])
+                * cycler("linestyle", " ")
+                * cycler("marker", markers)
             )
 
         elif style == MARKERS_LINES:
@@ -533,7 +544,8 @@ class Plot(object):
                     xtraction_lstyle.append("")
 
             self._cycler = cycler("color", ["black"]) * (
-                cycler("marker", xtraction_markers) + cycler("linestyle", xtraction_lstyle)
+                cycler("marker", xtraction_markers)
+                + cycler("linestyle", xtraction_lstyle)
             )
 
         elif style == XTRACTION_COLOR:
@@ -554,7 +566,8 @@ class Plot(object):
                 colors2.append(color)
 
             self._cycler = cycler("color", colors2) + (
-                cycler("marker", xtraction_markers) + cycler("linestyle", xtraction_lstyle)
+                cycler("marker", xtraction_markers)
+                + cycler("linestyle", xtraction_lstyle)
             )
 
         elif style == COMPARISON_2_LINES:
@@ -568,7 +581,8 @@ class Plot(object):
                 colors2.append(color)
 
             self._cycler = cycler("color", colors2) + (
-                cycler("marker", xtraction_markers) + cycler("linestyle", xtraction_lstyle)
+                cycler("marker", xtraction_markers)
+                + cycler("linestyle", xtraction_lstyle)
             )
 
         elif style == XTRACTION_COLOR_4:
@@ -595,7 +609,8 @@ class Plot(object):
                 colors2.append(color)
 
             self._cycler = cycler("color", colors2) + (
-                cycler("marker", xtraction_markers) + cycler("linestyle", xtraction_lstyle)
+                cycler("marker", xtraction_markers)
+                + cycler("linestyle", xtraction_lstyle)
             )
 
         elif style == COMPARISON_3:
@@ -622,7 +637,8 @@ class Plot(object):
                 colors2.append(color)
 
             self._cycler = cycler("color", colors2) + (
-                cycler("marker", xtraction_markers) + cycler("linestyle", xtraction_lstyle)
+                cycler("marker", xtraction_markers)
+                + cycler("linestyle", xtraction_lstyle)
             )
         elif style == COMPARISON_3_MARKERS:
             # find the limiting style component in terms of numbers
@@ -642,7 +658,8 @@ class Plot(object):
                 colors2.append(colors[n])
 
             self._cycler = cycler("color", colors2) + (
-                cycler("marker", xtraction_markers) + cycler("linestyle", xtraction_lstyle)
+                cycler("marker", xtraction_markers)
+                + cycler("linestyle", xtraction_lstyle)
             )
 
         elif style == COMPARISON_4:
@@ -672,7 +689,8 @@ class Plot(object):
                 colors2.append(color)
 
             self._cycler = cycler("color", colors2) + (
-                cycler("marker", xtraction_markers) + cycler("linestyle", xtraction_lstyle)
+                cycler("marker", xtraction_markers)
+                + cycler("linestyle", xtraction_lstyle)
             )
 
         elif style == XTRACTION_INTERPOLATED:
@@ -716,9 +734,9 @@ class Plot(object):
             )
 
         elif style == MIX:  # wild mix if colors and markers
-            self._cycler = (cycler("color", colors) + cycler("marker", markers)) * cycler(
-                "linestyle", ["-"]
-            )
+            self._cycler = (
+                cycler("color", colors) + cycler("marker", markers)
+            ) * cycler("linestyle", ["-"])
 
         else:
             raise OSError("The plot style " + style + " is unknown!")
@@ -832,10 +850,17 @@ class Plot(object):
         self.fig = plt.figure(num=self.num, figsize=figure_size)
         if self.fig.axes and sub_plot == (1, 1, 1):
             self.ax = self.fig.axes[0]
-            print("Adding data to figure with num " + self.num + " and name " + self.name)
+            print(
+                "Adding data to figure with num " + self.num + " and name " + self.name
+            )
         elif self.fig.axes:
             self.ax = self.fig.add_subplot(*sub_plot)
-            print("Adding subplot to figure with num " + self.num + " and name " + self.name)
+            print(
+                "Adding subplot to figure with num "
+                + self.num
+                + " and name "
+                + self.name
+            )
         else:
             self.ax = self.fig.add_subplot(*sub_plot)
             print("Init figure with num " + self.num + " and name " + self.name)
@@ -876,7 +901,9 @@ class Plot(object):
 
             if "style" in dict_line and dict_line["style"] is not None:
                 try:
-                    style = dict_line["style"].replace("ö", "o")  # ö not supported in matplotlib
+                    style = dict_line["style"].replace(
+                        "ö", "o"
+                    )  # ö not supported in matplotlib
                     if (
                         "o" in dict_line["style"]
                     ):  # o is an empty circle from now on! Use '.' for filled points
@@ -906,7 +933,10 @@ class Plot(object):
             else:
                 try:
                     (line,) = self.ax.plot(
-                        x * self.x_scale, y * self.y_scale, label=label, **dict_line["kwargs"]
+                        x * self.x_scale,
+                        y * self.y_scale,
+                        label=label,
+                        **dict_line["kwargs"],
                     )
                 except ValueError as err:
                     raise ValueError(
@@ -918,7 +948,10 @@ class Plot(object):
             # self.lines.append(line)
 
         # labels and legend
-        if self.legend_location in ["upper right outer", "right mid"]:  # not supported here
+        if self.legend_location in [
+            "upper right outer",
+            "right mid",
+        ]:  # not supported here
             self.ax.legend(loc="upper right", frameon=self.legend_frame)
         else:
             self.ax.legend(loc=self.legend_location, frameon=self.legend_frame)
@@ -972,7 +1005,9 @@ class Plot(object):
     def save_png(self, directory):
         """Saves the plot to a png"""
         if self.fig is not None:
-            self.fig.savefig(os.path.join(directory, self.num + ".png"), format="png", dpi=600)
+            self.fig.savefig(
+                os.path.join(directory, self.num + ".png"), format="png", dpi=600
+            )
 
     def plot_pyqtgraph(
         self,
@@ -1028,11 +1063,21 @@ class Plot(object):
         # labels and legend
         self.pw_pg.setLabel("bottom", x_label)
         self.pw_pg.setLabel("left", y_label)
-        legend = self.pw_pg.addLegend()  # loc=self.legend_location, frameon=self.legend_frame)
+        legend = (
+            self.pw_pg.addLegend()
+        )  # loc=self.legend_location, frameon=self.legend_frame)
         legend_pos = {  # not sure if correct
-            "upper right": {"itemPos": (1, 0), "parentPos": (1, 0), "offset": (-10, 10)},
+            "upper right": {
+                "itemPos": (1, 0),
+                "parentPos": (1, 0),
+                "offset": (-10, 10),
+            },
             "upper left": {"itemPos": (0, 0), "parentPos": (0, 0), "offset": (10, 10)},
-            "lower right": {"itemPos": (1, 1), "parentPos": (1, 1), "offset": (-10, -10)},
+            "lower right": {
+                "itemPos": (1, 1),
+                "parentPos": (1, 1),
+                "offset": (-10, -10),
+            },
             "lower left": {"itemPos": (0, 1), "parentPos": (0, 1), "offset": (10, -10)},
             None: {"itemPos": (0, 0), "parentPos": (0, 0), "offset": (10, 10)},
         }
@@ -1086,7 +1131,9 @@ class Plot(object):
                 ) from err
 
         # set scale
-        self.pw_pg.setLogMode((self.x_axis_scale == "log"), (self.y_axis_scale == "log"))
+        self.pw_pg.setLogMode(
+            (self.x_axis_scale == "log"), (self.y_axis_scale == "log")
+        )
 
         # limits
         padding = None
@@ -1106,7 +1153,7 @@ class Plot(object):
                 x_min_set = x_min
         else:
             x_min = self.x_limits[0]
-            x_min_set = x_min
+            x_min_set = x_min * self.x_scale
             padding = 0.0
 
         if self.x_limits[1] is None:
@@ -1126,7 +1173,7 @@ class Plot(object):
                 x_max_set = x_max
         else:
             x_max = self.x_limits[1]
-            x_max_set = x_max
+            x_max_set = x_max * self.x_scale
             padding = 0.0
 
         if self.x_axis_scale == "log":
@@ -1137,7 +1184,11 @@ class Plot(object):
         try:
             self.pw_pg.setXRange(np.real(x_min_set), np.real(x_max_set), padding=padding)  # type: ignore
         except Exception:
-            print("Error setting the XRange of PyQtGraph plot with name " + self.name + ".")
+            print(
+                "Error setting the XRange of PyQtGraph plot with name "
+                + self.name
+                + "."
+            )
 
         padding = None
         if self.y_limits[0] is None:
@@ -1155,7 +1206,9 @@ class Plot(object):
                     #     np.min([np.min(dict_line["y"]) for dict_line in self.data])
                     # )
                     y_min = (
-                        0.95 * y_min * self.y_scale if y_min > 0 else 1.05 * y_min * self.y_scale
+                        0.95 * y_min * self.y_scale
+                        if y_min > 0
+                        else 1.05 * y_min * self.y_scale
                     )
                 except ValueError:
                     y_min = 0.0
@@ -1163,7 +1216,7 @@ class Plot(object):
             else:
                 y_min = 0.0
         else:
-            y_min = self.y_limits[0]
+            y_min = self.y_limits[0] * self.y_scale
             padding = 0.0
 
         if self.y_limits[1] is None:
@@ -1181,14 +1234,16 @@ class Plot(object):
                     #     np.max([np.max(dict_line["y"]) for dict_line in self.data])
                     # )
                     y_max = (
-                        1.05 * y_max * self.y_scale if y_max > 0 else 0.95 * y_max * self.y_scale
+                        1.05 * y_max * self.y_scale
+                        if y_max > 0
+                        else 0.95 * y_max * self.y_scale
                     )
                 except ValueError:
                     y_max = 1.0
             else:
                 y_max = 1.0
         else:
-            y_max = self.y_limits[1]
+            y_max = self.y_limits[1] * self.y_scale
             padding = 0.0
 
         if self.y_axis_scale == "log":
@@ -1198,7 +1253,11 @@ class Plot(object):
         try:
             self.pw_pg.setYRange(np.real(y_min), np.real(y_max), padding=padding)  # type: ignore
         except Exception:
-            print("Error setting the YRange of PyQtGraph plot with name " + self.name + ".")
+            print(
+                "Error setting the YRange of PyQtGraph plot with name "
+                + self.name
+                + "."
+            )
 
         # grid
         self.pw_pg.getPlotItem().showGrid(True, True)  # type: ignore
@@ -1208,7 +1267,9 @@ class Plot(object):
 
         ## Start Qt event loop unless running in interactive mode or using pyside.
         if show:
-            if sys.flags.interactive != 1 or not hasattr(pyqtgraph.Qt.QtCore, "PYQT_VERSION"):
+            if sys.flags.interactive != 1 or not hasattr(
+                pyqtgraph.Qt.QtCore, "PYQT_VERSION"
+            ):
                 pyqt_widgets.QApplication.exec()  # type: ignore
 
         if only_widget:
@@ -1566,12 +1627,18 @@ class Plot(object):
             if x_axis._scale.name == "linear":
                 x_min_restrict = x_min / 5 if x_min > 0 else x_min * 5
                 x_max_restrict = x_max / 5 if x_max < 0 else x_max * 5
-                str_limits += comment_restrict + "restrict x to domain={0:g}:{1:g},\n".format(
-                    x_min_restrict, x_max_restrict
+                str_limits += (
+                    comment_restrict
+                    + "restrict x to domain={0:g}:{1:g},\n".format(
+                        x_min_restrict, x_max_restrict
+                    )
                 )
             else:
-                str_limits += comment_restrict + "restrict x to domain={0:g}:{1:g},\n".format(
-                    np.log10(x_min - 1), np.log10(x_max + 1)
+                str_limits += (
+                    comment_restrict
+                    + "restrict x to domain={0:g}:{1:g},\n".format(
+                        np.log10(x_min - 1), np.log10(x_max + 1)
+                    )
                 )
             str_limits += "log basis x=10,\n"
 
@@ -1582,12 +1649,18 @@ class Plot(object):
             if y_axis._scale.name == "linear":
                 y_min_restrict = y_min / 5 if y_min > 0 else y_min * 5
                 y_max_restrict = y_max / 5 if y_max < 0 else y_max * 5
-                str_limits += comment_restrict + "restrict y to domain={0:g}:{1:g},\n".format(
-                    y_min_restrict, y_max_restrict
+                str_limits += (
+                    comment_restrict
+                    + "restrict y to domain={0:g}:{1:g},\n".format(
+                        y_min_restrict, y_max_restrict
+                    )
                 )
             else:
-                str_limits += comment_restrict + "restrict y to domain={0:g}:{1:g},\n".format(
-                    np.log10(y_min - 1), np.log10(y_max + 1)
+                str_limits += (
+                    comment_restrict
+                    + "restrict y to domain={0:g}:{1:g},\n".format(
+                        np.log10(y_min - 1), np.log10(y_max + 1)
+                    )
                 )
             str_limits += "log basis y=10,\n"
 
@@ -1618,10 +1691,14 @@ class Plot(object):
                 tick for tick in x_axis.get_minorticklabels()
             ]  # if (tick._x>=x_min) and (tick._x<=x_max)] # pylint: disable=protected-access
             str_x_ticks = (
-                "xtick={" + ",".join(["{0:g}".format(tick._x) for tick in x_major_ticks]) + "},\n"
+                "xtick={"
+                + ",".join(["{0:g}".format(tick._x) for tick in x_major_ticks])
+                + "},\n"
             )  # pylint: disable=protected-access
             str_x_ticks += (
-                "xticklabels={" + ",".join([tick._text for tick in x_major_ticks]) + "},\n"
+                "xticklabels={"
+                + ",".join([tick._text for tick in x_major_ticks])
+                + "},\n"
             )  # pylint: disable=no-member, protected-access
             str_x_ticks += (
                 "minor xtick={"
@@ -1640,10 +1717,14 @@ class Plot(object):
                 if (tick._y >= y_min) and (tick._y <= y_max)
             ]  # pylint: disable=protected-access
             str_y_ticks = (
-                "ytick={" + ",".join(["{0:g}".format(tick._y) for tick in y_major_ticks]) + "},\n"
+                "ytick={"
+                + ",".join(["{0:g}".format(tick._y) for tick in y_major_ticks])
+                + "},\n"
             )  # pylint: disable=protected-access
             str_y_ticks += (
-                "yticklabels={" + ",".join([tick._text for tick in y_major_ticks]) + "},\n"
+                "yticklabels={"
+                + ",".join([tick._text for tick in y_major_ticks])
+                + "},\n"
             )  # pylint: disable=no-member, protected-access
             str_y_ticks += (
                 "minor ytick={"
@@ -1666,18 +1747,32 @@ class Plot(object):
 
             str_limits += "xmin={0:g},\n".format(x_min)
             str_limits += "xmax={0:g},\n".format(x_max)
-            x_min_restrict = view_range[0][0] / 5 if view_range[0][0] > 0 else view_range[0][0] * 5
-            x_max_restrict = view_range[0][1] / 5 if view_range[0][1] < 0 else view_range[0][1] * 5
-            str_limits += comment_restrict + "restrict x to domain={0:g}:{1:g},\n".format(
-                x_min_restrict, x_max_restrict
+            x_min_restrict = (
+                view_range[0][0] / 5 if view_range[0][0] > 0 else view_range[0][0] * 5
+            )
+            x_max_restrict = (
+                view_range[0][1] / 5 if view_range[0][1] < 0 else view_range[0][1] * 5
+            )
+            str_limits += (
+                comment_restrict
+                + "restrict x to domain={0:g}:{1:g},\n".format(
+                    x_min_restrict, x_max_restrict
+                )
             )
             str_limits += "log basis x=10,\n"
             str_limits += "ymin={0:g},\n".format(y_min)
             str_limits += "ymax={0:g},\n".format(y_max)
-            y_min_restrict = view_range[1][0] / 5 if view_range[1][0] > 0 else view_range[1][0] * 5
-            y_max_restrict = view_range[1][1] / 5 if view_range[1][1] < 0 else view_range[1][1] * 5
-            str_limits += comment_restrict + "restrict y to domain={0:g}:{1:g},\n".format(
-                y_min_restrict, y_max_restrict
+            y_min_restrict = (
+                view_range[1][0] / 5 if view_range[1][0] > 0 else view_range[1][0] * 5
+            )
+            y_max_restrict = (
+                view_range[1][1] / 5 if view_range[1][1] < 0 else view_range[1][1] * 5
+            )
+            str_limits += (
+                comment_restrict
+                + "restrict y to domain={0:g}:{1:g},\n".format(
+                    y_min_restrict, y_max_restrict
+                )
             )
             str_limits += "log basis y=10,\n"
 
@@ -1686,20 +1781,28 @@ class Plot(object):
             # y_axis = self.pw_pg.getPlotItem().getAxis('left')
         else:
             str_limits += (
-                "% xmin=0,\n" if self.x_limits[0] is None else f"xmin={self.x_limits[0]:g},\n"
+                "% xmin=0,\n"
+                if self.x_limits[0] is None
+                else f"xmin={self.x_limits[0]:g},\n"
             )
             str_limits += (
-                "% xmax=0,\n" if self.x_limits[1] is None else f"xmax={self.x_limits[1]:g},\n"
+                "% xmax=0,\n"
+                if self.x_limits[1] is None
+                else f"xmax={self.x_limits[1]:g},\n"
             )
             if self.x_limits[0] is None or self.x_limits[1] is None:
                 str_limits += "% restrict x to domain=0:1,\n"
             else:
                 if self.x_axis_scale == "linear":
                     x_min_restrict = (
-                        self.x_limits[0] / 5 if self.x_limits[0] > 0 else self.x_limits[0] * 5
+                        self.x_limits[0] / 5
+                        if self.x_limits[0] > 0
+                        else self.x_limits[0] * 5
                     )
                     x_max_restrict = (
-                        self.x_limits[1] / 5 if self.x_limits[1] < 0 else self.x_limits[1] * 5
+                        self.x_limits[1] / 5
+                        if self.x_limits[1] < 0
+                        else self.x_limits[1] * 5
                     )
                 else:
                     x_min_restrict = (
@@ -1712,26 +1815,37 @@ class Plot(object):
                         if self.x_limits[1] < 0
                         else np.log10(self.x_limits[1] * 5)
                     )
-                str_limits += comment_restrict + "restrict x to domain={0:g}:{1:g},\n".format(
-                    x_min_restrict, x_max_restrict
+                str_limits += (
+                    comment_restrict
+                    + "restrict x to domain={0:g}:{1:g},\n".format(
+                        x_min_restrict, x_max_restrict
+                    )
                 )
 
             str_limits += "log basis x=10,\n"
             str_limits += (
-                "% ymin=0,\n" if self.y_limits[0] is None else f"ymin={self.y_limits[0]:g},\n"
+                "% ymin=0,\n"
+                if self.y_limits[0] is None
+                else f"ymin={self.y_limits[0]:g},\n"
             )
             str_limits += (
-                "% ymax=0,\n" if self.y_limits[1] is None else f"ymax={self.y_limits[1]:g},\n"
+                "% ymax=0,\n"
+                if self.y_limits[1] is None
+                else f"ymax={self.y_limits[1]:g},\n"
             )
             if self.y_limits[0] is None or self.y_limits[1] is None:
                 str_limits += "% restrict y to domain=0:1,\n"
             else:
                 if self.y_axis_scale == "linear":
                     y_min_restrict = (
-                        self.y_limits[0] / 5 if self.y_limits[0] > 0 else self.y_limits[0] * 5
+                        self.y_limits[0] / 5
+                        if self.y_limits[0] > 0
+                        else self.y_limits[0] * 5
                     )
                     y_max_restrict = (
-                        self.y_limits[1] / 5 if self.y_limits[1] < 0 else self.y_limits[1] * 5
+                        self.y_limits[1] / 5
+                        if self.y_limits[1] < 0
+                        else self.y_limits[1] * 5
                     )
                 else:
                     y_min_restrict = (
@@ -1744,8 +1858,11 @@ class Plot(object):
                         if self.y_limits[1] < 0
                         else np.log10(self.y_limits[1] * 5)
                     )
-                str_limits += comment_restrict + "restrict y to domain={0:g}:{1:g},\n".format(
-                    y_min_restrict, y_max_restrict
+                str_limits += (
+                    comment_restrict
+                    + "restrict y to domain={0:g}:{1:g},\n".format(
+                        y_min_restrict, y_max_restrict
+                    )
                 )
             str_limits += "log basis y=10,\n"
             print("using pgf")
@@ -1811,7 +1928,11 @@ class Plot(object):
             if len(dict_line["x"]) == 0:
                 continue
             str_addplot, colors = self._tikz_addplot(
-                dict_line, nr_line, colors=colors, mark_delta=mark_delta, show_label=show_legend
+                dict_line,
+                nr_line,
+                colors=colors,
+                mark_delta=mark_delta,
+                show_label=show_legend,
             )
             if str_addplot is not None:
                 str_lines += str_addplot
@@ -1890,12 +2011,16 @@ class Plot(object):
 
             if clean:
                 clean_tex_files(
-                    directory, file_name.replace(ext_file, ""), keep=(ending_to_keep, ".tex")
+                    directory,
+                    file_name.replace(ext_file, ""),
+                    keep=(ending_to_keep, ".tex"),
                 )
 
         return file_name
 
-    def _tikz_addplot(self, dict_line, nr_line, colors=None, mark_delta=None, show_label=True):
+    def _tikz_addplot(
+        self, dict_line, nr_line, colors=None, mark_delta=None, show_label=True
+    ):
         """Transforms a line into a pgfplots addplot command.
 
         Parameters
@@ -1987,7 +2112,9 @@ class Plot(object):
                     if mpl_color.startswith("#"):
                         try:
                             # is it already there?
-                            pgf_color = "color=color" + str(colors.index(mpl_color)) + ", "
+                            pgf_color = (
+                                "color=color" + str(colors.index(mpl_color)) + ", "
+                            )
                         except ValueError:
                             # if not add it
                             pgf_color = "color=color" + str(len(colors)) + ", "
@@ -2057,7 +2184,9 @@ class Plot(object):
         pgf_line = pgf_line[line_nr]
 
         try:
-            pgf_marker = [_DICT_MARKERS_MPL_TO_PGF[ele["marker"]] for ele in self._cycler][line_nr]
+            pgf_marker = [
+                _DICT_MARKERS_MPL_TO_PGF[ele["marker"]] for ele in self._cycler
+            ][line_nr]
         except KeyError:
             pgf_marker = ""
 
