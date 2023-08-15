@@ -36,6 +36,8 @@ CAPACITANCE = "C"
 """ Indicates a capacitance in a circuit. """
 INDUCTANCE = "L"
 """ Indicates a inductance in a circuit. """
+SUBCIRCUIT = "X"
+""" Indicates a subcircuit in a circuit. """
 CURRENT = "I_Source"
 """ Indicates a current source in a circuit. """
 VOLTAGE = "V_Source"
@@ -90,6 +92,7 @@ class CircuitElement(object):
         RESISTANCE,
         CAPACITANCE,
         INDUCTANCE,
+        SUBCIRCUIT,
         SHORT,
         HICUML2_HBT,
         HICUML0_HBT,
@@ -122,9 +125,13 @@ class CircuitElement(object):
         element_type: str,
         name: str,
         contact_nodes: Iterable[str],
-        parameters: Optional[Union[List[Tuple[str, str]], MCard, McParameterCollection]] = None,
+        parameters: Optional[
+            Union[List[Tuple[str, str]], MCard, McParameterCollection]
+        ] = None,
     ):
-        if isinstance(parameters, MCard) or isinstance(parameters, McParameterCollection):
+        if isinstance(parameters, MCard) or isinstance(
+            parameters, McParameterCollection
+        ):
             CircuitElement.possible_types.append(parameters.default_module_name)  # type: ignore
 
         if isinstance(element_type, str):
@@ -182,19 +189,23 @@ class CircuitElement(object):
                         if not isinstance(parameter_part, str):
                             raise TypeError(
                                 "The parameters have to be a list of tuple of strings! Given was a list of tuples with at least one element of "
-                                + type(parameter_part)
+                                + str(type(parameter_part))
                                 + " in the tuple "
                                 + str(i_parameter)
                             )
+                elif isinstance(parameter, str):
+                    pass
                 else:
                     raise TypeError(
-                        "The parameters have to be a list of tuple of strings! Given was a list with at least one element of "
-                        + type(parameter)
+                        "The parameters have to be a list of tuples of strings or strings! Given was a list with at least one element of "
+                        + str(type(parameter))
                         + " at position "
                         + str(i_parameter)
                     )
 
-        elif isinstance(parameters, MCard) or isinstance(parameters, McParameterCollection):
+        elif isinstance(parameters, MCard) or isinstance(
+            parameters, McParameterCollection
+        ):
             # Allow model cards!
             pass
 
