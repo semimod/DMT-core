@@ -685,7 +685,7 @@ class DutView(object):
                 cls_technology = next(
                     cls_tech
                     for cls_tech in classes_technology
-                    if str(cls_tech) == serialized_technology["class"]
+                    if str(cls_tech.__name__) in serialized_technology["class"]
                 )
             except StopIteration as err:
                 raise IOError(

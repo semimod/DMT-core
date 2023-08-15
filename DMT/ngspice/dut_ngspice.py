@@ -86,6 +86,8 @@ class DutNgspice(DutCircuit):
     input_circuit : str, list[str] or :class:`~DMT.classes.circuit.Circuit`
     copy_va_files : {False, True}
         If True, all given VA-files are copied to the simulation directory and compiled there. If False, the VA-Files have to be given as a global path.
+    va_maps : [DMT.core.VAFileMap]
+        Verilog-A file mapping that contains any additional Verilog-A files needed for this DutCircuit.
     """
 
     def __init__(
@@ -101,6 +103,7 @@ class DutNgspice(DutCircuit):
         command_openvaf=COMMANDS["OPENVAF"],
         copy_va_files=False,
         inp_name="ngspice_circuit.ckt",
+        va_maps=[],
         **kwargs,
     ):
         if simulator_command is None:
@@ -121,6 +124,7 @@ class DutNgspice(DutCircuit):
         self.devices_op_vars = []
         self._osdi_imports = []
         self.command_openvaf = command_openvaf
+        self.va_maps = va_maps
 
         super().__init__(
             database_dir,
@@ -246,6 +250,10 @@ class DutNgspice(DutCircuit):
                 except AttributeError:
                     # element does not have a va_file.
                     pass
+
+            # does this DuT have a Verilog Code that is copied together with the simulation?
+            for va_map in self.va_maps:
+                list_va_files.append(va_map)
 
             # pre_osdi strings
             self._osdi_imports = []
