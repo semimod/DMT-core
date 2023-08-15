@@ -12,6 +12,10 @@ DeviceModelingToolkit (DMT) is a Python tool targeted at helping modeling engine
 
 See the [DMT-website](https://dmt-development.gitlab.io/dmt-core/index.html) for further information.
 
+This project is funded by [Nlnet](https://nlnet.nl/project/DMT-Core/) under the [NGI Zero Entrust fund](https://nlnet.nl/entrust/).
+
+<img src="pictures/banner_nlnet.svg" width="325"/>
+
 ## Usage
 
 ### Installation to virtual environment
