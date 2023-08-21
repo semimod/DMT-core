@@ -63,7 +63,15 @@ from DMT.core import (
     SweepDef,
     Technology,
 )
-from DMT.core.circuit import SGP_BJT, VOLTAGE, CURRENT, HICUML2_HBT, SHORT, DIODE
+from DMT.core.circuit import (
+    SGP_BJT,
+    VOLTAGE,
+    CURRENT,
+    HICUML2_HBT,
+    SHORT,
+    DIODE,
+    SUBCIRCUIT,
+)
 
 from DMT.exceptions import SimulationUnsuccessful
 
@@ -192,7 +200,9 @@ class DutNgspice(DutCircuit):
             Loaded object.
         """
         if json_content["__DutNgspice__"] != SEMVER_DUTNGSPICE_CURRENT:
-            raise NotImplementedError("DMT.DutNgspice: Unknown version of DutNgspice to load!")
+            raise NotImplementedError(
+                "DMT.DutNgspice: Unknown version of DutNgspice to load!"
+            )
 
         dut_view = super().from_json(
             json_content["parent"], classes_technology, subclass_kwargs=subclass_kwargs
@@ -204,7 +214,9 @@ class DutNgspice(DutCircuit):
 
         return dut_view
 
-    def create_inp_header(self, inp_circuit: Union[MCard, McParameterCollection, Circuit]):
+    def create_inp_header(
+        self, inp_circuit: Union[MCard, McParameterCollection, Circuit]
+    ):
         """Creates the input header of the given circuit description and returns it.
 
         Parameters
@@ -218,7 +230,9 @@ class DutNgspice(DutCircuit):
         """
         use_osdi = bool(self.command_openvaf)  # False if None/null
 
-        if isinstance(inp_circuit, MCard) or isinstance(inp_circuit, McParameterCollection):
+        if isinstance(inp_circuit, MCard) or isinstance(
+            inp_circuit, McParameterCollection
+        ):
             # save the modelcard, in case it was set inderectly via the input header!
             self._modelcard = copy.deepcopy(inp_circuit)
             # generate inp_circuit for netlist generation
@@ -239,7 +253,9 @@ class DutNgspice(DutCircuit):
 
         self.devices_op_vars = []
         str_netlist = "DMT generated netlist\n"
-        str_netlist += ".Options " + self._convert_dict_to_inp_line(self.simulator_options) + "\n"
+        str_netlist += (
+            ".Options " + self._convert_dict_to_inp_line(self.simulator_options) + "\n"
+        )
 
         if use_osdi:
             # is a modelcard inside the netlist?
@@ -335,9 +351,13 @@ class DutNgspice(DutCircuit):
                 pass
 
         # temperature sweepdef
-        index_temp_swd = [index for index, swd in enumerate(sweepdefs) if swd.var_name == "TEMP"]
+        index_temp_swd = [
+            index for index, swd in enumerate(sweepdefs) if swd.var_name == "TEMP"
+        ]
         if len(index_temp_swd) > 1:
-            raise OSError("For NGSPICE only one temperature sweep is possible in one file!")
+            raise OSError(
+                "For NGSPICE only one temperature sweep is possible in one file!"
+            )
         elif len(index_temp_swd) == 1:
             index_temp_swd = index_temp_swd[0]
         else:
@@ -350,7 +370,9 @@ class DutNgspice(DutCircuit):
             )
         elif index_temp_swd != 0:
             # sorry :(, could be possible as soon as temperature sweeps are implemented. See add_temperature_sweep
-            raise NotImplementedError("For ADS a temperature sweep has to be the outermost sweep!")
+            raise NotImplementedError(
+                "For ADS a temperature sweep has to be the outermost sweep!"
+            )
         else:
             # add the correct temperature sweep and remove it from sweepdefs
             str_netlist = self.inp_header + self.add_temperature_sweep(sweepdefs[0])
@@ -450,10 +472,17 @@ class DutNgspice(DutCircuit):
         try:
             # currently only 1 transient sweepdef per ngspice simulation (?)
             swd_tran = next(swd for swd in sweepdefs if swd.var_name == specifiers.TIME)
-            if len(list(swd for swd in sweepdefs if swd.var_name == specifiers.TIME)) > 1:
-                raise IOError("Currently only one transient sweepdef per sweep in DutNgspice")
+            if (
+                len(list(swd for swd in sweepdefs if swd.var_name == specifiers.TIME))
+                > 1
+            ):
+                raise IOError(
+                    "Currently only one transient sweepdef per sweep in DutNgspice"
+                )
             if len(swd_tran.value_def) > 1:
-                raise IOError("Currently only one transient simulation per sweep in DutNgspice")
+                raise IOError(
+                    "Currently only one transient simulation per sweep in DutNgspice"
+                )
 
             # remove all but one time point from DF. We later let ngspice make the transient at every DC point.
             time = df[specifiers.TIME]
@@ -484,7 +513,9 @@ class DutNgspice(DutCircuit):
         for voltage_source in voltage_sources:
             try:
                 vals = df[voltage_source.name].to_numpy()
-            except KeyError:  # assume that a voltage not specified in the sweep is grounded
+            except (
+                KeyError
+            ):  # assume that a voltage not specified in the sweep is grounded
                 vals = np.zeros_like(0, shape=len(df))
             if (
                 len(vals) == 1
@@ -514,7 +545,11 @@ class DutNgspice(DutCircuit):
         for voltage_source in voltage_sources:
             voltage_name = voltage_source.name
             str_netlist += (
-                "    alter V_" + str(voltage_name) + " = V_" + str(voltage_name) + "_vec[index]\n"
+                "    alter V_"
+                + str(voltage_name)
+                + " = V_"
+                + str(voltage_name)
+                + "_vec[index]\n"
             )
             # alter V_V_E = ve_vec[index]
 
@@ -535,7 +570,9 @@ class DutNgspice(DutCircuit):
         # dc output statement
 
         # #write to output
-        str_netlist += f"    wrdata output_ngspice_dc.ngspice alli allv {str_dc_output}\n"
+        str_netlist += (
+            f"    wrdata output_ngspice_dc.ngspice alli allv {str_dc_output}\n"
+        )
 
         # Add AC
         # set all ac magnitudes to zero
@@ -556,7 +593,9 @@ class DutNgspice(DutCircuit):
                 str_netlist += "    " + ac_statement
                 # ac output statement -> move to end?
                 str_netlist += (
-                    "    wrdata output_ngspice_ac_" + voltage_source.name + ".ngspice alli allv\n"
+                    "    wrdata output_ngspice_ac_"
+                    + voltage_source.name
+                    + ".ngspice alli allv\n"
                 )
 
                 # turn off source
@@ -637,7 +676,9 @@ class DutNgspice(DutCircuit):
             for sim_tr_file in files_tran
         ]
         dfs_tr = [
-            _read_clean_ngspice_df_transient(sim_tr_file, self.reference_node, self.ac_ports)
+            _read_clean_ngspice_df_transient(
+                sim_tr_file, self.reference_node, self.ac_ports
+            )
             for sim_tr_file in files_tran
         ]
 
@@ -688,7 +729,9 @@ class DutNgspice(DutCircuit):
             log_content = my_log.read()
 
         if "error" in log_content:
-            print("DMT - NGSPICE: Simulation failed! An error was found in the simulation log!")
+            print(
+                "DMT - NGSPICE: Simulation failed! An error was found in the simulation log!"
+            )
             logging.debug("Log content:\n%s", log_content)
             raise SimulationUnsuccessful(
                 "NGSPICE Simulation of the sweep "
@@ -788,6 +831,7 @@ class DutNgspice(DutCircuit):
             HICUML2_HBT: "Q",
             SGP_BJT: "Q",
             "bjtn": "Q",
+            SUBCIRCUIT: "X",
         }
         if circuit_element.element_type in element_types.keys():
             element_type = element_types[circuit_element.element_type]
@@ -867,7 +911,9 @@ class DutNgspice(DutCircuit):
                         + f"{circuit_element.name} "
                         + " ".join(circuit_element.contact_nodes)
                     )
-                    str_temp = f"{circuit_element.element_type} {str_instance_parameters}"
+                    str_temp = (
+                        f"{circuit_element.element_type} {str_instance_parameters}"
+                    )
                 elif circuit_element.parameters.va_codes is not None:
                     str_instance_parameters = ""
                     str_model_parameters = ""
@@ -896,25 +942,30 @@ class DutNgspice(DutCircuit):
 
             else:
                 str_temp = []
-                for para, value in circuit_element.parameters:
-                    if para in ["C", "R", "L"]:  # rename according to ngspice manual
-                        str_temp.append(value)
-                    elif para in ["Vdc", "Vac", "Idc", "Iac"] and not isinstance(
-                        value, float
+                for para in circuit_element.parameters:
+                    if isinstance(para, str):
+                        str_temp.append(para)
+                    elif para[0] in ["C", "R", "L"]:
+                        # rename according to ngspice manual
+                        str_temp.append(para[1])
+                    elif para[0] in ["Vdc", "Vac", "Idc", "Iac"] and not isinstance(
+                        para[1], float
                     ):  # just leave voltages from lines, as ngpsice directly changes the sources and not the parameters
                         pass
                     else:
-                        str_temp.append(para + "=" + value)
+                        str_temp.append(para[0] + "=" + para[1])
 
                 str_temp = " ".join(str_temp)
 
                 # find sim paras
                 sim_paras = ""
-                for para, value in circuit_element.parameters:
+                for para in circuit_element.parameters:
+                    if isinstance(para, str):
+                        pass
                     try:
-                        float(value)
+                        float(para[1])
                     except ValueError:
-                        sim_paras = sim_paras + value + "=0 "
+                        sim_paras = sim_paras + para[1] + "=0 "
 
                 if sim_paras != "":
                     sim_paras = "\n.param " + sim_paras
@@ -952,7 +1003,9 @@ class DutNgspice(DutCircuit):
             if (freq == freqs[0]).all():
                 continue
             else:
-                raise IOError("DMT -> NGspice: frequencies of AC simulation data do not match.")
+                raise IOError(
+                    "DMT -> NGspice: frequencies of AC simulation data do not match."
+                )
 
         # join the ac dataframes into one ac dataframe dfs_ac[0]
         for i_df in range(len(dfs_ac)):
@@ -1010,13 +1063,21 @@ def _read_ngspice(filename):
     if n_row.is_integer():
         n_row = int(n_row)
     else:
-        raise IOError("DMT -> Data_reader: Encountered a weird number of rows in " + filename + ".")
+        raise IOError(
+            "DMT -> Data_reader: Encountered a weird number of rows in "
+            + filename
+            + "."
+        )
 
     # check if n_col is an integer
     if n_col.is_integer():
         n_col = int(n_col)
     else:
-        raise IOError("DMT -> Data_reader: Encountered a weird number of cols in " + filename + ".")
+        raise IOError(
+            "DMT -> Data_reader: Encountered a weird number of cols in "
+            + filename
+            + "."
+        )
 
     # need to cast real valued stuff to complex...headache
     if is_ac:
@@ -1090,13 +1151,17 @@ def _read_clean_ngspice_df(filepath, nodes, reference_node, ac_ports):
         if "#BRANCH" in col_raw:  # current that we should save
             col_raw = col_raw.replace("#BRANCH", "")
             node = next(node for node in nodes if node in col_raw)
-            data[specifiers.CURRENT + node] = -df[col]  # we want the other current direction
+            data[specifiers.CURRENT + node] = -df[
+                col
+            ]  # we want the other current direction
         elif col_raw[0:2] == "N_":  # found a node, will take the voltage
             node = col_raw[2:]
             if "_FORCED" in node:
-                data[specifiers.VOLTAGE + node.replace("_FORCED", "") + sub_specifiers.FORCED] = df[
-                    col
-                ]
+                data[
+                    specifiers.VOLTAGE
+                    + node.replace("_FORCED", "")
+                    + sub_specifiers.FORCED
+                ] = df[col]
             else:
                 data[specifiers.VOLTAGE + node] = df[col]
         elif col_raw == "FREQUENCY":
@@ -1145,7 +1210,9 @@ def _read_clean_ngspice_df(filepath, nodes, reference_node, ac_ports):
             except KeyError:
                 pass
             try:
-                new_df.drop(axis=1, columns=col_v_n + sub_specifiers.FORCED, inplace=True)
+                new_df.drop(
+                    axis=1, columns=col_v_n + sub_specifiers.FORCED, inplace=True
+                )
             except KeyError:
                 pass
 
@@ -1188,12 +1255,16 @@ def _read_clean_ngspice_df_transient(filepath, reference_node, ac_ports):
         if "#BRANCH" in col_raw:  # current that we should save
             col_raw = col_raw.replace("#BRANCH", "")
             node = next(node for node in nodes if node in col_raw)
-            new_df[specifiers.CURRENT + node] = -df[col]  # we want the other current direction
+            new_df[specifiers.CURRENT + node] = -df[
+                col
+            ]  # we want the other current direction
         elif col_raw[0:2] == "N_":  # found a node, will take the voltage
             node = col_raw[2:]
             if "_FORCED" in node:
                 new_df[
-                    specifiers.VOLTAGE + node.replace("_FORCED", "") + sub_specifiers.FORCED
+                    specifiers.VOLTAGE
+                    + node.replace("_FORCED", "")
+                    + sub_specifiers.FORCED
                 ] = df[col]
             else:
                 new_df[specifiers.VOLTAGE + node] = df[col]
