@@ -25,9 +25,9 @@ Later on this can be extended to allow (pseudo-)simulations directly inside DMT.
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 from __future__ import annotations
-import warnings
-from typing import Callable, Iterable, Optional, Union, List, Tuple
-from DMT.core import MCard, McParameterCollection
+from pathlib import Path
+from typing import Iterable, Optional, Union, List, Tuple
+from DMT.core import MCard, McParameterCollection, VAFileMap
 
 
 RESISTANCE = "R"
@@ -241,7 +241,12 @@ class Circuit(object):
         If one element of the circuit to create is neither a :class:`~DMT.core.circuit.CircuitElement` nor a simple str.
     """
 
-    def __init__(self, circuit_elements: List[Union[str, CircuitElement]]):
+    def __init__(
+        self,
+        circuit_elements: List[Union[str, CircuitElement]],
+        lib_files: List[Union[str, Path]] = None,
+        va_root_files: List[Union[str, Path, VAFileMap]] = None,
+    ):
         for i_element, element in enumerate(circuit_elements):
             if not isinstance(element, (CircuitElement, str)):
                 raise TypeError(
@@ -252,3 +257,14 @@ class Circuit(object):
                 )
 
         self.netlist = circuit_elements
+        if lib_files is None:
+            self.lib_files = []
+        else:
+            self.lib_files = lib_files
+
+        self.verilog_maps = []
+        if va_root_files is not None:
+            for va_file in va_root_files:
+                if not isinstance(va_file, VAFileMap):
+                    va_file = VAFileMap(va_file)
+                self.verilog_maps.append(va_file)
