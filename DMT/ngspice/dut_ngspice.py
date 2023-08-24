@@ -246,9 +246,11 @@ class DutNgspice(DutCircuit):
         elif isinstance(inp_circuit, Circuit):
             self._modelcard = None
             self._inp_circuit = copy.deepcopy(inp_circuit)
+
+            self.list_copy += inp_circuit.lib_files
         else:
             raise OSError(
-                "For ADS circuits netlist generation is only possible from object of class DMT.classes.Circuit"
+                "For ngspice circuits netlist generation is only possible from object of class DMT.core.MCard or DMT.core.Circuit"
             )
 
         self.devices_op_vars = []
@@ -267,9 +269,7 @@ class DutNgspice(DutCircuit):
                     # element does not have a va_file.
                     pass
 
-            # does this DuT have a Verilog Code that is copied together with the simulation?
-            for va_map in self.va_maps:
-                list_va_files.append(va_map)
+            list_va_files += self._inp_circuit.verilog_maps
 
             # pre_osdi strings
             self._osdi_imports = []

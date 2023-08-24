@@ -95,7 +95,9 @@ class VACode(object):  # Storage
         code = base64.b85encode(code).decode("utf-8")
         return (code, csum)
 
-    def decompress_code(self, code_compressed: str, csum: int, ignore_checksum: bool = False):
+    def decompress_code(
+        self, code_compressed: str, csum: int, ignore_checksum: bool = False
+    ):
         """Set compressed code to file, will be decompressed and saved in self.code
 
         Parameters
@@ -227,14 +229,16 @@ class VAFileMap(object):
         path_to_main_code = path_to_own_folder / self.root
 
         try:
-            self.files[self.root] = VACode(code=path_to_main_code.read_text())  # be safe
+            self.files[self.root] = VACode(
+                code=path_to_main_code.read_text()
+            )  # be safe
         except FileNotFoundError as e:
             va_files = path_to_own_folder.glob("*.va")
             va_files = [str(va_file) for va_file in va_files]
             va_files = "\n" + "\n".join(va_files)
             raise FileNotFoundError(
                 e.strerror, e.filename, " . Verilog-A files in this folder:" + va_files
-            )
+            ) from e
 
         for file, code in verilogae.export_vfs(str(path_to_main_code)).items():  # type: ignore
             self.files[file[1:]] = VACode(code=code)
@@ -298,12 +302,16 @@ class VAFileMap(object):
             if isinstance(code, str):
                 files[name] = VACode(code=code)
             else:
-                files[name] = VACode(code_compressed=code, ignore_checksum=ignore_checksum)
+                files[name] = VACode(
+                    code_compressed=code, ignore_checksum=ignore_checksum
+                )
 
         return VAFileMap(name=root, files=files)
 
     def write_files(
-        self, path_to_target: Union[str, Path], filter: Optional[Callable[[str], str]] = None
+        self,
+        path_to_target: Union[str, Path],
+        filter: Optional[Callable[[str], str]] = None,
     ):
         """Writes the all Verilog-A files from this mapping into the given target path. The file structure is written as read from the "original"
 
