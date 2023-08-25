@@ -61,7 +61,7 @@ try:
         pyqt_widgets = pyqtgraph.Qt.QtGui
 
 except ImportError:
-    print(f"DMT->Plot: Failed to import plotting module pyqtgraph.")
+    print("DMT->Plot: Failed to import plotting module pyqtgraph.")
 
 try:
     import matplotlib
@@ -1793,28 +1793,17 @@ class Plot(object):
             if self.x_limits[0] is None or self.x_limits[1] is None:
                 str_limits += "% restrict x to domain=0:1,\n"
             else:
-                if self.x_axis_scale == "linear":
-                    x_min_restrict = (
-                        self.x_limits[0] / 5
-                        if self.x_limits[0] > 0
-                        else self.x_limits[0] * 5
-                    )
-                    x_max_restrict = (
-                        self.x_limits[1] / 5
-                        if self.x_limits[1] < 0
-                        else self.x_limits[1] * 5
-                    )
-                else:
-                    x_min_restrict = (
-                        np.log10(self.x_limits[0] / 5)
-                        if self.x_limits[0] > 0
-                        else np.log10(self.x_limits[0] * 5)
-                    )
-                    x_max_restrict = (
-                        np.log10(self.x_limits[1] / 5)
-                        if self.x_limits[1] < 0
-                        else np.log10(self.x_limits[1] * 5)
-                    )
+                x_min_restrict = (
+                    self.x_limits[0] / 5
+                    if self.x_limits[0] > 0
+                    else self.x_limits[0] * 5
+                )
+                x_max_restrict = (
+                    self.x_limits[1] / 5
+                    if self.x_limits[1] < 0
+                    else self.x_limits[1] * 5
+                )
+
                 str_limits += (
                     comment_restrict
                     + "restrict x to domain={0:g}:{1:g},\n".format(
@@ -1836,28 +1825,17 @@ class Plot(object):
             if self.y_limits[0] is None or self.y_limits[1] is None:
                 str_limits += "% restrict y to domain=0:1,\n"
             else:
-                if self.y_axis_scale == "linear":
-                    y_min_restrict = (
-                        self.y_limits[0] / 5
-                        if self.y_limits[0] > 0
-                        else self.y_limits[0] * 5
-                    )
-                    y_max_restrict = (
-                        self.y_limits[1] / 5
-                        if self.y_limits[1] < 0
-                        else self.y_limits[1] * 5
-                    )
-                else:
-                    y_min_restrict = (
-                        np.log10(self.y_limits[0] / 5)
-                        if self.y_limits[0] > 0
-                        else np.log10(self.y_limits[0] * 5)
-                    )
-                    y_max_restrict = (
-                        np.log10(self.y_limits[1] / 5)
-                        if self.y_limits[1] < 0
-                        else np.log10(self.y_limits[1] * 5)
-                    )
+                y_min_restrict = (
+                    self.y_limits[0] / 5
+                    if self.y_limits[0] > 0
+                    else self.y_limits[0] * 5
+                )
+                y_max_restrict = (
+                    self.y_limits[1] / 5
+                    if self.y_limits[1] < 0
+                    else self.y_limits[1] * 5
+                )
+
                 str_limits += (
                     comment_restrict
                     + "restrict y to domain={0:g}:{1:g},\n".format(

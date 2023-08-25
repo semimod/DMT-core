@@ -223,9 +223,10 @@ class DutXyce(DutCircuit):
         elif isinstance(inp_circuit, Circuit):
             self._modelcard = None
             self._inp_circuit = copy.deepcopy(inp_circuit)
+            self.list_copy += inp_circuit.lib_files
         else:
             raise OSError(
-                "For Xyce circuits netlist generation is only possible from object of class DMT.classes.Circuit. Passed "
+                "For Xyce circuits netlist generation is only possible from object of class DMT.core.MCard or DMT.core.Circuit. Passed "
                 + str(inp_circuit)
                 + "."
             )
@@ -234,7 +235,7 @@ class DutXyce(DutCircuit):
             "DMT Xyce simulation\n"
             # "simulator1Options options "
             # + self._convert_dict_to_inp_line(self.simulator_options)
-            # + "\n\n"
+            + "\n\n"
         )
 
         # is a modelcard inside the netlist?
@@ -245,6 +246,8 @@ class DutXyce(DutCircuit):
             except AttributeError:
                 # element does not have a va_file.
                 pass
+
+        list_va_files += self._inp_circuit.verilog_maps
 
         if not va_from_model_build_in:
             # load va file plugins and mark missing ones -> they are compiled later:
@@ -286,11 +289,11 @@ class DutXyce(DutCircuit):
         # add elements:
         for index, element in enumerate(self._inp_circuit.netlist):
             if isinstance(element, str):
-                if not "include" in element:
-                    str_netlist += ".PARAM " + element + "\n"
+                if element.startswith(".include") or element.startswith(".lib"):
+                    str_netlist += element + "\n"
                 else:
                     # raise NotImplementedError("Need a test case for this ?!?")
-                    str_netlist += element + "\n"
+                    str_netlist += ".PARAM " + element + "\n"
 
             else:
                 str_netlist = str_netlist + self._convert_CircuitElement_netlist(
@@ -559,7 +562,7 @@ class DutXyce(DutCircuit):
 
             time_start = time.time()
             time_out = True
-            while time.time() - time_start < 60:
+            while time.time() - time_start < 120:
                 finished = 0
                 for i_p, process in enumerate(processes[:]):
                     returncode = process.poll()
@@ -715,6 +718,44 @@ class DutXyce(DutCircuit):
         logging.debug("\n%s", str_netlist)
 
         return str_netlist
+
+    def _convert_dict_to_inp_line(self, dict_key_para):
+        """Converts dictionary into a line for a ngspice input file.
+
+        Transforms a dictionary with
+
+        | dict[key1] = value1
+        | dict[key2] = value2
+
+        into a line with "key1=value1 key2=value2 ". Correctly converts strings, iteratables, bools and numbers.
+
+        Parameters
+        ----------
+        dict_key_para : dict
+
+        Returns
+        -------
+        str
+            Line to add into input file
+        """
+        str_return = ""
+
+        for key, param in dict_key_para.items():
+            if isinstance(param, str):
+                str_add = key + "=" + param + " "
+            elif isinstance(param, (list, tuple)):
+                str_add = key + "=" + " ".join([str(nr) for nr in param]) + " "
+            elif isinstance(param, bool):
+                str_add = "yes" if param else "no"
+                str_add = key + "=" + str_add
+            elif param is None:
+                str_add = key + " "
+            else:
+                str_add = key + "=" + str(param) + " "
+
+            str_return = str_return + str_add
+
+        return str_return
 
     def validate_simulation_successful(self, sweep):
         """Checks if the simulation of the given sweep was successful.
