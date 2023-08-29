@@ -125,22 +125,21 @@ from .docu_dut_lib import DocuDutLib
 core_exists = True  # always, without DMT is not possible
 try:
     pkgutil.find_loader("DMT.extraction")
-    # import DMT.extraction
-
     extraction_exists = True
 except ImportError:
     extraction_exists = False
-
-
-if core_exists and not extraction_exists:
-    mode = "free version"
-elif core_exists and extraction_exists:
-    mode = "all"
+try:
+    pkgutil.find_loader("DMT.hl2")
+    bjt_exists = True
+except ImportError:
+    bjt_exists = False
 
 print("-----------------------------------------------------------------------")
 print("DMT Copyright (C) 2022 SemiMod")
 print("This program comes with ABSOLUTELY NO WARRANTY.")
-print("DMT_core is free software, and you are welcome to redistribute it.")
+print("DMT.core is free software and licensed under GPLv3.")
 if extraction_exists:
-    print("DMT_other is free for non-commercial use, see LICENSE.md. ")
+    print("DMT.extraction is free software and licensed under GPLv3.")
+if bjt_exists:
+    print("other DMT modules are free for non-commercial use, see LICENSE.md. ")
 print("-----------------------------------------------------------------------")
