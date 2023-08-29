@@ -1812,11 +1812,6 @@ class Plot(object):
         ### Lines
         str_lines = ""
         colors = []
-        # try:
-        #     mark_delta = int(mark_repeat/len(self.data[::nth]))
-        # except ZeroDivisionError:
-        #     mark_delta = 1
-        #     print("DMT->plot->{:s}: Plot has no data, generating axis anyways.".format(self.name))
 
         for nr_line, dict_line in enumerate(self.data[::nth]):
             if len(dict_line["x"]) == 0:
