@@ -1230,7 +1230,10 @@ class Plot(object):
         ## Start Qt event loop unless running in interactive mode or using pyside.
         if show:
             if sys.flags.interactive != 1 or not hasattr(pyqtgraph.Qt.QtCore, "PYQT_VERSION"):
-                pyqt_widgets.QApplication.exec()  # type: ignore
+                try:
+                    pyqt_widgets.QApplication.exec()  # type: ignore
+                except:
+                    pyqt_widgets.QApplication.exec_()  # type: ignore
 
         if only_widget:
             return self.pw_pg
@@ -1241,7 +1244,10 @@ class Plot(object):
         """Reshows the PyQtGraph main window and startes the Qt event loop"""
         if self.mw_pg is not None:
             self.mw_pg.show()
-            pyqt_widgets.QApplication.exec()  # type: ignore
+            try:
+                pyqt_widgets.QApplication.exec()  # type: ignore
+            except:
+                pyqt_widgets.QApplication.exec_()  # type: ignore
 
     def _convert_mpl_to_pyqt(self, mpl_style):
         """Returns a corresponding PyQtGraph style for a given matplotlib style.
