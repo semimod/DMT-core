@@ -172,9 +172,7 @@ class DutXyce(DutCircuit):
             Loaded object.
         """
         if json_content["__DutXyce__"] != SEMVER_DUTXYCE_CURRENT:
-            raise NotImplementedError(
-                "DMT.DutXyce: Unknown version of DutXyce to load!"
-            )
+            raise NotImplementedError("DMT.DutXyce: Unknown version of DutXyce to load!")
 
         dut_view = super().from_json(
             json_content["parent"], classes_technology, subclass_kwargs=subclass_kwargs
@@ -183,9 +181,7 @@ class DutXyce(DutCircuit):
         dut_view._va_plugins_to_compile = []
 
         for path, va_file in json_content["_va_plugins_to_compile"]:
-            dut_view._va_plugins_to_compile.append(
-                (Path(path), VAFileMap.import_dict(va_file))
-            )
+            dut_view._va_plugins_to_compile.append((Path(path), VAFileMap.import_dict(va_file)))
 
         return dut_view
 
@@ -202,9 +198,7 @@ class DutXyce(DutCircuit):
         netlist : str
         """
         va_from_model_build_in = False
-        if isinstance(inp_circuit, MCard) or isinstance(
-            inp_circuit, McParameterCollection
-        ):
+        if isinstance(inp_circuit, MCard) or isinstance(inp_circuit, McParameterCollection):
             # save the modelcard, in case it was set inderectly via the input header!
             self._modelcard = copy.deepcopy(inp_circuit)
             # get the circuit for netlist generation
@@ -272,14 +266,10 @@ class DutXyce(DutCircuit):
             if va_plugins:
                 try:
                     i_plugin = self.sim_args.index("-plugin")
-                    self.sim_args[i_plugin + 1] = ",".join(
-                        str(va_path) for va_path in va_plugins
-                    )
+                    self.sim_args[i_plugin + 1] = ",".join(str(va_path) for va_path in va_plugins)
                 except ValueError:
                     self.sim_args.append("-plugin")
-                    self.sim_args.append(
-                        ",".join(str(va_path) for va_path in va_plugins)
-                    )
+                    self.sim_args.append(",".join(str(va_path) for va_path in va_plugins))
 
         str_netlist += "\n* Netlist\n"
 
@@ -293,9 +283,7 @@ class DutXyce(DutCircuit):
                     str_netlist += element + "\n"
 
             else:
-                str_netlist = str_netlist + self._convert_CircuitElement_netlist(
-                    element, index
-                )
+                str_netlist = str_netlist + self._convert_CircuitElement_netlist(element, index)
 
         logging.info("Successfully created input header of dut %s!", self.name)
         logging.debug("Content:\n%s", str_netlist)
@@ -334,9 +322,7 @@ class DutXyce(DutCircuit):
             )
         elif circuit_element.element_type == VOLTAGE:
             # CircuitElement( VOLTAGE, 'V_B', ['n_BX', '0'], parameters=[('Vdc','V_B'), ('Vac','1')])
-            dc = next(para for para in circuit_element.parameters if para[0] == "Vdc")[
-                1
-            ]
+            dc = next(para for para in circuit_element.parameters if para[0] == "Vdc")[1]
             try:
                 float_dc = float(dc)
                 parameters = "DC " + dc + " V"
@@ -344,9 +330,7 @@ class DutXyce(DutCircuit):
                 # if dc contaíns a string -> it is a parameter and hence no unit needed but braces...
                 parameters = "DC {" + dc + "}"
             try:
-                ac = next(
-                    para for para in circuit_element.parameters if para[0] == "Vac"
-                )[1]
+                ac = next(para for para in circuit_element.parameters if para[0] == "Vac")[1]
                 try:
                     float_ac = float(ac)
                     ac = ac + "V"
@@ -369,14 +353,10 @@ class DutXyce(DutCircuit):
         elif circuit_element.element_type == CURRENT:
             # CircuitElement( CURRENT, 'ISB', ['0', 'n_BX'], parameters=[('Idc','IB'), ('Iac','1')])
 
-            dc = next(para for para in circuit_element.parameters if para[0] == "Idc")[
-                1
-            ]
+            dc = next(para for para in circuit_element.parameters if para[0] == "Idc")[1]
             parameters = "DC " + dc + "V"
             try:
-                ac = next(
-                    para for para in circuit_element.parameters if para[0] == "Iac"
-                )[1]
+                ac = next(para for para in circuit_element.parameters if para[0] == "Iac")[1]
                 phase = str(np.rad2deg(0))  # just to remember this
                 parameters += " AC " + ac + "V " + phase
             except StopIteration:
@@ -394,9 +374,7 @@ class DutXyce(DutCircuit):
         elif circuit_element.element_type == HICUML2_HBT:
             # a model with the parameters
             # the model name
-            model_name = (
-                circuit_element.parameters.default_subckt_name + "_{:d}".format(index)
-            )
+            model_name = circuit_element.parameters.default_subckt_name + "_{:d}".format(index)
 
             # the instance
             str_netlist = (
@@ -412,9 +390,7 @@ class DutXyce(DutCircuit):
             # and now the model with the parameters
             str_netlist += ".MODEL " + model_name + " NPN ( LEVEL=234"
             for para in circuit_element.parameters.iter_alphabetical():
-                if not para.name.startswith(
-                    "_"
-                ):  # do not use parameters that start with _
+                if not para.name.startswith("_"):  # do not use parameters that start with _
                     if para.val_type == int:
                         str_netlist += " {0:s} = {0:d}".format(para)
                     else:
@@ -424,9 +400,7 @@ class DutXyce(DutCircuit):
         elif circuit_element.element_type == SGP_BJT:
             # a model with the parameters
             # the model name
-            model_name = (
-                circuit_element.parameters.default_subckt_name + "_{:d}".format(index)
-            )
+            model_name = circuit_element.parameters.default_subckt_name + "_{:d}".format(index)
 
             # the instance
             str_netlist = (
@@ -442,9 +416,7 @@ class DutXyce(DutCircuit):
             # and now the model with the parameters
             str_netlist += ".MODEL " + model_name + " NPN ( LEVEL=1"
             for para in circuit_element.parameters.iter_alphabetical():
-                if not para.name.startswith(
-                    "_"
-                ):  # do not use parameters that start with _
+                if not para.name.startswith("_"):  # do not use parameters that start with _
                     if para.val_type == int:
                         str_netlist += " {0:s} = {0:d}".format(para)
                     else:
@@ -472,10 +444,7 @@ class DutXyce(DutCircuit):
 
             except KeyError:
                 # special devices like the transistor
-                model_name = (
-                    circuit_element.parameters.default_subckt_name
-                    + "_{:d}".format(index)
-                )
+                model_name = circuit_element.parameters.default_subckt_name + "_{:d}".format(index)
                 str_netlist = (
                     "Y"
                     + circuit_element.element_type
@@ -491,9 +460,7 @@ class DutXyce(DutCircuit):
                 str_temp = ".MODEL " + model_name + " " + circuit_element.element_type
                 try:
                     for para in circuit_element.parameters.iter_alphabetical():
-                        if not para.name.startswith(
-                            "_"
-                        ):  # do not use parameters that start with _
+                        if not para.name.startswith("_"):  # do not use parameters that start with _
                             if para.val_type == int:
                                 str_temp += " {0:s} = {0:d}".format(para)
                             else:
@@ -538,9 +505,7 @@ class DutXyce(DutCircuit):
                 vafile.write_files(path_plugin.parent)
 
                 # call "buildxyceplugin.sh"
-                log_file = open(
-                    path_plugin.parent / (path_plugin.stem + "_compile.log"), "w"
-                )
+                log_file = open(path_plugin.parent / (path_plugin.stem + "_compile.log"), "w")
                 processes.append(
                     subprocess.Popen(
                         [
@@ -610,25 +575,19 @@ class DutXyce(DutCircuit):
                 if i_swd_temperature is None:
                     i_swd_temperature = i_swd
                 else:
-                    raise OSError(
-                        "For Xyce only one temperature sweep is possible in one file!"
-                    )
+                    raise OSError("For Xyce only one temperature sweep is possible in one file!")
             elif swd.var_name == specifiers.FREQUENCY:
                 if swd_ac is None:
                     swd_ac = tmp_sweep.sweepdef.pop(i_swd)
                 else:
-                    raise OSError(
-                        "For Xyce only one AC simulation is possible in one file!"
-                    )
+                    raise OSError("For Xyce only one AC simulation is possible in one file!")
 
         # get the header and add the simulation controllers
         str_netlist = self.inp_header + "\n"
 
         # noise ?
         if "noise" in tmp_sweep.outputdef:
-            tmp_sweep.outputdef = [
-                out_var for out_var in sweep.outputdef if out_var != "noise"
-            ]
+            tmp_sweep.outputdef = [out_var for out_var in sweep.outputdef if out_var != "noise"]
             noise = True
             raise NotImplementedError(
                 "For Xyce noise simulations are not implemented. Either implement it, pay Mario or use ADS."
@@ -701,9 +660,7 @@ class DutXyce(DutCircuit):
             str_netlist += ".AC DATA=TAB_FREQUENCIES \n"
             str_netlist += ".DATA TAB_FREQUENCIES \n"
             str_netlist += "+ FREQ \n"
-            str_netlist += (
-                "+ " + " ".join(f"{val:.6g}" for val in swd_ac.values) + " \n"
-            )
+            str_netlist += "+ " + " ".join(f"{val:.6g}" for val in swd_ac.values) + " \n"
             str_netlist += ".ENDDATA \n"
             str_netlist += "* AC output definition\n"
             str_netlist += ".PRINT AC FORMAT=CSV FILE=AC.csv V(*) I(*) \n"
@@ -781,9 +738,7 @@ class DutXyce(DutCircuit):
             ]
             sim_folder = filepaths[0].parent
             if key is None:
-                warnings.warn(
-                    "DMT->DutXyce->import_output_data: Added a df with the key None!"
-                )
+                warnings.warn("DMT->DutXyce->import_output_data: Added a df with the key None!")
 
         df = self._import_xyce_results(*filepaths)
 
@@ -861,17 +816,12 @@ class DutXyce(DutCircuit):
                             )  # example: E_FORCED -> E
                         else:
                             col = (
-                                specifiers.VOLTAGE
-                                + node
-                                + sub_specifiers.AC
-                                + sub_specifiers.REAL
+                                specifiers.VOLTAGE + node + sub_specifiers.AC + sub_specifiers.REAL
                             )
                     elif col[3] == "I":
                         device = col[5:-2]
                         if device.startswith("R"):
-                            col = (
-                                specifiers.SS_PARA_Y + device[3:] + sub_specifiers.REAL
-                            )
+                            col = specifiers.SS_PARA_Y + device[3:] + sub_specifiers.REAL
                         else:
                             col = specifiers.SS_PARA_Y + device + sub_specifiers.REAL
                     else:
@@ -890,17 +840,12 @@ class DutXyce(DutCircuit):
                             )  # example: E_FORCED -> E
                         else:
                             col = (
-                                specifiers.VOLTAGE
-                                + node
-                                + sub_specifiers.AC
-                                + sub_specifiers.IMAG
+                                specifiers.VOLTAGE + node + sub_specifiers.AC + sub_specifiers.IMAG
                             )
                     elif col[3] == "I":
                         device = col[5:-2]
                         if device.startswith("R"):
-                            col = (
-                                specifiers.SS_PARA_Y + device[3:] + sub_specifiers.IMAG
-                            )
+                            col = specifiers.SS_PARA_Y + device[3:] + sub_specifiers.IMAG
                         else:
                             col = specifiers.SS_PARA_Y + device + sub_specifiers.IMAG
                     else:
@@ -919,9 +864,7 @@ class DutXyce(DutCircuit):
                 else:
                     raise NotImplementedError("Implement the correct specifier!")
 
-                columns[
-                    df.columns[i_col]
-                ] = col  # pylint: disable=unsubscriptable-object
+                columns[df.columns[i_col]] = col  # pylint: disable=unsubscriptable-object
 
             df.drop(columns=to_drop, inplace=True)
 
@@ -934,8 +877,7 @@ class DutXyce(DutCircuit):
                         col_complex = SpecifierStr(
                             col.specifier,
                             *col.nodes,
-                            sub_specifiers=col.sub_specifiers
-                            - sub_specifiers.REAL.sub_specifiers,
+                            sub_specifiers=col.sub_specifiers - sub_specifiers.REAL.sub_specifiers,
                         )
                         col_imag = col_complex + sub_specifiers.IMAG
                         df[col_complex] = df[col] + 1j * df[col_imag]
@@ -973,9 +915,7 @@ class DutXyce(DutCircuit):
         if col_ac_switch in df_main.columns:
             # get all AC columns, except frequency and ac_switch
             cols_ac_old = [
-                col
-                for col in df_ac.columns
-                if col not in [specifiers.FREQUENCY, col_ac_switch]
+                col for col in df_ac.columns if col not in [specifiers.FREQUENCY, col_ac_switch]
             ]
 
             #  the AC columns to account for forward and backward simulation
@@ -1010,9 +950,7 @@ class DutXyce(DutCircuit):
             for i_row, row in df_main.iterrows():
                 sub_data = df_main
                 for col_filter in cols_filter:
-                    sub_data = sub_data[
-                        np.isclose(sub_data[col_filter], row[col_filter])
-                    ]
+                    sub_data = sub_data[np.isclose(sub_data[col_filter], row[col_filter])]
 
                 # now there should be exactly 2 rows left
                 if len(sub_data) == 2:
@@ -1022,10 +960,7 @@ class DutXyce(DutCircuit):
 
             # make a new dataframe
             df_main_new = DataFrame(
-                columns=cols_dc
-                + [specifiers.FREQUENCY]
-                + cols_ac_forward
-                + cols_ac_backward,
+                columns=cols_dc + [specifiers.FREQUENCY] + cols_ac_forward + cols_ac_backward,
                 dtype=np.complex64,
             )
             # join the rows, drop the old rows and save the new row in the dataframe
@@ -1041,25 +976,17 @@ class DutXyce(DutCircuit):
                 else:
                     raise IOError("Did not find forward and backward simulation")
 
-                series_ac_forward.rename(
-                    dict(zip(cols_ac_old, cols_ac_forward)), inplace=True
-                )
-                series_ac_backward.rename(
-                    dict(zip(cols_ac_old, cols_ac_backward)), inplace=True
-                )
+                series_ac_forward.rename(dict(zip(cols_ac_old, cols_ac_forward)), inplace=True)
+                series_ac_backward.rename(dict(zip(cols_ac_old, cols_ac_backward)), inplace=True)
 
                 # do not forget the frequency
-                series_ac_forward[specifiers.FREQUENCY] = df_main.loc[
-                    i_row_1, specifiers.FREQUENCY
-                ]
+                series_ac_forward[specifiers.FREQUENCY] = df_main.loc[i_row_1, specifiers.FREQUENCY]
 
                 # add the new row to the new dataframe
                 df_main_new = pd.concat(
                     [
                         df_main_new,
-                        pd.concat([series_dc, series_ac_forward, series_ac_backward])
-                        .to_frame()
-                        .T,
+                        pd.concat([series_dc, series_ac_forward, series_ac_backward]).to_frame().T,
                     ],
                     axis="index",
                     ignore_index=True,

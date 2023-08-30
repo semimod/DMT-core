@@ -127,13 +127,9 @@ class CircuitElement(object):
         element_type: str,
         name: str,
         contact_nodes: Iterable[str],
-        parameters: Optional[
-            Union[List[Tuple[str, str]], MCard, McParameterCollection]
-        ] = None,
+        parameters: Optional[Union[List[Tuple[str, str]], MCard, McParameterCollection]] = None,
     ):
-        if isinstance(parameters, MCard) or isinstance(
-            parameters, McParameterCollection
-        ):
+        if isinstance(parameters, MCard) or isinstance(parameters, McParameterCollection):
             CircuitElement.possible_types.append(parameters.default_module_name)  # type: ignore
 
         if isinstance(element_type, str):
@@ -205,9 +201,7 @@ class CircuitElement(object):
                         + str(i_parameter)
                     )
 
-        elif isinstance(parameters, MCard) or isinstance(
-            parameters, McParameterCollection
-        ):
+        elif isinstance(parameters, MCard) or isinstance(parameters, McParameterCollection):
             # Allow model cards!
             pass
 
