@@ -478,7 +478,6 @@ class GlobalObj(object):
 # HOLY DEFINITION OF DMT NAMING CONVENTIONS #
 #############################################
 class _sub_specifiers(GlobalObj, metaclass=Singleton):
-
     PERIMETER = SpecifierStr("", sub_specifiers="PERI")
     AREA = SpecifierStr("", sub_specifiers="AREA")
     LENGTH = SpecifierStr("", sub_specifiers="LENGTH")

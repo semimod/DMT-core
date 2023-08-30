@@ -148,7 +148,6 @@ class McParameter(object):
         unit: Unit = unit_registry.dimensionless,
         description: str = "",
     ):
-
         if not isinstance(name, str):
             raise IOError("DMT -> McParameter: Parameter name not a string.")
         self.name = name.lower()  # always lower case...
