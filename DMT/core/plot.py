@@ -1715,12 +1715,12 @@ class Plot(object):
             str_limits += (
                 "% xmin=0,\n"
                 if self.x_limits[0] is None
-                else f"xmin={self.x_limits[0]*self.x_scale:g},\n"
+                else f"xmin={self.x_limits[0]:g},\n"
             )
             str_limits += (
                 "% xmax=0,\n"
                 if self.x_limits[1] is None
-                else f"xmax={self.x_limits[1]*self.x_scale:g},\n"
+                else f"xmax={self.x_limits[1]:g},\n"
             )
             if self.x_limits[0] is None or self.x_limits[1] is None:
                 str_limits += "% restrict x to domain=0:1,\n"
@@ -1744,19 +1744,19 @@ class Plot(object):
                         else np.log10(self.x_limits[1] * 5)
                     )
                 str_limits += comment_restrict + "restrict x to domain={0:g}:{1:g},\n".format(
-                    x_min_restrict * self.x_scale, x_max_restrict * self.x_scale
+                    x_min_restrict * 1, x_max_restrict * 1
                 )
 
             str_limits += "log basis x=10,\n"
             str_limits += (
                 "% ymin=0,\n"
                 if self.y_limits[0] is None
-                else f"ymin={self.y_limits[0]*self.y_scale:g},\n"
+                else f"ymin={self.y_limits[0]:g},\n"
             )
             str_limits += (
                 "% ymax=0,\n"
                 if self.y_limits[1] is None
-                else f"ymax={self.y_limits[1]*self.y_scale:g},\n"
+                else f"ymax={self.y_limits[1]:g},\n"
             )
             if self.y_limits[0] is None or self.y_limits[1] is None:
                 str_limits += "% restrict y to domain=0:1,\n"
@@ -1780,7 +1780,7 @@ class Plot(object):
                         else np.log10(self.y_limits[1] * 5)
                     )
                 str_limits += comment_restrict + "restrict y to domain={0:g}:{1:g},\n".format(
-                    y_min_restrict * self.y_scale, y_max_restrict * self.y_scale
+                    y_min_restrict * 1, y_max_restrict * 1
                 )
             str_limits += "log basis y=10,\n"
             print("using pgf")

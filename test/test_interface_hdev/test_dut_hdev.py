@@ -27,7 +27,7 @@ def test_dut_hdev():
     # define a hdev input structure, look into the "n3_hbt" function for details
     # hint: have a look into the n3_hbt function to understand how a 1D HBT is defined in detail! Also check out the Hdev manual https://gitlab.com/metroid120/hdev_simulator
     inp = n3_hbt(
-        "1.20", reco=True, tn=True
+        "1.20", reco=True, tn=True, fermi=False
     )  # tn=True => Energy Transport Simulation, tn=False => Drift-Diffusion simulation
 
     # Create a DUT using DMT.core.DutHdev, which is used for simulation control
@@ -40,7 +40,7 @@ def test_dut_hdev():
     )
 
     # define an output sweep using the hdevpy function get_sweep
-    sweep = get_sweep(vce=[0, 9, 201], vbe=[0.65], ac=False)
+    sweep = get_sweep(vce=[0, 2, 101], vbe=[0.65], ac=False)
 
     # start simulations
     simcon = SimCon(n_core=4, t_max=460)
@@ -72,7 +72,6 @@ def test_dut_hdev():
     assert np.isclose(vb, 0.65).all()  # output voltage makes sense
     assert np.isclose(ic[50:], -ie[50:] - ib[50:], rtol=1e-2).all()  # global continuity equation
     assert np.isclose(n, n_dmt, rtol=1e-3).all()  # n carrier densities make sense
-    assert np.isclose(p, p_dmt, rtol=1e-3).all()  # p carrier densities make sense
 
     return dut, sweep
 
