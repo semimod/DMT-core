@@ -733,7 +733,7 @@ class DutNgspice(DutCircuit):
             )
 
     def _convert_dict_to_inp_line(self, dict_key_para):
-        """Converts dictionary into a line for a ADS input file.
+        """Converts dictionary into a line for a ngspice input file.
 
         Transforms a dictionary with
 

@@ -61,7 +61,7 @@ try:
         pyqt_widgets = pyqtgraph.Qt.QtGui
 
 except ImportError:
-    print(f"DMT->Plot: Failed to import plotting module pyqtgraph.")
+    print("DMT->Plot: Failed to import plotting module pyqtgraph.")
 
 try:
     import matplotlib
@@ -1120,14 +1120,11 @@ class Plot(object):
                         if not len(dict_line["x"]) == 0
                     ]
                 )
-                x_min = 0.95 * x_min if x_min > 0 else 1.05 * x_min
-                x_min_set = x_min * self.x_scale
+                x_min = 0.95 * x_min * self.x_scale if x_min > 0 else 1.05 * x_min * self.x_scale
             else:
                 x_min = 0
-                x_min_set = x_min
         else:
             x_min = self.x_limits[0]
-            x_min_set = x_min * self.x_scale
             padding = 0.0
 
         if self.x_limits[1] is None:
@@ -1139,24 +1136,21 @@ class Plot(object):
                         if not len(dict_line["x"]) == 0
                     ]
                 )
-                x_max = 1.05 * x_max if x_max > 0 else 0.95 * x_max
+                x_max = 1.05 * x_max * self.x_scale if x_max > 0 else 0.95 * x_max * self.x_scale
                 # x_max = np.ceil(1.1*x_max) if x_max > 0 else np.ceil(0.9*x_max)
-                x_max_set = x_max * self.x_scale
             else:
-                x_max = 1
-                x_max_set = x_max
+                x_max = self.x_scale * 10
         else:
             x_max = self.x_limits[1]
-            x_max_set = x_max * self.x_scale
             padding = 0.0
 
         if self.x_axis_scale == "log":
             # also doing this in case of log for the data itself
-            x_min_set = np.log10(np.abs(x_min_set + np.finfo(float).tiny))
-            x_max_set = np.log10(np.abs(x_max_set + np.finfo(float).tiny))
+            x_min = np.log10(np.abs(x_min + np.finfo(float).tiny))
+            x_max = np.log10(np.abs(x_max + np.finfo(float).tiny))
 
         try:
-            self.pw_pg.setXRange(np.real(x_min_set), np.real(x_max_set), padding=padding)  # type: ignore
+            self.pw_pg.setXRange(np.real(x_min), np.real(x_max), padding=padding)  # type: ignore
         except Exception:
             print("Error setting the XRange of PyQtGraph plot with name " + self.name + ".")
 
@@ -1172,9 +1166,7 @@ class Plot(object):
                         )
                         y_min_local = np.min(dict_line["y"][y_filter])
                         y_min = np.min([y_min, y_min_local])
-                    # y_min = (
-                    #     np.min([np.min(dict_line["y"]) for dict_line in self.data])
-                    # )
+
                     y_min = (
                         0.95 * y_min * self.y_scale if y_min > 0 else 1.05 * y_min * self.y_scale
                     )
@@ -1184,7 +1176,7 @@ class Plot(object):
             else:
                 y_min = 0.0
         else:
-            y_min = self.y_limits[0] * self.y_scale
+            y_min = self.y_limits[0]
             padding = 0.0
 
         if self.y_limits[1] is None:
@@ -1205,11 +1197,11 @@ class Plot(object):
                         1.05 * y_max * self.y_scale if y_max > 0 else 0.95 * y_max * self.y_scale
                     )
                 except ValueError:
-                    y_max = 1.0
+                    y_max = self.y_scale * 10
             else:
-                y_max = 1.0
+                y_max = self.y_scale * 10
         else:
-            y_max = self.y_limits[1] * self.y_scale
+            y_max = self.y_limits[1]
             padding = 0.0
 
         if self.y_axis_scale == "log":
@@ -1441,8 +1433,6 @@ class Plot(object):
         png=False,
         extension=None,
         nth=1,
-        mark_delta=1,
-        skip_every=lambda x: x,
         n_ticks_x=None,
         n_ticks_y=None,
         show_legend=True,
@@ -1713,72 +1703,42 @@ class Plot(object):
             # y_axis = self.pw_pg.getPlotItem().getAxis('left')
         else:
             str_limits += (
-                "% xmin=0,\n"
-                if self.x_limits[0] is None
-                else f"xmin={self.x_limits[0]:g},\n"
+                "% xmin=0,\n" if self.x_limits[0] is None else f"xmin={self.x_limits[0]:g},\n"
             )
             str_limits += (
-                "% xmax=0,\n"
-                if self.x_limits[1] is None
-                else f"xmax={self.x_limits[1]:g},\n"
+                "% xmax=0,\n" if self.x_limits[1] is None else f"xmax={self.x_limits[1]:g},\n"
             )
             if self.x_limits[0] is None or self.x_limits[1] is None:
                 str_limits += "% restrict x to domain=0:1,\n"
             else:
-                if self.x_axis_scale == "linear":
-                    x_min_restrict = (
-                        self.x_limits[0] / 5 if self.x_limits[0] > 0 else self.x_limits[0] * 5
-                    )
-                    x_max_restrict = (
-                        self.x_limits[1] / 5 if self.x_limits[1] < 0 else self.x_limits[1] * 5
-                    )
-                else:
-                    x_min_restrict = (
-                        np.log10(self.x_limits[0] / 5)
-                        if self.x_limits[0] > 0
-                        else np.log10(self.x_limits[0] * 5)
-                    )
-                    x_max_restrict = (
-                        np.log10(self.x_limits[1] / 5)
-                        if self.x_limits[1] < 0
-                        else np.log10(self.x_limits[1] * 5)
-                    )
+                x_min_restrict = (
+                    self.x_limits[0] / 5 if self.x_limits[0] > 0 else self.x_limits[0] * 5
+                )
+                x_max_restrict = (
+                    self.x_limits[1] / 5 if self.x_limits[1] < 0 else self.x_limits[1] * 5
+                )
+
                 str_limits += comment_restrict + "restrict x to domain={0:g}:{1:g},\n".format(
                     x_min_restrict * 1, x_max_restrict * 1
                 )
 
             str_limits += "log basis x=10,\n"
             str_limits += (
-                "% ymin=0,\n"
-                if self.y_limits[0] is None
-                else f"ymin={self.y_limits[0]:g},\n"
+                "% ymin=0,\n" if self.y_limits[0] is None else f"ymin={self.y_limits[0]:g},\n"
             )
             str_limits += (
-                "% ymax=0,\n"
-                if self.y_limits[1] is None
-                else f"ymax={self.y_limits[1]:g},\n"
+                "% ymax=0,\n" if self.y_limits[1] is None else f"ymax={self.y_limits[1]:g},\n"
             )
             if self.y_limits[0] is None or self.y_limits[1] is None:
                 str_limits += "% restrict y to domain=0:1,\n"
             else:
-                if self.y_axis_scale == "linear":
-                    y_min_restrict = (
-                        self.y_limits[0] / 5 if self.y_limits[0] > 0 else self.y_limits[0] * 5
-                    )
-                    y_max_restrict = (
-                        self.y_limits[1] / 5 if self.y_limits[1] < 0 else self.y_limits[1] * 5
-                    )
-                else:
-                    y_min_restrict = (
-                        np.log10(self.y_limits[0] / 5)
-                        if self.y_limits[0] > 0
-                        else np.log10(self.y_limits[0] * 5)
-                    )
-                    y_max_restrict = (
-                        np.log10(self.y_limits[1] / 5)
-                        if self.y_limits[1] < 0
-                        else np.log10(self.y_limits[1] * 5)
-                    )
+                y_min_restrict = (
+                    self.y_limits[0] / 5 if self.y_limits[0] > 0 else self.y_limits[0] * 5
+                )
+                y_max_restrict = (
+                    self.y_limits[1] / 5 if self.y_limits[1] < 0 else self.y_limits[1] * 5
+                )
+
                 str_limits += comment_restrict + "restrict y to domain={0:g}:{1:g},\n".format(
                     y_min_restrict * 1, y_max_restrict * 1
                 )
@@ -1836,20 +1796,19 @@ class Plot(object):
         ### Lines
         str_lines = ""
         colors = []
-        # try:
-        #     mark_delta = int(mark_repeat/len(self.data[::nth]))
-        # except ZeroDivisionError:
-        #     mark_delta = 1
-        #     print("DMT->plot->{:s}: Plot has no data, generating axis anyways.".format(self.name))
 
         for nr_line, dict_line in enumerate(self.data[::nth]):
             if len(dict_line["x"]) == 0:
                 continue
+            if mark_repeat != 1:
+                mark_phase = nr_line
+            else:
+                mark_phase = 0
             str_addplot, colors = self._tikz_addplot(
                 dict_line,
                 nr_line,
                 colors=colors,
-                mark_delta=mark_delta,
+                mark_phase=mark_phase,
                 show_label=show_legend,
             )
             if str_addplot is not None:
@@ -1936,7 +1895,7 @@ class Plot(object):
 
         return file_name
 
-    def _tikz_addplot(self, dict_line, nr_line, colors=None, mark_delta=None, show_label=True):
+    def _tikz_addplot(self, dict_line, nr_line, colors=None, mark_phase=None, show_label=True):
         """Transforms a line into a pgfplots addplot command.
 
         Parameters
@@ -1969,9 +1928,7 @@ class Plot(object):
             opts_style, colors = self._convert_mpl_to_pfg(style, colors)
 
         if "mark phase" not in opts_style:
-            # Markus: what was this?
-            # mark_phase = int(nr_line)*mark_delta if (mark_delta is not None) else int(1)
-            opts_style += "mark phase={:d}, ".format(mark_delta)
+            opts_style += "mark phase={:d}, ".format(mark_phase)
 
         if line_width is not None:
             opts_style += "line width={0:f}pt, ".format(line_width)

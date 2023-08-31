@@ -74,12 +74,12 @@ def test_CircuitElement():
     # wrong, parameters must be list
     with pytest.raises(TypeError):
         CircuitElement(VOLTAGE, "R_1", ("A", "B"), parameters="R=10")
-    # wrong, parameters must be list of tuples
-    with pytest.raises(TypeError):
-        CircuitElement(RESISTANCE, "R_1", ("A", "B"), parameters=["R=10"])
     # wrong, parameters must be list of tuples of strings
     with pytest.raises(TypeError):
         CircuitElement(RESISTANCE, "R_1", ("A", "B"), parameters=[("R", 10)])
+
+    # ok, parameters must be list of strings or tuples of strings
+    CircuitElement(RESISTANCE, "R_1", ("A", "B"), parameters=["R=10", "R", "10"])
 
     # correct way
     CircuitElement(SHORT, "I_S", ("A", "B"))
