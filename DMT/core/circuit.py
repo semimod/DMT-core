@@ -108,6 +108,8 @@ class CircuitElement(object):
         "n1m_sgp",
         "hbt_n1s",
         "hbt_n1m",
+        "npn13G2",
+        '"npn13G2"',
         "n1m",
         "n1s",
         "hbt_n2s",

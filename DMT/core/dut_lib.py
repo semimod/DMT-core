@@ -562,9 +562,9 @@ class DutLib(object):
         lib_directory  :  str or os.Pathlike
             Path to the direcotry that contains a pickled DutLib object that shall be loaded.
         classes_technology : List[Type[Technology]]
-            All possible technologies this loaded DutView can have. One will be choosen according to the serialized technology loaded from the file.
+            All possible technologies this loaded DutView can have. One will be chosen according to the serialized technology loaded from the file.
         classes_dut_view : List[Type[DutView]]
-            All possible DutViews this loaded DutView can be. One will be choosen according to the serialized dutview class name loaded from the file.
+            All possible DutViews this loaded DutView can be. One will be chosen according to the serialized DutView class name loaded from the file.
 
 
 
