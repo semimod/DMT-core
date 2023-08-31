@@ -1120,14 +1120,11 @@ class Plot(object):
                         if not len(dict_line["x"]) == 0
                     ]
                 )
-                x_min = 0.95 * x_min if x_min > 0 else 1.05 * x_min
-                x_min_set = x_min * self.x_scale
+                x_min = 0.95 * x_min * self.x_scale if x_min > 0 else 1.05 * x_min * self.x_scale
             else:
                 x_min = 0
-                x_min_set = x_min
         else:
             x_min = self.x_limits[0]
-            x_min_set = x_min * self.x_scale
             padding = 0.0
 
         if self.x_limits[1] is None:
@@ -1139,24 +1136,21 @@ class Plot(object):
                         if not len(dict_line["x"]) == 0
                     ]
                 )
-                x_max = 1.05 * x_max if x_max > 0 else 0.95 * x_max
+                x_max = 1.05 * x_max * self.x_scale if x_max > 0 else 0.95 * x_max * self.x_scale
                 # x_max = np.ceil(1.1*x_max) if x_max > 0 else np.ceil(0.9*x_max)
-                x_max_set = x_max * self.x_scale
             else:
-                x_max = 1
-                x_max_set = x_max
+                x_max = self.x_scale * 10
         else:
             x_max = self.x_limits[1]
-            x_max_set = x_max * self.x_scale
             padding = 0.0
 
         if self.x_axis_scale == "log":
             # also doing this in case of log for the data itself
-            x_min_set = np.log10(np.abs(x_min_set + np.finfo(float).tiny))
-            x_max_set = np.log10(np.abs(x_max_set + np.finfo(float).tiny))
+            x_min = np.log10(np.abs(x_min + np.finfo(float).tiny))
+            x_max = np.log10(np.abs(x_max + np.finfo(float).tiny))
 
         try:
-            self.pw_pg.setXRange(np.real(x_min_set), np.real(x_max_set), padding=padding)  # type: ignore
+            self.pw_pg.setXRange(np.real(x_min), np.real(x_max), padding=padding)  # type: ignore
         except Exception:
             print("Error setting the XRange of PyQtGraph plot with name " + self.name + ".")
 
@@ -1172,9 +1166,7 @@ class Plot(object):
                         )
                         y_min_local = np.min(dict_line["y"][y_filter])
                         y_min = np.min([y_min, y_min_local])
-                    # y_min = (
-                    #     np.min([np.min(dict_line["y"]) for dict_line in self.data])
-                    # )
+
                     y_min = (
                         0.95 * y_min * self.y_scale if y_min > 0 else 1.05 * y_min * self.y_scale
                     )
@@ -1184,7 +1176,7 @@ class Plot(object):
             else:
                 y_min = 0.0
         else:
-            y_min = self.y_limits[0] * self.y_scale
+            y_min = self.y_limits[0]
             padding = 0.0
 
         if self.y_limits[1] is None:
@@ -1205,11 +1197,11 @@ class Plot(object):
                         1.05 * y_max * self.y_scale if y_max > 0 else 0.95 * y_max * self.y_scale
                     )
                 except ValueError:
-                    y_max = 1.0
+                    y_max = self.y_scale * 10
             else:
-                y_max = 1.0
+                y_max = self.y_scale * 10
         else:
-            y_max = self.y_limits[1] * self.y_scale
+            y_max = self.y_limits[1]
             padding = 0.0
 
         if self.y_axis_scale == "log":
@@ -1711,14 +1703,10 @@ class Plot(object):
             # y_axis = self.pw_pg.getPlotItem().getAxis('left')
         else:
             str_limits += (
-                "% xmin=0,\n"
-                if self.x_limits[0] is None
-                else f"xmin={self.x_limits[0]*self.x_scale:g},\n"
+                "% xmin=0,\n" if self.x_limits[0] is None else f"xmin={self.x_limits[0]:g},\n"
             )
             str_limits += (
-                "% xmax=0,\n"
-                if self.x_limits[1] is None
-                else f"xmax={self.x_limits[1]*self.x_scale:g},\n"
+                "% xmax=0,\n" if self.x_limits[1] is None else f"xmax={self.x_limits[1]:g},\n"
             )
             if self.x_limits[0] is None or self.x_limits[1] is None:
                 str_limits += "% restrict x to domain=0:1,\n"
@@ -1736,14 +1724,10 @@ class Plot(object):
 
             str_limits += "log basis x=10,\n"
             str_limits += (
-                "% ymin=0,\n"
-                if self.y_limits[0] is None
-                else f"ymin={self.y_limits[0]*self.y_scale:g},\n"
+                "% ymin=0,\n" if self.y_limits[0] is None else f"ymin={self.y_limits[0]:g},\n"
             )
             str_limits += (
-                "% ymax=0,\n"
-                if self.y_limits[1] is None
-                else f"ymax={self.y_limits[1]*self.y_scale:g},\n"
+                "% ymax=0,\n" if self.y_limits[1] is None else f"ymax={self.y_limits[1]:g},\n"
             )
             if self.y_limits[0] is None or self.y_limits[1] is None:
                 str_limits += "% restrict y to domain=0:1,\n"
