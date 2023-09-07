@@ -60,9 +60,7 @@ class McSkywater(MCard):
         **kwargs,
     ):
         if possible_groups is None:
-            possible_groups = {
-                "Geometrie": "geo",
-            }
+            possible_groups = {"geo": "Geometrie"}
 
         super().__init__(
             nodes_list,

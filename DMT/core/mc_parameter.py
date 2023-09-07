@@ -69,7 +69,7 @@ except ImportError:
     pass
 
 SEMVER_MCPARAMETER_CURRENT = VersionInfo(major=1, minor=0)
-SEMVER_MCPARAMETER_Collection_CURRENT = VersionInfo(major=1, minor=0)
+SEMVER_MCPARAMETER_Collection_CURRENT = VersionInfo(major=1, minor=0, patch=1)
 
 
 class McParameter(object):
@@ -640,7 +640,11 @@ class McParameterCollection(object):
                     f"{__McParameterCollection__:1.1f}.0"
                 )  # if it is a number only MAJOR.MINOR is used
 
-        if __McParameterCollection__ != SEMVER_MCPARAMETER_Collection_CURRENT:
+        if __McParameterCollection__ == VersionInfo(major=1, minor=0):
+            # trun around possible groups..
+            if possible_groups is not None:
+                possible_groups = dict([(key, item) for item, key in possible_groups.items()])
+        elif __McParameterCollection__ != SEMVER_MCPARAMETER_Collection_CURRENT:
             raise NotImplementedError(
                 "DMT->McParameterCollection: Unknown version of collection to create!"
             )
@@ -1256,15 +1260,16 @@ class McParameterCollection(object):
 
                         group = para.group
                         try:
-                            group_desc = next(
-                                description
-                                for description, group_a in self.possible_groups.items()
-                                if group_a == group
-                            )
+                            # group_desc = next(
+                            #     description
+                            #     for description, group_a in self.possible_groups.items()
+                            #     if group_a == group
+                            # )
+                            group_desc = self.possible_groups[group]
                             data_table.add_row(
                                 (MultiColumn(2, align="l", data=group_desc),), strict=False
                             )
-                        except StopIteration:
+                        except KeyError:
                             pass
 
                     if para.unit.dimensionless:

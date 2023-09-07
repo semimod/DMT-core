@@ -339,6 +339,13 @@ class MCard(McParameterCollection):
 
                 para.unit = unit_converter[para_properties.unit]  # type: ignore
                 para.description = para_properties.description  # type: ignore
+
+                if para_properties.group not in self.possible_groups:
+                    warnings.warn(
+                        f"DMT->MCard: The parameter group {para_properties.group} is not part of this modelcards possible groups.",
+                        category=RuntimeWarning,
+                    )
+
                 para.group = para_properties.group  # type: ignore
             except KeyError:
                 para = McParameter(
