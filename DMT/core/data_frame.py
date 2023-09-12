@@ -801,6 +801,10 @@ class DataFrame(DataProcessor, pd.DataFrame):
                     self = self.calc_cgd(port_1=ports[0], port_2=ports[1])
                 elif nodes[0] == "G" and nodes[1] == "G":  # CGG
                     self = self.calc_cgg(port_1=ports[0], port_2=ports[1])
+                elif nodes[0] == "D" and nodes[1] == "B":  # CDB
+                    self = self.calc_cdb(port_1=ports[0], port_2=ports[1], port_3=ports[2])
+                elif nodes[0] == "S" and nodes[1] == "B":  # CSB
+                    self = self.calc_csb(port_1=ports[0], port_2=ports[1], port_3=ports[2])
                 else:
                     raise KeyError("The " + "".join(nodes) + " capacitance can not be calculated.")
             except IOError as err:
@@ -1952,6 +1956,56 @@ class DataFrame(DataProcessor, pd.DataFrame):
         else:
             raise NotImplementedError(
                 "DMT -> DataFrame -> calc_cgg: transistor configuration not implemented."
+            )
+
+        pd.options.mode.chained_assignment = "warn"
+        return self
+
+    def calc_cdb(self, port_1="G", port_2="D", port_3="B"):
+        """Calculates the drain-bulk capacitance CDB assuming PI equivalent circuit and common source configuration.
+
+        Returns
+        -------
+        :class:`DMT.core.DataFrame`
+            Dataframe that contains CDB.
+        """
+        # get values
+
+        sp_cdb = specifiers.CAPACITANCE + ["D", "B"]
+
+        # put values in col of self
+        pd.options.mode.chained_assignment = None
+        if port_1 == "G" and port_2 == "D" and port_3 == "B":
+            s_para_values = self.get_ss_para("Y", port_2, port_3)
+            self[sp_cdb] = self.processor.calc_cap_series_thru(self["FREQ"], s_para_values, "Y")
+        else:
+            raise NotImplementedError(
+                "DMT -> DataFrame -> calc_cgs: transistor configuration not implemented."
+            )
+
+        pd.options.mode.chained_assignment = "warn"
+        return self
+
+    def calc_csb(self, port_1="G", port_2="D", port_3="B"):
+        """Calculates the source-bulk capacitance CDB assuming PI equivalent circuit and common source configuration.
+
+        Returns
+        -------
+        :class:`DMT.core.DataFrame`
+            Dataframe that contains CDB.
+        """
+        # get values
+
+        sp_csb = specifiers.CAPACITANCE + ["S", "B"]
+
+        # put values in col of self
+        pd.options.mode.chained_assignment = None
+        if port_1 == "G" and port_2 == "D" and port_3 == "B":
+            s_para_values = self.get_ss_para("Y", port_2, port_3)
+            self[sp_csb] = self.processor.calc_cap_shunt_port_2(self["FREQ"], s_para_values, "Y")
+        else:
+            raise NotImplementedError(
+                "DMT -> DataFrame -> calc_cgs: transistor configuration not implemented."
             )
 
         pd.options.mode.chained_assignment = "warn"
