@@ -319,6 +319,7 @@ class MCard(McParameterCollection):
         """
         vae_module = self.get_verilogae_model()
         paras_new = []
+        # missing_groups = []
         # Updated parameter properties
         for para_name, para_properties in vae_module.modelcard.items():
             para_name = para_name.lower()
@@ -354,7 +355,23 @@ class MCard(McParameterCollection):
                     unit=unit_converter[para_properties.unit],
                     description=para_properties.description,
                 )
+
+            # if para.group not in self.possible_groups:
+            #     warnings.warn(
+            #         f"DMT->MCard: The parameter group {para.group} is not part of this modelcards possible groups.\nThis parameter group was given in the parameter {para.name}",
+            #         category=RuntimeWarning,
+            #     )
+            #     missing_groups.append(para.group)
+            #     self.possible_groups[para.group] = ""
             paras_new.append(para)
+
+        # if missing_groups:
+        #     missing_groups_dict_str = '":,\n"'.join(missing_groups)
+        #     warnings.warn(
+        #         f'DMT->MCard: Full list of missing groups to copy into a dict:\n"{missing_groups_dict_str}":,\n'
+        #         category=RuntimeWarning,
+        #         stacklevel=
+        #     )
 
         if remove_old_parameters:
             self._paras = []  # remove the old parameters fast...

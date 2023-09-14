@@ -1204,7 +1204,12 @@ class DutLib(object):
 
     # Makes it possible to iterate over DutLib objects
     def __iter__(self):
-        return iter([dut for dut in self.duts if dut.name not in self.ignore_duts])
+        return iter(
+            sorted(
+                [dut for dut in self.duts if dut.name not in self.ignore_duts],
+                key=lambda dut: dut.name,
+            )
+        )
 
     def __getitem__(self, key):
         return self.duts[key]
