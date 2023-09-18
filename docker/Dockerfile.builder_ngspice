@@ -15,8 +15,9 @@ RUN apt-get update \
 
 # build ngspice to test DutNGSpice
 RUN cd /home \ 
-    && wget -O ngspice.tar.gz https://sourceforge.net/projects/ngspice/files/ng-spice-rework/40/ngspice-40.tar.gz/download \
+    # && wget -O ngspice.tar.gz https://sourceforge.net/projects/ngspice/files/ng-spice-rework/40/ngspice-40.tar.gz/download \
+    && wget -O ngspice.tar.gz https://sourceforge.net/projects/ngspice/files/ng-spice-rework/41/ngspice-41.tar.gz/download \
     && tar -xf ngspice.tar.gz \
-    && cd ngspice-40 \
+    && cd ngspice-41 \
     && chmod +rwx compile_linux.sh \
     && ./compile_linux.sh --disable-debug
