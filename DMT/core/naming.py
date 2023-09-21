@@ -95,6 +95,7 @@ class SpecifierStr(str):
         sub_specifiers: Union[
             FrozenSet[Union[str, SpecifierStr]],
             Set[Union[str, SpecifierStr]],
+            List[Union[str, SpecifierStr]],
             str,
             SpecifierStr,
             None,
@@ -324,7 +325,8 @@ class SpecifierStr(str):
             return string
 
     def __add__(
-        self: SpecifierStr, other: Union[SpecifierStr, str, list[Union[str, SpecifierStr]]]
+        self: SpecifierStr,
+        other: Union[SpecifierStr, str, list[Union[str, SpecifierStr]]],
     ) -> SpecifierStr:
         """Method stub"""
         raise NotImplementedError
@@ -648,7 +650,9 @@ def add(self: SpecifierStr, other: Union[SpecifierStr, str, List[Union[str, Spec
 
         if other in SUB_SPECIFIERS_STR:
             return SpecifierStr(
-                self.specifier, *self.nodes, sub_specifiers=self.sub_specifiers | {other}
+                self.specifier,
+                *self.nodes,
+                sub_specifiers=self.sub_specifiers | {other},
             )
         else:
             return SpecifierStr(
@@ -1043,7 +1047,8 @@ natural_scales = {
     specifiers.MAXIMUM_OSCILLATION_FREQUENCY: 1e-9,
     specifiers.TRANSCONDUCTANCE: 1,
     specifiers.OUTPUT_CONDUCTANCE: 1,
-    specifiers.TRANSIT_FREQUENCY: 1e-9,
+    specifiers.TRANSIT_FREQUENCY: 1e-9,  # GHz
+    specifiers.TRANSIT_TIME: 1e12,  # ps
     specifiers.CAPACITANCE: 1e15,
     specifiers.CHARGE: 1e15,
     specifiers.CHARGE_DENSITY: 1e15 / (1e6 * 1e6),  # fF/um^2

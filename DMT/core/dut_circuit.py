@@ -33,7 +33,7 @@ Author: Mario Krattenmacher | Mario.Krattenmacher@semimod.de
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 import copy
 from collections import OrderedDict
-from typing import List, Dict, Type
+from typing import List, Dict, Type, Union
 from DMT.core import (
     create_md5_hash,
     DutView,
@@ -235,7 +235,7 @@ class DutCircuit(DutView):
         else:
             raise OSError("The modelcard has to be a instance of MCard or its children!")
 
-    def get_hash(self):
+    def get_hash(self) -> Union[bool, str]:
         """Returns a md5 hash generated from self.inp_header, if it is not set, this will return False!
 
         Is overwritten here, to include the imported and appended files!

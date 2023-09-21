@@ -33,7 +33,7 @@ import ast
 import operator
 import warnings
 from pathlib import Path
-from typing import Union, Optional
+from typing import Union, Optional, TYPE_CHECKING
 from types import ModuleType
 
 try:
@@ -44,6 +44,9 @@ except ImportError:
 import verilogae
 
 from DMT.core import unit_registry, VAFileMap
+
+if TYPE_CHECKING:
+    from DMT.core.circuit import Circuit
 from DMT.core.mc_parameter import McParameterCollection, McParameter
 
 
@@ -265,7 +268,9 @@ class MCard(McParameterCollection):
         return self._va_codes
 
     def set_va_codes(
-        self, path_to_main_code: Union[os.PathLike, str], version: Union[str, float] = None
+        self,
+        path_to_main_code: Union[os.PathLike, str],
+        version: Union[str, float] = None,
     ):
         """Sets self._va_codes by extracting all included files from the main file down the include tree.
 
@@ -444,7 +449,7 @@ class MCard(McParameterCollection):
 
         return super().load_json(file_path, directory_va_file=directory_va_file, ignore_checksum=ignore_checksum)  # type: ignore
 
-    def get_circuit(self, use_build_in=False, topology=None, **kwargs):
+    def get_circuit(self, use_build_in=False, topology=None, **kwargs) -> Circuit:
         """Here the modelcard defines it's default simulation circuit.
 
         Parameters
@@ -462,7 +467,12 @@ class MCard(McParameterCollection):
         raise NotImplementedError("The submodels have to implement the build-in parameters")
 
     def print_to_file(
-        self, path_to_file, file_mode="w", subckt_name=None, module_name=None, line_break="\n"
+        self,
+        path_to_file,
+        file_mode="w",
+        subckt_name=None,
+        module_name=None,
+        line_break="\n",
     ):
         """Generates a spectre .lib file which can be included into an netlist.
 
@@ -543,7 +553,10 @@ class MCard(McParameterCollection):
         # Loading protocol depends on file ending
         file_ending = path_to_file.suffix
         if file_ending == ".mcp" or file_ending == ".mcard":
-            logging.info("Loading model parameters from pickled model card: %s", str(path_to_file))
+            logging.info(
+                "Loading model parameters from pickled model card: %s",
+                str(path_to_file),
+            )
 
             with path_to_file.open("rb") as myfile:
                 modcard = pickle.load(myfile)
@@ -570,7 +583,10 @@ class MCard(McParameterCollection):
                 param_value = param_value.split("=")
                 modcard.append((param_value[0].strip(), float(param_value[1].strip())))
         elif file_ending == ".lib" or file_ending == "":
-            logging.info("Loading model parameters from a TRADICA lib-File: %s", str(path_to_file))
+            logging.info(
+                "Loading model parameters from a TRADICA lib-File: %s",
+                str(path_to_file),
+            )
 
             modcard = []
             str_lib = path_to_file.read_text()
