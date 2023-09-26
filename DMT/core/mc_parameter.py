@@ -1290,7 +1290,7 @@ class McParameterCollection(object):
                     else:
                         data_table.add_row(
                             [
-                                NoEscape(f"{para:<12s}/\si{{{para:u}}}"),
+                                NoEscape(f"{para:<12s}/\\si{{{para:u}}}"),
                                 NoEscape(f"{para:g}"),
                             ],
                             strict=False,

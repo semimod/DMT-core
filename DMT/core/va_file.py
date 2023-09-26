@@ -307,7 +307,7 @@ class VAFileMap(object):
         path_to_target: Union[str, Path],
         filter: Optional[Callable[[str], str]] = None,
     ):
-        """Writes the all Verilog-A files from this mapping into the given target path. The file structure is written as read from the "original"
+        r"""Writes the all Verilog-A files from this mapping into the given target path. The file structure is written as read from the "original"
 
         Parameters
         ----------
