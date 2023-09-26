@@ -177,12 +177,21 @@ class VAFileMap(object):
         Returns
         -------
         str
-            [description]
+            Path to the root file
         """
         return "/" + self.root
 
     @property
     def vfs(self) -> dict[str, str]:
+        """Virtual file system of this VAFileMap
+
+        The vfs is saved in a dictionary with {<path>: <file content>}
+
+        Returns
+        -------
+        dict[str, str]
+            The key is the path and the values are the file contents
+        """
         vfs = dict()
         for name, code in self.files.items():
             vfs["/" + name] = str(code)
