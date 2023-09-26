@@ -34,6 +34,7 @@ import logging
 import time
 import subprocess
 import itertools
+import warnings
 from joblib import Parallel, delayed
 from reprint import output
 from pathlib import Path, PurePosixPath, PureWindowsPath
@@ -648,6 +649,14 @@ class SimCon(object, metaclass=Singleton):
                             p["process"].kill()
                         # TODO: kill with pbs
                         p["success"] = False
+                        warnings.warn(
+                            "DMT->SimCon: Simulation of "
+                            + p["dut"].name
+                            + " with sweep "
+                            + p["sweep"].name
+                            + " was killed because its maximum runtime reached "
+                            + str(p["dt"])
+                        )
                         process_finished.append(p)
 
                 # remove finished processes from running processes
