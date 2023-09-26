@@ -48,11 +48,15 @@ from pathlib import Path
 
 import _pickle as cpickle  # type: ignore
 import numpy as np
-from typing import Dict, OrderedDict, Type, Union, List, Optional
+from typing import Dict, OrderedDict, Type, Union, List, Optional, TYPE_CHECKING
 from pint.formatting import siunitx_format_unit
 from pint.errors import UndefinedUnitError
 
 from DMT.core import unit_registry
+
+if TYPE_CHECKING:
+    from DMT.core.circuit import Circuit
+
 from DMT.exceptions import (
     ValueExcludedError,
     ValueTooLargeError,
@@ -822,7 +826,8 @@ class McParameterCollection(object):
         return collection
 
     def get(
-        self, parameters: Union[str, McParameter, list[str], tuple[str], McParameterCollection]
+        self,
+        parameters: Union[str, McParameter, list[str], tuple[str], McParameterCollection],
     ) -> Union[McParameter, McParameterCollection]:
         """Returns a McParameterCollection with copies of all given parameter names.
 
@@ -1243,7 +1248,8 @@ class McParameterCollection(object):
                 data_table.end_table_header()
                 data_table.add_hline()
                 data_table.add_row(
-                    (MultiColumn(2, align="r", data="continued on next Page"),), strict=False
+                    (MultiColumn(2, align="r", data="continued on next Page"),),
+                    strict=False,
                 )
                 data_table.add_hline()
                 data_table.end_table_footer()
@@ -1267,7 +1273,8 @@ class McParameterCollection(object):
                             # )
                             group_desc = self.possible_groups[group]
                             data_table.add_row(
-                                (MultiColumn(2, align="l", data=group_desc),), strict=False
+                                (MultiColumn(2, align="l", data=group_desc),),
+                                strict=False,
                             )
                         except KeyError:
                             pass
@@ -1283,7 +1290,7 @@ class McParameterCollection(object):
                     else:
                         data_table.add_row(
                             [
-                                NoEscape(f"{para:<12s}/\si{{{para:u}}}"),
+                                NoEscape(f"{para:<12s}/\\si{{{para:u}}}"),
                                 NoEscape(f"{para:g}"),
                             ],
                             strict=False,
@@ -1388,3 +1395,15 @@ class McParameterCollection(object):
             return self.eq_paras(other)
 
         return NotImplemented
+
+    def get_circuit(self, use_build_in=False, topology=None, **kwargs) -> Circuit:
+        """Here the modelcard defines it's default simulation circuit.
+
+        Parameters
+        ----------
+        use_build_in : {False, True}, optional
+            Creates a circtui the modelcard using the build-in model
+        topology : optional
+            If a model has multiple standard circuits, use the topology to differentiate between them..
+        """
+        raise NotImplementedError("The superclass McParameterCollection has no circuit :(.")
