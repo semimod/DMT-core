@@ -626,7 +626,7 @@ class DutView(object):
                 )
             except StopIteration as err:
                 raise IOError(
-                    "DMT.DutLib: Encountered unknown DutView class while loading the library"
+                    f"DMT.DutLib: Encountered unknown DutView class while loading the library: {clsstr_dut_view}"
                 ) from err
 
             dut = cls_dut_view.from_json(json_content[clsstr_dut_view], classes_technology)

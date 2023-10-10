@@ -498,6 +498,8 @@ class _sub_specifiers(GlobalObj, metaclass=Singleton):
     AC_COLLECTOR = SpecifierStr("", sub_specifiers="AC_COLLECTOR")
     AC_GATE = SpecifierStr("", sub_specifiers="AC_GATE")
     AC_DRAIN = SpecifierStr("", sub_specifiers="AC_DRAIN")
+    AC_1 = SpecifierStr("", sub_specifiers="AC_1")
+    AC_2 = SpecifierStr("", sub_specifiers="AC_2")
     AC = SpecifierStr("", sub_specifiers="AC")
     REAL = SpecifierStr("", sub_specifiers="REAL")
     IMAG = SpecifierStr("", sub_specifiers="IMAG")
