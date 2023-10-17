@@ -59,6 +59,7 @@ UNIT_PREFIX_MIX = {
 }
 UNIT_PREFIX_DENOMINATOR = {
     1e-6: r"\centi",
+    1: "",
 }
 
 
@@ -566,6 +567,7 @@ class _specifiers(GlobalObj, metaclass=Singleton):
     Y = SpecifierStr("y")
     Z = SpecifierStr("z")
     ENERGY = SpecifierStr("E")
+    NOISE = SpecifierStr("N")
 
     # only derived quantities here
     DC_CURRENT_AMPLIFICATION = SpecifierStr("BETA")
@@ -1065,4 +1067,5 @@ natural_scales = {
     specifiers.ENERGY: 1,  # eV
     specifiers.UNILATERAL_GAIN: 1,
     specifiers.NET_DOPING: 1e-6,  # 1/cm^3
+    specifiers.NOISE: 1,
 }

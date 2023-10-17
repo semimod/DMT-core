@@ -76,7 +76,7 @@ def recursive_copy(src, dst, force=False):
             item_dst.mkdir(exist_ok=True)
             recursive_copy(item_src, item_dst)
         else:
-            raise ValueError("DMT->recursive_copy: I do not know this filettype.")
+            raise ValueError("DMT->recursive_copy: I do not know this filetype.")
 
 
 def rmtree(root):

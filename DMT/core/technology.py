@@ -187,7 +187,7 @@ class Technology(object):
         raise NotImplementedError
 
     def scale_modelcard(
-        self, mcard, lE0, bE0, nfinger, config, lE_drawn_ref=None, bE_drawn_ref=None
+        self, mcard, lE0, bE0, nfinger, config, dut=None, lE_drawn_ref=None, bE_drawn_ref=None
     ):
         """This method scales a already finished modelcard (no sheet resistances).
 
@@ -203,5 +203,7 @@ class Technology(object):
             Number of emitter fingers.
         config : str
             A unique identifier for the configuration.
+        dut : :class:`~DMT.core.DutView`
+            DutView to scale for.
         """
         raise NotImplementedError

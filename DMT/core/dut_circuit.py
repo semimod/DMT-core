@@ -106,6 +106,7 @@ class DutCircuit(DutView):
         # save for later use
         self._inp_circuit = None
         self._modelcard = None
+        self.scale_modelcard()
         self.inp_header = input_circuit
 
     @property
@@ -305,4 +306,5 @@ class DutCircuit(DutView):
                 self.width,
                 self.nfinger,
                 self.contact_config,
+                dut=self,
             )
