@@ -64,7 +64,7 @@ import re
 import _pickle as pickle
 import struct
 from pathlib import Path
-from DMT.core import DataFrame
+from DMT.core.data_frame import DataFrame
 
 
 def read_data(filename, key=None, **kwargs):

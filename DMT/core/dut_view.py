@@ -17,6 +17,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
+from __future__ import annotations
 import os
 import re
 import shutil
@@ -33,16 +34,12 @@ try:
 except ImportError:
     from semver import VersionInfo
 
-from DMT.core import (
-    DatabaseManager,
-    read_data,
-    DataFrame,
-    VAFileMap,
-    DutTypeFlag,
-    DutTypeInt,
-    DutType,
-    Technology,
-)
+from DMT.core.data_frame import DataFrame
+from DMT.core.database_manager import DatabaseManager
+from DMT.core.data_reader import read_data
+from DMT.core.dut_type import DutTypeFlag, DutTypeInt, DutType
+from DMT.core.va_file import VAFileMap
+import DMT.core.technology as dmt_tech
 from DMT.config import DATA_CONFIG
 from DMT.exceptions import UnknownColumnError
 
@@ -170,7 +167,7 @@ class DutView(object):
         simulate_on_server=None,
         simulator_command="",
         simulator_arguments=None,
-        technology=None,
+        technology: "dmt_tech.Technology" = None,
         width=None,
         length=None,
         nfinger=None,
@@ -585,7 +582,7 @@ class DutView(object):
     @staticmethod
     def load_dut(
         file_dut,
-        classes_technology: List[Type[Technology]] = None,
+        classes_technology: List[Type["dmt_tech.Technology"]] = None,
         classes_dut_view: List[Type["DutView"]] = None,
     ) -> "DutView":
         """Static class method. Loads a DutView object from a pickle file with full path save_dir.
@@ -654,7 +651,7 @@ class DutView(object):
     def from_json(
         cls,
         json_content: Dict,
-        classes_technology: List[Type[Technology]],
+        classes_technology: List[Type["dmt_tech.Technology"]],
         subclass_kwargs: Dict = None,
     ) -> "DutView":
         """Static class method. Loads a DutView object from a pickle file with full path save_dir.

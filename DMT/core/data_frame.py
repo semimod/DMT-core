@@ -29,6 +29,7 @@ import logging
 import copy
 from scipy.optimize import curve_fit
 from DMT.exceptions import UnknownColumnError
+from DMT.core.data_processor import DataProcessor, flatten
 from DMT.core import (
     specifiers_ss_para,
     get_specifier_from_string,
@@ -37,8 +38,6 @@ from DMT.core import (
     sub_specifiers,
     get_nodes,
     get_sub_specifiers,
-    flatten,
-    DataProcessor,
 )
 import pandas as pd
 
