@@ -106,7 +106,21 @@ class DutCircuit(DutView):
         # save for later use
         self._inp_circuit = None
         self._modelcard = None
-        self.scale_modelcard()
+
+        if (
+            isinstance(input_circuit, MCard)
+            and self.technology
+            and hasattr(self.technology, "scale_modelcard")
+        ):
+            input_circuit = self.technology.scale_modelcard(
+                mcard=input_circuit,
+                lE0=self.length,
+                bE0=self.width,
+                nfinger=self.nfinger,
+                config=self.contact_config,
+                dut=self,
+            )
+
         self.inp_header = input_circuit
 
     @property

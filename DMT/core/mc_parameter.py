@@ -605,6 +605,17 @@ class McParameter(object):
 
         return NotImplemented
 
+    def __add__(self, other):
+        """Allows creation of a Collection by adding two parameters"""
+        if isinstance(other, McParameter):
+            mc_return = McParameterCollection()
+            mc_return.add(self)
+            mc_return.add(other)
+
+            return mc_return
+        else:
+            return NotImplemented
+
 
 class McParameterCollection(object):
     """
