@@ -23,11 +23,13 @@ This includes easy management of small signal parameter and other quantities whi
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
-import numpy as np
 import re
 import logging
 import copy
+import numpy as np
+import pandas as pd
 from scipy.optimize import curve_fit
+from typing import Iterator, Tuple
 from DMT.exceptions import UnknownColumnError
 from DMT.core.data_processor import DataProcessor, flatten
 from DMT.core import (
@@ -39,7 +41,6 @@ from DMT.core import (
     get_nodes,
     get_sub_specifiers,
 )
-import pandas as pd
 
 # pylint: disable = too-many-lines
 
@@ -2308,7 +2309,9 @@ class DataFrame(DataProcessor, pd.DataFrame):
 
         return df_new
 
-    def iter_unique_col(self, column, decimals=5):
+    def iter_unique_col(
+        self, column: SpecifierStr, decimals: int = 5
+    ) -> Iterator[Tuple[int, complex, "DataFrame"]]:
         """Allows iteration over the unique values and their slices of a column
 
         Parameters
@@ -2351,7 +2354,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
             atol = 5 * np.float_power(10, -(decimals + 1))
 
         while index < len(val_unique):
-            val = val_unique[index]
+            val: complex = val_unique[index]
 
             if atol is None:
                 dataframe = self[self[column] == val]
