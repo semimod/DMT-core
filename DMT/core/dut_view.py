@@ -39,6 +39,7 @@ from DMT.core.database_manager import DatabaseManager
 from DMT.core.data_reader import read_data
 from DMT.core.dut_type import DutTypeFlag, DutTypeInt, DutType
 from DMT.core.va_file import VAFileMap
+from DMT.core.sweep import Sweep
 import DMT.core.technology as dmt_tech
 from DMT.config import DATA_CONFIG
 from DMT.exceptions import UnknownColumnError
@@ -278,7 +279,7 @@ class DutView(object):
         self.open_deembedded_with = "-"
         self.short_deembedded_with = "-"
 
-    def prepare_simulation(self, sweep):
+    def prepare_simulation(self, sweep: Sweep):
         """Creates a simulation folder, appends the sweep to the structure definition and creates a input file in the simulation folder.
 
         Parameters
@@ -360,7 +361,7 @@ class DutView(object):
         """Create a PBS script for the PBS job system. (See: https://albertsk.files.wordpress.com/2011/12/pbs.pdf)"""
         raise NotImplementedError("Not Implemented for this Dut Class!")
 
-    def make_input(self, sweep):
+    def make_input(self, sweep: Sweep):
         """Joins simulation header with a given Sweep object and returns it.
 
         Parameters
@@ -401,7 +402,7 @@ class DutView(object):
             "DutView does not implement the concrete import_output_data method!"
         )
 
-    def validate_simulation_successful(self, sweep):
+    def validate_simulation_successful(self, sweep: Sweep):
         """Checks if the simulation of the given sweep was successful.
 
         Parameters
@@ -423,7 +424,7 @@ class DutView(object):
         )
 
     @property
-    def save_dir(self):
+    def save_dir(self) -> Path:
         if self.get_hash():
             return self.database_dir / (self.name + "_hash_" + str(self.get_hash()))
         else:
@@ -441,7 +442,7 @@ class DutView(object):
 
         self._database_dir = Path(new_dir)
 
-    def get_db_dir(self, name="db"):
+    def get_db_dir(self, name="db") -> Path:
         """Returns the name for a db, either use 'db' for regular behavior or use 'sweep.get_hash()' for a db per sweep."""
         return self.save_dir / (name + ".h5")
 
@@ -462,7 +463,7 @@ class DutView(object):
 
         return self._data
 
-    def get_sim_folder(self, sweep):
+    def get_sim_folder(self, sweep: Sweep) -> Path:
         """Returns the simulation folder of the given sweep
 
         Parameters
@@ -481,7 +482,7 @@ class DutView(object):
             / (sweep.name + "_" + sweep.get_hash())
         )
 
-    def delete_sim_results(self, sweep, ignore_errors=False):
+    def delete_sim_results(self, sweep: Sweep, ignore_errors=False):
         """Deletes the simulation results of the given sweep.
 
         Parameters
@@ -513,7 +514,7 @@ class DutView(object):
             # it there is still a "old" pickle file in the directory -> remove it
             self.dut_dir.with_suffix(".p").unlink()
 
-    def info_json(self, **_kwargs):
+    def info_json(self, **_kwargs) -> Dict:
         """Returns a dict with serializeable content for the json file to create.
 
         Add the info about the concrete subclass to create here! See :py:method::`DMT.core.dut_meas.DutMeas.info_json()` for an example implementation.
@@ -801,7 +802,7 @@ class DutView(object):
         """
         del self.data[key]
 
-    def get_data(self, key="iv", sweep=None):
+    def get_data(self, key="iv", sweep=None) -> DataFrame:
         """Return data stored in the DutView's data.
 
         One needs to specify either:
@@ -982,7 +983,7 @@ class DutView(object):
 
         return True
 
-    def check_existence_sweep(self, sweep):
+    def check_existence_sweep(self, sweep: Sweep):
         """Return true, if the combination dut+sweep has already been simulated.
 
         If self.data is None, the database is loaded first.
@@ -1037,7 +1038,7 @@ class DutView(object):
         """
         return key.split("/")
 
-    def get_sweep_key(self, sweep):
+    def get_sweep_key(self, sweep: Sweep):
         """Key for the dict in dut.data.
 
         Parameters
