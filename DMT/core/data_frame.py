@@ -873,7 +873,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
                 ) from err
         elif specifier == specifiers.TRANSCONDUCTANCE:
             try:
-                self = self.calc_gm()
+                self = self.calc_gm(ports=ports)
             except IOError as err:
                 raise KeyError(
                     "The transconductance is missing in the given data frame and can not be calculated."
@@ -2147,22 +2147,31 @@ class DataFrame(DataProcessor, pd.DataFrame):
         )
         return self
 
-    def calc_gm(self):
+    def calc_gm(self, ports=["B", "C", "E"]):
         """Calculates the DC transconductance of a BJT.
+
+        Arguments
+        --------
+        ports : [str], None
+            If None, BJT contact ports are assumed. Else it is assumed that ports[2] is the
+            grounded contact, ports[0] is the input port (gate/base) and ports[1] is the output port.
 
         Returns
         -------
         :class:`DMT.core.DataFrame`
             Dataframe that contains the TRANSCONDUCTANCE
         """
-        col_ic = specifiers.CURRENT + "C"
-        col_vc_forced = specifiers.VOLTAGE + "C" + sub_specifiers.FORCED
-        col_vb_forced = specifiers.VOLTAGE + "B" + sub_specifiers.FORCED
-        col_vbe = specifiers.VOLTAGE + ["B", "E"]
+        if ports is None:
+            ports = ["B", "C", "E"]
+
+        col_i = specifiers.CURRENT + ports[1]
+        col_vc_forced = specifiers.VOLTAGE + ports[1] + sub_specifiers.FORCED
+        col_vb_forced = specifiers.VOLTAGE + ports[0] + sub_specifiers.FORCED
+        col_vbe = specifiers.VOLTAGE + [ports[0], ports[2]]
 
         # get voltages
         self.ensure_specifier_column(col_vbe)
-        self.ensure_specifier_column(col_ic)
+        self.ensure_specifier_column(col_i)
 
         # if possible also pass vbc forced
         try:
@@ -2170,7 +2179,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
             self.ensure_specifier_column(col_vb_forced)
             try:
                 self.loc[:, specifiers.TRANSCONDUCTANCE] = self.processor.calc_gm(
-                    self[col_ic].to_numpy(),
+                    self[col_i].to_numpy(),
                     self[col_vbe].to_numpy(),
                     vc_forced=self[col_vc_forced].to_numpy(),
                     vb_forced=self[col_vb_forced].to_numpy(),
@@ -2179,12 +2188,12 @@ class DataFrame(DataProcessor, pd.DataFrame):
                 pass
         except KeyError:
             self.loc[:, specifiers.TRANSCONDUCTANCE] = self.processor.calc_gm(
-                self[col_ic].to_numpy(), self[col_vbe].to_numpy()
+                self[col_i].to_numpy(), self[col_vbe].to_numpy()
             )
 
         return self
 
-    def calc_go(self, ports=None):
+    def calc_go(self, ports=["B", "C", "E"]):
         """Calculates the DC output condutance of a BJT or generic transistor in common emitter/source configuration.
 
         Arguments
@@ -2200,10 +2209,10 @@ class DataFrame(DataProcessor, pd.DataFrame):
         """
         if ports == None:  # assume HBT
             col_ic = specifiers.CURRENT + "C"
-            col_vce_forced = specifiers.VOLTAGE + "C" + "E" + sub_specifiers.FORCED
+            col_vce_forced = specifiers.VOLTAGE + ["C", "E"] + sub_specifiers.FORCED
         else:
             col_ic = specifiers.CURRENT + ports[1]
-            col_vce_forced = specifiers.VOLTAGE + ports[1] + ports[2] + sub_specifiers.FORCED
+            col_vce_forced = specifiers.VOLTAGE + [ports[1], ports[2]] + sub_specifiers.FORCED
 
         # get voltages
         self.ensure_specifier_column(col_vce_forced)
