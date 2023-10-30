@@ -27,7 +27,7 @@ import copy
 import logging
 from pathlib import Path
 import pandas as pd
-from typing import List, Dict, Type
+from typing import List, Dict, Type, Union
 
 try:
     from semver.version import Version as VersionInfo
@@ -737,7 +737,13 @@ class DutView(object):
         dut_view.short_deembedded_with = json_content["short_deembedded_with"]
         return dut_view
 
-    def add_data(self, data, key=None, force=True, **kwargs):
+    def add_data(
+        self,
+        data: Union[DataFrame, Sweep, str, os.Pathlike],
+        key: Union[str, None] = None,
+        force: bool = True,
+        **kwargs,
+    ):
         """Add a measurement or simulation data to the DutView's data.
 
         Parameters
@@ -750,6 +756,8 @@ class DutView(object):
             Key that shall be used in the database to save the data.
         force  :  bool, optional
             Default=True. If = True, the data is added even if it already exists.
+        kwargs : keyword arguments, optional
+            Passed on to read_data in case of str as a data argment.
         """
         if key is None:
             try:
@@ -771,28 +779,26 @@ class DutView(object):
                 )
                 return
 
-        try:
+        if isinstance(data, DataFrame) or isinstance(data, pd.DataFrame):
+            # it is a regular dataframe
+            # prevents pandas bug with non-unique columns:
+            if not data.columns.is_unique:
+                data = data.loc[:, ~data.columns.duplicated()]
+            self.data[key] = data
+        elif isinstance(data, Sweep):
+            # simulation valid?
+            self.validate_simulation_successful(data)
+            # try special import
+            self.import_output_data(data)
+        else:
             self.data[key] = read_data(data, **kwargs)
-        except (OSError, IOError, TypeError) as _error:
-            # could not read file using the general read data!
-            if isinstance(data, DataFrame) or isinstance(data, pd.DataFrame):
-                # it is a regular dataframe
-                # prevents pandas bug with non-unique columns:
-                if not data.columns.is_unique:
-                    data = data.loc[:, ~data.columns.duplicated()]
-                self.data[key] = data
-            else:
-                # simulation valid?
-                self.validate_simulation_successful(data)
-                # try special import
-                self.import_output_data(data)
 
         logging.info(
             "DMT -> DutView -> add_data(): Added a dataframe with key %s to the dut.",
             key,
         )
 
-    def remove_data(self, key):
+    def remove_data(self, key: str):
         """Remove a measurement or simulation dataframe from the DutView's data.
 
         Parameters
@@ -802,7 +808,7 @@ class DutView(object):
         """
         del self.data[key]
 
-    def get_data(self, key="iv", sweep=None) -> DataFrame:
+    def get_data(self, key: str = "iv", sweep: Sweep = None) -> DataFrame:
         """Return data stored in the DutView's data.
 
         One needs to specify either:
