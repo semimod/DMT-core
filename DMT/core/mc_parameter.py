@@ -605,6 +605,17 @@ class McParameter(object):
 
         return NotImplemented
 
+    def __add__(self, other):
+        """Allows creation of a Collection by adding two parameters"""
+        if isinstance(other, McParameter):
+            mc_return = McParameterCollection()
+            mc_return.add(self)
+            mc_return.add(other)
+
+            return mc_return
+        else:
+            return NotImplemented
+
 
 class McParameterCollection(object):
     """
@@ -1367,7 +1378,7 @@ class McParameterCollection(object):
         else:
             return NotImplemented
 
-    def eq_paras(self, other):
+    def eq_paras(self, other, to_terminal=False):
         """Compares the parameters in two McParameterCollections or subclasses"""
         str_diff_vars = ""
         for para in self.paras:
@@ -1383,6 +1394,12 @@ class McParameterCollection(object):
                 str_diff_vars += f"The first modelcard does not have a {para:s} parameter!\n"
 
         if str_diff_vars:
+            if to_terminal:
+                print(str_diff_vars)
+            str_diff_vars = (
+                "Comparision between 2 modelcards resultet in False. The difference is:\n"
+                + str_diff_vars
+            )
             logging.info(str_diff_vars)
             return False
 

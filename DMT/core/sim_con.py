@@ -38,9 +38,12 @@ import warnings
 from joblib import Parallel, delayed
 from reprint import output
 from pathlib import Path, PurePosixPath, PureWindowsPath
+from typing import List, Optional, Union
 import multiprocessing
 
 from DMT.core import Singleton, print_progress_bar
+from DMT.core.dut_view import DutView
+from DMT.core.sweep import Sweep
 from DMT.config import DATA_CONFIG
 from DMT.exceptions import SimulationUnsuccessful, SimulationFail
 
@@ -102,7 +105,9 @@ class SimCon(object, metaclass=Singleton):
         """Remove everything from the sim_list"""
         self.sim_list = []
 
-    def append_simulation(self, dut=None, sweep=None):
+    def append_simulation(
+        self, dut: Union[List[DutView], DutView] = None, sweep: Union[List[Sweep], Sweep] = None
+    ):
         """Adds DutViews together with Sweeps to the list of simulations sim_list.
 
         This methods adds each dut with a copy of each sweep to the simulation list.

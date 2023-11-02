@@ -1,0 +1,20 @@
+`include "discipline.h"
+
+`define P_KB        1.3806226e-23  //"old" SPICE
+
+`define MPRoz(nam,def,uni,        des) (*units=uni,                  desc=des*) parameter real    nam=def from(0.0:inf);
+
+module resistor_va(p,n);
+    electrical p,n;
+    inout p,n;
+
+    `MPRoz(R, 1.0, "Ohm", "Resistance")
+    
+    analog
+        begin
+            tdevK=$temperature;
+            conductance=1.0/R;
+            I(p,n) <+ V(p,n)/R;
+            I(p,n) <+ white_noise(4*`P_KB*tdevK/R,"thermal");
+        end
+endmodule

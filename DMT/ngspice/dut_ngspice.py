@@ -696,7 +696,7 @@ class DutNgspice(DutCircuit):
         with open(sim_log) as my_log:
             log_content = my_log.read()
 
-        if "error" in log_content:
+        if re.search("error", log_content, re.IGNORECASE):
             print("DMT - NGSPICE: Simulation failed! An error was found in the simulation log!")
             logging.debug("Log content:\n%s", log_content)
             raise SimulationUnsuccessful(
@@ -707,11 +707,16 @@ class DutNgspice(DutCircuit):
                 + " failed! An error was found!"
             )
 
-        # need to find something similar for ngspice
-        # if not seach_obj_end:
-        #     print("DMT - DutAds: Simulation failed! The simulation log file is not complete!")
-        #     logging.debug("Log content:\n%s", log_content)
-        #     raise SimulationUnsuccessful('ADS Simulation of the sweep ' + sweep.name + ' with the hash ' + sweep.get_hash() + ' failed! The simulation log file is not complete!')
+        if not re.search("Total elapsed time", log_content, re.IGNORECASE):
+            print("DMT - NGSPICE: Simulation not finished!")
+            logging.debug("Log content:\n%s", log_content)
+            raise SimulationUnsuccessful(
+                "NGSPICE Simulation of the sweep "
+                + sweep.name
+                + " with the hash "
+                + sweep.get_hash()
+                + " did not finish!"
+            )
 
         # find .ngspice file
         for my_file in os.listdir(sim_folder):

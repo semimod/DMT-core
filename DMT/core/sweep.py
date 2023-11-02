@@ -31,21 +31,10 @@ import copy
 from typing import Dict, List, Mapping, Type, Optional, Union, Set
 import numpy as np
 from itertools import product
-from DMT.core import (
-    create_md5_hash,
-    specifiers,
-    sub_specifiers,
-    SpecifierStr,
-    DataFrame,
-    SweepDef,
-)
-from DMT.core.sweep_def import (
-    SweepDefLinear,
-    SweepDefList,
-    SweepDefLog,
-    SweepDefSync,
-    SweepDefConst,
-)
+from DMT.core.data_frame import DataFrame
+from DMT.core.naming import specifiers, sub_specifiers, SpecifierStr
+from DMT.core.hasher import create_md5_hash
+from DMT.core.sweep_def import SweepDef, SweepDefList, SweepDefConst
 
 _SPEC_VOLTAGE = specifiers.VOLTAGE
 _SPEC_CURRENT = specifiers.CURRENT

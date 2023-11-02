@@ -59,6 +59,7 @@ UNIT_PREFIX_MIX = {
 }
 UNIT_PREFIX_DENOMINATOR = {
     1e-6: r"\centi",
+    1: "",
 }
 
 
@@ -498,6 +499,8 @@ class _sub_specifiers(GlobalObj, metaclass=Singleton):
     AC_COLLECTOR = SpecifierStr("", sub_specifiers="AC_COLLECTOR")
     AC_GATE = SpecifierStr("", sub_specifiers="AC_GATE")
     AC_DRAIN = SpecifierStr("", sub_specifiers="AC_DRAIN")
+    AC_1 = SpecifierStr("", sub_specifiers="AC_1")
+    AC_2 = SpecifierStr("", sub_specifiers="AC_2")
     AC = SpecifierStr("", sub_specifiers="AC")
     REAL = SpecifierStr("", sub_specifiers="REAL")
     IMAG = SpecifierStr("", sub_specifiers="IMAG")
@@ -564,6 +567,7 @@ class _specifiers(GlobalObj, metaclass=Singleton):
     Y = SpecifierStr("y")
     Z = SpecifierStr("z")
     ENERGY = SpecifierStr("E")
+    NOISE = SpecifierStr("N")
 
     # only derived quantities here
     DC_CURRENT_AMPLIFICATION = SpecifierStr("BETA")
@@ -1063,4 +1067,5 @@ natural_scales = {
     specifiers.ENERGY: 1,  # eV
     specifiers.UNILATERAL_GAIN: 1,
     specifiers.NET_DOPING: 1e-6,  # 1/cm^3
+    specifiers.NOISE: 1,
 }

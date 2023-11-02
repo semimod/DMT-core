@@ -22,7 +22,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 import numpy as np
 from skrf import network as rf_network
-from DMT.core import specifiers, sub_specifiers
+from DMT.core.naming import specifiers, sub_specifiers
 
 
 def is_iterable(arg):
