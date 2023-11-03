@@ -177,12 +177,21 @@ class VAFileMap(object):
         Returns
         -------
         str
-            [description]
+            Path to the root file
         """
         return "/" + self.root
 
     @property
     def vfs(self) -> dict[str, str]:
+        """Virtual file system of this VAFileMap
+
+        The vfs is saved in a dictionary with {<path>: <file content>}
+
+        Returns
+        -------
+        dict[str, str]
+            The key is the path and the values are the file contents
+        """
         vfs = dict()
         for name, code in self.files.items():
             vfs["/" + name] = str(code)
@@ -307,7 +316,7 @@ class VAFileMap(object):
         path_to_target: Union[str, Path],
         filter: Optional[Callable[[str], str]] = None,
     ):
-        """Writes the all Verilog-A files from this mapping into the given target path. The file structure is written as read from the "original"
+        r"""Writes the all Verilog-A files from this mapping into the given target path. The file structure is written as read from the "original"
 
         Parameters
         ----------

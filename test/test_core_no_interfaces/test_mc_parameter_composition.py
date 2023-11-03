@@ -136,12 +136,15 @@ def test_mc_parameter():
         for para in param_1:
             para.value = 1
 
-    # adding two parameter should give an error -> add names or values or append to a composition -> we do not know!
+    # adding two parameter result in an collection
     param_1 = McParameter("a", value=1, minval=0, maxval=10)
-    param_2 = McParameter("b", value=1, minval=0, maxval=10)
+    param_2 = McParameter("b", value=2, minval=0, maxval=10)
 
-    with pytest.raises(TypeError):
-        _comp = param_1 + param_2
+    comp = param_1 + param_2
+
+    assert len(comp) == 2
+    assert comp.name == ["a", "b"]
+    assert (comp.value == [1, 2]).all()
 
 
 def test_mc_parameter_collection():
@@ -432,9 +435,9 @@ def test_json():
 
 if __name__ == "__main__":
     test_mc_parameter()
-    test_mc_parameter_collection()
-    test_mc_parameter_collection_to_kwargs()
-    test_mc_parameter_collection_file_methods()
-    test_mc_parameter_collection_properties()
-    test_mc_parameter_collection_to_tex()
-    test_json()
+    # test_mc_parameter_collection()
+    # test_mc_parameter_collection_to_kwargs()
+    # test_mc_parameter_collection_file_methods()
+    # test_mc_parameter_collection_properties()
+    # test_mc_parameter_collection_to_tex()
+    # test_json()

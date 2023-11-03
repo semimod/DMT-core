@@ -34,8 +34,8 @@ ENV PATH="/home/local/bin:${PATH}"
 
 # openvaf
 RUN cd "/home/local/bin" && \
-    curl -L -O https://openva.fra1.cdn.digitaloceanspaces.com/openvaf_23_2_0_linux_amd64.tar.xz && \
-    tar xvf openvaf_23_2_0_linux_amd64.tar.xz 
+    curl -L -O https://openva.fra1.cdn.digitaloceanspaces.com/openvaf_23_5_0_linux_amd64.tar.gz && \
+    tar xvf openvaf_23_5_0_linux_amd64.tar.gz
 
 # texlive
 COPY --from=texlive/texlive:latest /usr/local/texlive/ /usr/local/texlive/

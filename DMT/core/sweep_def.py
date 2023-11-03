@@ -26,14 +26,10 @@ Features:
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 from __future__ import annotations
-from typing import Dict, List, Mapping, Type, Optional, Union, Tuple
+from typing import List, Optional, Union, Tuple
 import numpy as np
-from DMT.core import (
-    specifiers,
-    get_specifier_from_string,
-    flatten,
-    SpecifierStr,
-)
+from DMT.core.naming import specifiers, SpecifierStr, get_specifier_from_string
+from DMT.core.data_processor import flatten
 
 
 class SweepDef(object):

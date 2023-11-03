@@ -27,7 +27,7 @@ import numpy as np
 import json
 from pathlib import Path
 from joblib import Parallel, delayed
-from typing import List, Type
+from typing import List, Type, Union
 from DMT.core import DutType, DutTypeFlag, print_progress_bar, DutView, Technology
 from DMT.exceptions import NoOpenDeembeddingDut, NoShortDeembeddingDut
 
@@ -436,7 +436,7 @@ class DutLib(object):
 
         return duts
 
-    def add_duts(self, duts):
+    def add_duts(self, duts: Union[List[DutView], DutView]):
         """Add duts to the DutLib duts array.
 
         Parameters
@@ -1204,7 +1204,12 @@ class DutLib(object):
 
     # Makes it possible to iterate over DutLib objects
     def __iter__(self):
-        return iter([dut for dut in self.duts if dut.name not in self.ignore_duts])
+        return iter(
+            sorted(
+                [dut for dut in self.duts if dut.name not in self.ignore_duts],
+                key=lambda dut: dut.name,
+            )
+        )
 
     def __getitem__(self, key):
         return self.duts[key]

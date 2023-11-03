@@ -33,7 +33,7 @@ import os
 from typing import Union
 
 
-def create_md5_hash(*contents: Union[str, os.PathLike]):
+def create_md5_hash(*contents: Union[str, os.PathLike]) -> str:
     """Construct the hash MD5 string with all parameters
 
     Parameters

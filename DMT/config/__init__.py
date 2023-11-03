@@ -3,7 +3,7 @@
 Collects the config from 3 different locations:
 
 * Local script directory (DMT_config.yaml).
-* User's home directory (%LOCALAPPDATA%\DMT\DMT_config.yaml or $XDG_CONFIG_HOME/DMT/DMT_config.yaml with $XDG_CONFIG_HOME defaulting to ~/.config) and
+* User's home directory (%LOCALAPPDATA%\\DMT\\DMT_config.yaml or $XDG_CONFIG_HOME/DMT/DMT_config.yaml with $XDG_CONFIG_HOME defaulting to ~/.config) and
 * DMT package installation directory (DMT/config/DMT_config.yaml)
 
 They are all read and finally taken in the order given here. This means that anything given in the local directory overwrites all others.
@@ -72,7 +72,7 @@ except FileNotFoundError:
         warnings.warn(
             (
                 "The DMT user configuration file has been moved. The new paths are:\n"
-                + "Windows: %LOCALAPPDATA%\DMT\DMT_config.yaml\n"
+                + "Windows: %LOCALAPPDATA%\\DMT\\DMT_config.yaml\n"
                 + "Linux and MacOS: $XDG_CONFIG_HOME/DMT/DMT_config.yaml\n"
                 + "Defaulting to ~/.config/DMT/DMT_config.yaml"
             ),

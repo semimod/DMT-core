@@ -22,7 +22,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 import numpy as np
 from skrf import network as rf_network
-from DMT.core import specifiers, set_col_name, sub_specifiers
+from DMT.core.naming import specifiers, sub_specifiers
 
 
 def is_iterable(arg):
@@ -494,25 +494,20 @@ class DataProcessor(object):
         col_vb, col_ib, col_vc, col_ic, col_ve = None, None, None, None, None
         try:
             col_vb = df.get_col_name(specifiers.VOLTAGE, "B")
-            col_vb_force = set_col_name(
-                specifiers.VOLTAGE, "B", sub_specifiers=sub_specifiers.FORCED
-            )
+            col_vb_force = specifiers.VOLTAGE + "B" + sub_specifiers.FORCED
+
             df[col_vb_force] = df[col_vb].to_numpy()
         except KeyError:
             pass
         try:
             col_vc = df.get_col_name(specifiers.VOLTAGE, "C")
-            col_vc_force = set_col_name(
-                specifiers.VOLTAGE, "C", sub_specifiers=sub_specifiers.FORCED
-            )
+            col_vc_force = specifiers.VOLTAGE + "C" + sub_specifiers.FORCED
             df[col_vc_force] = df[col_vc].to_numpy()
         except KeyError:
             pass
         try:
             col_ve = df.get_col_name(specifiers.VOLTAGE, "E")
-            col_ve_force = set_col_name(
-                specifiers.VOLTAGE, "E", sub_specifiers=sub_specifiers.FORCED
-            )
+            col_ve_force = specifiers.VOLTAGE + "E" + sub_specifiers.FORCED
             df[col_ve_force] = df[col_ve].to_numpy()
         except KeyError:
             pass

@@ -1048,6 +1048,11 @@ class Plot(object):
                 "parentPos": (1, 0),
                 "offset": (-10, 10),
             },
+            "upper right outer": {
+                "itemPos": (1, 0),
+                "parentPos": (1, 0),
+                "offset": (-10, 10),
+            },
             "upper left": {"itemPos": (0, 0), "parentPos": (0, 0), "offset": (10, 10)},
             "lower right": {
                 "itemPos": (1, 1),
@@ -1144,13 +1149,12 @@ class Plot(object):
             x_max = self.x_limits[1]
             padding = 0.0
 
-        if self.x_axis_scale == "log":
-            # also doing this in case of log for the data itself
-            x_min = np.log10(np.abs(x_min + np.finfo(float).tiny))
-            x_max = np.log10(np.abs(x_max + np.finfo(float).tiny))
-
         try:
-            self.pw_pg.setXRange(np.real(x_min), np.real(x_max), padding=padding)  # type: ignore
+            if self.x_axis_scale == "log":
+                # also doing this in case of log for the data itself
+                self.pw_pg.setXRange(np.real(np.log10(np.abs(x_min + np.finfo(float).tiny))), np.real(np.log10(np.abs(x_max + np.finfo(float).tiny))), padding=padding)  # type: ignore
+            else:
+                self.pw_pg.setXRange(np.real(x_min), np.real(x_max), padding=padding)  # type: ignore
         except Exception:
             print("Error setting the XRange of PyQtGraph plot with name " + self.name + ".")
 
@@ -1161,8 +1165,8 @@ class Plot(object):
                     y_min = np.inf
                     for dict_line in self.data:
                         y_filter = np.logical_and(
-                            dict_line["x"] > x_min,
-                            dict_line["x"] < x_max,
+                            dict_line["x"] > x_min / self.x_scale,
+                            dict_line["x"] < x_max / self.x_scale,
                         )
                         y_min_local = np.min(dict_line["y"][y_filter])
                         y_min = np.min([y_min, y_min_local])
@@ -1185,8 +1189,8 @@ class Plot(object):
                     y_max = -np.inf
                     for dict_line in self.data:
                         y_filter = np.logical_and(
-                            dict_line["x"] > x_min,
-                            dict_line["x"] < x_max,
+                            dict_line["x"] > x_min / self.x_scale,
+                            dict_line["x"] < x_max / self.x_scale,
                         )
                         y_max_local = np.max(dict_line["y"][y_filter])
                         y_max = np.max([y_max, y_max_local])
@@ -1439,6 +1443,7 @@ class Plot(object):
         legend_location=None,
         legend_to_name=None,
         legend_columns=4,
+        mark_phase=False,
         **kwargs,
     ):
         """Save plot in directory and return name of the tikz file.
@@ -1711,12 +1716,12 @@ class Plot(object):
             if self.x_limits[0] is None or self.x_limits[1] is None:
                 str_limits += "% restrict x to domain=0:1,\n"
             else:
-                x_min_restrict = (
-                    self.x_limits[0] / 5 if self.x_limits[0] > 0 else self.x_limits[0] * 5
-                )
-                x_max_restrict = (
-                    self.x_limits[1] / 5 if self.x_limits[1] < 0 else self.x_limits[1] * 5
-                )
+                if self.x_limits[0] == 0:
+                    x_min_restrict = -1e-20
+                elif self.x_limits[0] > 0:
+                    x_min_restrict = self.x_limits[0] / 5
+                else:
+                    x_min_restrict = self.x_limits[0] * 5
 
                 if self.x_axis_scale == "linear":
                     str_limits += comment_restrict + "restrict x to domain={0:g}:{1:g},\n".format(
@@ -1737,12 +1742,25 @@ class Plot(object):
             if self.y_limits[0] is None or self.y_limits[1] is None:
                 str_limits += "% restrict y to domain=0:1,\n"
             else:
-                y_min_restrict = (
-                    self.y_limits[0] / 5 if self.y_limits[0] > 0 else self.y_limits[0] * 5
-                )
-                y_max_restrict = (
-                    self.y_limits[1] / 5 if self.y_limits[1] < 0 else self.y_limits[1] * 5
-                )
+                if self.y_limits[0] == 0:
+                    y_min_restrict = -1e-20
+                elif self.y_limits[0] > 0:
+                    y_min_restrict = self.y_limits[0] / 5
+                else:
+                    y_min_restrict = self.y_limits[0] * 5
+
+                if self.y_limits[1] == 0:
+                    y_max_restrict = 1e-20
+                elif self.y_limits[1] > 0:
+                    y_max_restrict = self.y_limits[1] * 5
+                else:
+                    y_max_restrict = self.y_limits[1] / 5
+
+                if self.y_axis_scale == "log":
+                    y_min_restrict = np.log10(y_min_restrict)
+                    y_max_restrict = np.log10(y_max_restrict)
+
+                str_limits += f"{comment_restrict}restrict y to domain={y_min_restrict:g}:{y_max_restrict:g},\n"
 
                 if self.y_axis_scale == "linear":
                     str_limits += comment_restrict + "restrict y to domain={0:g}:{1:g},\n".format(
@@ -1806,14 +1824,15 @@ class Plot(object):
         ### Lines
         str_lines = ""
         colors = []
+        bool_mark_phase = mark_phase
+        mark_phase = 0
 
         for nr_line, dict_line in enumerate(self.data[::nth]):
             if len(dict_line["x"]) == 0:
                 continue
-            if mark_repeat != 1:
+            if bool_mark_phase and mark_repeat != 1:
                 mark_phase = nr_line
-            else:
-                mark_phase = 0
+
             str_addplot, colors = self._tikz_addplot(
                 dict_line,
                 nr_line,
@@ -2110,9 +2129,9 @@ def save_or_show(plts, show=True, location=None, **kwargs):
 
     if show:
         for plt in plts[:-1]:
-            plt.plot_py(show=False)
+            plt.plot_pyqtgraph(show=False)
 
-        plts[-1].plot_py(show=True)
+        plts[-1].plot_pyqtgraph(show=True)
     else:
         for plt in plts:
             plt.save_tikz(

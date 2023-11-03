@@ -17,6 +17,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
+from __future__ import annotations
 import os
 import re
 import shutil
@@ -26,23 +27,20 @@ import copy
 import logging
 from pathlib import Path
 import pandas as pd
-from typing import List, Dict, Type
+from typing import List, Dict, Type, Union
 
 try:
     from semver.version import Version as VersionInfo
 except ImportError:
     from semver import VersionInfo
 
-from DMT.core import (
-    DatabaseManager,
-    read_data,
-    DataFrame,
-    VAFileMap,
-    DutTypeFlag,
-    DutTypeInt,
-    DutType,
-    Technology,
-)
+from DMT.core.data_frame import DataFrame
+from DMT.core.database_manager import DatabaseManager
+from DMT.core.data_reader import read_data
+from DMT.core.dut_type import DutTypeFlag, DutTypeInt, DutType
+from DMT.core.va_file import VAFileMap
+from DMT.core.sweep import Sweep
+import DMT.core.technology as dmt_tech
 from DMT.config import DATA_CONFIG
 from DMT.exceptions import UnknownColumnError
 
@@ -170,7 +168,7 @@ class DutView(object):
         simulate_on_server=None,
         simulator_command="",
         simulator_arguments=None,
-        technology=None,
+        technology: "dmt_tech.Technology" = None,
         width=None,
         length=None,
         nfinger=None,
@@ -281,7 +279,7 @@ class DutView(object):
         self.open_deembedded_with = "-"
         self.short_deembedded_with = "-"
 
-    def prepare_simulation(self, sweep):
+    def prepare_simulation(self, sweep: Sweep):
         """Creates a simulation folder, appends the sweep to the structure definition and creates a input file in the simulation folder.
 
         Parameters
@@ -363,7 +361,7 @@ class DutView(object):
         """Create a PBS script for the PBS job system. (See: https://albertsk.files.wordpress.com/2011/12/pbs.pdf)"""
         raise NotImplementedError("Not Implemented for this Dut Class!")
 
-    def make_input(self, sweep):
+    def make_input(self, sweep: Sweep):
         """Joins simulation header with a given Sweep object and returns it.
 
         Parameters
@@ -404,7 +402,7 @@ class DutView(object):
             "DutView does not implement the concrete import_output_data method!"
         )
 
-    def validate_simulation_successful(self, sweep):
+    def validate_simulation_successful(self, sweep: Sweep):
         """Checks if the simulation of the given sweep was successful.
 
         Parameters
@@ -426,7 +424,7 @@ class DutView(object):
         )
 
     @property
-    def save_dir(self):
+    def save_dir(self) -> Path:
         if self.get_hash():
             return self.database_dir / (self.name + "_hash_" + str(self.get_hash()))
         else:
@@ -444,7 +442,7 @@ class DutView(object):
 
         self._database_dir = Path(new_dir)
 
-    def get_db_dir(self, name="db"):
+    def get_db_dir(self, name="db") -> Path:
         """Returns the name for a db, either use 'db' for regular behavior or use 'sweep.get_hash()' for a db per sweep."""
         return self.save_dir / (name + ".h5")
 
@@ -465,7 +463,7 @@ class DutView(object):
 
         return self._data
 
-    def get_sim_folder(self, sweep):
+    def get_sim_folder(self, sweep: Sweep) -> Path:
         """Returns the simulation folder of the given sweep
 
         Parameters
@@ -484,7 +482,7 @@ class DutView(object):
             / (sweep.name + "_" + sweep.get_hash())
         )
 
-    def delete_sim_results(self, sweep, ignore_errors=False):
+    def delete_sim_results(self, sweep: Sweep, ignore_errors=False):
         """Deletes the simulation results of the given sweep.
 
         Parameters
@@ -516,7 +514,7 @@ class DutView(object):
             # it there is still a "old" pickle file in the directory -> remove it
             self.dut_dir.with_suffix(".p").unlink()
 
-    def info_json(self, **_kwargs):
+    def info_json(self, **_kwargs) -> Dict:
         """Returns a dict with serializeable content for the json file to create.
 
         Add the info about the concrete subclass to create here! See :py:method::`DMT.core.dut_meas.DutMeas.info_json()` for an example implementation.
@@ -585,7 +583,7 @@ class DutView(object):
     @staticmethod
     def load_dut(
         file_dut,
-        classes_technology: List[Type[Technology]] = None,
+        classes_technology: List[Type["dmt_tech.Technology"]] = None,
         classes_dut_view: List[Type["DutView"]] = None,
     ) -> "DutView":
         """Static class method. Loads a DutView object from a pickle file with full path save_dir.
@@ -626,7 +624,7 @@ class DutView(object):
                 )
             except StopIteration as err:
                 raise IOError(
-                    "DMT.DutLib: Encountered unknown DutView class while loading the library"
+                    f"DMT.DutLib: Encountered unknown DutView class while loading the library: {clsstr_dut_view}"
                 ) from err
 
             dut = cls_dut_view.from_json(json_content[clsstr_dut_view], classes_technology)
@@ -654,7 +652,7 @@ class DutView(object):
     def from_json(
         cls,
         json_content: Dict,
-        classes_technology: List[Type[Technology]],
+        classes_technology: List[Type["dmt_tech.Technology"]],
         subclass_kwargs: Dict = None,
     ) -> "DutView":
         """Static class method. Loads a DutView object from a pickle file with full path save_dir.
@@ -739,7 +737,13 @@ class DutView(object):
         dut_view.short_deembedded_with = json_content["short_deembedded_with"]
         return dut_view
 
-    def add_data(self, data, key=None, force=True, **kwargs):
+    def add_data(
+        self,
+        data: Union[DataFrame, Sweep, str, os.Pathlike],
+        key: Union[str, None] = None,
+        force: bool = True,
+        **kwargs,
+    ):
         """Add a measurement or simulation data to the DutView's data.
 
         Parameters
@@ -752,6 +756,8 @@ class DutView(object):
             Key that shall be used in the database to save the data.
         force  :  bool, optional
             Default=True. If = True, the data is added even if it already exists.
+        kwargs : keyword arguments, optional
+            Passed on to read_data in case of str as a data argment.
         """
         if key is None:
             try:
@@ -773,28 +779,26 @@ class DutView(object):
                 )
                 return
 
-        try:
+        if isinstance(data, DataFrame) or isinstance(data, pd.DataFrame):
+            # it is a regular dataframe
+            # prevents pandas bug with non-unique columns:
+            if not data.columns.is_unique:
+                data = data.loc[:, ~data.columns.duplicated()]
+            self.data[key] = data
+        elif isinstance(data, Sweep):
+            # simulation valid?
+            self.validate_simulation_successful(data)
+            # try special import
+            self.import_output_data(data)
+        else:
             self.data[key] = read_data(data, **kwargs)
-        except (OSError, IOError, TypeError) as _error:
-            # could not read file using the general read data!
-            if isinstance(data, DataFrame) or isinstance(data, pd.DataFrame):
-                # it is a regular dataframe
-                # prevents pandas bug with non-unique columns:
-                if not data.columns.is_unique:
-                    data = data.loc[:, ~data.columns.duplicated()]
-                self.data[key] = data
-            else:
-                # simulation valid?
-                self.validate_simulation_successful(data)
-                # try special import
-                self.import_output_data(data)
 
         logging.info(
             "DMT -> DutView -> add_data(): Added a dataframe with key %s to the dut.",
             key,
         )
 
-    def remove_data(self, key):
+    def remove_data(self, key: str):
         """Remove a measurement or simulation dataframe from the DutView's data.
 
         Parameters
@@ -804,7 +808,7 @@ class DutView(object):
         """
         del self.data[key]
 
-    def get_data(self, key="iv", sweep=None):
+    def get_data(self, key: str = "iv", sweep: Sweep = None) -> DataFrame:
         """Return data stored in the DutView's data.
 
         One needs to specify either:
@@ -985,7 +989,7 @@ class DutView(object):
 
         return True
 
-    def check_existence_sweep(self, sweep):
+    def check_existence_sweep(self, sweep: Sweep):
         """Return true, if the combination dut+sweep has already been simulated.
 
         If self.data is None, the database is loaded first.
@@ -1040,7 +1044,7 @@ class DutView(object):
         """
         return key.split("/")
 
-    def get_sweep_key(self, sweep):
+    def get_sweep_key(self, sweep: Sweep):
         """Key for the dict in dut.data.
 
         Parameters

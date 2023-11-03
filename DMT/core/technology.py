@@ -24,6 +24,8 @@ If a technology can use TRADICA, the class :class:`DMT.TRADICA.TechTradica` is r
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 import abc
 from DMT.core.dut_type import DutType
+import DMT.core.mcard as dmt_mcard
+import DMT.core.dut_view as dmt_dv
 
 try:
     from pylatex import Section
@@ -187,8 +189,16 @@ class Technology(object):
         raise NotImplementedError
 
     def scale_modelcard(
-        self, mcard, lE0, bE0, nfinger, config, lE_drawn_ref=None, bE_drawn_ref=None
-    ):
+        self,
+        mcard: "dmt_mcard.MCard",
+        lE0: float,
+        bE0: float,
+        nfinger: int,
+        config: str,
+        dut: "dmt_dv.DutView" = None,
+        lE_drawn_ref: float = None,
+        bE_drawn_ref: float = None,
+    ) -> "dmt_mcard.MCard":
         """This method scales a already finished modelcard (no sheet resistances).
 
         Parameters
@@ -203,5 +213,7 @@ class Technology(object):
             Number of emitter fingers.
         config : str
             A unique identifier for the configuration.
+        dut : :class:`~DMT.core.DutView`
+            DutView to scale for.
         """
         raise NotImplementedError

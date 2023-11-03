@@ -23,12 +23,15 @@ This includes easy management of small signal parameter and other quantities whi
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
-import numpy as np
 import re
 import logging
 import copy
+import numpy as np
+import pandas as pd
 from scipy.optimize import curve_fit
+from typing import Iterator, Tuple
 from DMT.exceptions import UnknownColumnError
+from DMT.core.data_processor import DataProcessor, flatten
 from DMT.core import (
     specifiers_ss_para,
     get_specifier_from_string,
@@ -37,10 +40,7 @@ from DMT.core import (
     sub_specifiers,
     get_nodes,
     get_sub_specifiers,
-    flatten,
-    DataProcessor,
 )
-import pandas as pd
 
 # pylint: disable = too-many-lines
 
@@ -801,6 +801,10 @@ class DataFrame(DataProcessor, pd.DataFrame):
                     self = self.calc_cgd(port_1=ports[0], port_2=ports[1])
                 elif nodes[0] == "G" and nodes[1] == "G":  # CGG
                     self = self.calc_cgg(port_1=ports[0], port_2=ports[1])
+                elif nodes[0] == "D" and nodes[1] == "B":  # CDB
+                    self = self.calc_cdb(port_1=ports[0], port_2=ports[1], port_3=ports[2])
+                elif nodes[0] == "S" and nodes[1] == "B":  # CSB
+                    self = self.calc_csb(port_1=ports[0], port_2=ports[1], port_3=ports[2])
                 else:
                     raise KeyError("The " + "".join(nodes) + " capacitance can not be calculated.")
             except IOError as err:
@@ -869,7 +873,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
                 ) from err
         elif specifier == specifiers.TRANSCONDUCTANCE:
             try:
-                self = self.calc_gm()
+                self = self.calc_gm(ports=ports)
             except IOError as err:
                 raise KeyError(
                     "The transconductance is missing in the given data frame and can not be calculated."
@@ -1957,6 +1961,56 @@ class DataFrame(DataProcessor, pd.DataFrame):
         pd.options.mode.chained_assignment = "warn"
         return self
 
+    def calc_cdb(self, port_1="G", port_2="D", port_3="B"):
+        """Calculates the drain-bulk capacitance CDB assuming PI equivalent circuit and common source configuration.
+
+        Returns
+        -------
+        :class:`DMT.core.DataFrame`
+            Dataframe that contains CDB.
+        """
+        # get values
+
+        sp_cdb = specifiers.CAPACITANCE + ["D", "B"]
+
+        # put values in col of self
+        pd.options.mode.chained_assignment = None
+        if port_1 == "G" and port_2 == "D" and port_3 == "B":
+            s_para_values = self.get_ss_para("Y", port_2, port_3)
+            self[sp_cdb] = self.processor.calc_cap_series_thru(self["FREQ"], s_para_values, "Y")
+        else:
+            raise NotImplementedError(
+                "DMT -> DataFrame -> calc_cgs: transistor configuration not implemented."
+            )
+
+        pd.options.mode.chained_assignment = "warn"
+        return self
+
+    def calc_csb(self, port_1="G", port_2="D", port_3="B"):
+        """Calculates the source-bulk capacitance CDB assuming PI equivalent circuit and common source configuration.
+
+        Returns
+        -------
+        :class:`DMT.core.DataFrame`
+            Dataframe that contains CDB.
+        """
+        # get values
+
+        sp_csb = specifiers.CAPACITANCE + ["S", "B"]
+
+        # put values in col of self
+        pd.options.mode.chained_assignment = None
+        if port_1 == "G" and port_2 == "D" and port_3 == "B":
+            s_para_values = self.get_ss_para("Y", port_2, port_3)
+            self[sp_csb] = self.processor.calc_cap_shunt_port_2(self["FREQ"], s_para_values, "Y")
+        else:
+            raise NotImplementedError(
+                "DMT -> DataFrame -> calc_cgs: transistor configuration not implemented."
+            )
+
+        pd.options.mode.chained_assignment = "warn"
+        return self
+
     def calc_cbe(self, port_1="B", port_2="C"):
         """Calculates the base-emitter junction capacitance CBE assuming PI equivalent circuit and common emitter configuration.
 
@@ -2093,22 +2147,31 @@ class DataFrame(DataProcessor, pd.DataFrame):
         )
         return self
 
-    def calc_gm(self):
+    def calc_gm(self, ports=["B", "C", "E"]):
         """Calculates the DC transconductance of a BJT.
+
+        Arguments
+        --------
+        ports : [str], None
+            If None, BJT contact ports are assumed. Else it is assumed that ports[2] is the
+            grounded contact, ports[0] is the input port (gate/base) and ports[1] is the output port.
 
         Returns
         -------
         :class:`DMT.core.DataFrame`
             Dataframe that contains the TRANSCONDUCTANCE
         """
-        col_ic = specifiers.CURRENT + "C"
-        col_vc_forced = specifiers.VOLTAGE + "C" + sub_specifiers.FORCED
-        col_vb_forced = specifiers.VOLTAGE + "B" + sub_specifiers.FORCED
-        col_vbe = specifiers.VOLTAGE + ["B", "E"]
+        if ports is None:
+            ports = ["B", "C", "E"]
+
+        col_i = specifiers.CURRENT + ports[1]
+        col_vc_forced = specifiers.VOLTAGE + ports[1] + sub_specifiers.FORCED
+        col_vb_forced = specifiers.VOLTAGE + ports[0] + sub_specifiers.FORCED
+        col_vbe = specifiers.VOLTAGE + [ports[0], ports[2]]
 
         # get voltages
         self.ensure_specifier_column(col_vbe)
-        self.ensure_specifier_column(col_ic)
+        self.ensure_specifier_column(col_i)
 
         # if possible also pass vbc forced
         try:
@@ -2116,7 +2179,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
             self.ensure_specifier_column(col_vb_forced)
             try:
                 self.loc[:, specifiers.TRANSCONDUCTANCE] = self.processor.calc_gm(
-                    self[col_ic].to_numpy(),
+                    self[col_i].to_numpy(),
                     self[col_vbe].to_numpy(),
                     vc_forced=self[col_vc_forced].to_numpy(),
                     vb_forced=self[col_vb_forced].to_numpy(),
@@ -2125,12 +2188,12 @@ class DataFrame(DataProcessor, pd.DataFrame):
                 pass
         except KeyError:
             self.loc[:, specifiers.TRANSCONDUCTANCE] = self.processor.calc_gm(
-                self[col_ic].to_numpy(), self[col_vbe].to_numpy()
+                self[col_i].to_numpy(), self[col_vbe].to_numpy()
             )
 
         return self
 
-    def calc_go(self, ports=None):
+    def calc_go(self, ports=["B", "C", "E"]):
         """Calculates the DC output condutance of a BJT or generic transistor in common emitter/source configuration.
 
         Arguments
@@ -2146,10 +2209,10 @@ class DataFrame(DataProcessor, pd.DataFrame):
         """
         if ports == None:  # assume HBT
             col_ic = specifiers.CURRENT + "C"
-            col_vce_forced = specifiers.VOLTAGE + "C" + "E" + sub_specifiers.FORCED
+            col_vce_forced = specifiers.VOLTAGE + ["C", "E"] + sub_specifiers.FORCED
         else:
             col_ic = specifiers.CURRENT + ports[1]
-            col_vce_forced = specifiers.VOLTAGE + ports[1] + ports[2] + sub_specifiers.FORCED
+            col_vce_forced = specifiers.VOLTAGE + [ports[1], ports[2]] + sub_specifiers.FORCED
 
         # get voltages
         self.ensure_specifier_column(col_vce_forced)
@@ -2255,7 +2318,9 @@ class DataFrame(DataProcessor, pd.DataFrame):
 
         return df_new
 
-    def iter_unique_col(self, column, decimals=5):
+    def iter_unique_col(
+        self, column: SpecifierStr, decimals: int = 5
+    ) -> Iterator[Tuple[int, complex, "DataFrame"]]:
         """Allows iteration over the unique values and their slices of a column
 
         Parameters
@@ -2298,7 +2363,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
             atol = 5 * np.float_power(10, -(decimals + 1))
 
         while index < len(val_unique):
-            val = val_unique[index]
+            val: complex = val_unique[index]
 
             if atol is None:
                 dataframe = self[self[column] == val]

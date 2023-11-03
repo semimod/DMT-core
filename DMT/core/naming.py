@@ -59,6 +59,7 @@ UNIT_PREFIX_MIX = {
 }
 UNIT_PREFIX_DENOMINATOR = {
     1e-6: r"\centi",
+    1: "",
 }
 
 
@@ -95,6 +96,7 @@ class SpecifierStr(str):
         sub_specifiers: Union[
             FrozenSet[Union[str, SpecifierStr]],
             Set[Union[str, SpecifierStr]],
+            List[Union[str, SpecifierStr]],
             str,
             SpecifierStr,
             None,
@@ -324,7 +326,8 @@ class SpecifierStr(str):
             return string
 
     def __add__(
-        self: SpecifierStr, other: Union[SpecifierStr, str, list[Union[str, SpecifierStr]]]
+        self: SpecifierStr,
+        other: Union[SpecifierStr, str, list[Union[str, SpecifierStr]]],
     ) -> SpecifierStr:
         """Method stub"""
         raise NotImplementedError
@@ -496,6 +499,8 @@ class _sub_specifiers(GlobalObj, metaclass=Singleton):
     AC_COLLECTOR = SpecifierStr("", sub_specifiers="AC_COLLECTOR")
     AC_GATE = SpecifierStr("", sub_specifiers="AC_GATE")
     AC_DRAIN = SpecifierStr("", sub_specifiers="AC_DRAIN")
+    AC_1 = SpecifierStr("", sub_specifiers="AC_1")
+    AC_2 = SpecifierStr("", sub_specifiers="AC_2")
     AC = SpecifierStr("", sub_specifiers="AC")
     REAL = SpecifierStr("", sub_specifiers="REAL")
     IMAG = SpecifierStr("", sub_specifiers="IMAG")
@@ -562,6 +567,7 @@ class _specifiers(GlobalObj, metaclass=Singleton):
     Y = SpecifierStr("y")
     Z = SpecifierStr("z")
     ENERGY = SpecifierStr("E")
+    NOISE = SpecifierStr("N")
 
     # only derived quantities here
     DC_CURRENT_AMPLIFICATION = SpecifierStr("BETA")
@@ -648,7 +654,9 @@ def add(self: SpecifierStr, other: Union[SpecifierStr, str, List[Union[str, Spec
 
         if other in SUB_SPECIFIERS_STR:
             return SpecifierStr(
-                self.specifier, *self.nodes, sub_specifiers=self.sub_specifiers | {other}
+                self.specifier,
+                *self.nodes,
+                sub_specifiers=self.sub_specifiers | {other},
             )
         else:
             return SpecifierStr(
@@ -1043,7 +1051,8 @@ natural_scales = {
     specifiers.MAXIMUM_OSCILLATION_FREQUENCY: 1e-9,
     specifiers.TRANSCONDUCTANCE: 1,
     specifiers.OUTPUT_CONDUCTANCE: 1,
-    specifiers.TRANSIT_FREQUENCY: 1e-9,
+    specifiers.TRANSIT_FREQUENCY: 1e-9,  # GHz
+    specifiers.TRANSIT_TIME: 1e12,  # ps
     specifiers.CAPACITANCE: 1e15,
     specifiers.CHARGE: 1e15,
     specifiers.CHARGE_DENSITY: 1e15 / (1e6 * 1e6),  # fF/um^2
@@ -1058,4 +1067,5 @@ natural_scales = {
     specifiers.ENERGY: 1,  # eV
     specifiers.UNILATERAL_GAIN: 1,
     specifiers.NET_DOPING: 1e-6,  # 1/cm^3
+    specifiers.NOISE: 1,
 }
