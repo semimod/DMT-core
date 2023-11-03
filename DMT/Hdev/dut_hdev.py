@@ -577,7 +577,7 @@ class DutHdev(DutTcad):
                 junctions = (
                     np.where(np.sign(d[:-1]) != np.sign(d[1:]))[0] + 1
                 )  # detect sign changes
-                if junctions.size > 0:  # no junction found
+                if junctions.size > 1:  # no junction found
                     xje = x[junctions[0]]
                     xjc = x[junctions[1]]
 
