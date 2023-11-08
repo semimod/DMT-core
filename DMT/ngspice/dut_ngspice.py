@@ -262,6 +262,7 @@ class DutNgspice(DutCircuit):
                     pass
 
             list_va_files += self._inp_circuit.verilog_maps
+            list_va_files += self.va_maps
 
             # pre_osdi strings
             self._osdi_imports = []
