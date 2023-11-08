@@ -118,7 +118,6 @@ class DutCircuit(DutView):
                 bE0=self.width,
                 nfinger=self.nfinger,
                 config=self.contact_config,
-                dut=self,
             )
 
         self.inp_header = input_circuit
