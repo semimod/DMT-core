@@ -29,6 +29,7 @@ from pathlib import Path
 from joblib import Parallel, delayed
 from typing import List, Type, Union
 from DMT.core import DutType, DutTypeFlag, print_progress_bar, DutView, Technology
+from DMT.core.dut_view import DutView
 from DMT.exceptions import NoOpenDeembeddingDut, NoShortDeembeddingDut
 
 try:
@@ -205,7 +206,7 @@ class DutLib(object):
 
     def __init__(
         self,
-        deem_types=None,
+        deem_types: List[DutType] = None,
         AC_filter_names=None,
         DC_filter_names=None,
         is_deembedded_DC=False,
@@ -224,17 +225,15 @@ class DutLib(object):
         self.is_deembedded_AC = is_deembedded_AC
         self.is_deembedded_DC = is_deembedded_DC
 
-        self.deem_open = (
-            DutTypeFlag.flag_open
-        )  # deem_open_bjt # look only for the flag not for the device!
-        self.deem_short = DutTypeFlag.flag_short  # deem_short_bjt
+        self.deem_open = DutTypeFlag.flag_open  # look only for the flag not for the device!
+        self.deem_short = DutTypeFlag.flag_short
 
-        self.duts = []  # The devices that shall be managed by this dut
-        self._dut_ref = None  # The reference device of this technology
+        self.duts: List[DutView] = []  # The devices that shall be managed by this dut
+        self._dut_ref: DutView = None  # The reference device of this technology
         self.dut_ref_dut_dir = None
-        self._dut_intrinsic = None  # The intrinsic dut of the reference dut (without rbi)
+        self._dut_intrinsic: DutView = None  # The intrinsic dut of the reference dut (without rbi)
         self.dut_intrinsic_dut_dir = None  # The intrinsic dut of the reference dut (without rbi)
-        self._dut_internal = None  # The internal dut of the reference dut (with rbi)
+        self._dut_internal: DutView = None  # The internal dut of the reference dut (with rbi)
         self.dut_internal_dut_dir = None  # The intrinsic dut of the reference dut (without rbi)
         self._save_dir = None  # Here the DutLib will try to save itself
         if save_dir is not None:
@@ -246,7 +245,7 @@ class DutLib(object):
 
             self.save_dir = save_dir  # Here the DutLib will try to save itself
 
-        self.ignore_duts = []  # list of names which are not returned while iteration
+        self.ignore_duts: List[str] = []  # list of names which are not returned while iteration
 
         self.n_jobs = n_jobs  # number of parallel jobs while directory import
 
@@ -264,7 +263,7 @@ class DutLib(object):
         return self._dut_ref
 
     @dut_ref.setter
-    def dut_ref(self, dut):
+    def dut_ref(self, dut: DutView):
         """Ensure that dut_ref is in duts"""
         if not id(dut) in [id(dut_) for dut_ in self.duts]:
             self.duts.append(dut)
@@ -280,7 +279,7 @@ class DutLib(object):
         return self._dut_internal
 
     @dut_internal.setter
-    def dut_internal(self, dut):
+    def dut_internal(self, dut: DutView):
         """Ensure that dut_internal is in duts"""
         if not id(dut) in [id(dut_) for dut_ in self.duts]:
             self.duts.append(dut)
@@ -296,7 +295,7 @@ class DutLib(object):
         return self._dut_intrinsic
 
     @dut_intrinsic.setter
-    def dut_intrinsic(self, dut):
+    def dut_intrinsic(self, dut: DutView):
         """Ensure that dut_intrinsic is in duts"""
         if not id(dut) in [id(dut_) for dut_ in self.duts]:
             self.duts.append(dut)

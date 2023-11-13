@@ -388,7 +388,8 @@ class DataFrame(DataProcessor, pd.DataFrame):
                 if fallback[col] is None:
                     if warnings:
                         logging.warning(
-                            "The column %s is dropped as it is in the fallback dictionary!", col
+                            "The column %s is dropped as it is in the fallback dictionary!",
+                            col,
                         )
                     # drop it!
                 elif fallback[col]:
@@ -755,7 +756,10 @@ class DataFrame(DataProcessor, pd.DataFrame):
         elif (specifier == specifiers.VOLTAGE) and (len(nodes) == 1):
             try:
                 self = self.create_potential(
-                    nodes, reference_node, voltage_sub_specifiers=sub_specifiers_in_col, debug=debug
+                    nodes,
+                    reference_node,
+                    voltage_sub_specifiers=sub_specifiers_in_col,
+                    debug=debug,
                 )
             except IOError as err:
                 raise KeyError(
@@ -1054,7 +1058,9 @@ class DataFrame(DataProcessor, pd.DataFrame):
 
         try:
             reference_potential = SpecifierStr(
-                specifiers.VOLTAGE, reference_node, sub_specifiers=voltage_sub_specifiers
+                specifiers.VOLTAGE,
+                reference_node,
+                sub_specifiers=voltage_sub_specifiers,
             )
         except TypeError as err:
             raise IOError("DMT->data_frame: No or incompatible reference_node were given.") from err
@@ -1370,7 +1376,15 @@ class DataFrame(DataProcessor, pd.DataFrame):
         self = self.strip_ss_para()
         return self
 
-    def deembed(self, df_open, df_short, ports=None, ndevices=1, ndevices_open=1, ndevices_short=1):
+    def deembed(
+        self,
+        df_open,
+        df_short,
+        ports=None,
+        ndevices=1,
+        ndevices_open=1,
+        ndevices_short=1,
+    ):
         """Deembed the measured data in df from the measured data in df_open and df_short.
 
         This method deembeds the masured small signal parameters in df using the measured small signal parameters of one dummy open and one dummy short structure.
@@ -1480,12 +1494,16 @@ class DataFrame(DataProcessor, pd.DataFrame):
             try:
                 df_RCE_RBE = self.loc[
                     np.isclose(
-                        self[specifiers.VOLTAGE + "C"], self[specifiers.VOLTAGE + "E"], atol=1e-4
+                        self[specifiers.VOLTAGE + "C"],
+                        self[specifiers.VOLTAGE + "E"],
+                        atol=1e-4,
                     )
                 ]
                 df_RBC = self.loc[
                     np.isclose(
-                        self[specifiers.VOLTAGE + "B"], self[specifiers.VOLTAGE + "E"], atol=1e-4
+                        self[specifiers.VOLTAGE + "B"],
+                        self[specifiers.VOLTAGE + "E"],
+                        atol=1e-4,
                     )
                 ]
             except KeyError:
@@ -2162,6 +2180,8 @@ class DataFrame(DataProcessor, pd.DataFrame):
             Dataframe that contains the TRANSCONDUCTANCE
         """
         if ports is None:
+            ports = ["B", "C", "E"]
+        elif len(ports) == 2 and ports[0] == "B" and ports[1] == "C":
             ports = ["B", "C", "E"]
 
         col_i = specifiers.CURRENT + ports[1]
