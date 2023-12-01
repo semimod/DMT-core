@@ -495,11 +495,13 @@ class DutNgspice(DutCircuit):
                 vals = df[voltage_source.name].to_numpy()
             except KeyError:  # assume that a voltage not specified in the sweep is grounded
                 vals = np.zeros_like(0, shape=len(df))
-            if (
-                len(vals) == 1
-            ):  # Ngspice does not support 1 element arrays ... so we just extend it.
+            if len(vals) == 1:
+                # spice does not support 1 element arrays ... so we just extend it.
                 vals = np.append(vals, vals)
                 one_ele_array = True
+            elif len(vals) > 1000:
+                raise IOError("ngspice only allows vectors up to 1000 length.")
+
             str_vec = (
                 "compose V_"
                 + voltage_source.name
