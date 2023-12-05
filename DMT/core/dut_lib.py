@@ -336,7 +336,7 @@ class DutLib(object):
         # find specified dut_type and append element
         for ty in devtype:
             for dut in self:
-                if dut.dut_type.is_subtype(ty):
+                if dut.dut_type.is_subtype(ty) or dut.dut_type == ty:
                     sorted_list.append(dut)
 
         return sorted_list

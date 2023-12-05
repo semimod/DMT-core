@@ -114,11 +114,10 @@ class DutCircuit(DutView):
         ):
             input_circuit = self.technology.scale_modelcard(
                 mcard=input_circuit,
-                lE0=self.length,
-                bE0=self.width,
+                lE_drawn=self.length,
+                bE_drawn=self.width,
                 nfinger=self.nfinger,
                 config=self.contact_config,
-                dut=self,
             )
 
         self.inp_header = input_circuit
@@ -320,5 +319,4 @@ class DutCircuit(DutView):
                 self.width,
                 self.nfinger,
                 self.contact_config,
-                dut=self,
             )

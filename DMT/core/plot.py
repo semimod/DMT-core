@@ -1723,6 +1723,13 @@ class Plot(object):
                 else:
                     x_min_restrict = self.x_limits[0] * 5
 
+                if self.x_limits[1] == 0:
+                    x_max_restrict = 1e-20
+                elif self.x_limits[1] > 0:
+                    x_max_restrict = self.x_limits[1] * 5
+                else:
+                    x_max_restrict = self.x_limits[1] / 5
+
                 if self.x_axis_scale == "linear":
                     str_limits += comment_restrict + "restrict x to domain={0:g}:{1:g},\n".format(
                         x_min_restrict * 1, x_max_restrict * 1
@@ -1762,14 +1769,14 @@ class Plot(object):
 
                 str_limits += f"{comment_restrict}restrict y to domain={y_min_restrict:g}:{y_max_restrict:g},\n"
 
-                if self.y_axis_scale == "linear":
-                    str_limits += comment_restrict + "restrict y to domain={0:g}:{1:g},\n".format(
-                        y_min_restrict * 1, y_max_restrict * 1
-                    )
-                else:
-                    str_limits += comment_restrict + "restrict y to domain={0:g}:{1:g},\n".format(
-                        np.log10(y_min_restrict) - 1, np.log10(y_max_restrict) + 1
-                    )
+                # if self.y_axis_scale == "linear":
+                #     str_limits += comment_restrict + "restrict y to domain={0:g}:{1:g},\n".format(
+                #         y_min_restrict * 1, y_max_restrict * 1
+                #     )
+                # else:
+                #     str_limits += comment_restrict + "restrict y to domain={0:g}:{1:g},\n".format(
+                #         np.log10(y_min_restrict) - 1, np.log10(y_max_restrict) + 1
+                #     )
             str_limits += "log basis y=10,\n"
             print("using pgf")
 

@@ -707,7 +707,7 @@ class DutNgspice(DutCircuit):
                 + " failed! An error was found!"
             )
 
-        if not re.search("Total elapsed time", log_content, re.IGNORECASE):
+        if not (re.search("Total elapsed time", log_content, re.IGNORECASE) or re.search("ngspice pages", log_content, re.IGNORECASE)):
             print("DMT - NGSPICE: Simulation not finished!")
             logging.debug("Log content:\n%s", log_content)
             raise SimulationUnsuccessful(
