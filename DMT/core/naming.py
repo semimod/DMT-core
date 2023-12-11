@@ -280,7 +280,8 @@ class SpecifierStr(str):
         if self.specifier in UNIT_PREFIX_MIX:  # mixed unit
             unit_with_prefix = UNIT_PREFIX_MIX[self.specifier][np.round(scale, decimals=10)]
 
-            return f"${self.to_tex(**kwargs):s}=\\SI{{{value * scale:.{decimals}f}}}{{{unit_with_prefix:s}{unit:s}}}$"
+            # return f"${self.to_tex(**kwargs):s}=\\SI{{{value * scale:.{decimals}f}}}{{{unit_with_prefix:s}{unit:s}}}$"
+            return f"${self.to_tex(**kwargs):s}=\\SI{{{value * scale:.{decimals}f}}}{{{unit_with_prefix:s}}}$"
 
         else:
             unit_prefix = UNIT_PREFIX[scale]

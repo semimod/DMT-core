@@ -319,5 +319,4 @@ class DutCircuit(DutView):
                 self.width,
                 self.nfinger,
                 self.contact_config,
-                dut=self,
             )

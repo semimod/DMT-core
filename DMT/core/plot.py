@@ -242,6 +242,7 @@ class Plot(object):
         legend_location="upper right",
         num=None,
         divide_by_unit=False,
+        caption=None,
     ):
         """
         Parameters
@@ -367,6 +368,8 @@ class Plot(object):
             self.y_axis_scale = "log"
         else:
             self.y_axis_scale = "linear"
+
+        self.caption = caption
 
     def set_x_label(self, x_label=None, x_specifier=None, x_scale=None):
         """Set the x label. Either using directly a string or a specifier.
