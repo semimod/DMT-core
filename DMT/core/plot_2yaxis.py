@@ -84,6 +84,10 @@ class Plot2YAxis(object):
         # self.lines_left = []
         # self.lines_right = []
 
+    @property
+    def caption(self):
+        return self.plot_left.caption + self.plot_right.caption
+
     def plot_py(
         self,
         show=True,

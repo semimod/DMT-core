@@ -254,6 +254,8 @@ class DutLib(object):
         self.date_tapeout = None
         self.date_received = None
 
+        self.plots = []  # list of plots for the documentation.
+
     @property
     def dut_ref(self):
         """Returns always just self._dut_ref"""

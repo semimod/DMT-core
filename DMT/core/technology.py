@@ -65,7 +65,7 @@ class Technology(object):
             A Modelcard that contains all parameters that are required for scaling, as well as the parameters that shall be scaled.
         """
         doc = Tex()
-        with doc.create(Section("Technology :" + self.name)):
+        with doc.create(Section("Technology: " + self.name)):
             doc.append("Technology description missing")
         return doc
 
