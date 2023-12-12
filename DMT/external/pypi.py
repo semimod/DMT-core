@@ -52,7 +52,23 @@ def get_pypi_url(package="DMT-core", version=None, pattern=".whl"):
     str
         url to download the file from
     """
-    package = requests.get(f"https://pypi.python.org/pypi/{package:s}/json").json()
+    package = requests.get(
+        f"https://pypi.python.org/pypi/{package:s}/json",
+        headers={
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+            "Accept-Encoding": "gzip, deflate, br",
+            "Accept-Language": "en-US,en;q=0.5",
+            "Connection": "keep-alive",
+            "DNT": "1",
+            "Host": "pypi.org",
+            "Sec-Fetch-Dest": "document",
+            "Sec-Fetch-Mode": "navigate",
+            "Sec-Fetch-Site": "none",
+            "Sec-Fetch-User": "?1",
+            "Upgrade-Insecure-Requests": "1",
+            "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:120.0) Gecko/20100101 Firefox/120.0",
+        },
+    ).json()
     if "message" in package and package["message"] == "Not Found":
         raise IOError("DMT->pypi: Package not found as a pypi python module.")
 
@@ -79,7 +95,23 @@ def check_version(to_check, package="DMT-core"):
         raise IOError("The DMT naming schneme is: X.Y.Z-rc.A")
 
     # try:
-    package = requests.get(f"https://pypi.python.org/pypi/{package:s}/json").json()
+    package = requests.get(
+        f"https://pypi.python.org/pypi/{package:s}/json",
+        headers={
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+            "Accept-Encoding": "gzip, deflate, br",
+            "Accept-Language": "en-US,en;q=0.5",
+            "Connection": "keep-alive",
+            "DNT": "1",
+            "Host": "pypi.org",
+            "Sec-Fetch-Dest": "document",
+            "Sec-Fetch-Mode": "navigate",
+            "Sec-Fetch-Site": "none",
+            "Sec-Fetch-User": "?1",
+            "Upgrade-Insecure-Requests": "1",
+            "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:120.0) Gecko/20100101 Firefox/120.0",
+        },
+    ).json()
     if package.get("message") == "Not Found":
         # did not find package on pypi
         # so any version which is parseable is ok
