@@ -1541,7 +1541,7 @@ class Plot(object):
             str_tikz_picture = (
                 "\\begin{tikzpicture}[font=\\"
                 + fontsize
-                + ",trim axis left, trim axis right,tight background]\n"
+                + ", trim axis left, trim axis right, tight background]\n"
                 + "\\pgfplotsset{every axis/.append style={"
                 + line_width
                 + "},compat=1.5},\n"
@@ -1589,8 +1589,20 @@ class Plot(object):
             str_limits += f"xmax={x_max:g},\n"
 
             if x_axis._scale.name == "linear":
-                x_min_restrict = x_min / 5 if x_min > 0 else x_min * 5
-                x_max_restrict = x_max / 5 if x_max < 0 else x_max * 5
+                if x_min == 0:
+                    x_min_restrict = -1e-20
+                elif x_min > 0:
+                    x_min_restrict = x_min / 5
+                else:
+                    x_min_restrict = x_min * 5
+
+                if x_max == 0:
+                    x_max_restrict = 1e-20
+                elif x_max < 0:
+                    x_max_restrict = x_max / 5
+                else:
+                    x_max_restrict = x_max * 5
+
                 str_limits += comment_restrict + "restrict x to domain={0:g}:{1:g},\n".format(
                     x_min_restrict, x_max_restrict
                 )
@@ -1605,8 +1617,19 @@ class Plot(object):
             str_limits += "ymin={0:g},\n".format(y_min)
             str_limits += "ymax={0:g},\n".format(y_max)
             if y_axis._scale.name == "linear":
-                y_min_restrict = y_min / 5 if y_min > 0 else y_min * 5
-                y_max_restrict = y_max / 5 if y_max < 0 else y_max * 5
+                if y_min == 0:
+                    y_min_restrict = -1e-20
+                elif y_min > 0:
+                    y_min_restrict = y_min / 5
+                else:
+                    y_min_restrict = y_min * 5
+
+                if y_max == 0:
+                    y_max_restrict = 1e-20
+                elif y_max < 0:
+                    y_max_restrict = y_max / 5
+                else:
+                    y_max_restrict = y_max * 5
                 str_limits += comment_restrict + "restrict y to domain={0:g}:{1:g},\n".format(
                     y_min_restrict, y_max_restrict
                 )
@@ -1779,11 +1802,12 @@ class Plot(object):
 
         str_shift_labels = ""
         if fontsize == "normalsize":
-            str_shift_labels = "xlabel shift = -5 pt,\n ylabel shift = -5 pt,\n"
+            str_shift_labels = "xlabel shift=-5pt,\n ylabel shift=-5pt,\n"
 
         ### header
         str_axis = (
-            "\n\\begin{axis}[scale only axis,ytick pos=left,\n"
+            "\n\\begin{axis}[\n"
+            + "scale only axis,\n"
             # + fontsize+",\n"
             + str_width
             + str_height
@@ -1798,6 +1822,7 @@ class Plot(object):
             + str_limits
             + str_x_ticks
             + str_y_ticks
+            + "ytick pos=left,\n"
             + str_shift_labels
             + "xmajorgrids,\n"
             + "enlargelimits=false,\n"

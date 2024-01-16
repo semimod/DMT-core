@@ -337,11 +337,13 @@ class MCard(McParameterCollection):
 
                 if para.min > para_properties.min:
                     para.min = para_properties.min
-                    para.inc_min = para_properties.min_inclusive  # type: ignore
+
+                para.inc_min = para_properties.min_inclusive  # type: ignore
 
                 if para.max < para_properties.max:
                     para.max = para_properties.max
-                    para.inc_max = para_properties.max_inclusive  # type: ignore
+
+                para.inc_max = para_properties.max_inclusive  # type: ignore
 
                 para.unit = unit_converter[para_properties.unit]  # type: ignore
                 para.description = para_properties.description  # type: ignore
