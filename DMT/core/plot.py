@@ -1544,7 +1544,7 @@ class Plot(object):
                 + ", trim axis left, trim axis right, tight background]\n"
                 + "\\pgfplotsset{every axis/.append style={"
                 + line_width
-                + "},compat=1.5},\n"
+                + "},compat=1.5}\n"
             )
         str_height = "" if height is None else "height=" + height + ",\n"
         if width is None:
