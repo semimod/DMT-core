@@ -4,6 +4,7 @@ Author:
     Mario Krattenmacher | Mario.Krattenmacher@semimod.de
     Markus Mueller | Markus.Mueller3@tu-dresden.de
 """
+
 # DMT_core
 # Copyright (C) from 2022  SemiMod
 # Copyright (C) until 2021  Markus Müller, Mario Krattenmacher and Pascal Kuthe
@@ -662,15 +663,17 @@ class Plot(object):
 
             xtraction_markers = []
             for i, marker in enumerate(markers[:n_styles]):
-                xtraction_markers.append(None)
                 xtraction_markers.append(marker)
                 xtraction_markers.append(None)
-                xtraction_markers.append(markers[i + 1])
+                xtraction_markers.append(None)
+                xtraction_markers.append(None)
+
+                # xtraction_markers.append(markers[i + 1])
 
             xtraction_lstyle = []
             for marker in markers[:n_styles]:
-                xtraction_lstyle.append("-")
                 xtraction_lstyle.append("")
+                xtraction_lstyle.append("-")
                 xtraction_lstyle.append("--")
                 xtraction_lstyle.append("-.")
 
