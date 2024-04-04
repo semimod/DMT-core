@@ -4,6 +4,7 @@ Implements a extended pandas.DataFrame. It is based on the pandas.DataFrame and 
 This includes easy management of small signal parameter and other quantities which can be calculated from them.
 
 """
+
 # DMT_core
 # Copyright (C) from 2022  SemiMod
 # Copyright (C) until 2021  Markus Müller, Mario Krattenmacher and Pascal Kuthe
@@ -2168,8 +2169,8 @@ class DataFrame(DataProcessor, pd.DataFrame):
     def calc_gm(self, ports=["B", "C", "E"]):
         """Calculates the DC transconductance of a BJT.
 
-        Arguments
-        --------
+        Parameters
+        ----------
         ports : [str], None
             If None, BJT contact ports are assumed. Else it is assumed that ports[2] is the
             grounded contact, ports[0] is the input port (gate/base) and ports[1] is the output port.
@@ -2216,8 +2217,8 @@ class DataFrame(DataProcessor, pd.DataFrame):
     def calc_go(self, ports=["B", "C", "E"]):
         """Calculates the DC output condutance of a BJT or generic transistor in common emitter/source configuration.
 
-        Arguments
-        --------
+        Parameters
+        ----------
         ports : [str], None
             If None, BJT contact ports are assumed. Else it is assumed that ports[2] is the
             grounded contact, ports[0] is the input port (gate/base) and ports[1] is the output port.

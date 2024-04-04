@@ -2,6 +2,7 @@
 
 Author: Mario Krattenmacher | Mario.Krattenmacher@semimod.de
 """
+
 # DMT
 # Copyright (C) from 2022  SemiMod
 # <https://gitlab.com/dmt-development/dmt-device>
@@ -35,7 +36,7 @@ class McSkywater(MCard):
     """All model parameters of Skywater130 pdk models
 
     Parameters
-    -----------
+    ----------
     load_model_from_path : str, optional
         Initialise the modelcard with the parameter from the given file path.
     version : float, optional
