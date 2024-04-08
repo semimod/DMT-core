@@ -510,13 +510,17 @@ class McParameter(object):
         # type check, either int or float is allowed
         if self.val_type == int:
             if int(value) != value:
-                raise TypeError(f"The parameter {self:s} is of type Integer!")
+                raise TypeError(
+                    f"The parameter {self:s} is of type Integer! Given was {value} of type {type(value)}."
+                )
 
             value = int(value)
         elif not isinstance(
             value, (int, float)
         ):  # for floats also integer are allowed. This catches everything else like strings or lists etc.
-            raise TypeError(f"The parameter {self:s} is of type Float!")
+            raise TypeError(
+                f"The parameter {self:s} is of type Float! Given was {value} of type {type(value)}."
+            )
 
         # range check
         value_too_large = False
