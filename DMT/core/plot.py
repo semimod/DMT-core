@@ -81,8 +81,8 @@ try:
         "\\sisetup{range-units=repeat, list-units=repeat, binary-units, exponent-product = \\cdot, print-unity-mantissa=false}\n",
         "\\DeclareSIUnit\\sq{\\ensuremath{\\Box}}\n",
         "\\DeclareSIUnit\\degC{\\degreeCelsius}\n",
-        "\\DeclareUnicodeCharacter{221E}{$\infty$}\n",
-        "\\DeclareUnicodeCharacter{03A9}{$\Omega$}\n",
+        "\\DeclareUnicodeCharacter{221E}{$\\infty$}\n",
+        "\\DeclareUnicodeCharacter{03A9}{$\\Omega$}\n",
     ]
     packages_to_add = []
     str_user_packages = "".join(matplotlib.rcParams["text.latex.preamble"])
