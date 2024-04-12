@@ -186,5 +186,5 @@ def test_lib_save_load():
 
 
 if __name__ == "__main__":
-    # lib_test = test_docu()
+    lib_test = test_docu()
     test_lib_save_load()

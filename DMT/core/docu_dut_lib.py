@@ -1,5 +1,6 @@
 """ Automatic documentation for DutLib
 """
+
 # Copyright (C) from 2022  SemiMod
 # <https://gitlab.com/dmt-development/dmt-core>
 #
@@ -351,7 +352,7 @@ class DocuDutLib(object):
         else:
             self.date = date
 
-        self.plts = []
+        self.plts: List[Plot] = []
 
     def generate_docu(
         self,
@@ -483,23 +484,44 @@ class DocuDutLib(object):
             for dut in self.duts:
                 if dut.dut_type != plot_spec["dut_type"]:
                     continue
-                # load default settings of plot
-                try:
-                    x_log = PLOT_DEFAULTS[dut.dut_type][plot_type]["x_log"]
-                    y_log = PLOT_DEFAULTS[dut.dut_type][plot_type]["y_log"]
-                    quantity_x = PLOT_DEFAULTS[dut.dut_type][plot_type]["quantity_x"]
-                    quantity_y = PLOT_DEFAULTS[dut.dut_type][plot_type]["quantity_y"]
-                    legend_location = PLOT_DEFAULTS[dut.dut_type][plot_type]["legend_location"]
-                    at_specifier = PLOT_DEFAULTS[dut.dut_type][plot_type]["at"]
-                except KeyError:
-                    continue  # no plot_type in plot_defaults for this plot_spec
 
-                # overwrite defaults with plot_spec
-                legend_location = plot_spec.get("legend_location", legend_location)
-                at_specifier = plot_spec.get("at_specifier", at_specifier)
+                x_log = plot_spec.get("x_log", PLOT_DEFAULTS[dut.dut_type][plot_type]["x_log"])
+                y_log = plot_spec.get("y_log", PLOT_DEFAULTS[dut.dut_type][plot_type]["y_log"])
+                quantity_x = plot_spec.get(
+                    "quantity_x", PLOT_DEFAULTS[dut.dut_type][plot_type]["quantity_x"]
+                )
+                quantity_y = plot_spec.get(
+                    "quantity_y", PLOT_DEFAULTS[dut.dut_type][plot_type]["quantity_y"]
+                )
+
+                # loat settings from plot_spec with additions from defaults
+                legend_location = plot_spec.get(
+                    "legend_location", PLOT_DEFAULTS[dut.dut_type][plot_type]["legend_location"]
+                )
+                at_specifier = plot_spec.get(
+                    "at_specifier", PLOT_DEFAULTS[dut.dut_type][plot_type]["at"]
+                )
 
                 if not isinstance(at_specifier, list):
                     at_specifier = [at_specifier]
+
+                if "xmin" in plot_spec.keys() or "xmax" in plot_spec.keys():
+                    x_limits = (plot_spec.get("xmin", None), plot_spec.get("xmax", None))
+                else:
+                    try:
+                        x_limits = PLOT_DEFAULTS[dut.dut_type][plot_type]["x_limits"]
+                    except KeyError:
+                        x_limits = (None, None)
+
+                if "ymin" in plot_spec.keys() or "ymax" in plot_spec.keys():
+                    y_limits = (plot_spec.get("ymin", None), plot_spec.get("ymax", None))
+                else:
+                    try:
+                        y_limits = PLOT_DEFAULTS[dut.dut_type][plot_type]["y_limits"]
+                    except KeyError:
+                        y_limits = (None, None)
+
+                caption = plot_spec.get("caption", PLOT_DEFAULTS[dut.dut_type][plot_type]["tex"])
 
                 quantities_to_ensure = [quantity_x, quantity_y] + at_specifier
                 if "mark_ft" in plot_type:
@@ -574,6 +596,7 @@ class DocuDutLib(object):
                     plt.dut = dut
                     plt.temp = temp
                     plt.plot_spec = plot_spec
+                    plt.caption = caption
 
                     n = 0
                     for key in dut.data.keys():
@@ -755,31 +778,8 @@ class DocuDutLib(object):
 
                                 n = n + 1
 
-                            if "ymin" in plot_spec.keys() or "ymax" in plot_spec.keys():
-                                if not "ymin" in plot_spec.keys():
-                                    plot_spec["ymin"] = None
-                                if not "ymax" in plot_spec.keys():
-                                    plot_spec["ymax"] = None
-                                plt.y_limits = (plot_spec["ymin"], plot_spec["ymax"])
-
-                            else:
-                                try:
-                                    plt.y_limits = PLOT_DEFAULTS[plot_type]["y_limits"]
-                                except KeyError:
-                                    pass
-
-                            if "xmin" in plot_spec.keys() or "xmax" in plot_spec.keys():
-                                if not "xmin" in plot_spec.keys():
-                                    plot_spec["xmin"] = None
-                                if not "xmax" in plot_spec.keys():
-                                    plot_spec["xmax"] = None
-                                plt.x_limits = (plot_spec["xmin"], plot_spec["xmax"])
-
-                            else:
-                                try:
-                                    plt.x_limits = PLOT_DEFAULTS[plot_type]["x_limits"]
-                                except KeyError:
-                                    pass
+                            plt.x_limits = x_limits
+                            plt.y_limits = y_limits
 
                     # plots that required to mark peak of ft are accounted for here.
                     if plot_type == "gummel_vbc_mark_ft":
@@ -1001,13 +1001,7 @@ class DocuDutLib(object):
                                                     + str(plt.path.relative_to(destination))
                                                     + '"'
                                                 )
-                                                _plot.add_caption(
-                                                    NoEscape(
-                                                        PLOT_DEFAULTS[dut.dut_type][plt.plot_type][
-                                                            "tex"
-                                                        ]
-                                                    )
-                                                )
+                                                _plot.add_caption(NoEscape(plt.caption))
                                                 # _plot.append(CommandLabel(arguments=Argument(plt.dut_name + plt.)))
 
                                             doc.append(NoEscape(r"\FloatBarrier "))
