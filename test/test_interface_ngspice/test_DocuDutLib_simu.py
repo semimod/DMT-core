@@ -186,7 +186,7 @@ def test_docu_with_sim():
     docu_path = tmp_path / "docu_dut_lib_sim"
     docu.generate_docu(
         docu_path,
-        plot_specs=[{"type": "gummel_vbc", "key": "fgummel"}],
+        plot_specs=[{"type": "gummel_vbc", "key": "fgummel", "style": "xtraction_color"}],
         show=False,  # not possible in CI/CD
         save_tikz_settings={
             "width": "3in",

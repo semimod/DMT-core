@@ -35,6 +35,7 @@ from DMT.core import (
     MCard,
     DutCircuit,
     DutMeas,
+    SimCon,
 )
 from DMT.core.plot import MIX, PLOT_STYLES, natural_scales, Plot
 from DMT.external.os import recursive_copy, rmtree
@@ -317,7 +318,7 @@ class DocuDutLib(object):
         dut_lib: DutLib,
         devices: Optional[Sequence[Mapping[str, object]]] = None,
         date: Optional[str] = None,
-        modelcard: Optional[MCard] = None,
+        modelcard_dict: Optional[Dict[DutType, MCard]] = None,
         DutCircuitClass: Optional[DutCircuit] = None,
         get_circuit_arguments: Optional[Dict] = None,
     ):
@@ -366,7 +367,7 @@ class DocuDutLib(object):
 
         self.plts: List[Plot] = []
 
-        self.modelcard = modelcard
+        self.modelcard_dict = modelcard_dict
         self.DutCircuitClass = DutCircuitClass
         if get_circuit_arguments is None:
             self.get_circuit_arguments = {}
@@ -378,7 +379,7 @@ class DocuDutLib(object):
         dut = self.DutCircuitClass(
             database_dir=None,
             dut_type=dut_meas.dut_type,
-            input_circuit=self.modelcard,
+            input_circuit=self.modelcard_dict[dut_meas.dut_type],
             technology=dut_meas.technology,  # needed for scaling!
             width=dut_meas.width,
             length=dut_meas.length,
@@ -410,11 +411,6 @@ class DocuDutLib(object):
             If True, the plots are displayed before the documentation folder is created, by default False
         """
         self.create_all_plots(plot_specs)
-
-        # TODO
-        # technology -> one lib can have more than one technology...
-        # mcard
-        # ADD data from mcard simulation
 
         if show and len(self.plts) > 1:
             for plt in self.plts[:-1]:
@@ -450,6 +446,7 @@ class DocuDutLib(object):
                     'ymax'        : 300,         #optional, float: Maximum Value on y-axis to be displayed
                     'ymin'        : 0,           #optional, float: Minimum Value on y-axis to be displayed
                     'no_at'       : True,        #optional, Bool: if True, do not display the "at" quantities in the legend.
+                    'simulate'    : True,        #optional, Bool: if True, a matching simulation is added to the plot, if not given, default is True
                 },
 
         """
@@ -459,6 +456,7 @@ class DocuDutLib(object):
             "dut_type": DutType.npn,
             "no_at": False,  # no at_specifier= in legend
         }
+        sim_con = SimCon()
 
         # set defaults
         for plot_spec in plot_specs:
@@ -519,6 +517,12 @@ class DocuDutLib(object):
             for dut in self.duts:
                 if dut.dut_type != plot_spec["dut_type"]:
                     continue
+                if plot_spec.get(
+                    "simulate", PLOT_DEFAULTS[dut.dut_type][plot_type].get("simulate", True)
+                ):
+                    dut_sim = self.get_dut_sim(dut)
+                else:
+                    dut_sim = None
 
                 quantity_x = plot_spec.get(
                     "quantity_x", PLOT_DEFAULTS[dut.dut_type][plot_type]["quantity_x"]
@@ -796,6 +800,20 @@ class DocuDutLib(object):
                                     peaks["vbe"].append(np.tile(vbe_peak, 10))
                                     peaks["jc"].append(np.tile(jc_peak, 10))
                                     peaks["vbc"].append(np.tile(point[0], 10))
+
+                                if dut_sim is not None:
+                                    # get a sweep
+
+                                    # simulate
+                                    sim_con.append_simulation(dut=dut_sim, sweep=sweep)
+                                    sim_con.run_and_read()
+                                    # add to plot
+                                    df_sim = dut_sim.get_data(sweep=sweep)
+                                    plt.add_data_set(
+                                        df_sim[quantity_x].to_numpy(),
+                                        df_sim[quantity_y].to_numpy(),
+                                        label=label + " sim",
+                                    )
 
                             plt.x_limits = x_limits
                             plt.y_limits = y_limits
