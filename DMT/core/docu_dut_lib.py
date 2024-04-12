@@ -1,5 +1,6 @@
 """ Automatic documentation for DutLib
 """
+
 # Copyright (C) from 2022  SemiMod
 # <https://gitlab.com/dmt-development/dmt-core>
 #
@@ -351,7 +352,7 @@ class DocuDutLib(object):
         else:
             self.date = date
 
-        self.plts = []
+        self.plts: List[Plot] = []
 
     def generate_docu(
         self,
@@ -483,23 +484,54 @@ class DocuDutLib(object):
             for dut in self.duts:
                 if dut.dut_type != plot_spec["dut_type"]:
                     continue
-                # load default settings of plot
-                try:
-                    x_log = PLOT_DEFAULTS[dut.dut_type][plot_type]["x_log"]
-                    y_log = PLOT_DEFAULTS[dut.dut_type][plot_type]["y_log"]
-                    quantity_x = PLOT_DEFAULTS[dut.dut_type][plot_type]["quantity_x"]
-                    quantity_y = PLOT_DEFAULTS[dut.dut_type][plot_type]["quantity_y"]
-                    legend_location = PLOT_DEFAULTS[dut.dut_type][plot_type]["legend_location"]
-                    at_specifier = PLOT_DEFAULTS[dut.dut_type][plot_type]["at"]
-                except KeyError:
-                    continue  # no plot_type in plot_defaults for this plot_spec
 
-                # overwrite defaults with plot_spec
-                legend_location = plot_spec.get("legend_location", legend_location)
-                at_specifier = plot_spec.get("at_specifier", at_specifier)
+                quantity_x = plot_spec.get(
+                    "quantity_x", PLOT_DEFAULTS[dut.dut_type][plot_type]["quantity_x"]
+                )
+                x_log = plot_spec.get(
+                    "x_log", PLOT_DEFAULTS[dut.dut_type][plot_type].get("x_log", False)
+                )
+                x_scale = plot_spec.get(
+                    "x_scale", PLOT_DEFAULTS[dut.dut_type][plot_type].get("x_scale", None)
+                )
+                quantity_y = plot_spec.get(
+                    "quantity_y", PLOT_DEFAULTS[dut.dut_type][plot_type]["quantity_y"]
+                )
+                y_log = plot_spec.get(
+                    "y_log", PLOT_DEFAULTS[dut.dut_type][plot_type].get("y_log", False)
+                )
+                y_scale = plot_spec.get(
+                    "y_scale", PLOT_DEFAULTS[dut.dut_type][plot_type].get("y_scale", None)
+                )
+
+                # loat settings from plot_spec with additions from defaults
+                legend_location = plot_spec.get(
+                    "legend_location", PLOT_DEFAULTS[dut.dut_type][plot_type]["legend_location"]
+                )
+                at_specifier = plot_spec.get(
+                    "at_specifier", PLOT_DEFAULTS[dut.dut_type][plot_type]["at"]
+                )
 
                 if not isinstance(at_specifier, list):
                     at_specifier = [at_specifier]
+
+                if "xmin" in plot_spec.keys() or "xmax" in plot_spec.keys():
+                    x_limits = (plot_spec.get("xmin", None), plot_spec.get("xmax", None))
+                else:
+                    try:
+                        x_limits = PLOT_DEFAULTS[dut.dut_type][plot_type]["x_limits"]
+                    except KeyError:
+                        x_limits = (None, None)
+
+                if "ymin" in plot_spec.keys() or "ymax" in plot_spec.keys():
+                    y_limits = (plot_spec.get("ymin", None), plot_spec.get("ymax", None))
+                else:
+                    try:
+                        y_limits = PLOT_DEFAULTS[dut.dut_type][plot_type]["y_limits"]
+                    except KeyError:
+                        y_limits = (None, None)
+
+                caption = plot_spec.get("caption", PLOT_DEFAULTS[dut.dut_type][plot_type]["tex"])
 
                 quantities_to_ensure = [quantity_x, quantity_y] + at_specifier
                 if "mark_ft" in plot_type:
@@ -523,12 +555,11 @@ class DocuDutLib(object):
                     at_scale.append(at_scale_)
 
                 print(f"Generating plot of type {plot_type} for dut {dut.name} ...")
-                name = ["dut_", dut.name, "_", plot_type]
+                name = [dut.name, plot_type]
                 if specifiers.TEMPERATURE in plot_spec.keys():
                     name.append("atT" + str(plot_spec[specifiers.TEMPERATURE]) + "K")
                 if specifiers.FREQUENCY in plot_spec.keys():
                     name.append("atf" + str(plot_spec[specifiers.FREQUENCY] * 1e-9) + "GHz")
-
                 for at_ in at_specifier:
                     name.append("at" + at_)
 
@@ -540,19 +571,14 @@ class DocuDutLib(object):
                 # find temperatures
                 temps = []
                 for key in dut.data.keys():
-                    temps.append(dut.get_key_temperature(key))
+                    temp = dut.get_key_temperature(key)
+                    if specifiers.TEMPERATURE in plot_spec and np.isclose(
+                        temp, plot_spec[specifiers.TEMPERATURE]
+                    ):
+                        temps.append(dut.get_key_temperature(key))
                 temps = list(set(temps))
 
                 for temp in temps:
-                    y_scale = None
-                    x_label = None  # autolabel
-                    y_label = None
-                    if (
-                        quantity_y.specifier in specifiers.SS_PARA_Y
-                    ):  # special cases that I do not want in DMT
-                        y_scale = 1e3 / (1e6 * 1e6)  # mS/um^2
-                        y_label = r"$\Re{ \left\{ Y_{21} \right\} } / \si{\milli\siemens\per\square\micro\meter } $"
-
                     plt = Plot(
                         name,
                         style=style,
@@ -561,9 +587,8 @@ class DocuDutLib(object):
                         y_specifier=quantity_y,
                         x_log=x_log,
                         y_log=y_log,
+                        x_scale=x_scale,
                         y_scale=y_scale,
-                        x_label=x_label,
-                        y_label=y_label,
                         legend_location=legend_location,
                     )
                     plt.dut_name = (
@@ -574,16 +599,12 @@ class DocuDutLib(object):
                     plt.dut = dut
                     plt.temp = temp
                     plt.plot_spec = plot_spec
+                    plt.caption = caption
 
-                    n = 0
                     for key in dut.data.keys():
                         # selected only keys at temp
                         if not dut.get_key_temperature(key) == temp:
                             continue
-
-                        if specifiers.TEMPERATURE in plot_spec.keys():
-                            if temp != plot_spec[specifiers.TEMPERATURE]:
-                                continue  # key not suitable
 
                         match = False
                         if plot_spec["exact_match"]:
@@ -644,12 +665,6 @@ class DocuDutLib(object):
                                         df.loc[:, quantity] = temp + pdiss * rth
                                         dut.rth = rth
 
-                                try:
-                                    if quantity.specifier in specifiers_ss_para.SS_PARA_Y:
-                                        df.loc[:, quantity] = df[quantity] / AE0_drawn
-                                except:
-                                    pass
-
                             at_vals = []
                             for i, at_ in enumerate(at_specifier):
                                 at_val = df[at_].to_numpy()
@@ -670,9 +685,9 @@ class DocuDutLib(object):
 
                                 at_vals.append(at_val)
 
-                            units = []
-                            for i, at_ in enumerate(at_specifier):
-                                units.append(at_.get_tex_unit(scale=at_scale[i]))
+                            # units = []
+                            # for i, at_ in enumerate(at_specifier):
+                            #     units.append(at_.get_tex_unit(scale=at_scale[i]))
 
                             f = []
                             if len(at_specifier) == 1:
@@ -685,40 +700,35 @@ class DocuDutLib(object):
 
                             for point in f:
                                 df_filter = True
-                                at_str = r"$"
-                                for i, (speci, u, scale_) in enumerate(
-                                    zip(at_specifier, units, at_scale)
-                                ):
+                                at_str = ""
+                                for i, at_speci in enumerate(at_specifier):
                                     df_filter = np.logical_and(
                                         df_filter,
-                                        np.isclose(df[speci], point[i], rtol=1e-3),
+                                        np.isclose(df[at_speci], point[i], rtol=1e-3),
                                     )
-                                    if at_str != r"$":
-                                        at_str += r",\,"
-                                    if plot_spec["no_at"]:
-                                        at_str += r"{0:1.2f}".format(point[i] * scale_) + u
-                                    else:
-                                        at_str += (
-                                            speci.to_tex()
-                                            + r" = {0:1.2f}".format(point[i] * scale_)
-                                            + u
-                                        )
 
-                                at_str += r"$"
+                                    if at_str:
+                                        at_str += r",\,"
+
+                                    curr_str = at_speci.to_legend_with_value(point[i], decimals=2)
+
+                                    if plot_spec["no_at"]:
+                                        # only the number
+                                        at_str += "$" + curr_str.split("=")[1]
+                                    else:
+                                        at_str += curr_str
+
                                 df_tmp = df[df_filter]
                                 x = df_tmp[quantity_x].to_numpy()
                                 y = df_tmp[quantity_y].to_numpy()
 
                                 # device if legend is wanted...default yes
-                                kwargs = {}
-                                if plot_spec["legend"]:
-                                    kwargs["label"] = at_str
+                                if "legend" in plot_spec and not plot_spec["legend"]:
+                                    label = None
+                                else:
+                                    label = at_str
 
-                                plt.add_data_set(
-                                    x,
-                                    y,
-                                    **kwargs,
-                                )
+                                plt.add_data_set(x, y, label=label)
 
                                 # add dots at peak ft
                                 if "mark_ft" in plot_type:
@@ -742,7 +752,6 @@ class DocuDutLib(object):
 
                                     vbe_peak = vbe_new[index_peak_ft]
                                     jc_peak = interp_fun_ic(vbe_new[index_peak_ft])
-                                    vbc_peak = point
 
                                     plt.add_data_set(
                                         np.tile(np.array(vbe_peak), 5),
@@ -753,33 +762,8 @@ class DocuDutLib(object):
                                     peaks["jc"].append(np.tile(jc_peak, 10))
                                     peaks["vbc"].append(np.tile(point[0], 10))
 
-                                n = n + 1
-
-                            if "ymin" in plot_spec.keys() or "ymax" in plot_spec.keys():
-                                if not "ymin" in plot_spec.keys():
-                                    plot_spec["ymin"] = None
-                                if not "ymax" in plot_spec.keys():
-                                    plot_spec["ymax"] = None
-                                plt.y_limits = (plot_spec["ymin"], plot_spec["ymax"])
-
-                            else:
-                                try:
-                                    plt.y_limits = PLOT_DEFAULTS[plot_type]["y_limits"]
-                                except KeyError:
-                                    pass
-
-                            if "xmin" in plot_spec.keys() or "xmax" in plot_spec.keys():
-                                if not "xmin" in plot_spec.keys():
-                                    plot_spec["xmin"] = None
-                                if not "xmax" in plot_spec.keys():
-                                    plot_spec["xmax"] = None
-                                plt.x_limits = (plot_spec["xmin"], plot_spec["xmax"])
-
-                            else:
-                                try:
-                                    plt.x_limits = PLOT_DEFAULTS[plot_type]["x_limits"]
-                                except KeyError:
-                                    pass
+                            plt.x_limits = x_limits
+                            plt.y_limits = y_limits
 
                     # plots that required to mark peak of ft are accounted for here.
                     if plot_type == "gummel_vbc_mark_ft":
@@ -802,19 +786,13 @@ class DocuDutLib(object):
                             pass
 
                     print(
-                        "...finished plot of type "
-                        + plot_type
-                        + " for dut "
-                        + dut.name
-                        + " , found "
-                        + str(n)
-                        + " lines."
+                        f"...finished plot of type {plot_type} for dut {dut.name}, found {len(dut.data)} lines."
                     )
 
-                    if n == 0:
-                        print("Found no lines for plot " + plot_type + " .")
-                    else:
+                    if dut.data:
                         self.plts.append(plt)
+                    else:
+                        print("Found no lines for plot " + plot_type + ". Plot is not added!")
 
     def generate_all_plots(
         self,
@@ -1001,13 +979,7 @@ class DocuDutLib(object):
                                                     + str(plt.path.relative_to(destination))
                                                     + '"'
                                                 )
-                                                _plot.add_caption(
-                                                    NoEscape(
-                                                        PLOT_DEFAULTS[dut.dut_type][plt.plot_type][
-                                                            "tex"
-                                                        ]
-                                                    )
-                                                )
+                                                _plot.add_caption(NoEscape(plt.caption))
                                                 # _plot.append(CommandLabel(arguments=Argument(plt.dut_name + plt.)))
 
                                             doc.append(NoEscape(r"\FloatBarrier "))
