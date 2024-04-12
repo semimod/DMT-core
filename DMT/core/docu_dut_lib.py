@@ -26,7 +26,16 @@ from typing import Dict, List, Mapping, Sequence, Optional, Union
 from joblib import Parallel, delayed
 from scipy import interpolate
 from DMT.config import COMMAND_TEX, DATA_CONFIG
-from DMT.core import DutType, DutLib, specifiers, sub_specifiers, specifiers_ss_para
+from DMT.core import (
+    DutType,
+    DutLib,
+    specifiers,
+    sub_specifiers,
+    specifiers_ss_para,
+    MCard,
+    DutCircuit,
+    DutMeas,
+)
 from DMT.core.plot import MIX, PLOT_STYLES, natural_scales, Plot
 from DMT.external.os import recursive_copy, rmtree
 
@@ -307,7 +316,10 @@ class DocuDutLib(object):
         self,
         dut_lib: DutLib,
         devices: Optional[Sequence[Mapping[str, object]]] = None,
-        date=None,
+        date: Optional[str] = None,
+        modelcard: Optional[MCard] = None,
+        DutCircuitClass: Optional[DutCircuit] = None,
+        get_circuit_arguments: Optional[Dict] = None,
     ):
         self.dut_lib = dut_lib
 
@@ -353,6 +365,29 @@ class DocuDutLib(object):
             self.date = date
 
         self.plts: List[Plot] = []
+
+        self.modelcard = modelcard
+        self.DutCircuitClass = DutCircuitClass
+        if get_circuit_arguments is None:
+            self.get_circuit_arguments = {}
+        else:
+            self.get_circuit_arguments = get_circuit_arguments
+
+    def get_dut_sim(self, dut_meas: DutMeas):
+        """Retrieve a circuit dut view which should be compared to the given dut_meas"""
+        dut = self.DutCircuitClass(
+            database_dir=None,
+            dut_type=dut_meas.dut_type,
+            input_circuit=self.modelcard,
+            technology=dut_meas.technology,  # needed for scaling!
+            width=dut_meas.width,
+            length=dut_meas.length,
+            contact_config=dut_meas.contact_config,
+            nfinger=dut_meas.nfinger,
+            reference_node=dut_meas.reference_node,
+            get_circuit_arguments=self.get_circuit_arguments,
+        )
+        return dut
 
     def generate_docu(
         self,
