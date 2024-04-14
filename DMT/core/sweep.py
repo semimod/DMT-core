@@ -6,6 +6,7 @@ Features:
 * Clear syntax and definition to create a well described simulation independent of the simulator interface.
 
 """
+
 # DMT_core
 # Copyright (C) from 2022  SemiMod
 # Copyright (C) until 2021  Markus Müller, Mario Krattenmacher and Pascal Kuthe
@@ -57,9 +58,9 @@ def get_sweepdef(
     data : DataFrame
         Frame to extract the sweepdefs from
     inner_sweep_voltage : SpecifierStr | None, optional
-        A specifier that determiens the inner sweep voltage, by default None
+        A specifier that determins the inner sweep voltage, by default None
     outer_sweep_voltage : SpecifierStr | None, optional
-        A specifier that determiens the inner outer voltage, by default None
+        A specifier that determins the inner outer voltage, by default None
     outer_sweep_voltage : SpecifierStr | None, optional
         A voltage at a third possible contact, that is not swept but may differ from zero.
     decimals_potentials : int, optional

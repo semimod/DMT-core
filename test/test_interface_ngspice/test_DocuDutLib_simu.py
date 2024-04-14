@@ -19,6 +19,7 @@ from DMT.core import (
     Technology,
     MCard,
 )
+from DMT.core.dut_view import DutView
 from DMT.ngspice import DutNgspice
 from test_dut_ngspice_osdi import get_circuit
 
@@ -39,6 +40,20 @@ logging.basicConfig(
 class TechDummy(Technology):
     def __init__(self):
         super().__init__(name="dummy")
+
+    def scale_modelcard(
+        self,
+        mcard: MCard,
+        lE0: float,
+        bE0: float,
+        nfinger: int,
+        config: str,
+        dut: DutView = None,
+        lE_drawn_ref: float = None,
+        bE_drawn_ref: float = None,
+    ) -> MCard:
+        # nothing to do here
+        return mcard
 
     @staticmethod
     def deserialize():
@@ -179,15 +194,18 @@ def test_docu_with_sim():
     lib_test = create_lib()
     docu = DocuDutLib(
         lib_test,
-        modelcard=create_mcard(),
+        modelcard_dict={DutType.npn: create_mcard()},
         DutCircuitClass=DutNgspice,
-        get_circuit_arguments={"use_build_in": False},
+        dut_class_kwargs={
+            "get_circuit_arguments": {"use_build_in": False},
+            "command_openvaf": "openvaf",
+        },
     )
     docu_path = tmp_path / "docu_dut_lib_sim"
     docu.generate_docu(
         docu_path,
         plot_specs=[{"type": "gummel_vbc", "key": "fgummel", "style": "xtraction_color"}],
-        show=False,  # not possible in CI/CD
+        show=True,  # not possible in CI/CD
         save_tikz_settings={
             "width": "3in",
             "height": "5in",

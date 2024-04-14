@@ -31,10 +31,10 @@ from DMT.core import (
     DutLib,
     specifiers,
     sub_specifiers,
-    specifiers_ss_para,
     MCard,
     DutCircuit,
     DutMeas,
+    Sweep,
     SimCon,
 )
 from DMT.core.plot import MIX, PLOT_STYLES, natural_scales, Plot
@@ -320,7 +320,7 @@ class DocuDutLib(object):
         date: Optional[str] = None,
         modelcard_dict: Optional[Dict[DutType, MCard]] = None,
         DutCircuitClass: Optional[DutCircuit] = None,
-        get_circuit_arguments: Optional[Dict] = None,
+        dut_class_kwargs: Optional[Dict] = None,
     ):
         self.dut_lib = dut_lib
 
@@ -369,14 +369,14 @@ class DocuDutLib(object):
 
         self.modelcard_dict = modelcard_dict
         self.DutCircuitClass = DutCircuitClass
-        if get_circuit_arguments is None:
-            self.get_circuit_arguments = {}
+        if dut_class_kwargs is None:
+            self.dut_class_kwargs = {}
         else:
-            self.get_circuit_arguments = get_circuit_arguments
+            self.dut_class_kwargs = dut_class_kwargs
 
-    def get_dut_sim(self, dut_meas: DutMeas):
+    def get_dut_sim(self, dut_meas: DutMeas) -> DutCircuit:
         """Retrieve a circuit dut view which should be compared to the given dut_meas"""
-        dut = self.DutCircuitClass(
+        return self.DutCircuitClass(
             database_dir=None,
             dut_type=dut_meas.dut_type,
             input_circuit=self.modelcard_dict[dut_meas.dut_type],
@@ -386,9 +386,8 @@ class DocuDutLib(object):
             contact_config=dut_meas.contact_config,
             nfinger=dut_meas.nfinger,
             reference_node=dut_meas.reference_node,
-            get_circuit_arguments=self.get_circuit_arguments,
+            **self.dut_class_kwargs,
         )
-        return dut
 
     def generate_docu(
         self,
@@ -412,11 +411,17 @@ class DocuDutLib(object):
         """
         self.create_all_plots(plot_specs)
 
-        if show and len(self.plts) > 1:
-            for plt in self.plts[:-1]:
+        if show and self.plts:
+            for plt in self.plts:
                 plt.plot_pyqtgraph(show=False)
 
-            self.plts[-1].plot_pyqtgraph(show=True)
+            self.plts[0].show_pyqtgraph()
+
+            for plt in self.plts:
+                plt.mw_pg = None
+                plt.pw_pg = None
+                # remove the plot from the object to allow Parallel prcessing
+                # pickle is used to transfer between processes
 
         self.generate_all_plots(target_base_path, save_tikz_settings)
 
@@ -474,9 +479,7 @@ class DocuDutLib(object):
             valid_plots = PLOT_DEFAULTS[plot_spec["dut_type"]].keys()
             if not plot_type in valid_plots:
                 raise IOError(
-                    "Plot type "
-                    + plot_type
-                    + " not valid. Valid: "
+                    f"Plot type {plot_type} not valid. Valid: "
                     + " ".join(str(PLOT_DEFAULTS.keys()))
                     + " ."
                 )
@@ -485,7 +488,7 @@ class DocuDutLib(object):
                 raise IOError("Plot style not valid. Valid: " + " ".join(PLOT_STYLES))
 
             if not "key" in plot_spec.keys():
-                raise IOError("Database key not specified for plot of type " + plot_type + " .")
+                raise IOError(f"Database key not specified for plot of type {plot_type}.")
 
             # matching key?
             if "exact_match" not in plot_spec.keys():
@@ -509,10 +512,10 @@ class DocuDutLib(object):
         self.plts = []
         for plot_spec in plot_specs:
             plot_type = plot_spec["type"]
-            print("Generating plots of type " + plot_type + " .")
+            print(f"Generating plots of type {plot_type}.")
 
             style = plot_spec["style"]
-            print("Chosen plot style: " + style)
+            print(f"Chosen plot style: {style}")
 
             for dut in self.duts:
                 if dut.dut_type != plot_spec["dut_type"]:
@@ -588,8 +591,8 @@ class DocuDutLib(object):
                     except AttributeError:
                         at_scale_ = natural_scales[at_]
 
-                    if at_ == specifiers.CURRENT + "B" or at_ == specifiers.CURRENT_DENSITY + "B":
-                        at_scale_ = at_scale_ * 1e3
+                    # if at_ == specifiers.CURRENT + "B" or at_ == specifiers.CURRENT_DENSITY + "B":
+                    #     at_scale_ = at_scale_ * 1e3
 
                     at_scale.append(at_scale_)
 
@@ -615,6 +618,9 @@ class DocuDutLib(object):
                         temp, plot_spec[specifiers.TEMPERATURE]
                     ):
                         temps.append(dut.get_key_temperature(key))
+                    elif specifiers.TEMPERATURE not in plot_spec:
+                        temps.append(dut.get_key_temperature(key))
+
                 temps = list(set(temps))
 
                 for temp in temps:
@@ -803,12 +809,23 @@ class DocuDutLib(object):
 
                                 if dut_sim is not None:
                                     # get a sweep
-
+                                    sweep = Sweep.get_sweep_from_dataframe(
+                                        data=df_tmp,
+                                        temperature=temp,
+                                        outputdef=[quantity_x, quantity_y],
+                                        # othervar={},
+                                    )
                                     # simulate
                                     sim_con.append_simulation(dut=dut_sim, sweep=sweep)
                                     sim_con.run_and_read()
                                     # add to plot
                                     df_sim = dut_sim.get_data(sweep=sweep)
+                                    df_sim.ensure_specifier_column(
+                                        quantity_x, area=AE0_drawn, ports=dut.ac_ports
+                                    )
+                                    df_sim.ensure_specifier_column(
+                                        quantity_y, area=AE0_drawn, ports=dut.ac_ports
+                                    )
                                     plt.add_data_set(
                                         df_sim[quantity_x].to_numpy(),
                                         df_sim[quantity_y].to_numpy(),
