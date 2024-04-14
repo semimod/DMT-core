@@ -376,18 +376,21 @@ class DocuDutLib(object):
 
     def get_dut_sim(self, dut_meas: DutMeas) -> DutCircuit:
         """Retrieve a circuit dut view which should be compared to the given dut_meas"""
-        return self.DutCircuitClass(
-            database_dir=None,
-            dut_type=dut_meas.dut_type,
-            input_circuit=self.modelcard_dict[dut_meas.dut_type],
-            technology=dut_meas.technology,  # needed for scaling!
-            width=dut_meas.width,
-            length=dut_meas.length,
-            contact_config=dut_meas.contact_config,
-            nfinger=dut_meas.nfinger,
-            reference_node=dut_meas.reference_node,
-            **self.dut_class_kwargs,
-        )
+        if self.DutCircuitClass is not None:
+            return self.DutCircuitClass(
+                database_dir=None,
+                dut_type=dut_meas.dut_type,
+                input_circuit=self.modelcard_dict[dut_meas.dut_type],
+                technology=dut_meas.technology,  # needed for scaling!
+                width=dut_meas.width,
+                length=dut_meas.length,
+                contact_config=dut_meas.contact_config,
+                nfinger=dut_meas.nfinger,
+                reference_node=dut_meas.reference_node,
+                **self.dut_class_kwargs,
+            )
+        else:
+            return None
 
     def generate_docu(
         self,
