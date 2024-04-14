@@ -1,11 +1,9 @@
 """ test ngspice input file generation.
 """
+
 import types
 import copy
 from pathlib import Path
-from DMT.config import COMMANDS
-
-COMMANDS["OPENVAF"] = "openvaf"
 from DMT.core import DutType, Sweep, specifiers, SimCon, Plot, MCard
 from DMT.core.circuit import (
     Circuit,
