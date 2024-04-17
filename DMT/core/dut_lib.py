@@ -1274,7 +1274,7 @@ class DutLib(object):
                     reference_node=dut.reference_node,
                 )
         else:
-            mres_tref = None
+            mres_tref = {}
 
             for meas_filter, deem_filter in self.DC_filter_names:
                 # get the short keys
@@ -1338,7 +1338,7 @@ class DutLib(object):
                                 mres = function_df(dut_short)
 
                             if np.isclose(key_temperature, t_ref):
-                                mres_tref = mres
+                                mres_tref[dut_short.reference_node] = mres
 
                         dut.data[key] = dut.data[key].deembed_DC(
                             mres=mres,
