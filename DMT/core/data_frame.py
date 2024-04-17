@@ -30,7 +30,7 @@ import copy
 import numpy as np
 import pandas as pd
 from scipy.optimize import curve_fit
-from typing import Iterator, Tuple
+from typing import Iterator, Tuple, Dict
 from DMT.exceptions import UnknownColumnError
 from DMT.core.data_processor import DataProcessor, flatten
 from DMT.core import (
@@ -1453,7 +1453,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
         # pr.print_stats(sort='cumtime')
         return self
 
-    def determine_mres(self, forced_current=False):
+    def determine_mres(self, forced_current=False, ac_ports=None, reference_node="E") -> Dict:
         """Determine the external restistances caused by the metallization.
 
         Parameters
@@ -1467,18 +1467,27 @@ class DataFrame(DataProcessor, pd.DataFrame):
             A dict of resistances Rb,m, Rc,m, and Re,m.
 
         """
+        if ac_ports is None:
+            ac_ports = ["B", "C"]
+
+        sp_in0 = specifiers.CURRENT + ac_ports[0]
+        sp_vn0 = specifiers.VOLTAGE + ac_ports[0]
+        sp_in1 = specifiers.CURRENT + ac_ports[1]
+        sp_vn1 = specifiers.VOLTAGE + ac_ports[1]
+        sp_inr = specifiers.CURRENT + reference_node
+        sp_vnr = specifiers.VOLTAGE + reference_node
 
         if forced_current:
             try:
-                df_RC = self.loc[np.isclose(self[specifiers.CURRENT + "B"], 0.0, atol=1e-6)]
-                df_RB = self.loc[np.isclose(self[specifiers.CURRENT + "C"], 0.0, atol=1e-6)]
+                df_RC = self.loc[np.isclose(self[sp_in0], 0.0, atol=1e-6)]
+                df_RB = self.loc[np.isclose(self[sp_in1], 0.0, atol=1e-6)]
             except KeyError:
                 raise IOError
 
             mres = {}
 
-            re2 = np.polyfit(df_RB["I_B"], df_RB["V_C"], 1)[0]
-            re1 = np.polyfit(df_RC["I_C"], df_RC["V_B"], 1)[0]
+            re2 = np.polyfit(df_RB[sp_in0], df_RB[sp_vn1], 1)[0]
+            re1 = np.polyfit(df_RC[sp_in1], df_RC[sp_vn0], 1)[0]
 
             re = (re1 + re2) / 2
             de = np.abs(re1 - re2)
@@ -1487,23 +1496,23 @@ class DataFrame(DataProcessor, pd.DataFrame):
                 f"rem disagreement is {de} Ohm. Using average {re} Ohm with uncertantiy {de / (200 * re)}%"
             )
 
-            rc = np.polyfit(df_RC["I_C"], df_RC["V_C"], 1)[0] - re
-            rb = np.polyfit(df_RB["I_B"], df_RB["V_B"], 1)[0] - re
+            rc = np.polyfit(df_RC[sp_in1], df_RC[sp_vn1], 1)[0] - re
+            rb = np.polyfit(df_RB[sp_in0], df_RB[sp_vn0], 1)[0] - re
 
-            return {"R_CM": rc, "R_BM": rb, "R_EM": re}
+            return {f"R_{ac_ports[0]}M": rb, f"R_{ac_ports[1]}M": rc, f"R_{reference_node}M": re}
         else:
             try:
                 df_RCE_RBE = self.loc[
                     np.isclose(
-                        self[specifiers.VOLTAGE + "C"],
-                        self[specifiers.VOLTAGE + "E"],
+                        self[sp_vn1],
+                        self[sp_vnr],
                         atol=1e-4,
                     )
                 ]
                 df_RBC = self.loc[
                     np.isclose(
-                        self[specifiers.VOLTAGE + "B"],
-                        self[specifiers.VOLTAGE + "E"],
+                        self[sp_vn0],
+                        self[sp_vnr],
                         atol=1e-4,
                     )
                 ]
@@ -1512,14 +1521,27 @@ class DataFrame(DataProcessor, pd.DataFrame):
 
             mres = {}
 
-            mres = DataFrame.processor.calc_RBC_RBE(mres, df_RCE_RBE)
-            mres = DataFrame.processor.calc_RCE(mres, df_RBC)
+            mres = DataFrame.processor.calc_RBC_RBE(
+                mres, df_RCE_RBE, ac_ports=ac_ports, reference_node=reference_node
+            )
+            mres = DataFrame.processor.calc_RCE(
+                mres, df_RBC, ac_ports=ac_ports, reference_node=reference_node
+            )
 
-            mres = DataFrame.processor.convert_mres(mres)
+            mres = DataFrame.processor.convert_mres(
+                mres, ac_ports=ac_ports, reference_node=reference_node
+            )
 
             return mres
 
-    def deembed_DC(self, mres=None, df_short_dc=None, forced_current=False):
+    def deembed_DC(
+        self,
+        mres: Dict = None,
+        df_short_dc=None,
+        forced_current=False,
+        ac_ports=None,
+        reference_node="E",
+    ):
         """Deembed the measured DC data in df from external metallization resistances.
 
         Determine the metallization resistances and substract their impact from the measured voltages.
@@ -1538,9 +1560,13 @@ class DataFrame(DataProcessor, pd.DataFrame):
         """
 
         if mres is None:
-            mres = df_short_dc.determine_mres(forced_current=forced_current)
+            mres = df_short_dc.determine_mres(
+                forced_current=forced_current, ac_ports=ac_ports, reference_node=reference_node
+            )
 
-        return DataFrame.processor.deembed_mres(self, mres)
+        return DataFrame.processor.deembed_mres(
+            self, mres, ac_ports=ac_ports, reference_node=reference_node
+        )
 
     def check_ss_cols(self, para):
         """Check the existence of the small signal parameters para cols.
@@ -2393,3 +2419,9 @@ class DataFrame(DataProcessor, pd.DataFrame):
 
             yield index, val, dataframe
             index += 1
+
+
+def df_concat(*frames):
+    frame = pd.concat(frames, axis=0, ignore_index=True)
+    frame.__class__ == DataFrame
+    return frame

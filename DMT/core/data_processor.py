@@ -1,6 +1,7 @@
 """ data processor module
 
 """
+
 # DMT_core
 # Copyright (C) from 2022  SemiMod
 # Copyright (C) until 2021  Markus Müller, Mario Krattenmacher and Pascal Kuthe
@@ -411,7 +412,7 @@ class DataProcessor(object):
 
         return self.convert_n_port_para(y_para_values, "Y", "S")
 
-    def calc_RBC_RBE(self, mres, df_RM):
+    def calc_RBC_RBE(self, mres, df_RM, ac_ports=None, reference_node="E"):
         """Calculate the metallization resistances R_CE and R_BE.
 
         Parameters
@@ -424,19 +425,25 @@ class DataProcessor(object):
         mres    : [list]
             List containing the calculated resistance values
         """
+        if ac_ports is None:
+            ac_ports = ["B", "C"]
+
+        sp_in0 = specifiers.CURRENT + ac_ports[0]
+        sp_vn0 = specifiers.VOLTAGE + ac_ports[0]
+        sp_in1 = specifiers.CURRENT + ac_ports[1]
 
         df_RM_clean = df_RM.dropna(axis=0, how="any")
 
-        R_BCM = np.polyfit(np.negative(df_RM_clean["I_C"]), df_RM_clean["V_B"], 1)
+        r_BCM = np.polyfit(np.negative(df_RM_clean[sp_in1]), df_RM_clean[sp_vn0], 1)
 
-        ic_2 = df_RM_clean["I_B"] + df_RM_clean["I_C"]
-        R_BEM = np.polyfit(ic_2, df_RM_clean["V_B"], 1)
+        ic_2 = df_RM_clean[sp_in0] + df_RM_clean[sp_in1]
+        r_BEM = np.polyfit(ic_2, df_RM_clean[sp_vn0], 1)
 
-        mres["R_BCM"] = R_BCM[0]
-        mres["R_BEM"] = R_BEM[0]
+        mres[f"R_{ac_ports[0]}{ac_ports[1]}M"] = r_BCM[0]
+        mres[f"R_{ac_ports[0]}{reference_node}M"] = r_BEM[0]
         return mres
 
-    def calc_RCE(self, mres, df_RM):
+    def calc_RCE(self, mres, df_RM, ac_ports=None, reference_node="E"):
         """Calculate the metallization resistances R_BC.
 
         Parameters
@@ -449,15 +456,21 @@ class DataProcessor(object):
         mres    : {dict}
             List containing the calculated resistance values
         """
+        if ac_ports is None:
+            ac_ports = ["B", "C"]
+        sp_in0 = specifiers.CURRENT + ac_ports[0]
+        sp_in1 = specifiers.CURRENT + ac_ports[1]
+        sp_vn1 = specifiers.VOLTAGE + ac_ports[1]
+
         df_RM_clean = df_RM.dropna(axis=0, how="any")
 
-        R_CEM = np.polyfit((df_RM_clean["I_B"] + df_RM_clean["I_C"]), df_RM_clean["V_C"], 1)
+        R_CEM = np.polyfit((df_RM_clean[sp_in0] + df_RM_clean[sp_in1]), df_RM_clean[sp_vn1], 1)
 
-        mres["R_CEM"] = R_CEM[0]
+        mres[f"R_{ac_ports[1]}{reference_node}M"] = R_CEM[0]
 
         return mres
 
-    def convert_mres(self, mres):
+    def convert_mres(self, mres, ac_ports=None, reference_node="E"):
         """Converts the calculated resistance network from delta- to wye-form.
 
         Parameters
@@ -469,19 +482,26 @@ class DataProcessor(object):
         mres    : {dict}
             Same list with appended wye-form parameters.
         """
-        R_sum = mres["R_BCM"] + mres["R_CEM"] + mres["R_BEM"]
+        k_rbcm = f"R_{ac_ports[0]}{ac_ports[1]}M"
+        k_rbem = f"R_{ac_ports[0]}{reference_node}M"
+        k_rcem = f"R_{ac_ports[1]}{reference_node}M"
+        k_rbm = f"R_{ac_ports[0]}M"
+        k_rcm = f"R_{ac_ports[1]}M"
+        k_rem = f"R_{reference_node}M"
 
-        R_BM = (mres["R_BEM"] * mres["R_BCM"]) / R_sum
-        R_CM = (mres["R_BCM"] * mres["R_CEM"]) / R_sum
-        R_EM = (mres["R_BEM"] * mres["R_CEM"]) / R_sum
+        r_sum = mres[k_rbcm] + mres[k_rcem] + mres[k_rbem]
 
-        mres["R_BM"] = R_BM
-        mres["R_CM"] = R_CM
-        mres["R_EM"] = R_EM
+        r_BM = (mres[k_rbem] * mres[k_rbcm]) / r_sum
+        r_CM = (mres[k_rbcm] * mres[k_rcem]) / r_sum
+        r_EM = (mres[k_rbem] * mres[k_rcem]) / r_sum
+
+        mres[k_rbm] = r_BM
+        mres[k_rcm] = r_CM
+        mres[k_rem] = r_EM
 
         return mres
 
-    def deembed_mres(self, df, mres):
+    def deembed_mres(self, df, mres, ac_ports=None, reference_node="E"):
         """Substract external voltage drop over metal resistances from measured voltages.
 
         Parameters
@@ -491,55 +511,34 @@ class DataProcessor(object):
         mres    : {'R_BM':float64, 'R_CM':float64, 'R_EM'_float64}
             List of calculated resistances R_CM, R_BM, and R_EM.
         """
-        col_vb, col_ib, col_vc, col_ic, col_ve = None, None, None, None, None
-        try:
-            col_vb = df.get_col_name(specifiers.VOLTAGE, "B")
-            col_vb_force = specifiers.VOLTAGE + "B" + sub_specifiers.FORCED
+        if ac_ports is None:
+            ac_ports = ["B", "C"]
 
-            df[col_vb_force] = df[col_vb].to_numpy()
-        except KeyError:
-            pass
+        for node in ac_ports:
+            try:
+                sp_vn = df.get_col_name(specifiers.VOLTAGE, node)
+                sp_vn_force = specifiers.VOLTAGE + node + sub_specifiers.FORCED
+                df[sp_vn_force] = df[sp_vn].to_numpy()
+                sp_in = df.get_col_name(specifiers.CURRENT, node)
+                i_n = df[sp_in].to_numpy()
+                df[sp_vn] = df[sp_vn_force] - i_n * mres[f"R_{node}M"]
+            except KeyError:
+                pass
+
+        sp_vn_force = specifiers.VOLTAGE + reference_node + sub_specifiers.FORCED
         try:
-            col_vc = df.get_col_name(specifiers.VOLTAGE, "C")
-            col_vc_force = specifiers.VOLTAGE + "C" + sub_specifiers.FORCED
-            df[col_vc_force] = df[col_vc].to_numpy()
-        except KeyError:
-            pass
-        try:
-            col_ve = df.get_col_name(specifiers.VOLTAGE, "E")
-            col_ve_force = specifiers.VOLTAGE + "E" + sub_specifiers.FORCED
-            df[col_ve_force] = df[col_ve].to_numpy()
-        except KeyError:
-            pass
-        try:
-            col_ic = df.get_col_name(specifiers.CURRENT, "C")
-        except KeyError:
-            pass
-        try:
-            col_ib = df.get_col_name(specifiers.CURRENT, "B")
+            sp_vn = df.get_col_name(specifiers.VOLTAGE, reference_node)
+            df[sp_vn_force] = df[sp_vn].to_numpy()
         except KeyError:
             pass
 
-        if col_vb and col_ib:
-            vb = df[col_vb].to_numpy()
-            ib = df[col_ib].to_numpy()
-            # vb_dif      = [i * mres["R_BM"] for i in ib]
-            vb_dif = ib * mres["R_BM"]
-            df[col_vb] = vb - vb_dif
-
-        if col_vc and col_ic:
-            vc = df[col_vc].to_numpy()
-            ic = df[col_ic].to_numpy()
-            vc_dif = ic * mres["R_CM"]
-            df[col_vc] = vc - vc_dif
-
-        if col_ve and col_ib and col_ic:
-            ve = df[col_ve].to_numpy()
-            # ie = [sum(i) for i in zip(ic, ib)]
-            ie = ib + ic
-            # ve_dif      = [i * mres["R_EM"] for i in ie]
-            ve_dif = ie * mres["R_EM"]
-            df[col_ve] = ve + ve_dif
+        try:
+            sp_in0 = specifiers.VOLTAGE + ac_ports[0]
+            sp_in1 = specifiers.VOLTAGE + ac_ports[1]
+            i_n = df[sp_in0].to_numpy() + df[sp_in1].to_numpy()
+            df[sp_vn] = df[sp_vn_force] + i_n * mres[f"R_{reference_node}M"]
+        except KeyError:
+            pass
 
         return df
 

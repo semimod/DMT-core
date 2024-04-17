@@ -87,7 +87,7 @@ from .plot_2yaxis import Plot2YAxis
 # Data management and processing
 from .data_processor import is_iterable, flatten, strictly_increasing, DataProcessor
 
-from .data_frame import DataFrame
+from .data_frame import DataFrame, df_concat
 from .sweep_def import SweepDef
 from .sweep import Sweep, get_sweepdef
 from .database_manager import DatabaseManager

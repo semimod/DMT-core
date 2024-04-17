@@ -28,7 +28,7 @@ import json
 from pathlib import Path
 from joblib import Parallel, delayed
 from typing import List, Type, Union
-from DMT.core import DutType, DutTypeFlag, print_progress_bar, DutView, Technology
+from DMT.core import DutType, DutTypeFlag, print_progress_bar, DutView, Technology, df_concat
 from DMT.core.dut_view import DutView
 from DMT.exceptions import NoOpenDeembeddingDut, NoShortDeembeddingDut
 
@@ -1268,7 +1268,10 @@ class DutLib(object):
             for key in dut.data.keys():
                 print(key)
                 dut.data[key] = dut.data[key].deembed_DC(
-                    mres=mres_tref, forced_current=forced_current
+                    mres=mres_tref,
+                    forced_current=forced_current,
+                    ac_ports=dut.ac_ports,
+                    reference_node=dut.reference_node,
                 )
         else:
             mres_tref = None
@@ -1285,7 +1288,11 @@ class DutLib(object):
                     df_short = dut_short.data[short_keys[0]]
 
                     if function_df is None:
-                        mres_tref = df_short.determine_mres(forced_current=forced_current)
+                        mres_tref = df_short.determine_mres(
+                            forced_current=forced_current,
+                            ac_ports=dut_short.ac_ports,
+                            reference_node=dut_short.reference_node,
+                        )
                     else:
                         mres_tref = function_df(dut_short)
 
@@ -1297,25 +1304,34 @@ class DutLib(object):
                         else:  # NOT TESTED!!!!
                             # bad news...try to find matching temperatures. #TODO: Does not work if no keys are found
                             key_temperature = dut.get_key_temperature(key)
+                            short_keys_matching = []
                             for short_key in short_keys:
                                 if np.isclose(
                                     key_temperature,
                                     dut_short.get_key_temperature(short_key),
                                 ):
-                                    break
-                            df_short = dut_short.data[short_key]
+                                    short_keys_matching.append(short_key)
+
+                            df_shorts = []
+                            for short_key in short_keys_matching:
+                                df_shorts.append(dut_short.data[short_key])
+                            df_short = df_concat(*df_shorts)
 
                             if function_df is None:
                                 try:
-                                    mres = df_short.determine_mres(forced_current=forced_current)
+                                    mres = df_short.determine_mres(
+                                        forced_current=forced_current,
+                                        ac_ports=dut_short.ac_ports,
+                                        reference_node=dut_short.reference_node,
+                                    )
                                 except IOError as err:
                                     raise IOError(
                                         "Column missing in df of dut "
                                         + dut_short.name
                                         + " of df with key "
                                         + short_key
-                                        + ". Available keys: "
-                                        + str(df_short.data.keys())
+                                        + ". Available columns: "
+                                        + str(df_short.columns())
                                         + "."
                                     ) from err
                             else:
@@ -1325,7 +1341,10 @@ class DutLib(object):
                                 mres_tref = mres
 
                         dut.data[key] = dut.data[key].deembed_DC(
-                            mres=mres, forced_current=forced_current
+                            mres=mres,
+                            forced_current=forced_current,
+                            ac_ports=dut.ac_ports,
+                            reference_node=dut.reference_node,
                         )
 
         return mres_tref
