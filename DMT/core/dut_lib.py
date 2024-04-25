@@ -1315,7 +1315,13 @@ class DutLib(object):
                             df_shorts = []
                             for short_key in short_keys_matching:
                                 df_shorts.append(dut_short.data[short_key])
-                            df_short = df_concat(*df_shorts)
+                            if df_shorts:
+                                df_short = df_concat(*df_shorts)
+                            else:
+                                raise IOError(
+                                    f"Did not find suitable short keys for {dut.name} at {key_temperature}K. \n The available short keys were: "
+                                    + ",".join(short_keys)
+                                )
 
                             if function_df is None:
                                 try:

@@ -2,6 +2,7 @@
 
 Author: Markus Müller
 """
+
 # DMT_core
 # Copyright (C) from 2022  SemiMod
 # Copyright (C) until 2021  Markus Müller, Mario Krattenmacher and Pascal Kuthe
@@ -97,6 +98,7 @@ class DutHdev(DutTcad):
         DEVICE simulation title. Sort of a DUT-Name.
 
     """
+
     inited = False
 
     def __init__(
@@ -107,7 +109,7 @@ class DutHdev(DutTcad):
         name="hdev_",
         simulator_command=None,
         inp_name="hdev_inp.din",
-        **kwargs
+        **kwargs,
     ):
         if simulator_command is None:
             simulator_command = COMMANDS["Hdev"]
@@ -530,7 +532,7 @@ class DutHdev(DutTcad):
                     n = n + 1
 
                 # create new big dataframe with DC and AC data
-                df_iv = pd.concat(dfs_temp)
+                df_iv = pd.concat(dfs_temp, ignore_index=True)
 
             # convert columns to specifiers
             df_iv = df_iv.real2cmplx()
@@ -589,7 +591,7 @@ class DutHdev(DutTcad):
                             key_inqu = next(
                                 _key
                                 for _key in self.data.keys()
-                                if "_inqu" in _key and "op" + str(i_row + 1) in _key
+                                if key in _key and "_inqu" in _key and "op" + str(i_row + 1) in _key
                             )
                         except:
                             continue
@@ -610,28 +612,31 @@ class DutHdev(DutTcad):
 
                     try:
                         for i_row, row in enumerate(df_iv.iterrows()):
-                            key_inqu = next(
-                                _key
-                                for _key in self.data.keys()
-                                if "_inqu" in _key and "op" + str(i_row + 1) in _key
-                            )
-                            key_ac_inqu = next(
-                                _key
-                                for _key in self.data.keys()
-                                if "acinqu" in _key
-                                and "op" + str(i_row + 1) in _key
-                                and "dVb" in _key
-                            )
+                            key_inqu = self.join_key(key, f"op{i_row+1}_inqu")
+                            # next(
+                            #     _key
+                            #     for _key in self.data.keys()
+                            #     if key in _key and "_inqu" in _key and "op" + str(i_row + 1) in _key
+                            # )
+                            key_ac_inqu = self.join_key(key, f"acinqu_op{i_row+1}_dVb")
+                            # key_ac_inqu = next(
+                            #     _key
+                            #     for _key in self.data.keys()
+                            #     if key in _key
+                            #     and "acinqu" in _key
+                            #     and "op" + str(i_row + 1) in _key
+                            #     and "dVb" in _key
+                            # )
 
                             # get the necessary data
                             df_ac_inqu_i = self.data[key_ac_inqu]
-                            dn_dic = df_ac_inqu_i["re_d_n_x"].to_numpy() / gm[i_row + 1]
+                            dn_dic = df_ac_inqu_i["re_d_n_x"].to_numpy() / gm[i_row]
                             try:
-                                dn2_dic = df_ac_inqu_i["re_d_n2_x"].to_numpy() / gm[i_row + 1]
+                                dn2_dic = df_ac_inqu_i["re_d_n2_x"].to_numpy() / gm[i_row]
                             except KeyError:
-                                dn2_dic = df_ac_inqu_i["re_d_n_x"].to_numpy() / gm[i_row + 1]
+                                dn2_dic = df_ac_inqu_i["re_d_n_x"].to_numpy() / gm[i_row]
 
-                            dp_dic = df_ac_inqu_i["re_d_p_x"].to_numpy() / gm[i_row + 1]
+                            dp_dic = df_ac_inqu_i["re_d_p_x"].to_numpy() / gm[i_row]
                             droh_dic = dp_dic - dn_dic
                             # transit time
                             changes = (
@@ -700,10 +705,12 @@ class DutHdev(DutTcad):
                         df_iv["tau_bc"] = tau_bc
                         df_iv["tau_c"] = tau_c
 
-                    except:
-                        pass
+                    except Exception as err:
+                        print(err)
+                        # pass
 
             key_iv = self.join_key(key, "iv")
+            df_iv.index = [a for a in range(df_iv.shape[0])]
             self.data[key_iv] = df_iv
 
             logging.info(
@@ -1061,6 +1068,7 @@ def getITRSHBT(
     mu_min_a=None,
     mu_min_d=None,
     beta=None,
+    **kwargs,
 ):
     """Return a DutHdev for ITRS HBTS. Only for SiGe HBTs.
 
@@ -1139,4 +1147,5 @@ def getITRSHBT(
         DutType.npn,
         inp,
         reference_node="E",
+        **kwargs,
     )
