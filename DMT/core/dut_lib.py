@@ -452,13 +452,13 @@ class DutLib(object):
             for dut in duts:
                 if dut.name in [dut_a.name for dut_a in self.duts]:
                     raise IOError(
-                        "DutLib: A DuT of this name already exists. Dut names must be unique!"
+                        f"DutLib: A DuT with the name {dut.name} already exists. Dut names must be unique!"
                     )
                 self.duts.append(dut)
         except TypeError:
             if duts.name in [dut_a.name for dut_a in self.duts]:
                 raise IOError(
-                    "DutLib: A DuT of this name already exists. Dut names must be unique!"
+                    f"DutLib: A DuT with the name {dut.name} already exists. Dut names must be unique!"
                 )
             self.duts.append(duts)
 
@@ -971,6 +971,8 @@ class DutLib(object):
                 "DMT -> DutLib: You did not select any filter flags that would allow deembedding!"
             )
 
+        mres = {}
+
         # Iterating through the dev_list, which contains all devices that require deembedding.
         for i_dev, dev in enumerate(dev_list):
             print("\n")
@@ -1019,13 +1021,15 @@ class DutLib(object):
                     suffix=dev.name,
                     length=50,
                 )
-                mres = self.deembed_dut_DC(
-                    dev,
-                    suitable_shorts[0],
-                    function_dut=function_dut,
-                    function_df=function_df,
-                    t_ref=t_ref,
-                    forced_current=forced_current,
+                mres.update(
+                    self.deembed_dut_DC(
+                        dev,
+                        suitable_shorts[0],
+                        function_dut=function_dut,
+                        function_df=function_df,
+                        t_ref=t_ref,
+                        forced_current=forced_current,
+                    )
                 )
 
         print_progress_bar(
@@ -1261,20 +1265,20 @@ class DutLib(object):
         # ISSUE: No for-loop "(meas_filter, deem_filter) in self.DC_filter_names:" performed here.
         # all measurements stored under keys are DC deembedded here!
         if function_dut is not None:
-            mres_tref = function_dut(dut_short)
+            mres = function_dut(dut_short)
             print("\n")
             print(dut.name)
             print("\n")
             for key in dut.data.keys():
                 print(key)
                 dut.data[key] = dut.data[key].deembed_DC(
-                    mres=mres_tref,
+                    mres=mres,
                     forced_current=forced_current,
                     ac_ports=dut.ac_ports,
                     reference_node=dut.reference_node,
                 )
         else:
-            mres_tref = {}
+            mres = {}
 
             for meas_filter, deem_filter in self.DC_filter_names:
                 # get the short keys
@@ -1288,21 +1292,21 @@ class DutLib(object):
                     df_short = dut_short.data[short_keys[0]]
 
                     if function_df is None:
-                        mres_tref = df_short.determine_mres(
+                        mres = df_short.determine_mres(
                             forced_current=forced_current,
                             ac_ports=dut_short.ac_ports,
                             reference_node=dut_short.reference_node,
                         )
                     else:
-                        mres_tref = function_df(dut_short)
+                        mres = function_df(dut_short)
 
                 for key in dut.data.keys():
                     # check if df needs to be DC deembedded
                     if re.search(meas_filter, key, re.IGNORECASE):
                         if len(short_keys) == 1:
                             mres = mres_tref
-                        else:  # NOT TESTED!!!!
-                            # bad news...try to find matching temperatures. #TODO: Does not work if no keys are found
+                        else:
+                            # try to find matching temperatures.
                             key_temperature = dut.get_key_temperature(key)
                             short_keys_matching = []
                             for short_key in short_keys:
@@ -1325,10 +1329,12 @@ class DutLib(object):
 
                             if function_df is None:
                                 try:
-                                    mres = df_short.determine_mres(
-                                        forced_current=forced_current,
-                                        ac_ports=dut_short.ac_ports,
-                                        reference_node=dut_short.reference_node,
+                                    mres[f"{dut_short.name}@{key_temperature:.0f}K"] = (
+                                        df_short.determine_mres(
+                                            forced_current=forced_current,
+                                            ac_ports=dut_short.ac_ports,
+                                            reference_node=dut_short.reference_node,
+                                        )
                                     )
                                 except IOError as err:
                                     raise IOError(
@@ -1341,10 +1347,9 @@ class DutLib(object):
                                         + "."
                                     ) from err
                             else:
-                                mres = function_df(dut_short)
-
-                            if np.isclose(key_temperature, t_ref):
-                                mres_tref[dut_short.reference_node] = mres
+                                mres["f{dut_short.name}@{key_temperature:.0f}K"] = function_df(
+                                    dut_short
+                                )
 
                         dut.data[key] = dut.data[key].deembed_DC(
                             mres=mres,
@@ -1353,7 +1358,7 @@ class DutLib(object):
                             reference_node=dut.reference_node,
                         )
 
-        return mres_tref
+        return mres
 
     def toTex(self):
         """This function generates a TeX representation of a DutLib.
