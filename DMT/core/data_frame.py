@@ -769,6 +769,11 @@ class DataFrame(DataProcessor, pd.DataFrame):
                     + "' and the needed voltages are missing in the given data frame and can not be calculated."
                 ) from err
 
+        elif (specifier == specifiers.CURRENT) and (len(nodes) == 2):
+            self[col] = (
+                self[SpecifierStr(specifier, nodes[0], sub_specifiers=sub_specifiers_to_ensure)]
+                - self[SpecifierStr(specifier, nodes[1], sub_specifiers=sub_specifiers_to_ensure)]
+            )
         elif specifier == specifiers.CURRENT_DENSITY:
             if area is None:
                 raise IOError(

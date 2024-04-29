@@ -1432,6 +1432,17 @@ class DutLib(object):
                                     ]
                                 )
                             )
+                            if dut_type.is_subtype(DutTypeFlag.flag_tlm):
+                                for dut in duts:
+                                    dut_name = dut.name.replace("_", "\_")
+                                    doc.append(
+                                        NoEscape(
+                                            f"One TLM-Structure with the name {dut_name} with the width \\SI{{{dut.width*1e6}}}{{\\micro\\metre}} and the lengths \\SI{{{dut.length[0]*1e6}}}{{\\micro\\metre}} and \\SI{{{dut.length[1]*1e6}}}{{\\micro\\metre}}."
+                                        )
+                                    )
+                                doc.append("\r")
+                                continue
+
                             lE0s = list(set([dut.length for dut in duts]))
                             bE0s = list(set([dut.width for dut in duts]))
                             lE0s.sort()

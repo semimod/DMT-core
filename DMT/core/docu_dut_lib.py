@@ -62,24 +62,24 @@ PLOT_DEFAULTS = {
         "gummel_vbc": {
             "x_log": False,
             "y_log": True,
-            "at": specifiers.VOLTAGE + "B" + "C" + sub_specifiers.FORCED,
-            "quantity_x": specifiers.VOLTAGE + "B" + "E",
+            "at": specifiers.VOLTAGE + ["B", "C"] + sub_specifiers.FORCED,
+            "quantity_x": specifiers.VOLTAGE + ["B", "E"],
             "quantity_y": specifiers.CURRENT_DENSITY + "C",
             "legend_location": "upper left",
             "y_limits": (None, None),
             "x_limits": (None, None),
-            "tex": r"Gummel @ $V_{\mathrm{BC}}$.",
+            "caption": r"Gummel @ $V_{\mathrm{BC}}$.",
         },
         "gummel_vbc_mark_ft": {
             "x_log": False,
             "y_log": True,
-            "at": specifiers.VOLTAGE + "B" + "C" + sub_specifiers.FORCED,
-            "quantity_x": specifiers.VOLTAGE + "B" + "E",
+            "at": specifiers.VOLTAGE + ["B", "C"] + sub_specifiers.FORCED,
+            "quantity_x": specifiers.VOLTAGE + ["B", "E"],
             "quantity_y": specifiers.CURRENT_DENSITY + "C",
             "legend_location": "upper left",
             "y_limits": (None, None),
             "x_limits": (None, None),
-            "tex": r"Gummel @ $V_{\mathrm{BC}}$.",
+            "caption": r"Gummel @ $V_{\mathrm{BC}}$.",
         },
         "output_vbe": {
             "x_log": False,
@@ -90,7 +90,7 @@ PLOT_DEFAULTS = {
             "legend_location": "upper left",
             "y_limits": (None, None),
             "x_limits": (None, None),
-            "tex": r"Output @ $V_{\mathrm{BE}}$.",
+            "caption": r"Output @ $V_{\mathrm{BE}}$.",
         },
         "output_ib": {
             "x_log": False,
@@ -101,18 +101,18 @@ PLOT_DEFAULTS = {
             "legend_location": "upper left",
             "y_limits": (None, None),
             "x_limits": (None, None),
-            "tex": r"Output @ $I_{\mathrm{B}}$.",
+            "caption": r"Output @ $I_{\mathrm{B}}$.",
         },
         "ft_jc_vbc": {
             "x_log": True,
             "y_log": False,
-            "at": specifiers.VOLTAGE + "B" + "C" + sub_specifiers.FORCED,
+            "at": specifiers.VOLTAGE + ["B", "C"] + sub_specifiers.FORCED,
             "quantity_x": specifiers.CURRENT_DENSITY + "C",
             "quantity_y": specifiers.TRANSIT_FREQUENCY,
             "legend_location": "upper left",
             "y_limits": (0, None),
             "x_limits": (None, None),
-            "tex": r"$f_{\mathrm{T}} \left( J_{\mathrm{C}} \right) $ @ $V_{\mathrm{BC}}$.",
+            "caption": r"$f_{\mathrm{T}} \left( J_{\mathrm{C}} \right) $ @ $V_{\mathrm{BC}}$.",
         },
         "fmax_jc_vbc": {
             "x_log": True,
@@ -123,7 +123,7 @@ PLOT_DEFAULTS = {
             "legend_location": "upper left",
             "y_limits": (0, None),
             "x_limits": (None, None),
-            "tex": r"$f_{\mathrm{max}} \left( J_{\mathrm{C}} \right) $ @ $V_{\mathrm{BC}}$.",
+            "caption": r"$f_{\mathrm{max}} \left( J_{\mathrm{C}} \right) $ @ $V_{\mathrm{BC}}$.",
         },
         "ft_jc_vce": {
             "x_log": True,
@@ -134,7 +134,7 @@ PLOT_DEFAULTS = {
             "legend_location": "upper left",
             "y_limits": (0, None),
             "x_limits": (None, None),
-            "tex": r"$F_{\mathrm{T}} \left( J_{\mathrm{C}} \right) $ @ $V_{\mathrm{CE}}$.",
+            "caption": r"$F_{\mathrm{T}} \left( J_{\mathrm{C}} \right) $ @ $V_{\mathrm{CE}}$.",
         },
         "fmax_jc_vce": {
             "x_log": True,
@@ -145,7 +145,7 @@ PLOT_DEFAULTS = {
             "legend_location": "upper left",
             "y_limits": (0, None),
             "x_limits": (None, None),
-            "tex": r"$f_{\mathrm{max}} \left( J_{\mathrm{C}} \right) $ @ $V_{\mathrm{CE}}$.",
+            "caption": r"$f_{\mathrm{max}} \left( J_{\mathrm{C}} \right) $ @ $V_{\mathrm{CE}}$.",
         },
         "beta_jc_vbc": {
             "x_log": True,
@@ -156,7 +156,7 @@ PLOT_DEFAULTS = {
             "legend_location": "upper left",
             "y_limits": (None, None),
             "x_limits": (None, None),
-            "tex": r"$\beta_{\mathrm{DC}} \left( J_{\mathrm{C}} \right)$ @ $V_{\mathrm{BC}}$.",
+            "caption": r"$\beta_{\mathrm{DC}} \left( J_{\mathrm{C}} \right)$ @ $V_{\mathrm{BC}}$.",
         },
         "rey21_f_vbe_vbc": {
             "x_log": True,
@@ -170,7 +170,7 @@ PLOT_DEFAULTS = {
             "legend_location": "upper left",
             "y_limits": (None, None),
             "x_limits": (None, None),
-            "tex": r"$\Re \left\{ Y_{21} \right\} \left( f \right)$ @ $V_{\mathrm{BC}} @ V_{\mathrm{BE}}$.",
+            "caption": r"$\Re \left\{ Y_{21} \right\} \left( f \right)$ @ $V_{\mathrm{BC}} @ V_{\mathrm{BE}}$.",
         },
         "imy11_f_vbe_vbc": {
             "x_log": True,
@@ -184,7 +184,7 @@ PLOT_DEFAULTS = {
             "legend_location": "upper left",
             "y_limits": (None, None),
             "x_limits": (None, None),
-            "tex": r"$\Im \left\{ Y_{11} \right\} \left( f \right)$ @ $V_{\mathrm{BC}} @ V_{\mathrm{BE}}$.",
+            "caption": r"$\Im \left\{ Y_{11} \right\} \left( f \right)$ @ $V_{\mathrm{BC}} @ V_{\mathrm{BE}}$.",
         },
         "y21_jc_vbc": {
             "x_log": True,
@@ -198,7 +198,7 @@ PLOT_DEFAULTS = {
             "legend_location": "upper left",
             "y_limits": (None, None),
             "x_limits": (None, None),
-            "tex": r"$\Re \left\{ Y_{21} \right\} \left( J_{\mathrm{C}} \right)$ @ $V_{\mathrm{BC}}$.",
+            "caption": r"$\Re \left\{ Y_{21} \right\} \left( J_{\mathrm{C}} \right)$ @ $V_{\mathrm{BC}}$.",
         },
         "y21_jc_vbc_mark_ft": {
             "x_log": True,
@@ -212,7 +212,7 @@ PLOT_DEFAULTS = {
             "legend_location": "upper left",
             "y_limits": (None, None),
             "x_limits": (None, None),
-            "tex": r"$\Re \left\{ Y_{21} \right\} \left( J_{\mathrm{C}} \right)$ @ $V_{\mathrm{BC}}$.",
+            "caption": r"$\Re \left\{ Y_{21} \right\} \left( J_{\mathrm{C}} \right)$ @ $V_{\mathrm{BC}}$.",
         },
         "y21_jc_vbc_mark_ft": {
             "x_log": True,
@@ -226,7 +226,7 @@ PLOT_DEFAULTS = {
             "legend_location": "upper left",
             "y_limits": (None, None),
             "x_limits": (None, None),
-            "tex": r"$\Re \left\{ Y_{21} \right\} \left( J_{\mathrm{C}} \right)$ @ $V_{\mathrm{BC}}$.",
+            "caption": r"$\Re \left\{ Y_{21} \right\} \left( J_{\mathrm{C}} \right)$ @ $V_{\mathrm{BC}}$.",
         },
         "tj_jc_at_vbc": {
             "x_log": True,
@@ -237,7 +237,7 @@ PLOT_DEFAULTS = {
             "legend_location": "upper left",
             "y_limits": (None, None),
             "x_limits": (None, None),
-            "tex": r"$T_{\mathrm{j}} \left( J_{\mathrm{C}} \right)$ @ $V_{\mathrm{BC}}$.",
+            "caption": r"$T_{\mathrm{j}} \left( J_{\mathrm{C}} \right)$ @ $V_{\mathrm{BC}}$.",
             "rth": 3e3,
         },
     },
@@ -251,7 +251,7 @@ PLOT_DEFAULTS = {
             "legend_location": "upper left",
             "y_limits": (None, None),
             "x_limits": (None, None),
-            "tex": r"$I_{\mathrm{D}}(V_{\mathrm{G}})@V_{\mathrm{D}}$.",
+            "caption": r"$I_{\mathrm{D}}(V_{\mathrm{G}})@V_{\mathrm{D}}$.",
         },
         "id(vd)": {
             "x_log": False,
@@ -262,7 +262,7 @@ PLOT_DEFAULTS = {
             "legend_location": "upper left",
             "y_limits": (None, None),
             "x_limits": (None, None),
-            "tex": r"$I_{\mathrm{D}}(V_{\mathrm{D}})@V_{\mathrm{G}}$.",
+            "caption": r"$I_{\mathrm{D}}(V_{\mathrm{D}})@V_{\mathrm{G}}$.",
         },
     },
     DutType.p_mos: {
@@ -275,7 +275,7 @@ PLOT_DEFAULTS = {
             "legend_location": "upper left",
             "y_limits": (None, None),
             "x_limits": (None, None),
-            "tex": r"$I_{\mathrm{D}}(V_{\mathrm{G}})@V_{\mathrm{D}}$.",
+            "caption": r"$I_{\mathrm{D}}(V_{\mathrm{G}})@V_{\mathrm{D}}$.",
         },
         "id(vd)": {
             "x_log": False,
@@ -286,10 +286,21 @@ PLOT_DEFAULTS = {
             "legend_location": "upper left",
             "y_limits": (None, None),
             "x_limits": (None, None),
-            "tex": r"$I_{\mathrm{D}}(V_{\mathrm{D}})@V_{\mathrm{G}}$.",
+            "caption": r"$I_{\mathrm{D}}(V_{\mathrm{D}})@V_{\mathrm{G}}$.",
         },
     },
 }
+
+
+def obtain(plot_spec, key, dut_type, plot_type, value_default=None):
+    if key in plot_spec:
+        return plot_spec[key]
+
+    if dut_type in PLOT_DEFAULTS:
+        if plot_type in PLOT_DEFAULTS[dut_type]:
+            return PLOT_DEFAULTS[dut_type][plot_type].get(key, value_default)
+
+    return value_default
 
 
 class DocuDutLib(object):
@@ -479,13 +490,13 @@ class DocuDutLib(object):
             except KeyError as err:
                 raise IOError("type not specified for plot specification.") from err
 
-            valid_plots = PLOT_DEFAULTS[plot_spec["dut_type"]].keys()
-            if not plot_type in valid_plots:
-                raise IOError(
-                    f"Plot type {plot_type} not valid. Valid: "
-                    + " ".join(str(PLOT_DEFAULTS.keys()))
-                    + " ."
-                )
+            # valid_plots = PLOT_DEFAULTS[plot_spec["dut_type"]].keys()
+            # if not plot_type in valid_plots:
+            #     raise IOError(
+            #         f"Plot type {plot_type} not valid. Valid: "
+            #         + " ".join(str(PLOT_DEFAULTS.keys()))
+            #         + " ."
+            #     )
 
             if not plot_spec["style"] in PLOT_STYLES:
                 raise IOError("Plot style not valid. Valid: " + " ".join(PLOT_STYLES))
@@ -521,43 +532,38 @@ class DocuDutLib(object):
             print(f"Chosen plot style: {style}")
 
             for dut in self.duts:
-                if dut.dut_type != plot_spec["dut_type"]:
-                    continue
-                if plot_spec.get(
-                    "simulate", PLOT_DEFAULTS[dut.dut_type][plot_type].get("simulate", True)
-                ):
+                if "dut_filter" in plot_spec:
+                    if not plot_spec["dut_filter"](dut):
+                        continue
+                elif "dut_type" in plot_spec:
+                    if not dut.dut_type.is_subtype(plot_spec["dut_type"]):
+                        continue
+
+                if obtain(plot_spec, "simulate", dut.dut_type, plot_type, True):
                     dut_sim = self.get_dut_sim(dut)
                 else:
                     dut_sim = None
 
-                quantity_x = plot_spec.get(
-                    "quantity_x", PLOT_DEFAULTS[dut.dut_type][plot_type]["quantity_x"]
-                )
-                x_log = plot_spec.get(
-                    "x_log", PLOT_DEFAULTS[dut.dut_type][plot_type].get("x_log", False)
-                )
-                x_scale = plot_spec.get(
-                    "x_scale", PLOT_DEFAULTS[dut.dut_type][plot_type].get("x_scale", None)
-                )
-                quantity_y = plot_spec.get(
-                    "quantity_y", PLOT_DEFAULTS[dut.dut_type][plot_type]["quantity_y"]
-                )
-                y_log = plot_spec.get(
-                    "y_log", PLOT_DEFAULTS[dut.dut_type][plot_type].get("y_log", False)
-                )
-                y_scale = plot_spec.get(
-                    "y_scale", PLOT_DEFAULTS[dut.dut_type][plot_type].get("y_scale", None)
-                )
+                quantity_x = obtain(plot_spec, "quantity_x", dut.dut_type, plot_type)
+                x_log = obtain(plot_spec, "x_log", dut.dut_type, plot_type, value_default=False)
 
-                # loat settings from plot_spec with additions from defaults
-                legend_location = plot_spec.get(
-                    "legend_location", PLOT_DEFAULTS[dut.dut_type][plot_type]["legend_location"]
-                )
-                at_specifier = plot_spec.get(
-                    "at_specifier", PLOT_DEFAULTS[dut.dut_type][plot_type]["at"]
-                )
+                x_scale = obtain(plot_spec, "x_scale", dut.dut_type, plot_type, value_default=None)
 
-                if not isinstance(at_specifier, list):
+                quantity_y = obtain(plot_spec, "quantity_y", dut.dut_type, plot_type)
+                quantities_y = None
+                if quantity_y is None:
+                    quantities_y = plot_spec["quantities_y"]
+                    quantity_y = quantities_y[0]
+                y_log = obtain(plot_spec, "y_log", dut.dut_type, plot_type, value_default=False)
+                y_scale = obtain(plot_spec, "y_scale", dut.dut_type, plot_type, value_default=None)
+
+                # load settings from plot_spec with additions from defaults
+                legend_location = obtain(plot_spec, "legend_location", dut.dut_type, plot_type)
+                at_specifier = obtain(plot_spec, "at", dut.dut_type, plot_type)
+
+                if at_specifier is None:
+                    at_specifier = []
+                elif not isinstance(at_specifier, list):
                     at_specifier = [at_specifier]
 
                 if "xmin" in plot_spec.keys() or "xmax" in plot_spec.keys():
@@ -576,9 +582,12 @@ class DocuDutLib(object):
                     except KeyError:
                         y_limits = (None, None)
 
-                caption = plot_spec.get("caption", PLOT_DEFAULTS[dut.dut_type][plot_type]["tex"])
+                caption = obtain(plot_spec, "caption", dut.dut_type, plot_type)
 
                 quantities_to_ensure = [quantity_x, quantity_y] + at_specifier
+                if quantities_y is not None:
+                    quantities_to_ensure += quantities_y
+
                 if "mark_ft" in plot_type:
                     quantities_to_ensure.append(specifiers.TRANSIT_FREQUENCY)
                     peaks = {
@@ -608,10 +617,15 @@ class DocuDutLib(object):
                 for at_ in at_specifier:
                     name.append("at" + at_)
 
-                name = "_".join(name)
+                name = "_".join(name).replace(".", "p")
 
                 # calc drawn emitter windows area
-                AE0_drawn = dut.width * dut.length * dut.contact_config.count("E") * dut.ndevices
+                try:
+                    AE0_drawn = (
+                        dut.width * dut.length * dut.contact_config.count("E") * dut.ndevices
+                    )
+                except (TypeError, AttributeError):
+                    AE0_drawn = 1
 
                 # find temperatures
                 temps = []
@@ -639,10 +653,8 @@ class DocuDutLib(object):
                         y_scale=y_scale,
                         legend_location=legend_location,
                     )
-                    plt.dut_name = (
-                        dut.name
-                        + f"w{dut.width*1e6:.2f}um_l{dut.length*1e6:.2f}um_{len(self.plts)}"
-                    )
+
+                    plt.dut_name = (dut.name + f"{len(self.plts)}").replace(".", "p")
                     plt.plot_type = plot_type
                     plt.dut = dut
                     plt.temp = temp
@@ -673,7 +685,10 @@ class DocuDutLib(object):
                             if specifiers.FREQUENCY in plot_spec.keys():
                                 try:
                                     df = df[
-                                        df[specifiers.FREQUENCY] == plot_spec[specifiers.FREQUENCY]
+                                        np.isclose(
+                                            df[specifiers.FREQUENCY],
+                                            plot_spec[specifiers.FREQUENCY],
+                                        )
                                     ]
                                 except KeyError:
                                     pass
@@ -738,7 +753,9 @@ class DocuDutLib(object):
                             #     units.append(at_.get_tex_unit(scale=at_scale[i]))
 
                             f = []
-                            if len(at_specifier) == 1:
+                            if len(at_specifier) == 0:
+                                f = [None]
+                            elif len(at_specifier) == 1:
                                 for point in at_vals[0]:
                                     f.append((point,))
                             elif len(at_specifier) == 2:
@@ -749,24 +766,30 @@ class DocuDutLib(object):
                             for point in f:
                                 df_filter = True
                                 at_str = ""
-                                for i, at_speci in enumerate(at_specifier):
-                                    df_filter = np.logical_and(
-                                        df_filter,
-                                        np.isclose(df[at_speci], point[i], rtol=1e-3),
-                                    )
+                                if point is None:
+                                    df_tmp = df
+                                else:
+                                    for i, at_speci in enumerate(at_specifier):
+                                        df_filter = np.logical_and(
+                                            df_filter,
+                                            np.isclose(df[at_speci], point[i], rtol=1e-3),
+                                        )
 
-                                    if at_str:
-                                        at_str += r",\,"
+                                        if at_str:
+                                            at_str += r",\,"
 
-                                    curr_str = at_speci.to_legend_with_value(point[i], decimals=2)
+                                        curr_str = at_speci.to_legend_with_value(
+                                            point[i], decimals=2
+                                        )
 
-                                    if plot_spec["no_at"]:
-                                        # only the number
-                                        at_str += "$" + curr_str.split("=")[1]
-                                    else:
-                                        at_str += curr_str
+                                        if plot_spec["no_at"]:
+                                            # only the number
+                                            at_str += "$" + curr_str.split("=")[1]
+                                        else:
+                                            at_str += curr_str
 
-                                df_tmp = df[df_filter]
+                                    df_tmp = df[df_filter]
+
                                 x = df_tmp[quantity_x].to_numpy()
                                 y = df_tmp[quantity_y].to_numpy()
 
@@ -776,7 +799,13 @@ class DocuDutLib(object):
                                 else:
                                     label = at_str
 
-                                plt.add_data_set(x, y, label=label)
+                                if quantities_y is None:
+                                    plt.add_data_set(x, y, label=label)
+                                else:
+                                    for quant in quantities_y:
+                                        plt.add_data_set(
+                                            x, df_tmp[quant], label=f"${quant.to_tex():s}$"
+                                        )
 
                                 # add dots at peak ft
                                 if "mark_ft" in plot_type:
@@ -862,7 +891,7 @@ class DocuDutLib(object):
                         f"...finished plot of type {plot_type} for dut {dut.name}, found {len(dut.data)} lines."
                     )
 
-                    if dut.data:
+                    if plt.data:
                         self.plts.append(plt)
                     else:
                         print("Found no lines for plot " + plot_type + ". Plot is not added!")
@@ -1022,12 +1051,15 @@ class DocuDutLib(object):
             duts_filtered = [dut for dut in duts_sorted if dut.dut_type == dut_type]
             with doc.create(Section(dut_type.string)):
                 for dut in duts_filtered:
-                    with doc.create(Subsection(dut.name)):
-                        plts_for_this_dut = []
-                        for plt in self.plts:
-                            if plt.dut == dut:
-                                plts_for_this_dut.append(plt)
+                    plts_for_this_dut = []
+                    for plt in self.plts:
+                        if plt.dut == dut:
+                            plts_for_this_dut.append(plt)
 
+                    if not plts_for_this_dut:
+                        continue
+
+                    with doc.create(Subsection(dut.name)):
                         temps = []
                         for plt in plts_for_this_dut:
                             temps.append(plt.temp)
