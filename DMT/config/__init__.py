@@ -9,6 +9,7 @@ Collects the config from 3 different locations:
 They are all read and finally taken in the order given here. This means that anything given in the local directory overwrites all others.
 
 """
+
 # DMT_core
 # Copyright (C) from 2022  SemiMod
 # Copyright (C) until 2021  Markus Müller, Mario Krattenmacher and Pascal Kuthe

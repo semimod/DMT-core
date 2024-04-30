@@ -1,5 +1,6 @@
 """ test ngspice input file generation.
 """
+
 import copy
 import types
 import logging

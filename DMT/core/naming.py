@@ -2,6 +2,7 @@ r""" Global namings for DMT
 
 Internally all variables and column names which contain a quantity of a specifier must have the same given names, e.g. all voltages will be called: 'V\_'
 """
+
 # DMT_core
 # Copyright (C) from 2022  SemiMod
 # Copyright (C) until 2021  Markus Müller, Mario Krattenmacher and Pascal Kuthe

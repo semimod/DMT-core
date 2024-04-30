@@ -1,5 +1,6 @@
 """ test DutHdev
 """
+
 import logging
 
 from DMT.core import DutType, SimCon, constants

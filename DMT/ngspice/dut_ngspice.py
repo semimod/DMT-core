@@ -15,6 +15,7 @@ DutAds allows loads from other files. In order to keep the Hash-System the conte
 This can be used for Verilog files. The correct load of ADS is determined by file ending.
 
 """
+
 # DMT_core
 # Copyright (C) from 2022  SemiMod
 # Copyright (C) until 2021  Markus Müller, Mario Krattenmacher and Pascal Kuthe
@@ -1214,9 +1215,9 @@ def _read_clean_ngspice_df_transient(filepath, reference_node, ac_ports):
         elif col_raw[0:2] == "N_":  # found a node, will take the voltage
             node = col_raw[2:]
             if "_FORCED" in node:
-                new_df[
-                    specifiers.VOLTAGE + node.replace("_FORCED", "") + sub_specifiers.FORCED
-                ] = df[col]
+                new_df[specifiers.VOLTAGE + node.replace("_FORCED", "") + sub_specifiers.FORCED] = (
+                    df[col]
+                )
             else:
                 new_df[specifiers.VOLTAGE + node] = df[col]
         elif col_raw == "FREQUENCY":

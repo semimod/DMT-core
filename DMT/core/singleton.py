@@ -3,6 +3,7 @@
 Provides a meta class to ensure single instantiation.
 
 """
+
 # DMT_core
 # Copyright (C) from 2022  SemiMod
 # Copyright (C) until 2021  Markus Müller, Mario Krattenmacher and Pascal Kuthe

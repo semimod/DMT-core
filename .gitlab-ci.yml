@@ -23,6 +23,7 @@ check_format:
     - if: $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
       when: manual
   script:
+    - pip install --upgrade black
     - black --check --diff -v .
 
 test_DMT:

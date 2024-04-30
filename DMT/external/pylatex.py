@@ -1,6 +1,7 @@
 """ DMT specific PyLaTeX classes and routines used for automatic documentations
 
 """
+
 # DMT_core
 # Copyright (C) from 2022  SemiMod
 # Copyright (C) until 2021  Markus Müller, Mario Krattenmacher and Pascal Kuthe

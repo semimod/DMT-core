@@ -3,6 +3,7 @@
 If a technology can use TRADICA, the class :class:`DMT.TRADICA.TechTradica` is recommended!
 
 """
+
 # DMT_core
 # Copyright (C) from 2022  SemiMod
 # Copyright (C) until 2021  Markus Müller, Mario Krattenmacher and Pascal Kuthe
@@ -48,6 +49,7 @@ class Technology(object):
         Name of the technology
 
     """
+
     name = ""
 
     def __init__(self, name):

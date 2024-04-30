@@ -4,6 +4,7 @@
 Konvergenz bei vergleich von flnqs = 0/1
 
 """
+
 import copy
 import types
 import logging

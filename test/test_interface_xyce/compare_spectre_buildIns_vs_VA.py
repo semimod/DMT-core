@@ -6,6 +6,7 @@ USING VerilogAE to obtain the SPG modelcard!
 verilogae install --module-name sgp_v1p0 DMT_other/DMT/hl2/sgp_v1p0_vae.va
 
 """
+
 import types
 import logging
 
