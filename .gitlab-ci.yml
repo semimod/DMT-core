@@ -225,7 +225,7 @@ sbom:
   script:
      - pip install --upgrade --upgrade-strategy eager -e .[develop,HDF5,latex,remote,pyside6]
      - pip install cyclonedx-bom
-     - cyclonedx-bom -e
+     - cyclonedx-py environment
   artifacts:
     paths:
       - cyclonedx.xml
