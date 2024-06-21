@@ -154,9 +154,9 @@ def test_pretty_printing():
 
 
 if __name__ == "__main__":
-    test_index_objects()
-    test_specifier_texts()
-    test_specifier_from_string()
-    column_save_load()
+    # test_index_objects()
+    # test_specifier_texts()
+    # test_specifier_from_string()
+    # column_save_load()
     test_pretty_printing()
     dummy = 1

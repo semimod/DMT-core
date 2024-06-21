@@ -24,24 +24,27 @@ This includes easy management of small signal parameter and other quantities whi
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
-import re
-import logging
+import os
 import copy
+import logging
+import re
+from pathlib import Path
+from typing import Dict, Iterator, Tuple
+
 import numpy as np
 import pandas as pd
 from scipy.optimize import curve_fit
-from typing import Iterator, Tuple, Dict
-from DMT.exceptions import UnknownColumnError
-from DMT.core.data_processor import DataProcessor, flatten
 from DMT.core import (
-    specifiers_ss_para,
-    get_specifier_from_string,
-    specifiers,
     SpecifierStr,
-    sub_specifiers,
     get_nodes,
+    get_specifier_from_string,
     get_sub_specifiers,
+    specifiers,
+    specifiers_ss_para,
+    sub_specifiers,
 )
+from DMT.core.data_processor import DataProcessor, flatten
+from DMT.exceptions import UnknownColumnError
 
 # pylint: disable = too-many-lines
 
@@ -901,7 +904,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
             except IOError as err:  # try to get from Y paras
                 try:
                     self = self.convert_n_port_para(p_from="Y", p_to=specifier, ports=ports)
-                except:
+                except Exception:
                     raise KeyError(
                         "The conversion from the S- and Y-Parameters to the small signal "
                         + specifier
@@ -1312,7 +1315,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
             freq_self_unique
         ):  # try to throw away frequencies in short
             indices_to_delete = [
-                i for i, _freq in enumerate(freq_short_unique) if not _freq in freq_self_unique
+                i for i, _freq in enumerate(freq_short_unique) if _freq not in freq_self_unique
             ]
             s_para_short_values = np.delete(s_para_short_values, indices_to_delete, 0)
             s_para_values = DataFrame.processor.deembed_short(
@@ -1363,7 +1366,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
                 freq_self_unique
             ):  # try to throw away frequencies in open
                 indices_to_delete = [
-                    i for i, _freq in enumerate(freq_open_unique) if not _freq in freq_self_unique
+                    i for i, _freq in enumerate(freq_open_unique) if _freq not in freq_self_unique
                 ]
                 s_para_open_values = np.delete(s_para_open_values, indices_to_delete, 0)
                 s_para_values = DataFrame.processor.deembed_open(
@@ -1479,7 +1482,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
         sp_vn0 = specifiers.VOLTAGE + ac_ports[0]
         sp_in1 = specifiers.CURRENT + ac_ports[1]
         sp_vn1 = specifiers.VOLTAGE + ac_ports[1]
-        sp_inr = specifiers.CURRENT + reference_node
+        # sp_inr = specifiers.CURRENT + reference_node
         sp_vnr = specifiers.VOLTAGE + reference_node
 
         if forced_current:
@@ -2259,7 +2262,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
         :class:`DMT.core.DataFrame`
             Dataframe that contains the TRANSCONDUCTANCE
         """
-        if ports == None:  # assume HBT
+        if ports is None:  # assume HBT
             col_ic = specifiers.CURRENT + "C"
             col_vce_forced = specifiers.VOLTAGE + ["C", "E"] + sub_specifiers.FORCED
         else:
@@ -2353,7 +2356,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
                             norm = 2 * np.pi * freq_i
 
                         popt, _pcov = curve_fit(fun, np.log10(freq_i_lim), y_raw_lim / norm_lim)
-                        y_fitted_lim = fun(np.log10(freq_i_lim), *popt)
+                        # y_fitted_lim = fun(np.log10(freq_i_lim), *popt)
 
                         df_new.iloc[i_low:i_upp, df_new.columns.get_loc(y_para)] = (
                             fun(np.log10(freq_i), *popt) * norm
@@ -2424,7 +2427,74 @@ class DataFrame(DataProcessor, pd.DataFrame):
 
             yield index, val, dataframe
             index += 1
+    
+    def to_feather(self, file_name:str|os.PathLike, version=2, compression="lz4", **kwargs):
+        """ Saves the dataframe as a feather binary file
 
+        Parameters
+        ----------
+        file_name : str | os.PathLike
+            file name and path to save to.
+        version : int, optional
+            Feather version (passed on to pandas.DataFrame.to_feather), by default 2
+        compression : str, optional
+            compresion algorithm (passed on to pandas.DataFrame.to_feather), by default "lz4"
+        kwargs: optional
+            passed on to pandas.DataFrame.to_feather           
+        """
+        if isinstance(file_name, Path):
+            file_name.parent.mkdir(parents=True, exist_ok=True)
+            file_name = str(file_name)
+        else:
+            Path(file_name).parent.mkdir(parents=True, exist_ok=True)
+
+        dict_convert = {}
+        for col in self.columns:
+            try:
+                dict_convert[col] = col.string_to_save()
+            except AttributeError:
+                pass
+        df_save = self.rename(columns=dict_convert, inplace=False, copy=True)
+        df_save.__class__ = pd.DataFrame
+        df_save.to_feather(file_name, version=version, compression=compression, **kwargs)
+    
+    @classmethod
+    def from_feather(cls, file_name: str|os.PathLike, to_specifier=True):
+        """Load the data stored in file_name, where file_name is the direct path to the file.
+
+        Parameters
+        ----------
+        file_name  :  str
+            Direct path to the file
+        to_specifier : bool
+            If True, the column names are cast to specifiers. Only neeeded for feather files. Default is True.
+
+        Returns
+        -------
+        df  :  DMT.core.DataFrame
+            Loaded dataframe object.
+        """
+        df = pd.read_feather(str(file_name))
+        df.__class__ = DataFrame
+
+        if to_specifier:
+            # here we should cast
+            dict_reconvert = {}
+            for col in df.columns:
+                specifier = SpecifierStr.string_from_load(col)
+                if not isinstance(specifier, SpecifierStr):
+                    # did not work so try default cast
+                    specifier = get_specifier_from_string(col)
+
+                dict_reconvert[col] = specifier
+
+            df.rename(columns=dict_reconvert, inplace=True)
+            # prevent invisible column bug:
+            df = df.loc[:, ~df.columns.duplicated()]
+            if not df.columns.is_unique:
+                raise IOError()
+        
+        return df
 
 def df_concat(*frames):
     frame = pd.concat(frames, axis=0, ignore_index=True)

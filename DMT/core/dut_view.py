@@ -902,7 +902,7 @@ class DutView(object):
 
             self.data[key] = df
 
-    def save_db(self, sweep_keys=None):
+    def save_db(self, sweep_keys=None, sweeps=None):
         """Write a database for this dut. If it already exists it is overwritten. Does NOT save all keys starting with '_'
 
         Parameters
@@ -915,7 +915,13 @@ class DutView(object):
             return  # nothing to do here
 
         if self._separate_databases:
-            if sweep_keys is None:
+            if sweep_keys is not None:
+                pass
+            elif sweeps is not None:
+                sweep_keys = []
+                for sweep in sweeps:
+                    sweep_keys.append(self.get_sweep_key(sweep))
+            else:
                 # find all sweeps in self.data
                 sweep_keys = []
                 for key in self._data.keys():

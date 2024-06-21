@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Added
+    - to_feather and from_feather method overwrites to DMT.DataFrame
+
+## [2.1.0] - 2024.05.16
+
+This is an overall update release for DMT-core. The package has been enhanced on all ends. 
+
 ### Deleted
 
 - Removed the documentation from this repository and moved it to https://gitlab.com/dmt-development/dmt-doc

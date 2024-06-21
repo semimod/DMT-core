@@ -28,6 +28,7 @@ Features:
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
+import os
 import pandas as pd
 import warnings
 import _pickle as cpickle
@@ -201,7 +202,7 @@ class DatabaseManager(object, metaclass=Singleton):
 
         db_dir.unlink(missing_ok=True)
 
-    def save_df(self, df, file_name):
+    def save_df(self, df:DataFrame|pd.DataFrame, file_name:str|os.PathLike, version=2, compression="lz4", **kwargs):
         """Save the data stored in df as file_name, where file_name is the direct path to the file.
 
         Parameters
@@ -211,21 +212,9 @@ class DatabaseManager(object, metaclass=Singleton):
         file_name  :  str or os.Pathlike
             Direct path to the file
         """
-        if not isinstance(file_name, Path):
-            file_name = Path(file_name)
+        df.to_feather(file_name, version=version, compression=compression, **kwargs)
 
-        file_name.parent.mkdir(parents=True, exist_ok=True)
-
-        dict_convert = {}
-        for col in df.columns:
-            try:
-                dict_convert[col] = col.string_to_save()
-            except AttributeError:
-                pass
-        df_save = df.rename(columns=dict_convert, inplace=False)
-        df_save.to_feather(str(file_name), version=2, compression="lz4")
-
-    def load_df(self, file_name, to_specifier=True):
+    def load_df(self, file_name: str|os.PathLike, to_specifier=True):
         """Load the data stored in file_name, where file_name is the direct path to the file.
 
         Parameters
@@ -241,26 +230,7 @@ class DatabaseManager(object, metaclass=Singleton):
             Loaded dataframe object.
         """
         try:
-            df = pd.read_feather(str(file_name))
-            df.__class__ = DataFrame
-
-            if to_specifier:
-                # here we should cast
-                dict_reconvert = {}
-                for col in df.columns:
-                    specifier = SpecifierStr.string_from_load(col)
-                    if not isinstance(specifier, SpecifierStr):
-                        # did not work so try default cast
-                        specifier = get_specifier_from_string(col)
-
-                    dict_reconvert[col] = specifier
-
-                df.rename(columns=dict_reconvert, inplace=True)
-                # prevent invisible column bug:
-                df = df.loc[:, ~df.columns.duplicated()]
-                if not df.columns.is_unique:
-                    raise IOError()
-
+            df = DataFrame.from_feather(file_name, to_specifier=to_specifier)
         except ArrowInvalid:
             df = pd.read_pickle(str(file_name))
             df.__class__ = DataFrame
