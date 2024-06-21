@@ -1030,12 +1030,12 @@ def get_specifier_from_string(string, nodes=None):
     )
 
     # test if everything is inside the new specifier
-    rest = string.replace(str(specifier_in_string), "")
+    rest = string.replace(str(specifier_in_string), "", 1)
     if nodes_in_string:
-        rest = rest.replace("_" + "".join(nodes_in_string), "")
+        rest = rest.replace("_" + "".join(nodes_in_string), "", 1)
     if sub_specifiers_in_string:
         for sub_spec in sub_specifiers_in_string:
-            rest = rest.replace("|" + sub_spec, "")
+            rest = rest.replace("|" + sub_spec, "", 1)
 
     if rest:
         return string
