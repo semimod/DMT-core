@@ -2428,7 +2428,9 @@ class DataFrame(DataProcessor, pd.DataFrame):
             yield index, val, dataframe
             index += 1
 
-    def to_feather(self, file_name: Union[str, os.PathLike], version=2, compression="lz4", **kwargs):
+    def to_feather(
+        self, file_name: Union[str, os.PathLike], version=2, compression="lz4", **kwargs
+    ):
         """Saves the dataframe as a feather binary file
 
         Parameters
