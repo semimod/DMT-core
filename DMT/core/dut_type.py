@@ -128,12 +128,6 @@ class DutTypeInt(object):
         other : int, DutTypeInt
         """
         # remove subtype flag..
-        # val_subtype_flags = (
-        #     DutTypeFlag._flag_subtype_1
-        #     | DutTypeFlag._flag_subtype_2
-        #     | DutTypeFlag._flag_subtype_3
-        #     | DutTypeFlag._flag_subtype_4
-        # )
         if DutTypeFlag._flag_subtype_1 & self:
             self_wo_subtype = self - DutTypeFlag._flag_subtype_1
         elif DutTypeFlag._flag_subtype_2 & self:
@@ -160,28 +154,12 @@ class DutTypeInt(object):
         return res == other
 
     def __lt__(self, other):
+        """ comparision for Sorting!
+        """
         try:
             return DutTypeInt(self.value < other.value, string=self.get_string(), nodes=self.nodes)
         except AttributeError:
             return DutTypeInt(self.value < other, string=self.get_string(), nodes=self.nodes)
-
-    def __le__(self, other):
-        try:
-            return DutTypeInt(self.value <= other.value, string=self.get_string(), nodes=self.nodes)
-        except AttributeError:
-            return DutTypeInt(self.value <= other, string=self.get_string(), nodes=self.nodes)
-
-    def __gt__(self, other):
-        try:
-            return DutTypeInt(self.value > other.value, string=self.get_string(), nodes=self.nodes)
-        except AttributeError:
-            return DutTypeInt(self.value > other, string=self.get_string(), nodes=self.nodes)
-
-    def __ge__(self, other):
-        try:
-            return DutTypeInt(self.value >= other.value, string=self.get_string(), nodes=self.nodes)
-        except AttributeError:
-            return DutTypeInt(self.value >= other, string=self.get_string(), nodes=self.nodes)
 
     def __sub__(self, other):
         try:

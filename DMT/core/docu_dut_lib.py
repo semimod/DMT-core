@@ -20,39 +20,31 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 import copy
 import datetime
-import numpy as np
 from pathlib import Path
-from typing import Dict, List, Mapping, Sequence, Optional, Union
+from typing import Dict, List, Mapping, Optional, Sequence, Union
+
+import numpy as np
 from joblib import Parallel, delayed
 from scipy import interpolate
-from DMT.config import COMMAND_TEX, DATA_CONFIG
+
+from DMT.config import DATA_CONFIG
 from DMT.core import (
-    DutType,
+    DutCircuit,
     DutLib,
+    DutMeas,
+    DutType,
+    MCard,
+    SimCon,
+    Sweep,
     specifiers,
     sub_specifiers,
-    MCard,
-    DutCircuit,
-    DutMeas,
-    Sweep,
-    SimCon,
 )
-from DMT.core.plot import MIX, PLOT_STYLES, natural_scales, Plot
+from DMT.core.plot import MIX, PLOT_STYLES, Plot, natural_scales
 from DMT.external.os import recursive_copy, rmtree
 
 try:
-    from pylatex import (
-        Section,
-        Subsection,
-        Subsubsection,
-        SmallText,
-        Tabular,
-        NoEscape,
-        Center,
-        Figure,
-    )
-    from pylatex.base_classes import Arguments
-    from DMT.external.pylatex import SubFile, Tex, CommandInput, CommandLabel
+    from pylatex import Figure, NoEscape, Section, Subsection, Subsubsection
+    from DMT.external.pylatex import SubFile, Tex
 except ImportError:
     pass
 
@@ -214,20 +206,6 @@ PLOT_DEFAULTS = {
             "x_limits": (None, None),
             "caption": r"$\Re \left\{ Y_{21} \right\} \left( J_{\mathrm{C}} \right)$ @ $V_{\mathrm{BC}}$.",
         },
-        "y21_jc_vbc_mark_ft": {
-            "x_log": True,
-            "y_log": True,
-            "at": [
-                specifiers.FREQUENCY,
-                specifiers.VOLTAGE + "B" + "C" + sub_specifiers.FORCED,
-            ],
-            "quantity_x": specifiers.CURRENT_DENSITY + "C",
-            "quantity_y": specifiers.SS_PARA_Y + "C" + "B" + sub_specifiers.REAL,
-            "legend_location": "upper left",
-            "y_limits": (None, None),
-            "x_limits": (None, None),
-            "caption": r"$\Re \left\{ Y_{21} \right\} \left( J_{\mathrm{C}} \right)$ @ $V_{\mathrm{BC}}$.",
-        },
         "tj_jc_at_vbc": {
             "x_log": True,
             "y_log": False,
@@ -346,7 +324,7 @@ class DocuDutLib(object):
                     for device_spec, val in device_specs.items():
                         if isinstance(val, str):
                             dut_property = getattr(dut, device_spec)
-                            if not val in dut_property:
+                            if val not in dut_property:
                                 ok = False
                         elif isinstance(val, float):
                             dut_property = getattr(dut, device_spec)
@@ -498,10 +476,10 @@ class DocuDutLib(object):
             #         + " ."
             #     )
 
-            if not plot_spec["style"] in PLOT_STYLES:
+            if plot_spec["style"] not in PLOT_STYLES:
                 raise IOError("Plot style not valid. Valid: " + " ".join(PLOT_STYLES))
 
-            if not "key" in plot_spec.keys():
+            if "key" not in plot_spec.keys():
                 raise IOError(f"Database key not specified for plot of type {plot_type}.")
 
             # matching key?
@@ -536,7 +514,7 @@ class DocuDutLib(object):
                     if not plot_spec["dut_filter"](dut):
                         continue
                 elif "dut_type" in plot_spec:
-                    if not dut.dut_type.is_subtype(plot_spec["dut_type"]):
+                    if not (dut.dut_type.is_subtype(plot_spec["dut_type"]) or (dut.dut_type == plot_spec["dut_type"])):
                         continue
 
                 if obtain(plot_spec, "simulate", dut.dut_type, plot_type, True):
@@ -727,6 +705,8 @@ class DocuDutLib(object):
 
                                         df.loc[:, quantity] = temp + pdiss * rth
                                         dut.rth = rth
+                                    else:
+                                        raise 
 
                             at_vals = []
                             for i, at_ in enumerate(at_specifier):
@@ -943,7 +923,7 @@ class DocuDutLib(object):
             save_tikz_settings = save_tikz_settings_defaults
         else:
             for key in save_tikz_settings_defaults:
-                if not key in save_tikz_settings.keys():
+                if key not in save_tikz_settings.keys():
                     save_tikz_settings[key] = save_tikz_settings[key]
 
         paths = Parallel(n_jobs=20, verbose=10)(
