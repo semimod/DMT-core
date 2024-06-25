@@ -196,9 +196,14 @@ class SpecifierStr(str):
             try:
                 unit = siunitx_format_unit(unit)  # type: ignore
             except TypeError:
-                unit = siunitx_format_unit(
-                    unit._units, unit_registry
-                )  # new version has other interface
+                try:
+                    unit = siunitx_format_unit(
+                        unit._units, unit_registry
+                    )  # mittle version has other interface
+                except ValueError:
+                    unit = siunitx_format_unit(
+                        unit._units.items(), unit_registry
+                    )  # new version has other interface
 
             if unit.startswith("\\per"):
                 # for 1/m^3 -> unit prefix should be in the denominator
@@ -274,9 +279,14 @@ class SpecifierStr(str):
         try:
             unit = siunitx_format_unit(unit)  # type: ignore
         except TypeError:
-            unit = siunitx_format_unit(
-                unit._units, unit_registry
-            )  # new version has other interface
+            try:
+                unit = siunitx_format_unit(
+                    unit._units, unit_registry
+                )  # middle version has other interface
+            except ValueError:
+                unit =  siunitx_format_unit(
+                    unit._units.items(), unit_registry
+                )  # new version has other interface
         # for non-mixed quantities like voltages and current
         if self.specifier in UNIT_PREFIX_MIX:  # mixed unit
             unit_with_prefix = UNIT_PREFIX_MIX[self.specifier][np.round(scale, decimals=10)]

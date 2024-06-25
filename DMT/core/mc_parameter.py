@@ -595,9 +595,14 @@ class McParameter(object):
                 try:
                     return siunitx_format_unit(self.unit)  # type: ignore
                 except TypeError:
-                    return siunitx_format_unit(
-                        self.unit._units, unit_registry
-                    )  # new version has other interface
+                    try:
+                        return siunitx_format_unit(
+                            self.unit._units, unit_registry
+                        )  # middle version has other interface
+                    except ValueError:
+                        return siunitx_format_unit(
+                            self.unit._units.items(), unit_registry
+                        )  # new version has other interface
             else:
                 return "-"
 
