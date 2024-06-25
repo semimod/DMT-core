@@ -2427,9 +2427,9 @@ class DataFrame(DataProcessor, pd.DataFrame):
 
             yield index, val, dataframe
             index += 1
-    
-    def to_feather(self, file_name:str|os.PathLike, version=2, compression="lz4", **kwargs):
-        """ Saves the dataframe as a feather binary file
+
+    def to_feather(self, file_name: str | os.PathLike, version=2, compression="lz4", **kwargs):
+        """Saves the dataframe as a feather binary file
 
         Parameters
         ----------
@@ -2440,7 +2440,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
         compression : str, optional
             compresion algorithm (passed on to pandas.DataFrame.to_feather), by default "lz4"
         kwargs: optional
-            passed on to pandas.DataFrame.to_feather           
+            passed on to pandas.DataFrame.to_feather
         """
         if isinstance(file_name, Path):
             file_name.parent.mkdir(parents=True, exist_ok=True)
@@ -2457,9 +2457,9 @@ class DataFrame(DataProcessor, pd.DataFrame):
         df_save = self.rename(columns=dict_convert, inplace=False, copy=True)
         df_save.__class__ = pd.DataFrame
         df_save.to_feather(file_name, version=version, compression=compression, **kwargs)
-    
+
     @classmethod
-    def from_feather(cls, file_name: str|os.PathLike, to_specifier=True):
+    def from_feather(cls, file_name: str | os.PathLike, to_specifier=True):
         """Load the data stored in file_name, where file_name is the direct path to the file.
 
         Parameters
@@ -2493,8 +2493,9 @@ class DataFrame(DataProcessor, pd.DataFrame):
             df = df.loc[:, ~df.columns.duplicated()]
             if not df.columns.is_unique:
                 raise IOError()
-        
+
         return df
+
 
 def df_concat(*frames):
     frame = pd.concat(frames, axis=0, ignore_index=True)

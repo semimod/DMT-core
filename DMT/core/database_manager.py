@@ -202,7 +202,14 @@ class DatabaseManager(object, metaclass=Singleton):
 
         db_dir.unlink(missing_ok=True)
 
-    def save_df(self, df:DataFrame|pd.DataFrame, file_name:str|os.PathLike, version=2, compression="lz4", **kwargs):
+    def save_df(
+        self,
+        df: DataFrame | pd.DataFrame,
+        file_name: str | os.PathLike,
+        version=2,
+        compression="lz4",
+        **kwargs
+    ):
         """Save the data stored in df as file_name, where file_name is the direct path to the file.
 
         Parameters
@@ -214,7 +221,7 @@ class DatabaseManager(object, metaclass=Singleton):
         """
         df.to_feather(file_name, version=version, compression=compression, **kwargs)
 
-    def load_df(self, file_name: str|os.PathLike, to_specifier=True):
+    def load_df(self, file_name: str | os.PathLike, to_specifier=True):
         """Load the data stored in file_name, where file_name is the direct path to the file.
 
         Parameters

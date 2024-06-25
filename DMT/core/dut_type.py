@@ -154,8 +154,7 @@ class DutTypeInt(object):
         return res == other
 
     def __lt__(self, other):
-        """ comparision for Sorting!
-        """
+        """comparision for Sorting!"""
         try:
             return DutTypeInt(self.value < other.value, string=self.get_string(), nodes=self.nodes)
         except AttributeError:

@@ -514,7 +514,10 @@ class DocuDutLib(object):
                     if not plot_spec["dut_filter"](dut):
                         continue
                 elif "dut_type" in plot_spec:
-                    if not (dut.dut_type.is_subtype(plot_spec["dut_type"]) or (dut.dut_type == plot_spec["dut_type"])):
+                    if not (
+                        dut.dut_type.is_subtype(plot_spec["dut_type"])
+                        or (dut.dut_type == plot_spec["dut_type"])
+                    ):
                         continue
 
                 if obtain(plot_spec, "simulate", dut.dut_type, plot_type, True):
@@ -706,7 +709,7 @@ class DocuDutLib(object):
                                         df.loc[:, quantity] = temp + pdiss * rth
                                         dut.rth = rth
                                     else:
-                                        raise 
+                                        raise
 
                             at_vals = []
                             for i, at_ in enumerate(at_specifier):
