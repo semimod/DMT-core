@@ -29,7 +29,7 @@ import copy
 import logging
 import re
 from pathlib import Path
-from typing import Dict, Iterator, Tuple
+from typing import Dict, Iterator, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -2428,7 +2428,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
             yield index, val, dataframe
             index += 1
 
-    def to_feather(self, file_name: str | os.PathLike, version=2, compression="lz4", **kwargs):
+    def to_feather(self, file_name: Union[str, os.PathLike], version=2, compression="lz4", **kwargs):
         """Saves the dataframe as a feather binary file
 
         Parameters
@@ -2459,7 +2459,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
         df_save.to_feather(file_name, version=version, compression=compression, **kwargs)
 
     @classmethod
-    def from_feather(cls, file_name: str | os.PathLike, to_specifier=True):
+    def from_feather(cls, file_name: Union[str, os.PathLike], to_specifier=True):
         """Load the data stored in file_name, where file_name is the direct path to the file.
 
         Parameters

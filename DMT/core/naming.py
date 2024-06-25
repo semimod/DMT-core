@@ -284,7 +284,7 @@ class SpecifierStr(str):
                     unit._units, unit_registry
                 )  # middle version has other interface
             except ValueError:
-                unit =  siunitx_format_unit(
+                unit = siunitx_format_unit(
                     unit._units.items(), unit_registry
                 )  # new version has other interface
         # for non-mixed quantities like voltages and current
