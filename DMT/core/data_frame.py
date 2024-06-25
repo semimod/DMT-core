@@ -873,7 +873,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
                 ) from err
         elif specifier == specifiers.TRANSCONDUCTANCE:
             try:
-                self = self.calc_gm(ports=ports)
+                self = self.calc_gm(ports=nodes)
             except IOError as err:
                 raise KeyError(
                     "The transconductance is missing in the given data frame and can not be calculated."
@@ -1320,7 +1320,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
         Parameters
         ----------
         df_open     :  :class:`DMT.core.DataFrame`
-            df containgin the measured open structure.
+            df containing the measured open structure.
 
         ports       :  [str]
             List of port names. Should be the same for the device and the open and short.

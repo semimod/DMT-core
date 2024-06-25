@@ -208,7 +208,7 @@ class SimCon(object, metaclass=Singleton):
                     print_progress_bar(n_tot, n_tot, prefix="Finish", length=50)
                     print("\n")  # new line after the progress bar
 
-                    # add dalta to the duts and filter simuations to do
+                    # add data to the duts and filter simulations to do
                     for sim_to_do, sim_checked in zip(
                         self.sim_list, sims_checked
                     ):  # as we are keeping the order, we can copy the data over

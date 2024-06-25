@@ -298,6 +298,8 @@ class DataProcessor(object):
                 para_new = self.s2y(para_values, z0)
             elif p_to == "T":
                 para_new = rf_network.s2t(para_values)
+            elif p_to == "H":
+                para_new = rf_network.s2h(para_values)
             elif p_to == "A":
                 para_new = rf_network.s2a(para_values, z0)
             elif p_to == "H":

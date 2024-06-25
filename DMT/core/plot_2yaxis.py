@@ -39,7 +39,7 @@ try:
         "\\usepackage{mathtools}\n",
         "\\usepackage{amssymb}\n",
         "\\usepackage{siunitx}\n",
-        "\\sisetup{range-units=repeat, list-units=repeat, binary-units, exponent-product = \\cdot, print-unity-mantissa=false}\n",
+        "\\sisetup{range-units=repeat, list-units=repeat, binary-units, exponent-product = \\cdot, print-unity-mantissa=false, per-mode=symbol}\n",
         "\\DeclareSIUnit\\sq{\\ensuremath{\\Box}}\n",
         "\\DeclareSIUnit\\degC{\\degreeCelsius}\n",
     ]
@@ -411,6 +411,7 @@ class Plot2YAxis(object):
             show_legend=show_legend,
             legend_location=legend_location,
             legend_columns=legend_columns,
+            fontsize=fontsize,
         )
         file_tikz_right = self.plot_right.save_tikz(
             directory,
@@ -423,6 +424,7 @@ class Plot2YAxis(object):
             show_legend=show_legend,
             legend_location=legend_location,
             legend_columns=legend_columns,
+            fontsize=fontsize,
         )
 
         # open, read and delete the tikz files
@@ -504,7 +506,7 @@ class Plot2YAxis(object):
                 + "every y tick label/.append style={font=\\color{black}},\n"
                 + "every y tick/.append style={black},\n"
                 + y_label_def
-                + "yticklabel style={text width=0.6em,align=left},\n"
+                + "yticklabel style={align=left},\n"
                 + "yticklabel pos=right,\n"
                 + "axis x line*=bottom,\n"
                 + str_hide_second_ticks

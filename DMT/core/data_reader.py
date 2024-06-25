@@ -95,6 +95,8 @@ def read_data(filename, key=None, **kwargs):
         df = read_elpa(filename, header=3)
     elif extension == ".csv":
         df = read_csv(filename, **kwargs)
+    elif extension == ".xls":
+        df = read_excel(filename, **kwargs)
     elif extension == ".p":
         with filename.open("rb") as pickle_file:
             df = pickle.load(pickle_file)
@@ -336,6 +338,37 @@ def read_csv(filename, **kwargs):
 
     return df
 
+def read_excel(filename, **kwargs):
+    """Read .xsl file and generate a DMT dataframe from it.
+
+    Parameters
+    ----------
+    filename : str or os.Pathlike
+        filename of .xsl file including path.
+    **kwargs
+        kwargs are passed to pandas.read_excel
+
+    Returns
+    -------
+    df       : :class:`DMT.core.Dataframe`
+        DMT dataframe representing the csv data.
+    """
+    # ok, can just use standard pandas routine here. nice.
+    df = pd.read_excel(str(filename), **kwargs)
+    df.__class__ = DataFrame  # cast to DMT.DataFrame
+
+    # work around for complex data in one column in the csv:
+    # https://stackoverflow.com/a/18919965
+
+    for col in df.columns:  # type: ignore
+        if df[col].dtype == object:  # type: ignore
+            try:
+                df[col] = df[col].apply(lambda x: np.complex(x))  # type: ignore
+            except AttributeError:
+                # is there i instead of j ?
+                df[col] = df[col].str.replace("i", "j").apply(lambda x: np.complex(x))  # type: ignore
+
+    return df
 
 def read_feather(filename, **kwargs):
     """Read .feather file and generate a DMT dataframe from it.

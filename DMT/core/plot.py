@@ -77,7 +77,7 @@ try:
         "\\usepackage{mathtools}\n",
         "\\usepackage{amssymb}\n",
         "\\usepackage{siunitx}\n",
-        "\\sisetup{range-units=repeat, list-units=repeat, binary-units, exponent-product = \\cdot, print-unity-mantissa=false}\n",
+        "\\sisetup{range-units=repeat, list-units=repeat, binary-units, exponent-product = \\cdot, print-unity-mantissa=false, per-mode=symbol}\n",
         "\\DeclareSIUnit\\sq{\\ensuremath{\\Box}}\n",
         "\\DeclareSIUnit\\degC{\\degreeCelsius}\n",
         "\\DeclareUnicodeCharacter{221E}{$\infty$}\n",
@@ -129,6 +129,8 @@ XTRACTION_COLOR_4 = "xtraction_color_4"  # repeat color after 4 pairs of lines
 PLOT_STYLES.append(XTRACTION_COLOR_4)
 COMPARISON_3 = "comparison_3"
 PLOT_STYLES.append(COMPARISON_3)
+COMPARISON_3_BW = "comparison_3_bw"
+PLOT_STYLES.append(COMPARISON_3_BW)
 COMPARISON_3_MARKERS = "comparison_3_markers"  # different markers for every line
 PLOT_STYLES.append(COMPARISON_3_MARKERS)
 COMPARISON_4 = "comparison_4"
@@ -139,11 +141,14 @@ XTRACTION_INTERPOLATED_COLOR = "xtraction_interpolated_color"
 PLOT_STYLES.append(XTRACTION_INTERPOLATED_COLOR)
 MIX = "mix"
 PLOT_STYLES.append(MIX)
+MIX_BW = "mix_bw"
+PLOT_STYLES.append(MIX_BW)
 
 CYCLER_MARKERS = cycler(marker=[char for char in "x+v^*<>.so"])
 CYCLER_LINESTYLES = cycler(linestyle=["-", "--", "-.", ":"])
 CYCLER_COLORS = cycler(
     color=[
+        "#000000",  # black
         "#006400",  # darkgreen
         "#00008b",  # darkblue
         "#b03060",  # maroon3
@@ -605,6 +610,25 @@ class Plot(object):
                 cycler("marker", xtraction_markers) + cycler("linestyle", xtraction_lstyle)
             )
 
+        elif style == COMPARISON_3_BW:
+            # find the limiting style component in terms of numbers
+            n_styles = len(markers)
+
+            xtraction_markers = []
+            for marker in markers[:n_styles]:
+                xtraction_markers.append(marker)
+                xtraction_markers.append(None)
+                xtraction_markers.append(None)
+
+            xtraction_lstyle = []
+            for marker in markers[:n_styles]:
+                xtraction_lstyle.append("")
+                xtraction_lstyle.append("-")
+                xtraction_lstyle.append("--")
+
+            self._cycler = cycler("color", ["black"]) * (
+                cycler("marker", xtraction_markers) + cycler("linestyle", xtraction_lstyle)
+            )
         elif style == COMPARISON_3:
             # find the limiting style component in terms of numbers
             n_styles = np.argmin([len(markers), len(colors)])
@@ -721,7 +745,10 @@ class Plot(object):
             self._cycler = cycler("color", colors3) + (
                 cycler("marker", markers3) + cycler("linestyle", linestyles3)
             )
-
+        elif style == MIX_BW:
+            self._cycler = cycler("color", ["black"]) * cycler("marker", markers) * cycler(
+                "linestyle", ["-"]
+            )
         elif style == MIX:  # wild mix if colors and markers
             self._cycler = (cycler("color", colors) + cycler("marker", markers)) * cycler(
                 "linestyle", ["-"]
@@ -1293,6 +1320,7 @@ class Plot(object):
                         "-": QtCore.Qt.SolidLine,  # type: ignore
                         ":": QtCore.Qt.DotLine,  #  type: ignore
                         " ": QtCore.Qt.NoPen,  # type: ignore
+                        ".": QtCore.Qt.DashDotLine,  # type: ignore
                     }[mpl_line]
                     break
 
@@ -1320,6 +1348,7 @@ class Plot(object):
                         ".": "p",
                         "s": "s",
                         "o": "o",
+                        "ö": "o",
                     }[mpl_marker]
                     mpl_style = mpl_style.replace(mpl_marker, "")
                     break
@@ -1875,7 +1904,7 @@ class Plot(object):
             str_tikz_picture = (
                 "\\documentclass[class=IEEEtran]{standalone}\n"
                 + "\\usepackage{tikz,amsmath,siunitx}\n"
-                + "\\sisetup{range-units=repeat, list-units=repeat, binary-units, exponent-product = \\cdot, print-unity-mantissa=false}\n"
+                + "\\sisetup{range-units=repeat, list-units=repeat, binary-units, exponent-product = \\cdot, print-unity-mantissa=false, per-mode=symbol}\n"
                 + "\\usetikzlibrary{arrows,snakes,backgrounds,patterns,matrix,shapes,fit,calc,shadows,plotmarks}\n"
                 + "\\usepackage[graphics,tightpage,active]{preview}\n"
                 + "\\usepackage{pgfplots}\n"
@@ -2137,8 +2166,10 @@ def save_or_show(plts, show=True, location=None, **kwargs):
     if show:
         for plt in plts[:-1]:
             plt.plot_pyqtgraph(show=False)
+            #plt.plot_py(show=False)
 
         plts[-1].plot_pyqtgraph(show=True)
+        #plts[-1].plot_py(show=True)
     else:
         for plt in plts:
             plt.save_tikz(

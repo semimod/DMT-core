@@ -553,7 +553,7 @@ class DutHdev(DutTcad):
                 df_iv.ensure_specifier_column(specifiers.CAPACITANCE + "B" + "E", ports=["B", "C"])
                 df_iv.ensure_specifier_column(specifiers.CAPACITANCE + "B" + "C", ports=["B", "C"])
                 df_iv.ensure_specifier_column(specifiers.TRANSIT_FREQUENCY, ports=["B", "C"])
-                df_iv.ensure_specifier_column(specifiers.TRANSCONDUCTANCE)
+                df_iv.ensure_specifier_column(specifiers.TRANSCONDUCTANCE, *self.nodes)
                 df_iv.ensure_specifier_column(
                     specifiers.SS_PARA_Y + "C" + "B" + sub_specifiers.REAL,
                     ports=["B", "C"],

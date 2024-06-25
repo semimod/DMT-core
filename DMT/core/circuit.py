@@ -110,6 +110,14 @@ class CircuitElement(object):
         "hbt_n1m",
         "npn13G2",
         '"npn13G2"',
+        '"npn13G3L"',
+        'npn13G3L',
+        '"npn13Gmv"',
+        'npn13G3mv',
+        '"npn13Ghv"',
+        'npn13G3hv',
+        '"npn13G"',
+        'npn13G3',
         "n1m",
         "n1s",
         "hbt_n2s",
@@ -120,6 +128,8 @@ class CircuitElement(object):
         "npn_hs",
         "TSC250_Models_lib_TSC_250nm_Agilent_v1p0_schematic",
         '"TSC250_Models_lib_TSC_250nm_Agilent_v1p0_schematic"',
+        "130nmHBTModel_011415_lib_TSC130nmHBT_Scalable_Agilent_Model_v1_schematic",
+        '"130nmHBTModel_011415_lib_TSC130nmHBT_Scalable_Agilent_Model_v1_schematic"',
     ]
 
     def __init__(

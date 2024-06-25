@@ -451,7 +451,7 @@ class DutLib(object):
             for dut in duts:
                 if dut.name in [dut_a.name for dut_a in self.duts]:
                     raise IOError(
-                        "DutLib: A DuT of this name already exists. Dut names must be unique!"
+                        "DutLib: A DuT of name " + dut.name + " already exists. Dut names must be unique!"
                     )
                 self.duts.append(dut)
         except TypeError:
@@ -1070,6 +1070,11 @@ class DutLib(object):
                     requires_deemb = True
                     break
 
+            # find out if there is AC data in this data
+            df = dut.data[key]
+            if not "FREQ" in df.columns:
+                continue
+
             for meas_filter, deem_filter in self.AC_filter_names:
                 # check if df needs to be AC deembedded & find O&S structure
                 if re.search(meas_filter, key, re.IGNORECASE):
@@ -1632,6 +1637,7 @@ def _read_dut_folder(dut, path, force, temperature_converter, **kwargs):
             if (
                 (extension == "mdm")
                 or (extension == "elpa")
+                or (extension == "xls")
                 or (extension == "csv")
                 or (extension == "feather")
             ):
