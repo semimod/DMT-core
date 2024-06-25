@@ -220,7 +220,7 @@ class DutView(object):
         self._separate_databases = separate_databases
         self._data = {}  # this is now hidden
 
-        self.dut_type: DutTypeFlag | DutTypeInt = dut_type
+        self.dut_type: Union[DutTypeFlag, DutTypeInt] = dut_type
 
         self.manager = DatabaseManager()
         if nodes is None:

@@ -32,13 +32,14 @@ import os
 import pandas as pd
 import warnings
 import _pickle as cpickle
+from typing import Union
 from pathlib import Path
 from pyarrow.lib import ArrowInvalid
 
 from DMT.config import DATA_CONFIG
 from DMT.core.data_frame import DataFrame
 from DMT.core.singleton import Singleton
-from DMT.core.naming import SpecifierStr, get_specifier_from_string
+from DMT.core.naming import SpecifierStr
 
 
 class DatabaseManager(object, metaclass=Singleton):
@@ -204,8 +205,8 @@ class DatabaseManager(object, metaclass=Singleton):
 
     def save_df(
         self,
-        df: DataFrame | pd.DataFrame,
-        file_name: str | os.PathLike,
+        df: Union[DataFrame, pd.DataFrame],
+        file_name: Union[str, os.PathLike],
         version=2,
         compression="lz4",
         **kwargs
@@ -221,7 +222,7 @@ class DatabaseManager(object, metaclass=Singleton):
         """
         df.to_feather(file_name, version=version, compression=compression, **kwargs)
 
-    def load_df(self, file_name: str | os.PathLike, to_specifier=True):
+    def load_df(self, file_name: Union[str, os.PathLike], to_specifier=True):
         """Load the data stored in file_name, where file_name is the direct path to the file.
 
         Parameters

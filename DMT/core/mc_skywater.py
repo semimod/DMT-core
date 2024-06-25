@@ -27,7 +27,7 @@ except ImportError:
     from semver import VersionInfo
 
 from DMT.core import MCard, McParameter, unit_registry
-from DMT.core.circuit import SGP_BJT, Circuit, CircuitElement, RESISTANCE, VOLTAGE
+from DMT.core.circuit import Circuit, CircuitElement, RESISTANCE, VOLTAGE
 
 SEMVER_MCSKYWATER_CURRENT = VersionInfo(major=1, minor=0)
 
