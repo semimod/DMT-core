@@ -585,7 +585,7 @@ class DutNgspice(DutCircuit):
                 str_netlist += (
                     "set wr_vecnames\n"
                     + f"tran {tau/40} {3*tau}\n"
-                    + f"wrdata output_ngspice_tr_{i_tr}.ngspice_tr alli allv\n" # TODO one file per ngspice variable "index", how to?
+                    + f"wrdata output_ngspice_tr_{i_tr}.ngspice_tr alli allv\n"  # TODO one file per ngspice variable "index", how to?
                     + "unset wr_vecnames\n"
                 )
 

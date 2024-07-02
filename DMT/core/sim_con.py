@@ -131,7 +131,9 @@ class SimCon(object, metaclass=Singleton):
             {"dut": dut_a, "sweep": sweep_a} for dut_a, sweep_a in itertools.product(dut, sweep)
         ]
 
-    def run_and_read(self, force=False, remove_simulations=False, parallel_read=False, validate=True):
+    def run_and_read(
+        self, force=False, remove_simulations=False, parallel_read=False, validate=True
+    ):
         """Run all queued simulations and load the results into the Duts' databases.
 
         Parameters
@@ -195,7 +197,9 @@ class SimCon(object, metaclass=Singleton):
                     if parallel_read:
                         print("Checking which simulations need to be run in parallel:")
                         sims_checked = parallel(
-                            delayed(_check_simulation_needed)(i_sim, n_tot, validate=validate, **sim)
+                            delayed(_check_simulation_needed)(
+                                i_sim, n_tot, validate=validate, **sim
+                            )
                             for i_sim, sim in enumerate(self.sim_list)
                         )
                     else:
@@ -240,7 +244,9 @@ class SimCon(object, metaclass=Singleton):
                     print("Reading in the results:")
                     # parallel not working with VAE modelcard currently since get_circuit is monkey patched
                     sims_read = [
-                        _read_process_results(process["success"], process["dut"], process["sweep"], validate=validate)
+                        _read_process_results(
+                            process["success"], process["dut"], process["sweep"], validate=validate
+                        )
                         for process in process_finished
                     ]
                 all_sim_success = all(sim["success"] for sim in sims_read)

@@ -584,7 +584,9 @@ class DutLib(object):
             if json_content["__DutLib__"] == SEMVER_DUTLIB_CURRENT:
                 pass
             elif json_content["__DutLib__"] == VersionInfo(major=1, minor=0):
-                print("DMT:DutLib:load(): Loading an old lib. This will work, if the machine if the path stays the same. Otherwise, add 'save_dir' key to the dut_lib.json manually.")
+                print(
+                    "DMT:DutLib:load(): Loading an old lib. This will work, if the machine if the path stays the same. Otherwise, add 'save_dir' key to the dut_lib.json manually."
+                )
             else:
                 raise IOError("DMT.DutLib: Tried to load a DutLib with unkown version.")
 
@@ -667,13 +669,17 @@ class DutLib(object):
                 dut_lib.dut_internal_dut_dir = Path(dut_lib.dut_internal_dut_dir)
                 if not dut_lib.dut_internal_dut_dir.exists():
                     dut_lib.dut_internal_dut_dir = Path(
-                        str(dut_lib.dut_internal_dut_dir).replace(save_dir_old, str(lib_directory), 1)
+                        str(dut_lib.dut_internal_dut_dir).replace(
+                            save_dir_old, str(lib_directory), 1
+                        )
                     )
             if dut_lib.dut_intrinsic_dut_dir is not None:
                 dut_lib.dut_intrinsic_dut_dir = Path(dut_lib.dut_intrinsic_dut_dir)
                 if not dut_lib.dut_intrinsic_dut_dir.exists():
                     dut_lib.dut_intrinsic_dut_dir = Path(
-                        str(dut_lib.dut_intrinsic_dut_dir).replace(save_dir_old, str(lib_directory), 1)
+                        str(dut_lib.dut_intrinsic_dut_dir).replace(
+                            save_dir_old, str(lib_directory), 1
+                        )
                     )
 
         for dut in dut_lib.duts:
