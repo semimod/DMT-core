@@ -742,6 +742,7 @@ class DutView(object):
         data: Union[DataFrame, Sweep, str, os.Pathlike],
         key: Union[str, None] = None,
         force: bool = True,
+        validate: bool = True,
         **kwargs,
     ):
         """Add a measurement or simulation data to the DutView's data.
@@ -787,7 +788,8 @@ class DutView(object):
             self.data[key] = data
         elif isinstance(data, Sweep):
             # simulation valid?
-            self.validate_simulation_successful(data)
+            if not validate:
+                self.validate_simulation_successful(data)
             # try special import
             self.import_output_data(data)
         else:

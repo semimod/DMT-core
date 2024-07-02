@@ -131,7 +131,7 @@ class SimCon(object, metaclass=Singleton):
             {"dut": dut_a, "sweep": sweep_a} for dut_a, sweep_a in itertools.product(dut, sweep)
         ]
 
-    def run_and_read(self, force=False, remove_simulations=False, parallel_read=False):
+    def run_and_read(self, force=False, remove_simulations=False, parallel_read=False, validate=True):
         """Run all queued simulations and load the results into the Duts' databases.
 
         Parameters
@@ -195,14 +195,14 @@ class SimCon(object, metaclass=Singleton):
                     if parallel_read:
                         print("Checking which simulations need to be run in parallel:")
                         sims_checked = parallel(
-                            delayed(_check_simulation_needed)(i_sim, n_tot, **sim)
+                            delayed(_check_simulation_needed)(i_sim, n_tot, validate=validate, **sim)
                             for i_sim, sim in enumerate(self.sim_list)
                         )
                     else:
                         print("Checking which simulations need to be run:")
                         # parallel not working with VAE modelcard currently since get_circuit is monkey patched
                         sims_checked = [
-                            _check_simulation_needed(i_sim, n_tot, **sim)
+                            _check_simulation_needed(i_sim, n_tot, validate=validate, **sim)
                             for i_sim, sim in enumerate(self.sim_list)
                         ]
 
@@ -232,7 +232,7 @@ class SimCon(object, metaclass=Singleton):
                     print("Reading in the results in parallel:")
                     sims_read = parallel(
                         delayed(_read_process_results)(
-                            process["success"], process["dut"], process["sweep"]
+                            process["success"], process["dut"], process["sweep"], validate=validate
                         )
                         for process in process_finished
                     )
@@ -240,7 +240,7 @@ class SimCon(object, metaclass=Singleton):
                     print("Reading in the results:")
                     # parallel not working with VAE modelcard currently since get_circuit is monkey patched
                     sims_read = [
-                        _read_process_results(process["success"], process["dut"], process["sweep"])
+                        _read_process_results(process["success"], process["dut"], process["sweep"], validate=validate)
                         for process in process_finished
                     ]
                 all_sim_success = all(sim["success"] for sim in sims_read)
@@ -800,7 +800,7 @@ class SimCon(object, metaclass=Singleton):
                 return 0
 
 
-def _check_simulation_needed(i_sim, n_tot, dut=None, sweep=None, sweep_exists=None):
+def _check_simulation_needed(i_sim, n_tot, dut=None, sweep=None, validate=True, sweep_exists=None):
     """Function to check if the simulation is needed or already present in the database
 
     Parameter
@@ -821,17 +821,22 @@ def _check_simulation_needed(i_sim, n_tot, dut=None, sweep=None, sweep_exists=No
     print_progress_bar(i_sim, n_tot, prefix="Progress", length=50)
     try:
         # was it simulated already successfully ?
-        dut.validate_simulation_successful(sweep)
-        print(
-            f"\n Simulation of DuT {dut_name} with sweep {sim_name} already done and results are valid, only data needs to be read.",
-        )
-        logging.info(
-            "Simulation of DuT %s with sweep %s already done and results are valid, only data needs to be read.",
-            dut_name,
-            sim_name,
-        )
+        if validate:
+            dut.validate_simulation_successful(sweep)
+            print(
+                f"\n Simulation of DuT {dut_name} with sweep {sim_name} already done and results are valid, only data needs to be read.",
+            )
+            logging.info(
+                "Simulation of DuT %s with sweep %s already done and results are valid, only data needs to be read.",
+                dut_name,
+                sim_name,
+            )
+        else:
+            print(
+                f"\n Simulation of DuT {dut_name} with sweep {sim_name} not checked for validity.",
+            )
         logging.debug("The simulation folder of this simulation was %s", dut.get_sim_folder(sweep))
-        dut.add_data(sweep)
+        dut.add_data(sweep, validate=validate)
     except SimulationFail:
         print(
             f"\n Simulation of DuT {dut_name} with sweep {sim_name} already done and failed.",
@@ -846,7 +851,7 @@ def _check_simulation_needed(i_sim, n_tot, dut=None, sweep=None, sweep_exists=No
     return dut.data
 
 
-def _read_process_results(success, dut, sweep):
+def _read_process_results(success, dut, sweep, validate=True):
     """Read the process results
 
     Parameter
@@ -866,7 +871,7 @@ def _read_process_results(success, dut, sweep):
     # inform data_manager about the finished simulations
     try:
         if success:
-            dut.add_data(sweep)
+            dut.add_data(sweep, validate=validate)
             logging.info("Simulation of DuT %s with sweep %s successfull.", dut_name, sim_name)
         else:
             color_red = "\033[91m"
