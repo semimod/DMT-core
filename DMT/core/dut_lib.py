@@ -43,7 +43,7 @@ try:
 except ImportError:
     pass
 
-SEMVER_DUTLIB_CURRENT = VersionInfo(major=1, minor=0)
+SEMVER_DUTLIB_CURRENT = VersionInfo(major=1, minor=1)
 
 
 class __Filter(object):
@@ -542,6 +542,7 @@ class DutLib(object):
             "wafer": self.wafer,
             "date_tapeout": self.date_tapeout,
             "date_received": self.date_received,
+            "save_dir": str(self._save_dir),
             "__DutLib__": str(
                 SEMVER_DUTLIB_CURRENT
             ),  # make versions, so we can introduce compatibility here!}
@@ -579,7 +580,12 @@ class DutLib(object):
         if (lib_directory / "dut_lib.json").exists():
             with (lib_directory / "dut_lib.json").open("r", encoding="utf8") as file_json:
                 json_content = json.load(file_json)
-            if not json_content["__DutLib__"] == SEMVER_DUTLIB_CURRENT:
+
+            if json_content["__DutLib__"] == SEMVER_DUTLIB_CURRENT:
+                pass
+            elif json_content["__DutLib__"] == VersionInfo(major=1, minor=0):
+                print("DMT:DutLib:load(): Loading an old lib. This will work, if the machine if the path stays the same. Otherwise, add 'save_dir' key to the dut_lib.json manually.")
+            else:
                 raise IOError("DMT.DutLib: Tried to load a DutLib with unkown version.")
 
             for key, value in json_content.items():
@@ -609,6 +615,11 @@ class DutLib(object):
             dut_lib.wafer = json_content["wafer"]
             dut_lib.date_tapeout = json_content["date_tapeout"]
             dut_lib.date_received = json_content["date_received"]
+
+            try:
+                dut_lib._save_dir = json_content["save_dir"]
+            except KeyError:
+                pass
 
         elif (lib_directory / "dut_lib.p").exists():
             with (lib_directory / "dut_lib.p").open(mode="rb") as handle:
@@ -645,24 +656,25 @@ class DutLib(object):
                 dut_lib.duts.append(DutView.load_dut(file_dut))
 
         # correct dut paths:
-        if dut_lib.dut_ref_dut_dir is not None:
-            dut_lib.dut_ref_dut_dir = Path(dut_lib.dut_ref_dut_dir)
-            if not dut_lib.dut_ref_dut_dir.exists():
-                dut_lib.dut_ref_dut_dir = Path(
-                    str(dut_lib.dut_ref_dut_dir).replace(save_dir_old, str(lib_directory))
-                )
-        if dut_lib.dut_internal_dut_dir is not None:
-            dut_lib.dut_internal_dut_dir = Path(dut_lib.dut_internal_dut_dir)
-            if not dut_lib.dut_internal_dut_dir.exists():
-                dut_lib.dut_internal_dut_dir = Path(
-                    str(dut_lib.dut_internal_dut_dir).replace(save_dir_old, str(lib_directory))
-                )
-        if dut_lib.dut_intrinsic_dut_dir is not None:
-            dut_lib.dut_intrinsic_dut_dir = Path(dut_lib.dut_intrinsic_dut_dir)
-            if not dut_lib.dut_intrinsic_dut_dir.exists():
-                dut_lib.dut_intrinsic_dut_dir = Path(
-                    str(dut_lib.dut_intrinsic_dut_dir).replace(save_dir_old, str(lib_directory))
-                )
+        if save_dir_old:
+            if dut_lib.dut_ref_dut_dir is not None:
+                dut_lib.dut_ref_dut_dir = Path(dut_lib.dut_ref_dut_dir)
+                if not dut_lib.dut_ref_dut_dir.exists():
+                    dut_lib.dut_ref_dut_dir = Path(
+                        str(dut_lib.dut_ref_dut_dir).replace(save_dir_old, str(lib_directory), 1)
+                    )
+            if dut_lib.dut_internal_dut_dir is not None:
+                dut_lib.dut_internal_dut_dir = Path(dut_lib.dut_internal_dut_dir)
+                if not dut_lib.dut_internal_dut_dir.exists():
+                    dut_lib.dut_internal_dut_dir = Path(
+                        str(dut_lib.dut_internal_dut_dir).replace(save_dir_old, str(lib_directory), 1)
+                    )
+            if dut_lib.dut_intrinsic_dut_dir is not None:
+                dut_lib.dut_intrinsic_dut_dir = Path(dut_lib.dut_intrinsic_dut_dir)
+                if not dut_lib.dut_intrinsic_dut_dir.exists():
+                    dut_lib.dut_intrinsic_dut_dir = Path(
+                        str(dut_lib.dut_intrinsic_dut_dir).replace(save_dir_old, str(lib_directory), 1)
+                    )
 
         for dut in dut_lib.duts:
             if dut_lib.dut_ref_dut_dir is not None:
