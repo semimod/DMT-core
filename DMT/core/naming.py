@@ -61,6 +61,7 @@ UNIT_PREFIX_MIX = {
 UNIT_PREFIX_DENOMINATOR = {
     1e-6: r"\centi",
     1: "",
+    1e3: r"\kilo",
 }
 
 
