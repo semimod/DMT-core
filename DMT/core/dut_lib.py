@@ -28,8 +28,7 @@ import json
 from pathlib import Path
 from joblib import Parallel, delayed
 from typing import List, Type, Union
-from DMT.core import DutType, DutTypeFlag, print_progress_bar, DutView, Technology, df_concat
-from DMT.core.dut_view import DutView
+from DMT.core import DutType, DutTypeFlag, print_progress_bar, DutView, Technology, DataFrame
 from DMT.exceptions import NoOpenDeembeddingDut, NoShortDeembeddingDut
 
 try:
@@ -267,7 +266,7 @@ class DutLib(object):
     @dut_ref.setter
     def dut_ref(self, dut: DutView):
         """Ensure that dut_ref is in duts"""
-        if not id(dut) in [id(dut_) for dut_ in self.duts]:
+        if id(dut) not in [id(dut_) for dut_ in self.duts]:
             self.duts.append(dut)
 
         self._dut_ref = dut
@@ -283,7 +282,7 @@ class DutLib(object):
     @dut_internal.setter
     def dut_internal(self, dut: DutView):
         """Ensure that dut_internal is in duts"""
-        if not id(dut) in [id(dut_) for dut_ in self.duts]:
+        if id(dut) not in [id(dut_) for dut_ in self.duts]:
             self.duts.append(dut)
 
         self._dut_internal = dut
@@ -299,7 +298,7 @@ class DutLib(object):
     @dut_intrinsic.setter
     def dut_intrinsic(self, dut: DutView):
         """Ensure that dut_intrinsic is in duts"""
-        if not id(dut) in [id(dut_) for dut_ in self.duts]:
+        if id(dut) not in [id(dut_) for dut_ in self.duts]:
             self.duts.append(dut)
 
         self._dut_intrinsic = dut
@@ -654,7 +653,7 @@ class DutLib(object):
             )
             loaded_paths.append(file_dut.parent)
         for file_dut in (dut_lib.save_dir / "duts").glob("**/*.p"):
-            if not file_dut.parent in loaded_paths:
+            if file_dut.parent not in loaded_paths:
                 dut_lib.duts.append(DutView.load_dut(file_dut))
 
         # correct dut paths:
@@ -1338,7 +1337,7 @@ class DutLib(object):
                             for short_key in short_keys_matching:
                                 df_shorts.append(dut_short.data[short_key])
                             if df_shorts:
-                                df_short = df_concat(*df_shorts)
+                                df_short = DataFrame.from_parts(*df_shorts)
                             else:
                                 raise IOError(
                                     f"Did not find suitable short keys for {dut.name} at {key_temperature}K. \n The available short keys were: "

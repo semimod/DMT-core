@@ -2498,8 +2498,8 @@ class DataFrame(DataProcessor, pd.DataFrame):
 
         return df
 
-
-def df_concat(*frames):
-    frame = pd.concat(frames, axis=0, ignore_index=True)
-    frame.__class__ == DataFrame
-    return frame
+    @classmethod
+    def from_parts(cls, *frames: "DataFrame") -> "DataFrame":
+        frame = pd.concat(frames, axis=0, ignore_index=True)
+        frame.__class__ == cls
+        return frame
