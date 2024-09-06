@@ -453,6 +453,8 @@ class DutNgspice(DutCircuit):
             # remove all but one frequency from DF. We later put the "ac_statement" behind every DC point.
             freqs = df[specifiers.FREQUENCY]
             df = df[df[specifiers.FREQUENCY] == freqs[0]]
+        elif "noac" in tmp_sweep.outputdef:
+            pass
         else:
             df[specifiers.FREQUENCY] = 1e9  # default frequency...
             ac_statements.append("ac lin 1 1e9 1e9 \n")
@@ -1112,8 +1114,11 @@ def _read_clean_ngspice_df(filepath, nodes, reference_node, ac_ports):
         col_raw = col.upper()
         if "#BRANCH" in col_raw:  # current that we should save
             col_raw = col_raw.replace("#BRANCH", "")
-            node = next(node for node in nodes if node in col_raw)
-            data[specifiers.CURRENT + node] = -df[col]  # we want the other current direction
+            try:
+                node = next(node for node in nodes if node in col_raw)
+                data[specifiers.CURRENT + node] = -df[col]  # we want the other current direction
+            except StopIteration:
+                pass
         elif col_raw[0:2] == "N_":  # found a node, will take the voltage
             node = col_raw[2:]
             if "_FORCED" in node:
