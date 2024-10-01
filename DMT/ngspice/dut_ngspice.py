@@ -489,7 +489,7 @@ class DutNgspice(DutCircuit):
                     + f"SIN (0 {swd_tran.amp*1e3:.6e}m {swd_tran.value_def[0]/1e6:.6e}MEG 0 0 {swd_tran.phase:.6e})"
                 )
             elif swd_tran.sweep_type == "SMOOTH_RAMP":
-                tstop = 10 / freq # make sure that this does not impact anything
+                tstop = 10 / swd_tran.value_def[0] # make sure that this does not impact anything
                 tau = (
                     np.sqrt(2)
                     * np.exp(-0.5)
