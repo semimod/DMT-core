@@ -1090,10 +1090,11 @@ class Plot(object):
                 )
             except ValueError as err:
                 raise ValueError(
-                    "Too many values to unpack in plot "
-                    + self.name
-                    + " for line with label "
-                    + str(label)
+                    f"DMT.Plot: Too many values to unpack in plot {self.name} in line with label {label}."
+                ) from err
+            except Exception as err:
+                raise Exception(
+                    f"DMT.Plot: In plot {self.name} in line the label {label}."
                 ) from err
 
         # set scale
