@@ -690,6 +690,20 @@ def add(self: SpecifierStr, other: Union[SpecifierStr, str, List[Union[str, Spec
 
 SpecifierStr.__add__ = add
 
+
+def sub(self: SpecifierStr, other: Union[SpecifierStr, str, List[Union[str, SpecifierStr]]]):
+    """Method is defined later, since we need the SUB_SPECIFIERS_STR list here...thanks python"""
+    if isinstance(other, SpecifierStr) and not other.specifier and not other.nodes:
+        spec_new = self.specifier
+        nodes_new = self.nodes
+        sub_specifiers_new = self.sub_specifiers - other.sub_specifiers
+        return SpecifierStr(spec_new, *nodes_new, sub_specifiers=sub_specifiers_new)
+    else:
+        return NotImplemented
+
+
+SpecifierStr.__sub__ = sub
+
 unit_converter = {
     specifiers_ss_para.SS_PARA_Y: unit_registry.siemens,
     specifiers_ss_para.SS_PARA_H: unit_registry.dimensionless,

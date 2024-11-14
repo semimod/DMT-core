@@ -2450,6 +2450,12 @@ class DataFrame(DataProcessor, pd.DataFrame):
         else:
             Path(file_name).parent.mkdir(parents=True, exist_ok=True)
 
+        for col in self.columns:
+            if pd.api.types.is_complex_dtype(self[col]):
+                self[col + sub_specifiers.REAL] = np.real(self[col])
+                self[col + sub_specifiers.IMAG] = np.imag(self[col])
+                del self[col]
+
         dict_convert = {}
         for col in self.columns:
             try:
@@ -2495,6 +2501,18 @@ class DataFrame(DataProcessor, pd.DataFrame):
             df = df.loc[:, ~df.columns.duplicated()]
             if not df.columns.is_unique:
                 raise IOError()
+
+        for col in df.columns:
+            if (
+                isinstance(col, SpecifierStr)
+                and (sub_specifiers.REAL.sub_specifiers <= col.sub_specifiers)
+                and (col - sub_specifiers.REAL + sub_specifiers.IMAG in df.columns)
+            ):
+                df[col - sub_specifiers.REAL] = (
+                    df[col] + 1j * df[col - sub_specifiers.REAL + sub_specifiers.IMAG]
+                )
+                del df[col]
+                del df[col - sub_specifiers.REAL + sub_specifiers.IMAG]
 
         return df
 
