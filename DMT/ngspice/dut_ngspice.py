@@ -489,16 +489,12 @@ class DutNgspice(DutCircuit):
                     + f"SIN (0 {swd_tran.amp*1e3:.6e}m {swd_tran.value_def[0]/1e6:.6e}MEG 0 0 {swd_tran.phase:.6e})"
                 )
             elif swd_tran.sweep_type == "SMOOTH_RAMP":
-                tstop = 10 / swd_tran.value_def[0] # make sure that this does not impact anything
-                tau = (
-                    np.sqrt(2)
-                    * np.exp(-0.5)
-                    / (2 * np.pi * sweepdefs[-1].value_def[0])
-                )
+                tstop = 10 / swd_tran.value_def[0]  # make sure that this does not impact anything
+                tau = np.sqrt(2) * np.exp(-0.5) / (2 * np.pi * sweepdefs[-1].value_def[0])
                 sources_new = (
                     "V_V_{0} n_{0}_DC 0\n".format(swd_tran.contact)
                     + "V_V_{0}_tr n_{0}X n_{0}_DC ".format(swd_tran.contact)
-                    + f"EXP(0 {swd_tran.amp*1e3:.6e}m 0 {tau*1e9:.6e}ns {tstop*1e9:.6e}ns {tau*1e9:.6e}ns)"
+                    + f"EXP2(0 {swd_tran.amp*1e3:.6e}m 0 {tau*1e9:.12f}ns {tstop*1e9:.6e}ns {tau*1e9:.6e}ns)"
                 )
             else:
                 sources_new = (
@@ -982,7 +978,7 @@ class DutNgspice(DutCircuit):
     def _convert_swd_trans_to_pwl(self, swd_tran: SweepDef):
         time = swd_tran.values
         signal = swd_tran.get_input_signal()
-        pwl = " ".join([f"{t:g}ns {s:g}" for t, s in zip(time*1e9, signal)])
+        pwl = " ".join([f"{t:g}ns {s:g}" for t, s in zip(time * 1e9, signal)])
         return " PWL(" + pwl + ")"
 
     def join(self, dfs):
