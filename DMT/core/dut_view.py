@@ -218,7 +218,7 @@ class DutView(object):
 
         # attributes for data management
         self._separate_databases = separate_databases
-        self._data = {}  # this is now hidden
+        self._data: dict[str, DataFrame] = {}  # this is now hidden
 
         self.dut_type: Union[DutTypeFlag, DutTypeInt] = dut_type
 
