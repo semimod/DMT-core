@@ -2467,7 +2467,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
         df_save.to_feather(file_name, version=version, compression=compression, **kwargs)
 
     @classmethod
-    def from_feather(cls, file_name: Union[str, os.PathLike], to_specifier=True):
+    def from_feather(cls, file_name: Union[str, os.PathLike], to_specifier=True) -> "DataFrame":
         """Load the data stored in file_name, where file_name is the direct path to the file.
 
         Parameters
