@@ -320,8 +320,8 @@ class SweepDef(object):
         elif self.sweep_type == "SINUS":
             # 3 periods with 40 points per period
             self.values = np.array(
-                # list(flatten(np.linspace(0, 3 / freq, 121) for freq in self.value_def))
-                list(flatten(np.linspace(0, 2 / freq, 41) for freq in self.value_def))
+                list(flatten(np.linspace(0, 3 / freq, 121) for freq in self.value_def))
+                # list(flatten(np.linspace(0, 2 / freq, 41) for freq in self.value_def))
             )
         elif self.sweep_type == "SMOOTH_RAMP":
             # 3 periods with 40 points per period
@@ -339,14 +339,14 @@ class SweepDef(object):
         if self.sweep_type == "SINUS":
             signal = []
             for i_freq, freq in enumerate(self.value_def):
-                # t = self.values[i_freq * 121 : (i_freq + 1) * 121]
-                # signal += list(
-                #     self.amp * (np.sin(2 * np.pi * t * freq - self.phase) - np.sin(self.phase))
-                # )
-                t = self.values[i_freq * 41 : (i_freq + 1) * 41]
+                t = self.values[i_freq * 121 : (i_freq + 1) * 121]
                 signal += list(
                     self.amp * (np.sin(2 * np.pi * t * freq - self.phase) - np.sin(self.phase))
                 )
+                # t = self.values[i_freq * 41 : (i_freq + 1) * 41]
+                # signal += list(
+                #     self.amp * (np.sin(2 * np.pi * t * freq - self.phase) - np.sin(self.phase))
+                # )
             return np.array(list(flatten(signal)))
         elif self.sweep_type == "SMOOTH_RAMP":
             signal = []
