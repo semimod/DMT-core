@@ -124,6 +124,11 @@ def test_comp_sim_meas():
     data_meas = read_mdm_data_and_clean()
     sweep = get_sweep(data_meas)
 
+    simulators = {
+        DutNgspice: "ngspice/OSDI",
+        # DutXyce: "xyce", # TODO not tested
+    }
+
     for dut_circuit, desciption in simulators.items():
         device = get_device(dut_circuit)
         run_simulation(device, sweep)
