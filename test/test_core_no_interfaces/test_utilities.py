@@ -1,5 +1,4 @@
-""" Testing the DMT core utilities
-"""
+"""Testing the DMT core utilities"""
 
 from DMT.core import flatten, enumerate_reversed, strictly_increasing
 from DMT.external import resolve_siunitx, tex_to_text

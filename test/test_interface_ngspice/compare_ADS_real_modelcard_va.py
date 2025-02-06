@@ -1,5 +1,4 @@
-""" test ngspice vs ADS using a real modelcard.
-"""
+"""test ngspice vs ADS using a real modelcard."""
 
 import logging
 from pathlib import Path

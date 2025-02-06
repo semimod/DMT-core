@@ -1,5 +1,4 @@
-""" test DutHdev
-"""
+"""test DutHdev"""
 
 import logging
 

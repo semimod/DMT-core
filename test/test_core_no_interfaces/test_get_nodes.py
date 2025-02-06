@@ -1,6 +1,4 @@
-""" Tests all known cases for clean_names
-
-"""
+"""Tests all known cases for clean_names"""
 
 import os
 import logging

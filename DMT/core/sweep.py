@@ -1,4 +1,4 @@
-""" Basic description of a sweep in DMT.
+"""Basic description of a sweep in DMT.
 
 Sweeps are the basic element that can be fed into simulators or be retrieved from simulations or measurements.
 Features:

@@ -1,4 +1,4 @@
-r""" Manages simulations with NGSpice.
+r"""Manages simulations with NGSpice.
 
 A DuT can be supplied using the input_circuit parameter. This parameter can be:
 

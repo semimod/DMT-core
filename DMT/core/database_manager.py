@@ -1,4 +1,4 @@
-""" Database management
+"""Database management
 
 Class which represents all common features in DMT that are used to search, organize and filter data.
 Features:

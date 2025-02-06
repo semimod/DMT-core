@@ -1,4 +1,4 @@
-""" Provdes a class for cirtuit DuTs
+"""Provdes a class for cirtuit DuTs
 
 Provides a interface superclass. Here all methods which must be implemented by all circuit simulator interfaces are collected.
 

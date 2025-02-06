@@ -1,5 +1,4 @@
-""" Testing the core module mc_parameter
-"""
+"""Testing the core module mc_parameter"""
 
 import os
 import shutil

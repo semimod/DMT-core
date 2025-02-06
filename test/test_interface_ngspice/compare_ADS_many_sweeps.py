@@ -1,5 +1,4 @@
-""" test ADS simulation and plotting of output data.
-"""
+"""test ADS simulation and plotting of output data."""
 
 import time
 from pathlib import Path

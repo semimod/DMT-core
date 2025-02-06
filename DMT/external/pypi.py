@@ -1,5 +1,4 @@
-""" DMT interaction with pypi
-"""
+"""DMT interaction with pypi"""
 
 # DMT_core
 # Copyright (C) from 2022  SemiMod

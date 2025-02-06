@@ -1,4 +1,4 @@
-""" test ADS input file generation, copy to server, run simulation and copy back
+"""test ADS input file generation, copy to server, run simulation and copy back
 
 USING VerilogAE to obtain the SPG modelcard!
 -> needs to be installed and call:

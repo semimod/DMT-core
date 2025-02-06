@@ -1,4 +1,4 @@
-""" Test case for DocuDutLib with simulation comparisions
+"""Test case for DocuDutLib with simulation comparisions
 
 I know.... the simulation data and the measurement data do not align!! They are from two different technologies, but those are the one we have currently at hand.
 

@@ -1,4 +1,4 @@
-""" data_frame module
+"""data_frame module
 
 Implements a extended pandas.DataFrame. It is based on the pandas.DataFrame and extended by many special methods that simplify working with electrical quantities.
 This includes easy management of small signal parameter and other quantities which can be calculated from them.

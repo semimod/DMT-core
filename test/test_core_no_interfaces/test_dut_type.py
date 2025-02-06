@@ -1,4 +1,4 @@
-""" Testing the class DMT.core.DutType """
+"""Testing the class DMT.core.DutType"""
 
 import warnings
 import logging

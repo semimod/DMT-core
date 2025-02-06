@@ -1,4 +1,4 @@
-""" Creates MD5-HASH from given string-convertable data.
+"""Creates MD5-HASH from given string-convertable data.
 
 In DMT this is used mainly to ensure unique simulation folders and keys.
 A simulation folder consist of 3 parts:

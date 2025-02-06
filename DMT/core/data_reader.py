@@ -1,4 +1,4 @@
-""" Module responsible for data reading in DMT.
+"""Module responsible for data reading in DMT.
 
 The functions here read from many different formats into a DMT-DataFrame. As reading and writing is always very close, recommended and often used save functions for DataFrames are also given.
 

@@ -1,4 +1,4 @@
-""" Constants from constants.h from ADMS, or CEDIC simul to be more exact!
+"""Constants from constants.h from ADMS, or CEDIC simul to be more exact!
 
 Namings :
 

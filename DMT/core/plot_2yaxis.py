@@ -1,4 +1,4 @@
-""" Wrapper for plots with 2 y axis. Shows only "left plot" in pyqtgraph and merged in tikz
+"""Wrapper for plots with 2 y axis. Shows only "left plot" in pyqtgraph and merged in tikz
 
 Author:
     Mario Krattenmacher | Mario.Krattenmacher@semimod.de

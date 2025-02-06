@@ -1,5 +1,4 @@
-""" Automatic documentation for DutLib
-"""
+"""Automatic documentation for DutLib"""
 
 # Copyright (C) from 2022  SemiMod
 # <https://gitlab.com/dmt-development/dmt-core>

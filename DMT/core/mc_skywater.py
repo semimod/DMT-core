@@ -1,4 +1,4 @@
-""" Skywater modelcard
+"""Skywater modelcard
 
 Author: Mario Krattenmacher | Mario.Krattenmacher@semimod.de
 """

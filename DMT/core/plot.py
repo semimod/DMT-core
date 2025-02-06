@@ -1,4 +1,4 @@
-""" Wrapper for nice plots with tikz, pyqtgraph and matplotlib.
+"""Wrapper for nice plots with tikz, pyqtgraph and matplotlib.
 
 Author:
     Mario Krattenmacher | Mario.Krattenmacher@semimod.de
@@ -1872,10 +1872,7 @@ class Plot(object):
 
         ### merge:
         str_tikz_picture += (
-            self._convert_colors_to_texdefines(colors)  
-            + str_axis
-            + str_lines
-            + str_footer
+            self._convert_colors_to_texdefines(colors) + str_axis + str_lines + str_footer
         )
 
         if standalone:

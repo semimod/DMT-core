@@ -1,4 +1,4 @@
-r""" Global namings for DMT
+r"""Global namings for DMT
 
 Internally all variables and column names which contain a quantity of a specifier must have the same given names, e.g. all voltages will be called: 'V\_'
 """
