@@ -1,5 +1,4 @@
-""" Helpers to integrate VerilogAE into DMT
-"""
+"""Helpers to integrate VerilogAE into DMT"""
 
 # DMT_core
 # Copyright (C) from 2022  SemiMod

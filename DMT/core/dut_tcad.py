@@ -1,4 +1,4 @@
-""" Provdes a class for TCAD DuTs
+"""Provdes a class for TCAD DuTs
 
 Provides a interface superclass. Here all methods which must be implemented by all TCAD interfaces are collected.
 

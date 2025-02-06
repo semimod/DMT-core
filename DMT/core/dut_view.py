@@ -218,7 +218,7 @@ class DutView(object):
 
         # attributes for data management
         self._separate_databases = separate_databases
-        self._data = {}  # this is now hidden
+        self._data: dict[str, DataFrame] = {}  # this is now hidden
 
         self.dut_type: Union[DutTypeFlag, DutTypeInt] = dut_type
 
@@ -917,20 +917,19 @@ class DutView(object):
             return  # nothing to do here
 
         if self._separate_databases:
-            if sweep_keys is not None:
-                pass
-            elif sweeps is not None:
-                sweep_keys = []
-                for sweep in sweeps:
-                    sweep_keys.append(self.get_sweep_key(sweep))
-            else:
-                # find all sweeps in self.data
-                sweep_keys = []
-                for key in self._data.keys():
-                    ## key is equal except for the last part -> same sweep
-                    sweep_key = self.join_key(*self.split_key(key)[0:-1])
-                    if sweep_key not in sweep_keys:
-                        sweep_keys.append(sweep_key)
+            if sweep_keys is None:
+                if sweeps is None:
+                    # find all sweeps in self.data
+                    sweep_keys = []
+                    for key in self._data.keys():
+                        ## key is equal except for the last part -> same sweep
+                        sweep_key = self.join_key(*self.split_key(key)[0:-1])
+                        if sweep_key not in sweep_keys:
+                            sweep_keys.append(sweep_key)
+                else:
+                    sweep_keys = []
+                    for sweep in sweeps:
+                        sweep_keys.append(self.get_sweep_key(sweep))
 
             for sweep_key in sweep_keys:
                 data_to_save = {}

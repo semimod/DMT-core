@@ -1,4 +1,4 @@
-r""" Global namings for DMT
+r"""Global namings for DMT
 
 Internally all variables and column names which contain a quantity of a specifier must have the same given names, e.g. all voltages will be called: 'V\_'
 """
@@ -61,6 +61,7 @@ UNIT_PREFIX_MIX = {
 UNIT_PREFIX_DENOMINATOR = {
     1e-6: r"\centi",
     1: "",
+    1e3: r"\kilo",
 }
 
 
@@ -563,10 +564,10 @@ class _specifiers(GlobalObj, metaclass=Singleton):
     TIME = SpecifierStr("TIME")
     FREQUENCY = SpecifierStr("FREQ")
     VOLTAGE = SpecifierStr("V")
-    ELECTRONS = SpecifierStr("N")
+    ELECTRONS = SpecifierStr("N_ELE")  # same as NOISE...
     CONDUCTION_BAND_EDGE = SpecifierStr("EC")
     VALENCE_BAND_EDGE = SpecifierStr("EV")
-    HOLES = SpecifierStr("P")
+    HOLES = SpecifierStr("P_HOL")  # same as POWER...
     NET_DOPING = SpecifierStr("NNET")
     DONNORS = SpecifierStr("DON")
     ACCEPTORS = SpecifierStr("ACC")
@@ -688,6 +689,20 @@ def add(self: SpecifierStr, other: Union[SpecifierStr, str, List[Union[str, Spec
 
 
 SpecifierStr.__add__ = add
+
+
+def sub(self: SpecifierStr, other: Union[SpecifierStr, str, List[Union[str, SpecifierStr]]]):
+    """Method is defined later, since we need the SUB_SPECIFIERS_STR list here...thanks python"""
+    if isinstance(other, SpecifierStr) and not other.specifier and not other.nodes:
+        spec_new = self.specifier
+        nodes_new = self.nodes
+        sub_specifiers_new = self.sub_specifiers - other.sub_specifiers
+        return SpecifierStr(spec_new, *nodes_new, sub_specifiers=sub_specifiers_new)
+    else:
+        return NotImplemented
+
+
+SpecifierStr.__sub__ = sub
 
 unit_converter = {
     specifiers_ss_para.SS_PARA_Y: unit_registry.siemens,
@@ -822,14 +837,15 @@ def to_tex(self, subscript="", superscript=""):
     elif self.specifier == specifiers.NET_DOPING:
         tex = r"N_{\mathrm{net}}"
     elif self.specifier == specifiers.ACCEPTORS:
-        tex = r"N_{\mathrm{A}}col_ib"
+        tex = r"N_{\mathrm{A}}"
     elif self.specifier == specifiers.DONNORS:
         tex = r"N_{\mathrm{D}}"
+    elif self.specifier == specifiers.HOLES:
+        tex = r"p_{\mathrm{" + subscript + r"}}"
+    elif self.specifier == specifiers.ELECTRONS:
+        tex = r"n_{\mathrm{" + subscript + r"}}"
     elif self.specifier == specifiers.TIME:
-        if subscript:
-            tex = r"t_{\mathrm{" + subscript + r"}}"
-        else:
-            tex = r"t"
+        tex = r"t_{\mathrm{" + subscript + r"}}"
     else:  # general case
         if subscript:
             tex = (
@@ -1080,4 +1096,6 @@ natural_scales = {
     specifiers.UNILATERAL_GAIN: 1,
     specifiers.NET_DOPING: 1e-6,  # 1/cm^3
     specifiers.NOISE: 1,
+    specifiers.HOLES: 1e-6,  # 1/cm^3
+    specifiers.ELECTRONS: 1e-6,  # 1/cm^3
 }

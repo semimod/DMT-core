@@ -1,4 +1,4 @@
-""" Base class to handle Verilog-AMS modelcard parameters.
+"""Base class to handle Verilog-AMS modelcard parameters.
 
 Each parameter has a type, unit, boundaries and invalid values (excludes),
 this is taken care of here.

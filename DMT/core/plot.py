@@ -1,4 +1,4 @@
-""" Wrapper for nice plots with tikz, pyqtgraph and matplotlib.
+"""Wrapper for nice plots with tikz, pyqtgraph and matplotlib.
 
 Author:
     Mario Krattenmacher | Mario.Krattenmacher@semimod.de
@@ -27,11 +27,11 @@ Author:
 import os
 import sys
 import re
+import warnings
 from typing import Union
 import numpy as np
 from pathlib import Path
 from cycler import cycler
-from colormath.color_objects import sRGBColor
 from DMT.core import natural_scales, sub_specifiers
 from DMT.external import (
     tex_to_text,
@@ -731,6 +731,11 @@ class Plot(object):
         style : string, optional
             Matplotlib style descriptor for this line.
         """
+        if isinstance(x, float) and len(y) > 1:
+            x = [x] * len(y)
+        elif isinstance(y, float) and len(x) > 1:
+            y = [y] * len(x)
+
         self.data.append(
             {
                 "x": np.asanyarray(x),
@@ -1090,10 +1095,11 @@ class Plot(object):
                 )
             except ValueError as err:
                 raise ValueError(
-                    "Too many values to unpack in plot "
-                    + self.name
-                    + " for line with label "
-                    + str(label)
+                    f"DMT.Plot: Too many values to unpack in plot {self.name} in line with label {label}."
+                ) from err
+            except Exception as err:
+                raise Exception(
+                    f"DMT.Plot: In plot {self.name} in line the label {label}."
                 ) from err
 
         # set scale
@@ -1492,7 +1498,11 @@ class Plot(object):
         """
         if not isinstance(directory, Path):
             directory = Path(directory)
-        os.makedirs(directory, exist_ok=True)
+        directory.mkdir(parents=True, exist_ok=True)
+        # os.makedirs(directory, exist_ok=True)
+
+        if kwargs:
+            warnings.warn("kwargs are not used in DMT.Plot.save_tikz()", DeprecationWarning)
 
         legend_pos = {
             "lower left": "at={(0.02,0.02)}, anchor=south west,",
@@ -1862,12 +1872,7 @@ class Plot(object):
 
         ### merge:
         str_tikz_picture += (
-            self._convert_colors_to_texdefines(
-                colors
-            )  # needs work! -> replaced matplotlib with colormath! Test this!
-            + str_axis
-            + str_lines
-            + str_footer
+            self._convert_colors_to_texdefines(colors) + str_axis + str_lines + str_footer
         )
 
         if standalone:
@@ -2101,13 +2106,15 @@ class Plot(object):
         str_tex = ""
 
         for i_color, color_a in enumerate(colors):
-            # blue #00008b conversion is buggy? -> replaced matplotlib with colormath! Test this!
             if (
                 color_a == "black"
             ):  # black is the only color given as a name in the cyclers above...
                 color = (0.0, 0.0, 0.0)
             else:
-                color = sRGBColor.new_from_rgb_hex(color_a).get_value_tuple()
+                if color_a[0] == "#":
+                    color_a = color_a[1:]
+                color = [int(n, 16) / 255.0 for n in [color_a[:2], color_a[2:4], color_a[4:]]]
+                # color = sRGBColor.new_from_rgb_hex(color_a).get_value_tuple()
 
             str_tex += "\\definecolor{{color{0:d}}}{{rgb}}{{{1:.5f}, {2:.5f}, {3:.5f}}}\n".format(
                 i_color, *color

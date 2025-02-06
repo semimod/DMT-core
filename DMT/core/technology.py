@@ -1,4 +1,4 @@
-""" Technology class to describe all technology dependencies. Main use is scaling.
+"""Technology class to describe all technology dependencies. Main use is scaling.
 
 If a technology can use TRADICA, the class :class:`DMT.TRADICA.TechTradica` is recommended!
 

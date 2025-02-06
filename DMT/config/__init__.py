@@ -1,4 +1,4 @@
-""" DMT config management
+"""DMT config management
 
 Collects the config from 3 different locations:
 

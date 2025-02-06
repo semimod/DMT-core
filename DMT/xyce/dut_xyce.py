@@ -1,5 +1,4 @@
-""" The interface to the Xyce circuit simulator from Sandia
-"""
+"""The interface to the Xyce circuit simulator from Sandia"""
 
 # DMT_core
 # Copyright (C) from 2022  SemiMod

@@ -1,4 +1,4 @@
-""" data_frame module
+"""data_frame module
 
 Implements a extended pandas.DataFrame. It is based on the pandas.DataFrame and extended by many special methods that simplify working with electrical quantities.
 This includes easy management of small signal parameter and other quantities which can be calculated from them.
@@ -2450,6 +2450,12 @@ class DataFrame(DataProcessor, pd.DataFrame):
         else:
             Path(file_name).parent.mkdir(parents=True, exist_ok=True)
 
+        for col in self.columns:
+            if pd.api.types.is_complex_dtype(self[col]):
+                self[col + sub_specifiers.REAL] = np.real(self[col])
+                self[col + sub_specifiers.IMAG] = np.imag(self[col])
+                del self[col]
+
         dict_convert = {}
         for col in self.columns:
             try:
@@ -2461,7 +2467,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
         df_save.to_feather(file_name, version=version, compression=compression, **kwargs)
 
     @classmethod
-    def from_feather(cls, file_name: Union[str, os.PathLike], to_specifier=True):
+    def from_feather(cls, file_name: Union[str, os.PathLike], to_specifier=True) -> "DataFrame":
         """Load the data stored in file_name, where file_name is the direct path to the file.
 
         Parameters
@@ -2496,10 +2502,22 @@ class DataFrame(DataProcessor, pd.DataFrame):
             if not df.columns.is_unique:
                 raise IOError()
 
+        for col in df.columns:
+            if (
+                isinstance(col, SpecifierStr)
+                and (sub_specifiers.REAL.sub_specifiers <= col.sub_specifiers)
+                and (col - sub_specifiers.REAL + sub_specifiers.IMAG in df.columns)
+            ):
+                df[col - sub_specifiers.REAL] = (
+                    df[col] + 1j * df[col - sub_specifiers.REAL + sub_specifiers.IMAG]
+                )
+                del df[col]
+                del df[col - sub_specifiers.REAL + sub_specifiers.IMAG]
+
         return df
 
-
-def df_concat(*frames):
-    frame = pd.concat(frames, axis=0, ignore_index=True)
-    frame.__class__ == DataFrame
-    return frame
+    @classmethod
+    def from_parts(cls, *frames: "DataFrame") -> "DataFrame":
+        frame = pd.concat(frames, axis=0, ignore_index=True)
+        frame.__class__ == cls
+        return frame

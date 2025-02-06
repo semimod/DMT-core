@@ -1,4 +1,4 @@
-""" Wrapper for nice plots with tikz, pyqtgraph and matplotlib.
+"""Wrapper for nice plots with tikz, pyqtgraph and matplotlib.
 
 Author:
     Mario Krattenmacher | Mario.Krattenmacher@semimod.de

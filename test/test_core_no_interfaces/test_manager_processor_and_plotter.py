@@ -1,4 +1,5 @@
 import logging
+import numpy as np
 from pathlib import Path
 from DMT.core import DutMeas, DutType, Plot, DutLib
 
@@ -223,6 +224,8 @@ if __name__ == "__main__":
     ic, ft, vbc, ic_ftmax = [], [], [], []
     for df in ft_dfs:
         df = df.calc_ft("B", "C")
+        if any(np.isnan(df["F_T"])):
+            continue
         df = df[df["FREQ"] == 10e9]
         ic.append(df["I_C"])
         ft.append(df["F_T"])

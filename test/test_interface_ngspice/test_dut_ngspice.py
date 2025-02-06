@@ -1,5 +1,4 @@
-""" test ngspice input file generation.
-"""
+"""test ngspice input file generation."""
 
 import copy
 import types

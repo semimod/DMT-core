@@ -1,4 +1,4 @@
-r""" Manages simulations with NGSpice.
+r"""Manages simulations with NGSpice.
 
 A DuT can be supplied using the input_circuit parameter. This parameter can be:
 
@@ -418,6 +418,9 @@ class DutNgspice(DutCircuit):
             if "OpVar" in tmp_sweep.outputdef:
                 str_dc_output += " ".join(self.devices_op_vars) + " "
                 tmp_sweep.outputdef.remove("OpVar")
+            elif "internal" in tmp_sweep.outputdef:
+                str_dc_output += " ".join(self.devices_op_vars) + " "
+                tmp_sweep.outputdef.remove("internal")
 
             # TODO find better way to use outputdef for ngspice
             # current way does not work...
@@ -453,6 +456,8 @@ class DutNgspice(DutCircuit):
             # remove all but one frequency from DF. We later put the "ac_statement" behind every DC point.
             freqs = df[specifiers.FREQUENCY]
             df = df[df[specifiers.FREQUENCY] == freqs[0]]
+        elif "noac" in tmp_sweep.outputdef:
+            pass
         else:
             df[specifiers.FREQUENCY] = 1e9  # default frequency...
             ac_statements.append("ac lin 1 1e9 1e9 \n")
@@ -477,14 +482,28 @@ class DutNgspice(DutCircuit):
                     "DMT->DutNgspice: Did not find voltage source for transient signal input."
                 )
 
-            # if swd_tran.
+            if swd_tran.sweep_type == "SINUS":
+                sources_new = (
+                    "V_V_{0} n_{0}_DC 0\n".format(swd_tran.contact)
+                    + "V_V_{0}_tr n_{0}X n_{0}_DC ".format(swd_tran.contact)
+                    + f"SIN (0 {swd_tran.amp*1e3:.6e}m {swd_tran.value_def[0]/1e6:.6e}MEG 0 0 {swd_tran.phase:.6e})"
+                )
+            elif swd_tran.sweep_type == "SMOOTH_RAMP":
+                tstop = 10 / swd_tran.value_def[0]  # make sure that this does not impact anything
+                tau = np.sqrt(2) * np.exp(-0.5) / (2 * np.pi * sweepdefs[-1].value_def[0])
+                sources_new = (
+                    "V_V_{0} n_{0}_DC 0\n".format(swd_tran.contact)
+                    + "V_V_{0}_tr n_{0}X n_{0}_DC ".format(swd_tran.contact)
+                    + f"EXP2(0 {swd_tran.amp*1e3:.6e}m 0 {tau*1e9:.12f}ns {tstop*1e9:.6e}ns {tau*1e9:.6e}ns)"
+                )
+            else:
+                sources_new = (
+                    "V_V_{0} n_{0}_DC 0\n".format(swd_tran.contact)
+                    + "V_V_{0}_tr n_{0}X n_{0}_DC ".format(swd_tran.contact)
+                    + self._convert_swd_trans_to_pwl(swd_tran)
+                    + " r=-1"
+                )
 
-            sources_new = (
-                "V_V_{0} n_{0}_DC 0\n".format(swd_tran.contact)
-                + "V_V_{0}_tr n_{0}X n_{0}_DC ".format(swd_tran.contact)
-                + self._convert_swd_trans_to_pwl(swd_tran)
-                + " r=-1"
-            )
             str_netlist = str_netlist.replace(source_old, sources_new)
         except StopIteration:
             swd_tran = False
@@ -959,7 +978,7 @@ class DutNgspice(DutCircuit):
     def _convert_swd_trans_to_pwl(self, swd_tran: SweepDef):
         time = swd_tran.values
         signal = swd_tran.get_input_signal()
-        pwl = " ".join([f"{t:g} {s:g}" for t, s in zip(time, signal)])
+        pwl = " ".join([f"{t:g}ns {s:g}" for t, s in zip(time * 1e9, signal)])
         return " PWL(" + pwl + ")"
 
     def join(self, dfs):
@@ -1112,8 +1131,11 @@ def _read_clean_ngspice_df(filepath, nodes, reference_node, ac_ports):
         col_raw = col.upper()
         if "#BRANCH" in col_raw:  # current that we should save
             col_raw = col_raw.replace("#BRANCH", "")
-            node = next(node for node in nodes if node in col_raw)
-            data[specifiers.CURRENT + node] = -df[col]  # we want the other current direction
+            try:
+                node = next(node for node in nodes if node in col_raw)
+                data[specifiers.CURRENT + node] = -df[col]  # we want the other current direction
+            except StopIteration:
+                pass
         elif col_raw[0:2] == "N_":  # found a node, will take the voltage
             node = col_raw[2:]
             if "_FORCED" in node:

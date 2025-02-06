@@ -1,6 +1,4 @@
-""" data processor module
-
-"""
+"""data processor module"""
 
 # DMT_core
 # Copyright (C) from 2022  SemiMod

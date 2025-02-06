@@ -1,5 +1,4 @@
-""" DMT supplied build latex command
-"""
+"""DMT supplied build latex command"""
 
 # DMT_core
 # Copyright (C) from 2022  SemiMod

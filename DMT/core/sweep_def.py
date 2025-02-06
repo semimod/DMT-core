@@ -1,4 +1,4 @@
-""" Basic description of a sweep in DMT.
+"""Basic description of a sweep in DMT.
 
 Sweeps are the basic element that can be fed into simulators or be retrieved from simulations or measurements.
 Features:
@@ -321,6 +321,7 @@ class SweepDef(object):
             # 3 periods with 40 points per period
             self.values = np.array(
                 list(flatten(np.linspace(0, 3 / freq, 121) for freq in self.value_def))
+                # list(flatten(np.linspace(0, 2 / freq, 41) for freq in self.value_def))
             )
         elif self.sweep_type == "SMOOTH_RAMP":
             # 3 periods with 40 points per period
@@ -342,6 +343,10 @@ class SweepDef(object):
                 signal += list(
                     self.amp * (np.sin(2 * np.pi * t * freq - self.phase) - np.sin(self.phase))
                 )
+                # t = self.values[i_freq * 41 : (i_freq + 1) * 41]
+                # signal += list(
+                #     self.amp * (np.sin(2 * np.pi * t * freq - self.phase) - np.sin(self.phase))
+                # )
             return np.array(list(flatten(signal)))
         elif self.sweep_type == "SMOOTH_RAMP":
             signal = []

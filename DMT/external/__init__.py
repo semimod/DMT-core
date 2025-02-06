@@ -1,4 +1,4 @@
-""" DMT's external tools.
+"""DMT's external tools.
 
 These are routines and classes which manage the interfaces to other Python packages. For example PyLaTeX.
 """

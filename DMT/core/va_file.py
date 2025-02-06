@@ -1,5 +1,4 @@
-""" VA Code structure. As Includes traverse like a tree, it is implemented as a dictionary Oo.
-"""
+"""VA Code structure. As Includes traverse like a tree, it is implemented as a dictionary Oo."""
 
 # DMT_core
 # Copyright (C) from 2022  SemiMod

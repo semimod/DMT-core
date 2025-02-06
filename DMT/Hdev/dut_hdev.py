@@ -1,4 +1,4 @@
-""" Manges a device under test which can be simulated by Hdev using the TCAD Interface class.
+"""Manges a device under test which can be simulated by Hdev using the TCAD Interface class.
 
 Author: Markus Müller
 """

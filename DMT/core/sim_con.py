@@ -1,4 +1,4 @@
-""" This module supplies a class to manage all simulations, regardless of the device simulator.
+"""This module supplies a class to manage all simulations, regardless of the device simulator.
 
 It works together with the DutView class, which is the subclass of all device simulators.
 Features:

@@ -1,4 +1,4 @@
-""" singleton
+"""singleton
 
 Provides a meta class to ensure single instantiation.
 

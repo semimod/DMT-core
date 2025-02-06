@@ -1,5 +1,4 @@
-""" OS interaction of DMT
-"""
+"""OS interaction of DMT"""
 
 # DMT_core
 # Copyright (C) from 2022  SemiMod

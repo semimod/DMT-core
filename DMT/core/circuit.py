@@ -1,4 +1,4 @@
-""" DMT description of a circuit.
+"""DMT description of a circuit.
 
 Must be used to describe a circuit and then passed to a circuit simulator dut.
 

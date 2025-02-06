@@ -1,5 +1,4 @@
-""" Testing the hashing class
-"""
+"""Testing the hashing class"""
 
 import os
 from DMT.core import create_md5_hash

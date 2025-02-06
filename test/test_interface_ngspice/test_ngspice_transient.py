@@ -10,9 +10,10 @@ import types
 import logging
 import numpy as np
 from pathlib import Path
-from DMT.config import COMMANDS
 
-COMMANDS["OPENVAF"] = "openvaf"
+# from DMT.config import COMMANDS
+
+# COMMANDS["OPENVAF"] = "openvaf"
 from DMT.core import specifiers, DutType, SimCon, Sweep, Plot, MCard
 from DMT.core.sweep_def import (
     SweepDefConst,
@@ -233,6 +234,7 @@ def get_dut():
         reference_node="E",
         copy_va_files=True,
         simulator_command="ngspice",
+        command_openvaf="openvaf",
     )
 
 
@@ -259,11 +261,9 @@ if __name__ == "__main__":
 
     sim_con = SimCon(n_core=1, t_max=1000)
     sim_con.append_simulation(dut=dut_HICUM, sweep=sweep)
-    sim_con.run_and_read(force=True)
+    sim_con.run_and_read(force=False)
 
-    i_op = 0
-    i_freq = 0
-    df = dut_HICUM.get_data(sweep=sweep, key=f"tr_{i_op}_{i_freq}")
+    df = dut_HICUM.get_data(sweep=sweep, key="tr_0")
 
     plt = Plot("i_c(t)")
     plt.add_data_set(df[specifiers.TIME], df[specifiers.VOLTAGE + "B"], label="V_B")
