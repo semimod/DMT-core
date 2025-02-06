@@ -47,7 +47,7 @@ def read_mdm_data_and_clean():
         test_dir
         / "test_interface_ngspice"
         / "mos_mdm_test_data"
-        / "SG13_nmos~W05u0_L0u13_S542_1~dc_idvd_vbmin~300K.mdm"
+        / "SG13_nmos_W05u0_L0u13_S542_1_dc_idvd_vbmin_300K.mdm"
     )
     df = df.clean_data(["D", "G", "S", "B"], "S", ac_ports=["D", "G"])
 
@@ -70,7 +70,7 @@ def get_modelcard(dut_circuit):
     # test_dir
     # / "test_interface_ngspice"
     # / "mos_mdm_test_data"
-    # / "SG13_nmos~W05u0_L0u13_S542_1~dc_idvd_vbmin~300K.mdm")
+    # / "SG13_nmos_W05u0_L0u13_S542_1_dc_idvd_vbmin_300K.mdm")
     # )
 
     return get_circuit_psp(
