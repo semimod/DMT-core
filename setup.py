@@ -48,7 +48,7 @@ setuptools.setup(
     include_package_data=True,
     install_requires=[
         "scipy",
-        "numpy<2.0.0",
+        "numpy",
         "scikit-rf",
         "reprint",
         "pandas",

@@ -554,7 +554,7 @@ class Sweep(object):
         # add the output variables and fill them with Nans-------------------------------------------------
         for output in self.outputdef:
             if not output in self.df.columns:
-                self.df[output] = np.NaN
+                self.df[output] = np.nan
 
         # add the optional variables and fill them---------------------------------------------------------
         for key, value in self.othervar.items():

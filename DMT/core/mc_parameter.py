@@ -1042,6 +1042,20 @@ class McParameterCollection(object):
 
         return self._values
 
+    def to_dict(self):
+        """Returns itself as a dictionary with name:value only fitting to unpack into a function call.
+
+        Returns
+        -------
+        dict
+            {name: value}
+        """
+        dict_a = {}
+        for para in self.paras:
+            dict_a[para.name] = para.value
+
+        return dict_a
+
     def print_parameters(self, paras=None, line_break=""):
         """Just some pretty printing
 
