@@ -34,7 +34,7 @@ import ast
 import operator
 import warnings
 from pathlib import Path
-from typing import Union, Optional, TYPE_CHECKING
+from typing import Union, Optional, TYPE_CHECKING, TypeVar
 from types import ModuleType
 
 try:

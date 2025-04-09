@@ -42,7 +42,7 @@ try:
 except ImportError:
     pass
 
-SEMVER_DUTLIB_CURRENT = VersionInfo(major=1, minor=1)
+SEMVER_DUTLIB_CURRENT = VersionInfo(major=1, minor=2)
 
 
 class __Filter(object):
@@ -453,11 +453,19 @@ class DutLib(object):
                     raise IOError(
                         f"DutLib: A DuT with the name {dut.name} already exists. Dut names must be unique!"
                     )
+                if "|" in dut.name:
+                    raise IOError(
+                        f"DutLib: A DuT with the name {dut.name} was tried to add to the lib. The sign | is reserved in DutLibs for saving!"
+                    )
                 self.duts.append(dut)
         except TypeError:
             if duts.name in [dut_a.name for dut_a in self.duts]:
                 raise IOError(
                     f"DutLib: A DuT with the name {dut.name} already exists. Dut names must be unique!"
+                )
+            if "|" in dut.name:
+                raise IOError(
+                    f"DutLib: A DuT with the name {dut.name} was tried to add to the lib. The sign | is reserved in DutLibs for saving!"
                 )
             self.duts.append(duts)
 
@@ -478,7 +486,7 @@ class DutLib(object):
         ignore_duts = copy.deepcopy(self.ignore_duts)
         self.ignore_duts = []  # save all duts, even the one who were ignored
         for dut in self.duts:
-            if dut.database_dir != self.save_dir / "duts":
+            if self.save_dir / "duts" in dut.database_dir.parents:
                 try:  # if enough data available, sort by wafer and dies
                     directory = (
                         self.save_dir
@@ -534,9 +542,9 @@ class DutLib(object):
             "dut_ref_dut_dir": str(self.dut_ref_dut_dir),
             "dut_intrinsic_dut_dir": str(self.dut_intrinsic_dut_dir),
             "dut_internal_dut_dir": str(self.dut_internal_dut_dir),
-            "ignore_duts": "["
-            + ",".join(dut_name for dut_name in self.ignore_duts)
-            + "]",  # list of names which are not returned while iteration
+            "ignore_duts": "|".join(
+                dut_name for dut_name in self.ignore_duts
+            ),  # list of names which are not returned while iteration
             "n_jobs": self.n_jobs,
             "wafer": self.wafer,
             "date_tapeout": self.date_tapeout,
@@ -586,6 +594,19 @@ class DutLib(object):
                 print(
                     "DMT:DutLib:load(): Loading an old lib. This will work, if the machine if the path stays the same. Otherwise, add 'save_dir' key to the dut_lib.json manually."
                 )
+            elif json_content["__DutLib__"] == VersionInfo(major=1, minor=1):
+                print(
+                    "DMT:DutLib:load(): Loading an old lib. This will work. Only the way ignore_duts are saved is different."
+                )
+
+                ignore_duts = []
+                for dut_name in json_content["ignore_duts"].split(","):
+                    dut_name = dut_name.lstrip("[")
+                    dut_name = dut_name.rstrip("]")
+                    if dut_name:
+                        ignore_duts.append(dut_name)
+                json_content["ignore_duts"] = "|".join(dut_name for dut_name in ignore_duts)
+
             else:
                 raise IOError("DMT.DutLib: Tried to load a DutLib with unkown version.")
 
@@ -612,7 +633,7 @@ class DutLib(object):
             dut_lib.dut_intrinsic_dut_dir = json_content["dut_intrinsic_dut_dir"]
             dut_lib.dut_internal_dut_dir = json_content["dut_internal_dut_dir"]
 
-            dut_lib.ignore_duts = json_content["ignore_duts"]
+            dut_lib.ignore_duts = json_content["ignore_duts"].split("|")
             dut_lib.wafer = json_content["wafer"]
             dut_lib.date_tapeout = json_content["date_tapeout"]
             dut_lib.date_received = json_content["date_received"]
@@ -1330,6 +1351,7 @@ class DutLib(object):
                                 if np.isclose(
                                     key_temperature,
                                     dut_short.get_key_temperature(short_key),
+                                    atol=3,
                                 ):
                                     short_keys_matching.append(short_key)
 

@@ -788,6 +788,7 @@ def to_tex(self, subscript="", superscript=""):
     tex : str
             A Tex representation fo the specifier.
     """
+    # first catch special cases and add subscript
     if self.specifier in specifiers_ss_para:
         nodes_temp = copy.deepcopy(self.nodes)
 
@@ -798,26 +799,11 @@ def to_tex(self, subscript="", superscript=""):
             node = node.replace("D", "2")
             nodes_temp[i_nodes] = node
 
-        if subscript == "":
-            tex = (
-                r"\underline{"
-                + str(self.specifier)
-                + r"}_{\mathrm{"
-                + str("".join(nodes_temp))
-                + r"}}"
-            )
-        else:
-            tex = (
-                r"\underline{"
-                + str(self.specifier)
-                + r"}_{\mathrm{"
-                + str("".join(nodes_temp))
-                + r","
-                + subscript
-                + r"}}"
-            )
+        tex = r"\underline{" + str(self.specifier) + r"}_{\mathrm{" + "".join(nodes_temp)
+        if subscript:
+            tex += "," + subscript
+        tex += r"}}"
 
-    # first catch special cases and add subscript
     elif self.specifier == specifiers.TRANSIT_FREQUENCY:
         tex = r"f_{\mathrm{T" + subscript + r"}}"
     elif self.specifier == specifiers.DC_CURRENT_AMPLIFICATION:
@@ -849,15 +835,10 @@ def to_tex(self, subscript="", superscript=""):
     else:  # general case
         if subscript:
             tex = (
-                str(self.specifier)
-                + r"_{\mathrm{"
-                + str("".join(self.nodes))
-                + r","
-                + subscript
-                + r"}}"
+                str(self.specifier) + r"_{\mathrm{" + "".join(self.nodes) + "," + subscript + r"}}"
             )
         else:
-            tex = str(self.specifier) + r"_{\mathrm{" + str("".join(self.nodes)) + r"}}"
+            tex = str(self.specifier) + r"_{\mathrm{" + "".join(self.nodes) + r"}}"
 
     # add superscript
     if superscript:

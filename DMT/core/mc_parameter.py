@@ -49,7 +49,7 @@ from pathlib import Path
 
 import _pickle as cpickle  # type: ignore
 import numpy as np
-from typing import Dict, OrderedDict, Type, Union, List, Optional, TYPE_CHECKING
+from typing import Dict, OrderedDict, Type, Union, List, Optional, TYPE_CHECKING, Iterator
 from pint.formatting import siunitx_format_unit
 from pint.errors import UndefinedUnitError
 
@@ -1333,7 +1333,10 @@ class McParameterCollection(object):
 
         return doc
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[McParameter]:
+        """
+        Returns an iterator on a copy of the parameters in the collection.
+        """
         # return iter(self.paras)
         return iter(copy.deepcopy(self.paras))
 

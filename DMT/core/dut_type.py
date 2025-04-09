@@ -21,6 +21,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 import warnings
 from enum import Flag, auto, unique
+from typing import Union, Optional
 
 
 class DutTypeInt(object):
@@ -33,7 +34,9 @@ class DutTypeInt(object):
         List of nodes.
     """
 
-    def __init__(self, value, *, string, nodes=None):
+    def __init__(
+        self, value: Union["DutTypeInt", int], *, string: str, nodes: Optional[list] = None
+    ):
         try:
             self.value = value.value
         except AttributeError:
@@ -116,7 +119,7 @@ class DutTypeInt(object):
     def __int__(self):
         return self.value
 
-    def is_subtype(self, other):
+    def is_subtype(self, other: Union["DutTypeInt", int]) -> bool:
         """Test if a device is a subtype of an other device/devicetype
 
         Ignores the flag_subtype!
@@ -151,14 +154,14 @@ class DutTypeInt(object):
         res = self_wo_subtype & other_wo_subtype
         return res == other
 
-    def __lt__(self, other):
+    def __lt__(self, other: Union["DutTypeInt", int]):
         """comparision for Sorting!"""
         try:
             return DutTypeInt(self.value < other.value, string=self.get_string(), nodes=self.nodes)
         except AttributeError:
             return DutTypeInt(self.value < other, string=self.get_string(), nodes=self.nodes)
 
-    def __sub__(self, other):
+    def __sub__(self, other: Union["DutTypeInt", int]):
         try:
             return DutTypeInt(self.value - other.value, string=self.get_string(), nodes=self.nodes)
         except AttributeError:

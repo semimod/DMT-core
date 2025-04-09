@@ -802,21 +802,23 @@ class DataFrame(DataProcessor, pd.DataFrame):
                 )
 
             try:
-                if nodes[0] == "B" and nodes[1] == "E":  # CBE
+                if nodes[0] == "B" and nodes[1] == "E":  # bjt CBE
                     self = self.calc_cbe(port_1=ports[0], port_2=ports[1])
-                elif nodes[0] == "C" and nodes[1] == "E":  # CCE
+                elif nodes[0] == "C" and nodes[1] == "E":  # bjt CCE
                     self = self.calc_cce(port_1=ports[0], port_2=ports[1])
-                elif nodes[0] == "B" and nodes[1] == "C":  # CBC
+                elif nodes[0] == "B" and nodes[1] == "C":  # bjt CBC
                     self = self.calc_cbc(port_1=ports[0], port_2=ports[1])
-                elif nodes[0] == "G" and nodes[1] == "S":  # CGS
+                elif nodes[0] == "C" and nodes[1] == "S":  # bjt CSC
+                    self = self.calc_ccs(port_1=ports[0], port_2=ports[1])
+                elif nodes[0] == "G" and nodes[1] == "S":  # mos CGS
                     self = self.calc_cgs(port_1=ports[0], port_2=ports[1])
-                elif nodes[0] == "G" and nodes[1] == "D":  # CGD
+                elif nodes[0] == "G" and nodes[1] == "D":  # mos CGD
                     self = self.calc_cgd(port_1=ports[0], port_2=ports[1])
-                elif nodes[0] == "G" and nodes[1] == "G":  # CGG
+                elif nodes[0] == "G" and nodes[1] == "G":  # mos CGG
                     self = self.calc_cgg(port_1=ports[0], port_2=ports[1])
-                elif nodes[0] == "D" and nodes[1] == "B":  # CDB
+                elif nodes[0] == "D" and nodes[1] == "B":  # mos CDB
                     self = self.calc_cdb(port_1=ports[0], port_2=ports[1], port_3=ports[2])
-                elif nodes[0] == "S" and nodes[1] == "B":  # CSB
+                elif nodes[0] == "S" and nodes[1] == "B":  # mos CSB
                     self = self.calc_csb(port_1=ports[0], port_2=ports[1], port_3=ports[2])
                 else:
                     raise KeyError("The " + "".join(nodes) + " capacitance can not be calculated.")
@@ -2125,6 +2127,31 @@ class DataFrame(DataProcessor, pd.DataFrame):
         else:
             raise NotImplementedError(
                 "DMT -> DataFrame -> calc_cce: transistor configuration not implemented."
+            )
+
+        pd.options.mode.chained_assignment = "warn"
+        return self
+
+    def calc_ccs(self, port_1="C", port_2="S"):
+        """Calculates the substrate-collector junction capacitance CSC, assuming PI equivalent circuit and common base-emitter configuration with substrate at port 1 and collector at port 2
+
+        Returns
+        -------
+        :class:`DMT.core.DataFrame`
+            Dataframe that contains CSC.
+        """
+        # get values
+        s_para_values = self.get_ss_para("Y", port_1, port_2)
+
+        # put values in col of self
+        pd.options.mode.chained_assignment = None  # default='warn', This should not warn here.
+        if port_1 == "C" and port_2 == "S":
+            self[specifiers.CAPACITANCE + ["C", "S"]] = self.processor.calc_cap_series_thru(
+                self["FREQ"], s_para_values, "Y"
+            )
+        else:
+            raise NotImplementedError(
+                "DMT -> DataFrame -> calc_csc: transistor configuration not implemented."
             )
 
         pd.options.mode.chained_assignment = "warn"
