@@ -405,8 +405,8 @@ class DutLib(object):
             duts.append(dut_filter(str(import_dir)))
             dut_paths.append(import_dir)
         else:
-            for child in import_dir.glob("*/" * (dut_level)):  # can be used in windows and linux
-                if child.is_dir():  # only directories are allowed
+            for child in import_dir.glob("**/*"):  # can be used in windows and linux
+                if child.parents[dut_level - 1] == import_dir:
                     child = child.resolve()
                     dut = dut_filter(str(child))
                     if dut is not None:
@@ -1705,24 +1705,29 @@ def _read_dut_folder(dut, path, force, temperature_converter, **kwargs):
     """
     if not force:
         dut.load_db()
-    for root, _dirs, files in os.walk(path):
-        for name in files:
+    if path.is_file():
+        key_list = path.name
+        key = dut.join_key_temperature(path.stem, temperature_converter=temperature_converter)
+        dut.add_data(path, key, force, **kwargs)
+    else:
+        for file in path.glob("**/*"):
             # get extension name and cast to lower case
-            extension = name.split(".")[-1]
-            extension = extension.lower()
+            extension = file.suffix.lower()
             if (
-                (extension == "mdm")
-                or (extension == "elpa")
-                or (extension == "csv")
-                or (extension == "feather")
+                (extension == ".mdm")
+                or (extension == ".elpa")
+                or (extension == ".csv")
+                or (extension == ".feather")
             ):
-                path_root = Path(root)
                 # cut the everything before dut lvl and split the path into groups
-                key_list = path_root.relative_to(path).parts
+                key_list = file.relative_to(path).parts
+                key_list = list(key_list[:-1]) + [
+                    Path(key_list[-1]).stem
+                ]  # cut away the file extension
                 # join the groups together into a valid dut_data key
                 key = dut.join_key_temperature(
-                    *key_list, name.split(".")[0], temperature_converter=temperature_converter
+                    *key_list, temperature_converter=temperature_converter
                 )
-                dut.add_data(path_root / name, key, force, **kwargs)
+                dut.add_data(file, key, force, **kwargs)
 
     return dut.data

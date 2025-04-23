@@ -610,13 +610,16 @@ class DocuDutLib(object):
                 # find temperatures
                 temps = []
                 for key in dut.data.keys():
-                    temp = dut.get_key_temperature(key)
+                    try:
+                        temp = dut.get_key_temperature(key)
+                    except NameError:
+                        temp = -300  # something unrealistic
                     if specifiers.TEMPERATURE in plot_spec and np.isclose(
                         temp, plot_spec[specifiers.TEMPERATURE]
                     ):
-                        temps.append(dut.get_key_temperature(key))
+                        temps.append(temp)
                     elif specifiers.TEMPERATURE not in plot_spec:
-                        temps.append(dut.get_key_temperature(key))
+                        temps.append(temp)
 
                 temps = list(set(temps))
 
