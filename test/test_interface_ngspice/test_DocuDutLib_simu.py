@@ -74,11 +74,7 @@ def create_lib():
     # -->Define subroutine at first
     # --->Subroutine: filter_dut
     def filter_dut(dut_name):
-        if "dummies" in dut_name:
-            return None
-        elif "TLM" in dut_name:
-            return None
-        elif dut_name == "":
+        if not "0p25x10x1_full" in dut_name:
             return None
         else:
             dut_transistor = DutMeas(
