@@ -108,7 +108,7 @@ def read_data(filename, key=None, **kwargs):
     else:
         raise IOError(
             "Error: DMT can not open file "
-            + filename
+            + str(filename)
             + " since extension "
             + extension
             + " cannot be read."
