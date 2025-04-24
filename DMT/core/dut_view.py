@@ -203,6 +203,7 @@ class DutView(object):
                 self.list_copy = list_copy
         self._list_va_file_contents: list[VAFileMap] = []
 
+        self.manager = DatabaseManager()
         # if the dut already exists and no force -> error!
         if self.save_dir.exists():
             if force:
@@ -222,7 +223,6 @@ class DutView(object):
 
         self.dut_type: Union[DutTypeFlag, DutTypeInt] = dut_type
 
-        self.manager = DatabaseManager()
         if nodes is None:
             self.nodes = dut_type.get_nodes()
         else:
@@ -850,18 +850,14 @@ class DutView(object):
     def del_db(self):
         """Delete the DutView's complete database."""
         # iterate over the folder in case of self.separate_databases
-        for root, _dirs, files in os.walk(self.save_dir):
-            for my_file in files:
-                if my_file.endswith(".h5"):
-                    self.manager.del_db(root + "/" + my_file)
+        for my_file in self.save_dir.glob("*.h5"):
+            self.manager.del_db(my_file)
         logging.info("DMT -> DutView -> del_data(): Deleted a complete database.")
 
     def del_dut(self):
         """Delete the DutView's pickled file."""
-        if os.path.exists(self.dut_dir):
-            os.remove(self.dut_dir)
-
-        logging.info("DMT -> DutView -> del_dut(): Deleted a pickled DutView object.")
+        self.dut_dir.unlink(missing_ok=True)
+        logging.info("DMT -> DutView -> del_dut(): Deleted a DutView object.")
 
     def clean_data(self, fallback=None, **kwargs):
         """Clean the dataframe columns of the DataFrame objects in this DutMeas objects database.

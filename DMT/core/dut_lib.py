@@ -486,7 +486,8 @@ class DutLib(object):
         ignore_duts = copy.deepcopy(self.ignore_duts)
         self.ignore_duts = []  # save all duts, even the one who were ignored
         for dut in self.duts:
-            if self.save_dir / "duts" in dut.database_dir.parents:
+            # change dut.save_dir, so that the duts are saved inside the DutLib folder
+            if self.save_dir / "duts" not in dut.database_dir.parents:
                 try:  # if enough data available, sort by wafer and dies
                     directory = (
                         self.save_dir

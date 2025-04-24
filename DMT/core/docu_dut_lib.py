@@ -931,7 +931,7 @@ class DocuDutLib(object):
                 if key not in save_tikz_settings.keys():
                     save_tikz_settings[key] = save_tikz_settings[key]
 
-        paths = Parallel(n_jobs=20, verbose=10)(
+        paths = Parallel(n_jobs=10)(
             _build_plot(plt, base_path, save_tikz_settings) for plt in self.plts
         )
         for i_plt, plt in enumerate(self.plts):
