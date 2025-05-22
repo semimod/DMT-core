@@ -1060,6 +1060,15 @@ class Plot(object):
             x = dict_line["x"]
             y = dict_line["y"]
 
+            try:
+                len(x)
+            except TypeError:
+                x = np.array([x])
+            try:
+                len(y)
+            except TypeError:
+                y = np.array([y])
+
             if self.x_axis_scale == "log":
                 x = np.array(np.abs(x))
             else:
