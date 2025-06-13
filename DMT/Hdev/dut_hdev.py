@@ -453,6 +453,7 @@ class DutHdev(DutTcad):
         try:
             df_ = h5py.File(os.path.join(sim_folder, "simulation_data.h5"))  # hdf5 simulation data
             df_iv = self.get_df(df_, None, "iv")
+            df_dc = copy.deepcopy(df_iv)
             try:
                 df_cap = self.get_df(df_, None, "cap")
             except:
@@ -516,7 +517,7 @@ class DutHdev(DutTcad):
                 n = 0
                 for df_ac in dfs_ac:
                     # read in ac df
-                    df_dc = df_iv.iloc[[n]]
+                    df_dc_temp = df_iv.iloc[[n]]
                     # extend ac df with dc data
                     for col_dc in df_iv.columns:
                         if col_dc not in df_ac.columns:
@@ -524,10 +525,10 @@ class DutHdev(DutTcad):
 
                     # extend dc df with ac data
                     for col_ac in df_ac.columns:
-                        if col_ac not in df_dc.columns:
-                            df_dc.loc[:, col_ac] = 0  # set AC values to zero in DC
+                        if col_ac not in df_dc_temp.columns:
+                            df_dc_temp.loc[:, col_ac] = 0  # set AC values to zero in DC
 
-                    dfs_temp.append(df_dc)
+                    dfs_temp.append(df_dc_temp)
                     dfs_temp.append(df_ac)
 
                     n = n + 1
@@ -556,9 +557,9 @@ class DutHdev(DutTcad):
                 df_iv.ensure_specifier_column(specifiers.CAPACITANCE + "B" + "E", ports=["B", "C"])
                 df_iv.ensure_specifier_column(specifiers.CAPACITANCE + "B" + "C", ports=["B", "C"])
                 df_iv.ensure_specifier_column(specifiers.TRANSIT_FREQUENCY, ports=["B", "C"])
-                df_iv.ensure_specifier_column(specifiers.TRANSCONDUCTANCE, ports=["B", "C"])
+                # df_iv.ensure_specifier_column(specifiers.TRANSCONDUCTANCE, ports=["B", "C"])
                 df_iv.ensure_specifier_column(
-                    specifiers.SS_PARA_Y + "C" + "B" + sub_specifiers.REAL,
+                    specifiers.SS_PARA_Y + ["C", "B"] + sub_specifiers.REAL,
                     ports=["B", "C"],
                 )
             except KeyError:
@@ -604,42 +605,43 @@ class DutHdev(DutTcad):
                     df_iv["Q|P"] = qp
 
                     # where inqu df is required for every op
-                    gm = np.array(df_iv[specifiers.TRANSCONDUCTANCE])
-                    tau_e = np.ones(len(df_iv))
-                    tau_be = np.ones(len(df_iv))
-                    tau_b = np.ones(len(df_iv))
-                    tau_c = np.ones(len(df_iv))
-                    tau_bc = np.ones(len(df_iv))
-                    x_be = np.ones(len(df_iv))
-                    x_bc = np.ones(len(df_iv))
+
+                    if len(df_dc) == 1:
+                        # gm from low f Y_CB
+                        gm = [
+                            np.real(
+                                df_iv.at[
+                                    df_iv[specifiers.FREQUENCY].idxmin(),
+                                    specifiers.SS_PARA_Y + ["C", "B"],
+                                ]
+                            )
+                        ]
+                    else:
+                        # gm using gradient
+                        df_dc.ensure_specifier_column(specifiers.TRANSCONDUCTANCE, ports=["B", "C"])
+                        gm = np.array(df_dc[specifiers.TRANSCONDUCTANCE])
+                    # tau_e = np.ones(len(df_dc))
+                    # tau_be = np.ones(len(df_dc))
+                    # tau_b = np.ones(len(df_dc))
+                    # tau_c = np.ones(len(df_dc))
+                    # tau_bc = np.ones(len(df_dc))
+                    # x_be = np.ones(len(df_dc))
+                    # x_bc = np.ones(len(df_dc))
 
                     try:
-                        for i_row, row in enumerate(df_iv.iterrows()):
-                            key_inqu = self.join_key(key, f"op{i_row+1}_inqu")
-                            # next(
-                            #     _key
-                            #     for _key in self.data.keys()
-                            #     if key in _key and "_inqu" in _key and "op" + str(i_row + 1) in _key
-                            # )
-                            key_ac_inqu = self.join_key(key, f"acinqu_op{i_row+1}_dVb")
-                            # key_ac_inqu = next(
-                            #     _key
-                            #     for _key in self.data.keys()
-                            #     if key in _key
-                            #     and "acinqu" in _key
-                            #     and "op" + str(i_row + 1) in _key
-                            #     and "dVb" in _key
-                            # )
+                        for i_row, row in df_dc.iterrows():
+                            key_inqu = self.join_key(key, f"op{i_row+1:.0f}_inqu")
+                            key_ac_inqu = self.join_key(key, f"acinqu_op{i_row+1:.0f}_dVb_f1")
 
                             # get the necessary data
                             df_ac_inqu_i = self.data[key_ac_inqu]
-                            dn_dic = df_ac_inqu_i["re_d_n_x"].to_numpy() / gm[i_row]
+                            dn_dic = df_ac_inqu_i["re_d_n_x"].to_numpy() / gm[int(i_row)]
                             try:
-                                dn2_dic = df_ac_inqu_i["re_d_n2_x"].to_numpy() / gm[i_row]
+                                dn2_dic = df_ac_inqu_i["re_d_n2_x"].to_numpy() / gm[int(i_row)]
                             except KeyError:
-                                dn2_dic = df_ac_inqu_i["re_d_n_x"].to_numpy() / gm[i_row]
+                                dn2_dic = df_ac_inqu_i["re_d_n_x"].to_numpy() / gm[int(i_row)]
 
-                            dp_dic = df_ac_inqu_i["re_d_p_x"].to_numpy() / gm[i_row]
+                            dp_dic = df_ac_inqu_i["re_d_p_x"].to_numpy() / gm[int(i_row)]
                             droh_dic = dp_dic - dn_dic
                             # transit time
                             changes = (
@@ -647,20 +649,20 @@ class DutHdev(DutTcad):
                             )
                             index_be = changes[np.argmin(np.abs(changes - junctions[0]))]
                             index_bc = changes[np.argmin(np.abs(changes - junctions[1]))]
-                            x_be[i_row] = x[index_be]
-                            x_bc[i_row] = x[index_bc]
+                            x_be = x[index_be]
+                            x_bc = x[index_bc]
 
                             tau = np.zeros(len(x))
                             taup = np.zeros(len(x))
                             taun = np.zeros(len(x))
                             taun2 = np.zeros(len(x))
                             for j, x_ in enumerate(x):
-                                if x_ <= x_be[i_row]:
+                                if x_ <= x_be:
                                     tau[j] += np.trapezoid(dp_dic[:j], x[:j])
                                     tau[j] += np.trapezoid(dn_dic[:j], x[:j]) - np.trapezoid(
                                         dp_dic[:j], x[:j]
                                     )
-                                elif x_ <= x_bc[i_row]:
+                                elif x_ <= x_bc:
                                     tau[j] += np.trapezoid(dn_dic[:j], x[:j])
                                 else:
                                     tau[j] += np.trapezoid(dp_dic[:j], x[:j])
@@ -677,23 +679,19 @@ class DutHdev(DutTcad):
                             taun2 = taun2 * constants.P_Q
                             taup = taup * constants.P_Q
 
-                            tau_e[i_row] = (
-                                np.trapezoid(dp_dic[:index_be], x[:index_be]) * constants.P_Q
-                            )
-                            tau_be[i_row] = (
+                            tau_e = np.trapezoid(dp_dic[:index_be], x[:index_be]) * constants.P_Q
+                            tau_be = (
                                 np.trapezoid(dn_dic[:index_be], x[:index_be]) * constants.P_Q
-                                - tau_e[i_row]
+                                - tau_e
                             )
-                            tau_b[i_row] = (
+                            tau_b = (
                                 np.trapezoid(dn_dic[index_be:index_bc], x[index_be:index_bc])
                                 * constants.P_Q
                             )
-                            tau_c[i_row] = (
-                                np.trapezoid(dp_dic[index_bc:], x[index_bc:]) * constants.P_Q
-                            )
-                            tau_bc[i_row] = (
+                            tau_c = np.trapezoid(dp_dic[index_bc:], x[index_bc:]) * constants.P_Q
+                            tau_bc = (
                                 np.trapezoid(dn_dic[index_bc:], x[index_bc:]) * constants.P_Q
-                                - tau_c[i_row]
+                                - tau_c
                             )
 
                             dm_dic = np.where(dn_dic < dp_dic, dn_dic, dn_dic)
@@ -706,14 +704,18 @@ class DutHdev(DutTcad):
                             self.data[key_inqu]["TAUN"] = taun
                             self.data[key_inqu]["TAUN2"] = taun2
 
-                        df_iv["tau_e"] = tau_e
-                        df_iv["tau_be"] = tau_be
-                        df_iv["tau_b"] = tau_b
-                        df_iv["tau_bc"] = tau_bc
-                        df_iv["tau_c"] = tau_c
+                            indexes_op = (
+                                df_iv[specifiers.CURRENT + "C"] == row[specifiers.CURRENT + "C"]
+                            )
 
-                        df_iv["x_be"] = x_be
-                        df_iv["x_bc"] = x_bc
+                            df_iv.loc[indexes_op, "tau_e"] = tau_e
+                            df_iv.loc[indexes_op, "tau_be"] = tau_be
+                            df_iv.loc[indexes_op, "tau_b"] = tau_b
+                            df_iv.loc[indexes_op, "tau_bc"] = tau_bc
+                            df_iv.loc[indexes_op, "tau_c"] = tau_c
+
+                            df_iv.loc[indexes_op, "x_be"] = x_be
+                            df_iv.loc[indexes_op, "x_bc"] = x_bc
 
                     except Exception as err:
                         print(err)
