@@ -276,13 +276,14 @@ class DutHdev(DutTcad):
         # add frequency def
         if has_f_def:
             sub_sweep = f_def
-            if sub_sweep.sweep_type == "CON":
+            if sub_sweep.sweep_type == "CON" or sub_sweep.sweep_type == "LIST":
                 bias_fun = "'TAB'"
                 ac_info = {
                     "port1": "'" + self.ac_ports[0] + "'",
                     "port2": "'" + self.ac_ports[1] + "'",
                     "sweep_type": bias_fun,
-                    "freq_val": sub_sweep.value_def[0],
+                    # "freq_val": sub_sweep.value_def[0],
+                    "freq_val": " ".join([f"{val:3.6e}" for val in sub_sweep.value_def]),
                 }
                 # add sweep definition to inp file
                 bias_str = (
@@ -509,7 +510,7 @@ class DutHdev(DutTcad):
             ac = False
             # read in the iv data
             pd.options.mode.chained_assignment = None  # default='warn'
-            if len(dfs_ac) > 1:
+            if len(dfs_ac) > 0:
                 # first we sort by n_op
                 dfs_temp = []
                 n = 0
@@ -596,8 +597,8 @@ class DutHdev(DutTcad):
                         except:
                             continue
                         df_inqu = self.data[key_inqu]
-                        qn[i_row] = np.trapz(df_inqu["N"], df_inqu["X"])
-                        qp[i_row] = np.trapz(df_inqu["P"], df_inqu["X"])
+                        qn[i_row] = np.trapezoid(df_inqu["N"], df_inqu["X"])
+                        qp[i_row] = np.trapezoid(df_inqu["P"], df_inqu["X"])
 
                     df_iv["Q|N"] = qn
                     df_iv["Q|P"] = qp
@@ -609,6 +610,8 @@ class DutHdev(DutTcad):
                     tau_b = np.ones(len(df_iv))
                     tau_c = np.ones(len(df_iv))
                     tau_bc = np.ones(len(df_iv))
+                    x_be = np.ones(len(df_iv))
+                    x_bc = np.ones(len(df_iv))
 
                     try:
                         for i_row, row in enumerate(df_iv.iterrows()):
@@ -644,55 +647,59 @@ class DutHdev(DutTcad):
                             )
                             index_be = changes[np.argmin(np.abs(changes - junctions[0]))]
                             index_bc = changes[np.argmin(np.abs(changes - junctions[1]))]
-                            xbe = x[index_be]
-                            xbc = x[index_bc]
+                            x_be[i_row] = x[index_be]
+                            x_bc[i_row] = x[index_bc]
 
                             tau = np.zeros(len(x))
                             taup = np.zeros(len(x))
                             taun = np.zeros(len(x))
                             taun2 = np.zeros(len(x))
                             for j, x_ in enumerate(x):
-                                if x_ <= xbe:
-                                    tau[j] += np.trapz(dp_dic[:j], x[:j])
-                                    tau[j] += np.trapz(dn_dic[:j], x[:j]) - np.trapz(
+                                if x_ <= x_be[i_row]:
+                                    tau[j] += np.trapezoid(dp_dic[:j], x[:j])
+                                    tau[j] += np.trapezoid(dn_dic[:j], x[:j]) - np.trapezoid(
                                         dp_dic[:j], x[:j]
                                     )
-                                elif x_ <= xbc:
-                                    tau[j] += np.trapz(dn_dic[:j], x[:j])
+                                elif x_ <= x_bc[i_row]:
+                                    tau[j] += np.trapezoid(dn_dic[:j], x[:j])
                                 else:
-                                    tau[j] += np.trapz(dp_dic[:j], x[:j])
-                                    tau[j] += np.trapz(dn_dic[:j], x[:j]) - np.trapz(
+                                    tau[j] += np.trapezoid(dp_dic[:j], x[:j])
+                                    tau[j] += np.trapezoid(dn_dic[:j], x[:j]) - np.trapezoid(
                                         dp_dic[:j], x[:j]
                                     )
 
-                                taun[j] = np.trapz(dn_dic[:j], x[:j])
-                                taup[j] = np.trapz(dp_dic[:j], x[:j])
-                                taun2[j] = np.trapz(dn2_dic[:j], x[:j])
+                                taun[j] = np.trapezoid(dn_dic[:j], x[:j])
+                                taup[j] = np.trapezoid(dp_dic[:j], x[:j])
+                                taun2[j] = np.trapezoid(dn2_dic[:j], x[:j])
 
                             tau = tau * constants.P_Q
                             taun = taun * constants.P_Q
                             taun2 = taun2 * constants.P_Q
                             taup = taup * constants.P_Q
 
-                            tau_e[i_row] = np.trapz(dp_dic[:index_be], x[:index_be]) * constants.P_Q
+                            tau_e[i_row] = (
+                                np.trapezoid(dp_dic[:index_be], x[:index_be]) * constants.P_Q
+                            )
                             tau_be[i_row] = (
-                                np.trapz(dn_dic[:index_be], x[:index_be]) * constants.P_Q
+                                np.trapezoid(dn_dic[:index_be], x[:index_be]) * constants.P_Q
                                 - tau_e[i_row]
                             )
                             tau_b[i_row] = (
-                                np.trapz(dn_dic[index_be:index_bc], x[index_be:index_bc])
+                                np.trapezoid(dn_dic[index_be:index_bc], x[index_be:index_bc])
                                 * constants.P_Q
                             )
-                            tau_c[i_row] = np.trapz(dp_dic[index_bc:], x[index_bc:]) * constants.P_Q
+                            tau_c[i_row] = (
+                                np.trapezoid(dp_dic[index_bc:], x[index_bc:]) * constants.P_Q
+                            )
                             tau_bc[i_row] = (
-                                np.trapz(dn_dic[index_bc:], x[index_bc:]) * constants.P_Q
+                                np.trapezoid(dn_dic[index_bc:], x[index_bc:]) * constants.P_Q
                                 - tau_c[i_row]
                             )
 
                             dm_dic = np.where(dn_dic < dp_dic, dn_dic, dn_dic)
 
                             # for j in range(len(tau)):
-                            #     tau[j] = constants.P_Q * np.trapz(dm_dic[:j], x[:j])
+                            #     tau[j] = constants.P_Q * np.trapezoid(dm_dic[:j], x[:j])
 
                             self.data[key_inqu][specifiers.TRANSIT_TIME] = tau
                             self.data[key_inqu]["TAUP"] = taup
@@ -704,6 +711,9 @@ class DutHdev(DutTcad):
                         df_iv["tau_b"] = tau_b
                         df_iv["tau_bc"] = tau_bc
                         df_iv["tau_c"] = tau_c
+
+                        df_iv["x_be"] = x_be
+                        df_iv["x_bc"] = x_bc
 
                     except Exception as err:
                         print(err)
@@ -750,8 +760,8 @@ class DutHdev(DutTcad):
         #             except:
         #                 continue
         #             df_inqu = self.data[key_inqu]
-        #             qn[i_row] = np.trapz(df_inqu["N"], df_inqu["X"])
-        #             qp[i_row] = np.trapz(df_inqu["P"], df_inqu["X"])
+        #             qn[i_row] = np.trapezoid(df_inqu["N"], df_inqu["X"])
+        #             qp[i_row] = np.trapezoid(df_inqu["P"], df_inqu["X"])
 
         #         df_iv["Q|N"] = qn
         #         df_iv["Q|P"] = qp
@@ -793,33 +803,33 @@ class DutHdev(DutTcad):
         #                 tau = np.zeros(len(x))
         #                 for j, x_ in enumerate(x):
         #                     if x_ <= xbe:
-        #                         tau[j] += np.trapz(dp_dic[:j], x[:j])
-        #                         tau[j] += np.trapz(dn_dic[:j], x[:j]) - np.trapz(dp_dic[:j], x[:j])
+        #                         tau[j] += np.trapezoid(dp_dic[:j], x[:j])
+        #                         tau[j] += np.trapezoid(dn_dic[:j], x[:j]) - np.trapezoid(dp_dic[:j], x[:j])
         #                     elif x_ <= xbc:
-        #                         tau[j] += np.trapz(dn_dic[:j], x[:j])
+        #                         tau[j] += np.trapezoid(dn_dic[:j], x[:j])
         #                     else:
-        #                         tau[j] += np.trapz(dp_dic[:j], x[:j])
-        #                         tau[j] += np.trapz(dn_dic[:j], x[:j]) - np.trapz(dp_dic[:j], x[:j])
+        #                         tau[j] += np.trapezoid(dp_dic[:j], x[:j])
+        #                         tau[j] += np.trapezoid(dn_dic[:j], x[:j]) - np.trapezoid(dp_dic[:j], x[:j])
 
         #                 tau = tau * constants.P_Q
 
-        #                 tau_e[i_row] = np.trapz(dp_dic[:index_be], x[:index_be]) * constants.P_Q
+        #                 tau_e[i_row] = np.trapezoid(dp_dic[:index_be], x[:index_be]) * constants.P_Q
         #                 tau_be[i_row] = (
-        #                     np.trapz(dn_dic[:index_be], x[:index_be]) * constants.P_Q - tau_e[i_row]
+        #                     np.trapezoid(dn_dic[:index_be], x[:index_be]) * constants.P_Q - tau_e[i_row]
         #                 )
         #                 tau_b[i_row] = (
-        #                     np.trapz(dn_dic[index_be:index_bc], x[index_be:index_bc])
+        #                     np.trapezoid(dn_dic[index_be:index_bc], x[index_be:index_bc])
         #                     * constants.P_Q
         #                 )
-        #                 tau_c[i_row] = np.trapz(dp_dic[index_bc:], x[index_bc:]) * constants.P_Q
+        #                 tau_c[i_row] = np.trapezoid(dp_dic[index_bc:], x[index_bc:]) * constants.P_Q
         #                 tau_bc[i_row] = (
-        #                     np.trapz(dn_dic[index_bc:], x[index_bc:]) * constants.P_Q - tau_c[i_row]
+        #                     np.trapezoid(dn_dic[index_bc:], x[index_bc:]) * constants.P_Q - tau_c[i_row]
         #                 )
 
         #                 dm_dic = np.where(dn_dic < dp_dic, dn_dic, dn_dic)
 
         #                 for j in range(len(tau)):
-        #                     tau[j] = constants.P_Q * np.trapz(dm_dic[:j], x[:j])
+        #                     tau[j] = constants.P_Q * np.trapezoid(dm_dic[:j], x[:j])
 
         #                 self.data[key_inqu][specifiers.TRANSIT_TIME] = tau
 

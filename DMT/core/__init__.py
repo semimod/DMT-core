@@ -88,7 +88,14 @@ from .plot_2yaxis import Plot2YAxis
 from .data_processor import is_iterable, flatten, strictly_increasing, DataProcessor
 
 from .data_frame import DataFrame
-from .sweep_def import SweepDef, SweepDefConst, SweepDefLinear, SweepDefLog, SweepDefSync
+from .sweep_def import (
+    SweepDef,
+    SweepDefConst,
+    SweepDefLinear,
+    SweepDefLog,
+    SweepDefSync,
+    SweepDefList,
+)
 from .sweep import Sweep, get_sweepdef
 from .database_manager import DatabaseManager
 from .data_reader import (

@@ -750,9 +750,11 @@ def save_elpa(fname, ELPA, cols, firstline):
         for ii in range(ELPA.shape[1]):
             for i in range(ELPA.shape[0]):
                 if np.isnan(ELPA[i][ii]):
-                    myfile.write("{0:17.9e} ".format(0))
+                    myfile.write("0.000000000 ")
+                elif np.isreal(ELPA[i][ii]):
+                    myfile.write(f"{np.real(ELPA[i][ii]):17.9e} ")
                 else:
-                    myfile.write("{0:17.9e} ".format(ELPA[i][ii]))
+                    myfile.write(f"{ELPA[i][ii]:17.9e} ")
 
             myfile.write("\r\n")
 
