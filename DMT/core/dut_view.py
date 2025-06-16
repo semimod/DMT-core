@@ -451,7 +451,7 @@ class DutView(object):
         return self.save_dir / "dut.json"
 
     @property
-    def data(self):
+    def data(self) -> dict[str, DataFrame]:
         """data is a property to ensure loading before usage.
 
         As _data is a dict, the getter is also called before setting. So the separate setter is not necessary.
