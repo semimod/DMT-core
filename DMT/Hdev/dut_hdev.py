@@ -105,7 +105,7 @@ class DutHdev(DutTcad):
         self,
         database_dir,
         dut_type,
-        inp_structure,
+        inp_structure: dict,
         name="hdev_",
         simulator_command=None,
         inp_name="hdev_inp.din",
@@ -113,6 +113,9 @@ class DutHdev(DutTcad):
     ):
         if simulator_command is None:
             simulator_command = COMMANDS["Hdev"]
+
+        if "name" in inp_structure:
+            name = inp_structure.pop("name")
 
         super().__init__(
             database_dir,

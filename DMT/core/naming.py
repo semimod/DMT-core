@@ -736,6 +736,7 @@ unit_converter = {
     specifiers.DONNORS: 1 / unit_registry.meter / unit_registry.meter / unit_registry.meter,
     specifiers.ELECTRONS: 1 / unit_registry.meter / unit_registry.meter / unit_registry.meter,
     specifiers.HOLES: 1 / unit_registry.meter / unit_registry.meter / unit_registry.meter,
+    specifiers.GRADING: unit_registry.dimensionless,
 }  # type: dict[SpecifierStr, Unit]
 
 
