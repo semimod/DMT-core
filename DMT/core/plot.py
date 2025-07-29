@@ -1983,10 +1983,6 @@ class Plot(object):
         """
         x_data = dict_line["x"]
         y_data = dict_line["y"]
-        if self.x_axis_scale == "log":
-            x_data = np.abs(x_data)
-        if self.y_axis_scale == "log":
-            y_data = np.abs(y_data)
 
         if len(x_data) == 0:
             return "\n", colors
@@ -2021,16 +2017,45 @@ class Plot(object):
             self.x_scale, self.y_scale
         )
 
-        if np.iscomplex(x_data).any() or np.iscomplex(y_data).any():
-            raise IOError("DMT: tikz_addplot: can not plot complex numbers.")
+        # clean x
+        if np.iscomplex(x_data).any():
+            if sub_specifiers.REAL in self.x_specifier:
+                x_data = np.real(x_data)
+            elif sub_specifiers.IMAG in self.x_specifier:
+                x_data = np.imag(x_data)
+            elif sub_specifiers.MAG in self.x_specifier:
+                x_data = np.abs(x_data)
+            elif sub_specifiers.PHASE in self.x_specifier:
+                x_data = np.angle(x_data)
+            else:
+                raise IOError(f"DMT: tikz_addplot: can not plot complex numbers. {self.name}")
+        else:
+            x_data = np.real(x_data)
 
-        x_data = np.real(x_data)
-        y_data = np.real(y_data)
+        # clean y
+        if np.iscomplex(y_data).any():
+            if sub_specifiers.REAL in self.y_specifier:
+                y_data = np.real(y_data)
+            elif sub_specifiers.IMAG in self.y_specifier:
+                y_data = np.imag(y_data)
+            elif sub_specifiers.MAG in self.y_specifier:
+                y_data = np.abs(y_data)
+            elif sub_specifiers.PHASE in self.y_specifier:
+                y_data = np.angle(y_data)
+            else:
+                raise IOError(f"DMT: tikz_addplot: can not plot complex numbers. {self.name}")
+        else:
+            y_data = np.real(y_data)
+
+        if self.x_axis_scale == "log":
+            x_data = np.abs(x_data)
+        if self.y_axis_scale == "log":
+            y_data = np.abs(y_data)
 
         # for x, y  in zip(np.abs(x_data), np.abs(y_data)): # why abs??
-        for x, y in zip(x_data, y_data):
+        for x_data, y_data in zip(x_data, y_data):
             try:
-                str_addplot += "{0:g} {1:g}\\\\\n".format(x, y)
+                str_addplot += "{0:g} {1:g}\\\\\n".format(x_data, y_data)
             except TypeError:
                 raise IOError(
                     "DMT->Plot: Unsupported line added to plot with name "
