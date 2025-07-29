@@ -149,11 +149,11 @@ COLORS = [
     "#b03060",  # maroon3
     "#ff0000",  # red
     "#9467bd",  # yellow -> replaced by violett/brown combo
-    "#deb887",  # curlywood
-    "#00ff00",  # lime
-    "#00ffff",  # aqua
-    "#ff00ff",  # fuchsia
     "#6495ed",  # cornflower
+    "#00ffff",  # aqua
+    "#00ff00",  # lime
+    "#ff00ff",  # fuchsia
+    "#deb887",  # curlywood
 ]
 
 CYCLER_MARKERS = cycler(marker=MARKERS)
@@ -1444,6 +1444,7 @@ class Plot(object):
         legend_to_name=None,
         legend_columns=4,
         mark_phase=False,
+        # print_legend=True,
         **kwargs,
     ):
         """Save plot in directory and return name of the tikz file.
@@ -1534,7 +1535,7 @@ class Plot(object):
                 "\\begin{tikzpicture}[font=\\"
                 + fontsize
                 + "]\n"
-                + "\\pgfplotsset{every axis/.append style={"
+                + "\\pgfplotsset{every axis plot/.append style={"
                 + line_width
                 + "},compat=1.18},\n"
             )
@@ -1543,7 +1544,7 @@ class Plot(object):
                 "\\begin{tikzpicture}[font=\\"
                 + fontsize
                 + ", trim axis left, trim axis right, tight background]\n"
-                + "\\pgfplotsset{every axis/.append style={"
+                + "\\pgfplotsset{every axis plot/.append style={"
                 + line_width
                 + "},compat=1.18}\n"
             )

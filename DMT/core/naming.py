@@ -57,6 +57,9 @@ UNIT_PREFIX_MIX = {
         1: r"\volt\per\meter",
         1e-5: r"\kilo\volt\per\centi\meter",
     },  # field
+    "Q''": {
+        1e3: r"\femto\coulomb\per\square\micro\meter",
+    },  # CHARGE_DENSITY = SpecifierStr("Q''")
 }
 UNIT_PREFIX_DENOMINATOR = {
     1e-6: r"\centi",

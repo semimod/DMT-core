@@ -557,8 +557,8 @@ class DutHdev(DutTcad):
                     df_iv = df_iv[df_iv[specifiers.FREQUENCY] == np.max(freqs)]
 
                 # ensure some columns
-                df_iv.ensure_specifier_column(specifiers.CAPACITANCE + "B" + "E", ports=["B", "C"])
-                df_iv.ensure_specifier_column(specifiers.CAPACITANCE + "B" + "C", ports=["B", "C"])
+                df_iv.ensure_specifier_column(specifiers.CAPACITANCE + ["B", "E"], ports=["B", "C"])
+                df_iv.ensure_specifier_column(specifiers.CAPACITANCE + ["B", "C"], ports=["B", "C"])
                 df_iv.ensure_specifier_column(specifiers.TRANSIT_FREQUENCY, ports=["B", "C"])
                 # df_iv.ensure_specifier_column(specifiers.TRANSCONDUCTANCE, ports=["B", "C"])
                 df_iv.ensure_specifier_column(
@@ -610,19 +610,19 @@ class DutHdev(DutTcad):
                     # where inqu df is required for every op
 
                     if len(df_dc) == 1:
+                        # find index of row with lowest f but not 0
+                        i_sort = np.argsort(df_iv[specifiers.FREQUENCY])
+                        if df_iv.at[i_sort[0], specifiers.FREQUENCY] == 0:
+                            i_low_f = i_sort[1]
+                        else:
+                            i_low_f = i_sort[0]
                         # gm from low f Y_CB
-                        gm = [
-                            np.real(
-                                df_iv.at[
-                                    df_iv[specifiers.FREQUENCY].idxmin(),
-                                    specifiers.SS_PARA_Y + ["C", "B"],
-                                ]
-                            )
-                        ]
+                        gm = [np.real(df_iv.at[i_low_f, specifiers.SS_PARA_Y + ["C", "B"]])]
                     else:
                         # gm using gradient
                         df_dc.ensure_specifier_column(specifiers.TRANSCONDUCTANCE, ports=["B", "C"])
                         gm = np.array(df_dc[specifiers.TRANSCONDUCTANCE])
+
                     # tau_e = np.ones(len(df_dc))
                     # tau_be = np.ones(len(df_dc))
                     # tau_b = np.ones(len(df_dc))
@@ -652,6 +652,8 @@ class DutHdev(DutTcad):
                             )
                             index_be = changes[np.argmin(np.abs(changes - junctions[0]))]
                             index_bc = changes[np.argmin(np.abs(changes - junctions[1]))]
+                            if index_bc == index_be:
+                                index_bc = changes[np.argmin(np.abs(changes - junctions[1])) + 1]
                             x_be = x[index_be]
                             x_bc = x[index_bc]
 
