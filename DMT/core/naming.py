@@ -181,7 +181,7 @@ class SpecifierStr(str):
         """
         unit = self.get_pint_unit()
 
-        if sub_specifiers.PHASE.sub_specifiers <= self.sub_specifiers:
+        if sub_specifiers.PHASE in self:
             return r"\si{\degree}"
 
         elif self.specifier in UNIT_PREFIX_MIX:  # mixed unit
@@ -410,7 +410,7 @@ class SpecifierStr(str):
                 if other.sub_specifiers <= self.sub_specifiers:
                     return True
 
-            return False
+            return self == other
 
         elif isinstance(other, str):
             if str(self) == other:

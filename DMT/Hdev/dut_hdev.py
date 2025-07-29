@@ -515,6 +515,7 @@ class DutHdev(DutTcad):
             # read in the iv data
             pd.options.mode.chained_assignment = None  # default='warn'
             if len(dfs_ac) > 0:
+                ac = True
                 # first we sort by n_op
                 dfs_temp = []
                 n = 0
@@ -550,11 +551,12 @@ class DutHdev(DutTcad):
             if not df_iv.columns.is_unique:
                 df_iv = df_iv.loc[:, ~df_iv.columns.duplicated()]
 
-            try:
-                freqs = np.unique(df_iv[specifiers.FREQUENCY].to_numpy())
-                ac = True
-                if len(freqs) == 2:
-                    df_iv = df_iv[df_iv[specifiers.FREQUENCY] == np.max(freqs)]
+            if ac:
+                # if len(freqs) == 2:
+                if len(np.unique(df_iv[specifiers.FREQUENCY].to_numpy())) > 1:
+                    # df_iv = df_iv[df_iv[specifiers.FREQUENCY] == np.max(freqs)]
+                    df_iv = df_iv[df_iv[specifiers.FREQUENCY] != 0.0]
+                    df_iv.reset_index(drop=True, inplace=True)
 
                 # ensure some columns
                 df_iv.ensure_specifier_column(specifiers.CAPACITANCE + ["B", "E"], ports=["B", "C"])
@@ -565,17 +567,9 @@ class DutHdev(DutTcad):
                     specifiers.SS_PARA_Y + ["C", "B"] + sub_specifiers.REAL,
                     ports=["B", "C"],
                 )
-            except KeyError:
-                pass
 
-            if (
-                ac and len(dfs_inqu) > 0
-            ):  # only one frequency simulated => post process (maybe also check for 1D)
-                if not len(freqs) == 2:
-                    # use lowest frequency neq 0
-                    # freq_i = np.min(freqs[freqs>0])
-                    # df_iv = df
-                    pass
+            if ac and len(dfs_inqu) > 0:
+                # post process (maybe also check for 1D)
 
                 # post processing
                 # 1 general stuff
