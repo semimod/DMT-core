@@ -407,7 +407,7 @@ class SpecifierStr(str):
                 if other.sub_specifiers <= self.sub_specifiers:
                     return True
 
-            return False
+            return self == other
 
         elif isinstance(other, str):
             if str(self) == other:

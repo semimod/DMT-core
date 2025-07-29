@@ -32,7 +32,7 @@ from typing import Union
 import numpy as np
 from pathlib import Path
 from cycler import cycler
-from DMT.core import natural_scales, sub_specifiers
+from DMT.core import natural_scales, sub_specifiers, SpecifierStr
 from DMT.external import (
     tex_to_text,
     build_tex,
@@ -236,8 +236,8 @@ class Plot(object):
         style="mix",
         x_label=None,
         y_label=None,
-        x_specifier=None,
-        y_specifier=None,
+        x_specifier: SpecifierStr = None,
+        y_specifier: SpecifierStr = None,
         x_scale=None,
         y_scale=None,
         x_log=False,
@@ -324,6 +324,8 @@ class Plot(object):
         self.divide_by_unit = divide_by_unit
         self.x_scale = 1
         self.y_scale = 1
+        self.x_specifier = x_specifier
+        self.y_specifier = y_specifier
         self.x_label = ""
         self.y_label = ""
 
@@ -1060,24 +1062,49 @@ class Plot(object):
             x = dict_line["x"]
             y = dict_line["y"]
 
-            try:
-                len(x)
-            except TypeError:
-                x = np.array([x])
-            try:
-                len(y)
-            except TypeError:
-                y = np.array([y])
+            # clean x
+            if np.iscomplex(x).any():
+                if sub_specifiers.REAL in self.x_specifier:
+                    x = np.real(x)
+                elif sub_specifiers.IMAG in self.x_specifier:
+                    x = np.imag(x)
+                elif sub_specifiers.MAG in self.x_specifier:
+                    x = np.abs(x)
+                elif sub_specifiers.PHASE in self.x_specifier:
+                    x = np.angle(x)
+                else:
+                    warnings.warn(
+                        f"DMT-Plot-complex: In the plot {self.name} is a line with untreated complex x-values. Real part is used, as it was.",
+                        category=DeprecationWarning,
+                    )
+                    x = np.real(x)
+            else:
+                x = np.array(x)
 
             if self.x_axis_scale == "log":
-                x = np.array(np.abs(x))
+                x = np.abs(x)
+
+            # clean y
+            if np.iscomplex(y).any():
+                if sub_specifiers.REAL in self.y_specifier:
+                    y = np.real(y)
+                elif sub_specifiers.IMAG in self.y_specifier:
+                    y = np.imag(y)
+                elif sub_specifiers.MAG in self.y_specifier:
+                    y = np.abs(y)
+                elif sub_specifiers.PHASE in self.y_specifier:
+                    y = np.angle(y)
+                else:
+                    warnings.warn(
+                        f"DMT-Plot-complex: In the plot {self.name} is a line with untreated complex y-values. Real part is used, as it was.",
+                        category=DeprecationWarning,
+                    )
+                    y = np.real(y)
             else:
-                x = np.array(np.real(x))
+                y = np.array(y)
 
             if self.y_axis_scale == "log":
-                y = np.array(np.abs(y))
-            else:
-                y = np.array(np.real(y))
+                y = np.abs(y)
 
             label = dict_line["label"]
             if label is not None:
