@@ -244,7 +244,7 @@ class Plot(object):
         y_log=False,
         legend_location="upper right",
         num=None,
-        divide_by_unit=False,
+        divide_by_unit=True,
         caption=None,
     ):
         """

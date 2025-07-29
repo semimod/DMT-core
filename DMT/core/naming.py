@@ -57,6 +57,9 @@ UNIT_PREFIX_MIX = {
         1: r"\volt\per\meter",
         1e-5: r"\kilo\volt\per\centi\meter",
     },  # field
+    "Q''": {  # area charge density-> they are all over the place :/
+        1e3: r"\femto\coulomb\per\square\micro\meter",
+    },
 }
 UNIT_PREFIX_DENOMINATOR = {
     1e-6: r"\centi",
@@ -178,7 +181,7 @@ class SpecifierStr(str):
         """
         unit = self.get_pint_unit()
 
-        if sub_specifiers.PHASE.sub_specifiers <= self.sub_specifiers:
+        if sub_specifiers.PHASE in self:
             return r"\si{\degree}"
 
         elif self.specifier in UNIT_PREFIX_MIX:  # mixed unit
