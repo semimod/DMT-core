@@ -605,10 +605,22 @@ class _specifiers(GlobalObj, metaclass=Singleton):
     SS_PARA_T = SpecifierStr("T")
 
     def add_members(self, members):
-        for name, value in members:
+        # for name, value in members:
+        for member in members:
+            name = member[0]
+            value = member[1]
             if name in dir(self):
                 raise OSError("The specifier " + name + " already exists!")
             setattr(self, name, SpecifierStr(value))
+
+            try:
+                unit_converter[SpecifierStr(value)] = unit_registry(member[2])
+            except IndexError:
+                pass
+            try:
+                natural_scales[SpecifierStr(value)] = member[3]
+            except IndexError:
+                pass
 
         self._set_members()
 
@@ -632,8 +644,6 @@ specifiers: _specifiers = _specifiers()
 sub_specifiers: _sub_specifiers = _sub_specifiers()
 """Sub specifiers known to DMT. In a written form these would be placed in the subscript of a variable."""
 
-specifiers.add_members(DATA_CONFIG["custom_specifiers"])
-sub_specifiers.add_members(DATA_CONFIG["custom_sub_specifiers"])
 
 # needed for addition
 SUB_SPECIFIERS_STR = [
@@ -1084,3 +1094,7 @@ natural_scales = {
     specifiers.HOLES: 1e-6,  # 1/cm^3
     specifiers.ELECTRONS: 1e-6,  # 1/cm^3
 }
+
+
+specifiers.add_members(DATA_CONFIG["custom_specifiers"])
+sub_specifiers.add_members(DATA_CONFIG["custom_sub_specifiers"])

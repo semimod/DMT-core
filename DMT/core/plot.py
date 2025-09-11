@@ -376,7 +376,9 @@ class Plot(object):
 
         self.caption = caption
 
-    def set_x_label(self, x_label=None, x_specifier=None, x_scale=None):
+    def set_x_label(
+        self, x_label: str = None, x_specifier: SpecifierStr = None, x_scale: float = None
+    ):
         """Set the x label. Either using directly a string or a specifier.
 
         Parameters
@@ -413,20 +415,22 @@ class Plot(object):
         else:
             raise IOError("Either label or specifier have to be set!")
 
-    def set_y_label(self, y_label=None, y_specifier=None, y_scale=None):
+    def set_y_label(
+        self, y_label: str = None, y_specifier: SpecifierStr = None, y_scale: float = None
+    ):
         """Set the y label. Either using directly a string or a specifier.
 
-        Parameters
-        ----------
-        y_label : str
-        y_specifier : SpecifierStr
-        y_scale : float
-            If given, self.y_scale is overwritten with this value.
+                Parameters
+                ----------
+        #        y_label : str
+                y_specifier : SpecifierStr
+                y_scale : float
+                    If given, self.y_scale is overwritten with this value.
 
-        Raises
-        ------
-        IOError
-            If neither y_label nor y_specifier were given.
+                Raises
+                ------
+                IOError
+                    If neither y_label nor y_specifier were given.
         """
         try:
             if y_scale is None and y_specifier is not None:
@@ -1063,7 +1067,7 @@ class Plot(object):
             y = dict_line["y"]
 
             # clean x
-            if np.iscomplex(x).any():
+            if np.iscomplex(x).any() and self.x_specifier is not None:
                 if sub_specifiers.REAL in self.x_specifier:
                     x = np.real(x)
                 elif sub_specifiers.IMAG in self.x_specifier:
@@ -1071,7 +1075,7 @@ class Plot(object):
                 elif sub_specifiers.MAG in self.x_specifier:
                     x = np.abs(x)
                 elif sub_specifiers.PHASE in self.x_specifier:
-                    x = np.angle(x)
+                    x = np.angle(x, deg=True)
                 else:
                     warnings.warn(
                         f"DMT-Plot-complex: In the plot {self.name} is a line with untreated complex x-values. Real part is used, as it was.",
@@ -1085,7 +1089,7 @@ class Plot(object):
                 x = np.abs(x)
 
             # clean y
-            if np.iscomplex(y).any():
+            if np.iscomplex(y).any() and self.y_specifier is not None:
                 if sub_specifiers.REAL in self.y_specifier:
                     y = np.real(y)
                 elif sub_specifiers.IMAG in self.y_specifier:
@@ -1093,7 +1097,7 @@ class Plot(object):
                 elif sub_specifiers.MAG in self.y_specifier:
                     y = np.abs(y)
                 elif sub_specifiers.PHASE in self.y_specifier:
-                    y = np.angle(y)
+                    y = np.angle(y, deg=True)
                 else:
                     warnings.warn(
                         f"DMT-Plot-complex: In the plot {self.name} is a line with untreated complex y-values. Real part is used, as it was.",
@@ -2019,7 +2023,7 @@ class Plot(object):
         )
 
         # clean x
-        if np.iscomplex(x_data).any():
+        if np.iscomplex(x_data).any() and self.x_specifier is not None:
             if sub_specifiers.REAL in self.x_specifier:
                 x_data = np.real(x_data)
             elif sub_specifiers.IMAG in self.x_specifier:
@@ -2027,14 +2031,14 @@ class Plot(object):
             elif sub_specifiers.MAG in self.x_specifier:
                 x_data = np.abs(x_data)
             elif sub_specifiers.PHASE in self.x_specifier:
-                x_data = np.angle(x_data)
+                x_data = np.angle(x_data, deg=True)
             else:
                 raise IOError(f"DMT: tikz_addplot: can not plot complex numbers. {self.name}")
         else:
             x_data = np.real(x_data)
 
         # clean y
-        if np.iscomplex(y_data).any():
+        if np.iscomplex(y_data).any() and self.y_specifier is not None:
             if sub_specifiers.REAL in self.y_specifier:
                 y_data = np.real(y_data)
             elif sub_specifiers.IMAG in self.y_specifier:
@@ -2042,7 +2046,7 @@ class Plot(object):
             elif sub_specifiers.MAG in self.y_specifier:
                 y_data = np.abs(y_data)
             elif sub_specifiers.PHASE in self.y_specifier:
-                y_data = np.angle(y_data)
+                y_data = np.angle(y_data, deg=True)
             else:
                 raise IOError(f"DMT: tikz_addplot: can not plot complex numbers. {self.name}")
         else:
@@ -2215,6 +2219,7 @@ def save_or_show(plts, show=True, location=None, **kwargs):
                 clean=True,
                 build=True,
                 standalone=True,
+                svg=True,
                 **kwargs,
             )
             plt.save_tikz(
