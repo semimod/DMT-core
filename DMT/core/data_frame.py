@@ -2161,7 +2161,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
         :class:`DMT.core.DataFrame`
             Dataframe that contains the TRANSCONDUCTANCE
         """
-        if ports is None:
+        if ports is None or ports == []:
             ports = ["B", "C", "E"]
 
         col_i = specifiers.CURRENT + ports[1]
