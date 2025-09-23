@@ -540,6 +540,9 @@ class _sub_specifiers(GlobalObj, metaclass=Singleton):
     XDIR = SpecifierStr("", sub_specifiers="XDIR")
     ZDIR = SpecifierStr("", sub_specifiers="ZDIR")
 
+    # needed for addition
+    SUB_SPECIFIERS_STR = []
+
     def add_members(self, members):
         for name, value in members:
             if name in dir(self):
@@ -547,6 +550,9 @@ class _sub_specifiers(GlobalObj, metaclass=Singleton):
             setattr(self, name, SpecifierStr("", sub_specifiers=value))
 
         self._set_members()
+        self.SUB_SPECIFIERS_STR = [
+            str(member).replace("|", "") for member in self._MEMBERS
+        ]  # pylint: disable=protected-access
 
 
 class _specifiers(GlobalObj, metaclass=Singleton):
@@ -644,12 +650,6 @@ specifiers: _specifiers = _specifiers()
 sub_specifiers: _sub_specifiers = _sub_specifiers()
 """Sub specifiers known to DMT. In a written form these would be placed in the subscript of a variable."""
 
-
-# needed for addition
-SUB_SPECIFIERS_STR = [
-    str(member).replace("|", "") for member in sub_specifiers._MEMBERS
-]  # pylint: disable=protected-access
-
 ##################################################
 # add methods to SpecifierStr that depend on the defined specifiers above
 ##################################################
@@ -678,7 +678,7 @@ def add(self: SpecifierStr, other: Union[SpecifierStr, str, List[Union[str, Spec
         if other[0] == "_" or other[0] == "|":
             other = other[1:]
 
-        if other in SUB_SPECIFIERS_STR:
+        if other in sub_specifiers.SUB_SPECIFIERS_STR:
             return SpecifierStr(
                 self.specifier,
                 *self.nodes,
@@ -998,7 +998,7 @@ def get_sub_specifiers(string):
         A list of the sub_specifiers in specifier in the correct order.
     """
     relevant_subspecifiers = set()
-    for sub_specifier in SUB_SPECIFIERS_STR:
+    for sub_specifier in sub_specifiers.SUB_SPECIFIERS_STR:
         if sub_specifier in string:
             relevant_subspecifiers.add(sub_specifier)
             string = string.replace(sub_specifier, "")  # delete the ones which are already found
