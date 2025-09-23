@@ -1,4 +1,4 @@
-""" Base class to handle Verilog-AMS modelcard parameters.
+"""Base class to handle Verilog-AMS modelcard parameters.
 
 Each parameter has a type, unit, boundaries and invalid values (excludes),
 this is taken care of here.
@@ -12,6 +12,7 @@ the same parameters and all parameters are equal.
 
 Finally the classes here also add some pretty printing and loading and saving using pickle.
 """
+
 # DMT_core
 # Copyright (C) from 2022  SemiMod
 # Copyright (C) until 2021  Markus Müller, Mario Krattenmacher and Pascal Kuthe
@@ -48,7 +49,7 @@ from pathlib import Path
 
 import _pickle as cpickle  # type: ignore
 import numpy as np
-from typing import Dict, OrderedDict, Type, Union, List, Optional, TYPE_CHECKING
+from typing import Dict, OrderedDict, Type, Union, List, Optional, TYPE_CHECKING, Iterator
 from pint.formatting import siunitx_format_unit
 from pint.errors import UndefinedUnitError
 
@@ -510,13 +511,17 @@ class McParameter(object):
         # type check, either int or float is allowed
         if self.val_type == int:
             if int(value) != value:
-                raise TypeError(f"The parameter {self:s} is of type Integer!")
+                raise TypeError(
+                    f"The parameter {self:s} is of type Integer! Given was {value} of type {type(value)}."
+                )
 
             value = int(value)
         elif not isinstance(
             value, (int, float)
         ):  # for floats also integer are allowed. This catches everything else like strings or lists etc.
-            raise TypeError(f"The parameter {self:s} is of type Float!")
+            raise TypeError(
+                f"The parameter {self:s} is of type Float! Given was {value} of type {type(value)}."
+            )
 
         # range check
         value_too_large = False
@@ -590,9 +595,14 @@ class McParameter(object):
                 try:
                     return siunitx_format_unit(self.unit)  # type: ignore
                 except TypeError:
-                    return siunitx_format_unit(
-                        self.unit._units, unit_registry
-                    )  # new version has other interface
+                    try:
+                        return siunitx_format_unit(
+                            self.unit._units, unit_registry
+                        )  # middle version has other interface
+                    except ValueError:
+                        return siunitx_format_unit(
+                            self.unit._units.items(), unit_registry
+                        )  # new version has other interface
             else:
                 return "-"
 
@@ -1032,6 +1042,20 @@ class McParameterCollection(object):
 
         return self._values
 
+    def to_dict(self):
+        """Returns itself as a dictionary with name:value only fitting to unpack into a function call.
+
+        Returns
+        -------
+        dict
+            {name: value}
+        """
+        dict_a = {}
+        for para in self.paras:
+            dict_a[para.name] = para.value
+
+        return dict_a
+
     def print_parameters(self, paras=None, line_break=""):
         """Just some pretty printing
 
@@ -1309,7 +1333,10 @@ class McParameterCollection(object):
 
         return doc
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[McParameter]:
+        """
+        Returns an iterator on a copy of the parameters in the collection.
+        """
         # return iter(self.paras)
         return iter(copy.deepcopy(self.paras))
 

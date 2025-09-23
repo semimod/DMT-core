@@ -1,4 +1,4 @@
-""" Module responsible for data reading in DMT.
+"""Module responsible for data reading in DMT.
 
 The functions here read from many different formats into a DMT-DataFrame. As reading and writing is always very close, recommended and often used save functions for DataFrames are also given.
 
@@ -38,6 +38,7 @@ save_elpa(fname, ELPA, cols, firstline)
     Save data as a elpa file.
 
 """
+
 # DMT_core
 # Copyright (C) from 2022  SemiMod
 # Copyright (C) until 2021  Markus Müller, Mario Krattenmacher and Pascal Kuthe
@@ -109,7 +110,7 @@ def read_data(filename, key=None, **kwargs):
     else:
         raise IOError(
             "Error: DMT can not open file "
-            + filename
+            + str(filename)
             + " since extension "
             + extension
             + " cannot be read."
@@ -782,9 +783,11 @@ def save_elpa(fname, ELPA, cols, firstline):
         for ii in range(ELPA.shape[1]):
             for i in range(ELPA.shape[0]):
                 if np.isnan(ELPA[i][ii]):
-                    myfile.write("{0:17.9e} ".format(0))
+                    myfile.write("0.000000000 ")
+                elif np.isreal(ELPA[i][ii]):
+                    myfile.write(f"{np.real(ELPA[i][ii]):17.9e} ")
                 else:
-                    myfile.write("{0:17.9e} ".format(ELPA[i][ii]))
+                    myfile.write(f"{ELPA[i][ii]:17.9e} ")
 
             myfile.write("\r\n")
 

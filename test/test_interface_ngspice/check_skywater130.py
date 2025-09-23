@@ -1,5 +1,5 @@
-""" test ngspice skywater130 simulation
-"""
+"""test ngspice skywater130 simulation"""
+
 import numpy as np
 from pathlib import Path
 from DMT.core import DutType, Sweep, specifiers, SimCon, Plot, McSkywater

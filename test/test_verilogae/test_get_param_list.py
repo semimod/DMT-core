@@ -1,5 +1,5 @@
-""" Testing to obtain the parameters of a function
-"""
+"""Testing to obtain the parameters of a function"""
+
 from pathlib import Path
 
 from DMT.core import MCard

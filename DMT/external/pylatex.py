@@ -1,6 +1,5 @@
-""" DMT specific PyLaTeX classes and routines used for automatic documentations
+"""DMT specific PyLaTeX classes and routines used for automatic documentations"""
 
-"""
 # DMT_core
 # Copyright (C) from 2022  SemiMod
 # Copyright (C) until 2021  Markus Müller, Mario Krattenmacher and Pascal Kuthe
@@ -62,6 +61,8 @@ class Listing(Container):
                 + "emph={[1]NAME, TRACE, OPTI, PHYS, TECH, DEVICE, OUTPUT, PGEN, RUN, END}, emphstyle={[1]\\bfseries},\n"
                 + "emph={[2]UNIT_INP, PERMITT, BGP NARR, SAT_VELO, HOLE_MOBI, ELEC_MOBI, INFO_PROCESS, GEOM_DATA, ELEC_PAR, HICUM_PAR, MODEL_DEF, MISC_VAR, TRAN_CONF}, emphstyle={[2]\\color{Blue}},\n"
             )
+        elif self.language is None:
+            str_language = ""
         else:
             str_language = "language=" + self.language + ",\n"
 

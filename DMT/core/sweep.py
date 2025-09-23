@@ -1,4 +1,4 @@
-""" Basic description of a sweep in DMT.
+"""Basic description of a sweep in DMT.
 
 Sweeps are the basic element that can be fed into simulators or be retrieved from simulations or measurements.
 Features:
@@ -6,6 +6,7 @@ Features:
 * Clear syntax and definition to create a well described simulation independent of the simulator interface.
 
 """
+
 # DMT_core
 # Copyright (C) from 2022  SemiMod
 # Copyright (C) until 2021  Markus Müller, Mario Krattenmacher and Pascal Kuthe
@@ -57,9 +58,9 @@ def get_sweepdef(
     data : DataFrame
         Frame to extract the sweepdefs from
     inner_sweep_voltage : SpecifierStr | None, optional
-        A specifier that determiens the inner sweep voltage, by default None
+        A specifier that determins the inner sweep voltage, by default None
     outer_sweep_voltage : SpecifierStr | None, optional
-        A specifier that determiens the inner outer voltage, by default None
+        A specifier that determins the inner outer voltage, by default None
     outer_sweep_voltage : SpecifierStr | None, optional
         A voltage at a third possible contact, that is not swept but may differ from zero.
     decimals_potentials : int, optional
@@ -553,7 +554,7 @@ class Sweep(object):
         # add the output variables and fill them with Nans-------------------------------------------------
         for output in self.outputdef:
             if not output in self.df.columns:
-                self.df[output] = np.NaN
+                self.df[output] = np.nan
 
         # add the optional variables and fill them---------------------------------------------------------
         for key, value in self.othervar.items():

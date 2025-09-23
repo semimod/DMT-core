@@ -1,8 +1,9 @@
-""" Technology class to describe all technology dependencies. Main use is scaling.
+"""Technology class to describe all technology dependencies. Main use is scaling.
 
 If a technology can use TRADICA, the class :class:`DMT.TRADICA.TechTradica` is recommended!
 
 """
+
 # DMT_core
 # Copyright (C) from 2022  SemiMod
 # Copyright (C) until 2021  Markus Müller, Mario Krattenmacher and Pascal Kuthe
@@ -48,6 +49,7 @@ class Technology(object):
         Name of the technology
 
     """
+
     name = ""
 
     def __init__(self, name):
@@ -65,7 +67,7 @@ class Technology(object):
             A Modelcard that contains all parameters that are required for scaling, as well as the parameters that shall be scaled.
         """
         doc = Tex()
-        with doc.create(Section("Technology :" + self.name)):
+        with doc.create(Section("Technology: " + self.name)):
             doc.append("Technology description missing")
         return doc
 

@@ -1,10 +1,11 @@
-""" DMT description of a circuit.
+"""DMT description of a circuit.
 
 Must be used to describe a circuit and then passed to a circuit simulator dut.
 
 Later on this can be extended to allow (pseudo-)simulations directly inside DMT.
 
 """
+
 # DMT_core
 # Copyright (C) from 2022  SemiMod
 # Copyright (C) until 2021  Markus Müller, Mario Krattenmacher and Pascal Kuthe

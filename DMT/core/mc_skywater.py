@@ -1,7 +1,8 @@
-""" Skywater modelcard
+"""Skywater modelcard
 
 Author: Mario Krattenmacher | Mario.Krattenmacher@semimod.de
 """
+
 # DMT
 # Copyright (C) from 2022  SemiMod
 # <https://gitlab.com/dmt-development/dmt-device>
@@ -26,7 +27,7 @@ except ImportError:
     from semver import VersionInfo
 
 from DMT.core import MCard, McParameter, unit_registry
-from DMT.core.circuit import SGP_BJT, Circuit, CircuitElement, RESISTANCE, VOLTAGE
+from DMT.core.circuit import Circuit, CircuitElement, RESISTANCE, VOLTAGE
 
 SEMVER_MCSKYWATER_CURRENT = VersionInfo(major=1, minor=0)
 
@@ -35,7 +36,7 @@ class McSkywater(MCard):
     """All model parameters of Skywater130 pdk models
 
     Parameters
-    -----------
+    ----------
     load_model_from_path : str, optional
         Initialise the modelcard with the parameter from the given file path.
     version : float, optional

@@ -1,6 +1,5 @@
-""" Used to flag the dut type for each dut view
+"""Used to flag the dut type for each dut view"""
 
-"""
 # DMT_core
 # Copyright (C) from 2022  SemiMod
 # Copyright (C) until 2021  Markus Müller, Mario Krattenmacher and Pascal Kuthe
@@ -22,6 +21,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 import warnings
 from enum import Flag, auto, unique
+from typing import Union, Optional
 
 
 class DutTypeInt(object):
@@ -34,7 +34,9 @@ class DutTypeInt(object):
         List of nodes.
     """
 
-    def __init__(self, value, *, string, nodes=None):
+    def __init__(
+        self, value: Union["DutTypeInt", int], *, string: str, nodes: Optional[list] = None
+    ):
         try:
             self.value = value.value
         except AttributeError:
@@ -117,7 +119,7 @@ class DutTypeInt(object):
     def __int__(self):
         return self.value
 
-    def is_subtype(self, other):
+    def is_subtype(self, other: Union["DutTypeInt", int]) -> bool:
         """Test if a device is a subtype of an other device/devicetype
 
         Ignores the flag_subtype!
@@ -127,12 +129,6 @@ class DutTypeInt(object):
         other : int, DutTypeInt
         """
         # remove subtype flag..
-        # val_subtype_flags = (
-        #     DutTypeFlag._flag_subtype_1
-        #     | DutTypeFlag._flag_subtype_2
-        #     | DutTypeFlag._flag_subtype_3
-        #     | DutTypeFlag._flag_subtype_4
-        # )
         if DutTypeFlag._flag_subtype_1 & self:
             self_wo_subtype = self - DutTypeFlag._flag_subtype_1
         elif DutTypeFlag._flag_subtype_2 & self:
@@ -158,31 +154,14 @@ class DutTypeInt(object):
         res = self_wo_subtype & other_wo_subtype
         return res == other
 
-    def __lt__(self, other):
+    def __lt__(self, other: Union["DutTypeInt", int]):
+        """comparision for Sorting!"""
         try:
             return DutTypeInt(self.value < other.value, string=self.get_string(), nodes=self.nodes)
         except AttributeError:
             return DutTypeInt(self.value < other, string=self.get_string(), nodes=self.nodes)
 
-    def __le__(self, other):
-        try:
-            return DutTypeInt(self.value <= other.value, string=self.get_string(), nodes=self.nodes)
-        except AttributeError:
-            return DutTypeInt(self.value <= other, string=self.get_string(), nodes=self.nodes)
-
-    def __gt__(self, other):
-        try:
-            return DutTypeInt(self.value > other.value, string=self.get_string(), nodes=self.nodes)
-        except AttributeError:
-            return DutTypeInt(self.value > other, string=self.get_string(), nodes=self.nodes)
-
-    def __ge__(self, other):
-        try:
-            return DutTypeInt(self.value >= other.value, string=self.get_string(), nodes=self.nodes)
-        except AttributeError:
-            return DutTypeInt(self.value >= other, string=self.get_string(), nodes=self.nodes)
-
-    def __sub__(self, other):
+    def __sub__(self, other: Union["DutTypeInt", int]):
         try:
             return DutTypeInt(self.value - other.value, string=self.get_string(), nodes=self.nodes)
         except AttributeError:

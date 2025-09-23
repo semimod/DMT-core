@@ -1,7 +1,8 @@
-r""" Global namings for DMT
+r"""Global namings for DMT
 
 Internally all variables and column names which contain a quantity of a specifier must have the same given names, e.g. all voltages will be called: 'V\_'
 """
+
 # DMT_core
 # Copyright (C) from 2022  SemiMod
 # Copyright (C) until 2021  Markus Müller, Mario Krattenmacher and Pascal Kuthe
@@ -56,10 +57,14 @@ UNIT_PREFIX_MIX = {
         1: r"\volt\per\meter",
         1e-5: r"\kilo\volt\per\centi\meter",
     },  # field
+    "Q''": {
+        1e3: r"\femto\coulomb\per\square\micro\meter",
+    },  # CHARGE_DENSITY = SpecifierStr("Q''")
 }
 UNIT_PREFIX_DENOMINATOR = {
     1e-6: r"\centi",
     1: "",
+    1e3: r"\kilo",
 }
 
 
@@ -176,7 +181,7 @@ class SpecifierStr(str):
         """
         unit = self.get_pint_unit()
 
-        if sub_specifiers.PHASE.sub_specifiers <= self.sub_specifiers:
+        if sub_specifiers.PHASE in self:
             return r"\si{\degree}"
 
         elif self.specifier in UNIT_PREFIX_MIX:  # mixed unit
@@ -195,9 +200,14 @@ class SpecifierStr(str):
             try:
                 unit = siunitx_format_unit(unit)  # type: ignore
             except TypeError:
-                unit = siunitx_format_unit(
-                    unit._units, unit_registry
-                )  # new version has other interface
+                try:
+                    unit = siunitx_format_unit(
+                        unit._units, unit_registry
+                    )  # mittle version has other interface
+                except ValueError:
+                    unit = siunitx_format_unit(
+                        unit._units.items(), unit_registry
+                    )  # new version has other interface
 
             if unit.startswith("\\per"):
                 # for 1/m^3 -> unit prefix should be in the denominator
@@ -273,14 +283,20 @@ class SpecifierStr(str):
         try:
             unit = siunitx_format_unit(unit)  # type: ignore
         except TypeError:
-            unit = siunitx_format_unit(
-                unit._units, unit_registry
-            )  # new version has other interface
+            try:
+                unit = siunitx_format_unit(
+                    unit._units, unit_registry
+                )  # middle version has other interface
+            except ValueError:
+                unit = siunitx_format_unit(
+                    unit._units.items(), unit_registry
+                )  # new version has other interface
         # for non-mixed quantities like voltages and current
         if self.specifier in UNIT_PREFIX_MIX:  # mixed unit
             unit_with_prefix = UNIT_PREFIX_MIX[self.specifier][np.round(scale, decimals=10)]
 
-            return f"${self.to_tex(**kwargs):s}=\\SI{{{value * scale:.{decimals}f}}}{{{unit_with_prefix:s}{unit:s}}}$"
+            # return f"${self.to_tex(**kwargs):s}=\\SI{{{value * scale:.{decimals}f}}}{{{unit_with_prefix:s}{unit:s}}}$"
+            return f"${self.to_tex(**kwargs):s}=\\SI{{{value * scale:.{decimals}f}}}{{{unit_with_prefix:s}}}$"
 
         else:
             unit_prefix = UNIT_PREFIX[scale]
@@ -394,7 +410,7 @@ class SpecifierStr(str):
                 if other.sub_specifiers <= self.sub_specifiers:
                     return True
 
-            return False
+            return self == other
 
         elif isinstance(other, str):
             if str(self) == other:
@@ -551,10 +567,10 @@ class _specifiers(GlobalObj, metaclass=Singleton):
     TIME = SpecifierStr("TIME")
     FREQUENCY = SpecifierStr("FREQ")
     VOLTAGE = SpecifierStr("V")
-    ELECTRONS = SpecifierStr("N")
+    ELECTRONS = SpecifierStr("N_ELE")  # same as NOISE...
     CONDUCTION_BAND_EDGE = SpecifierStr("EC")
     VALENCE_BAND_EDGE = SpecifierStr("EV")
-    HOLES = SpecifierStr("P")
+    HOLES = SpecifierStr("P_HOL")  # same as POWER...
     NET_DOPING = SpecifierStr("NNET")
     DONNORS = SpecifierStr("DON")
     ACCEPTORS = SpecifierStr("ACC")
@@ -589,10 +605,22 @@ class _specifiers(GlobalObj, metaclass=Singleton):
     SS_PARA_T = SpecifierStr("T")
 
     def add_members(self, members):
-        for name, value in members:
+        # for name, value in members:
+        for member in members:
+            name = member[0]
+            value = member[1]
             if name in dir(self):
                 raise OSError("The specifier " + name + " already exists!")
             setattr(self, name, SpecifierStr(value))
+
+            try:
+                unit_converter[SpecifierStr(value)] = unit_registry(member[2])
+            except IndexError:
+                pass
+            try:
+                natural_scales[SpecifierStr(value)] = member[3]
+            except IndexError:
+                pass
 
         self._set_members()
 
@@ -616,8 +644,6 @@ specifiers: _specifiers = _specifiers()
 sub_specifiers: _sub_specifiers = _sub_specifiers()
 """Sub specifiers known to DMT. In a written form these would be placed in the subscript of a variable."""
 
-specifiers.add_members(DATA_CONFIG["custom_specifiers"])
-sub_specifiers.add_members(DATA_CONFIG["custom_sub_specifiers"])
 
 # needed for addition
 SUB_SPECIFIERS_STR = [
@@ -677,6 +703,20 @@ def add(self: SpecifierStr, other: Union[SpecifierStr, str, List[Union[str, Spec
 
 SpecifierStr.__add__ = add
 
+
+def sub(self: SpecifierStr, other: Union[SpecifierStr, str, List[Union[str, SpecifierStr]]]):
+    """Method is defined later, since we need the SUB_SPECIFIERS_STR list here...thanks python"""
+    if isinstance(other, SpecifierStr) and not other.specifier and not other.nodes:
+        spec_new = self.specifier
+        nodes_new = self.nodes
+        sub_specifiers_new = self.sub_specifiers - other.sub_specifiers
+        return SpecifierStr(spec_new, *nodes_new, sub_specifiers=sub_specifiers_new)
+    else:
+        return NotImplemented
+
+
+SpecifierStr.__sub__ = sub
+
 unit_converter = {
     specifiers_ss_para.SS_PARA_Y: unit_registry.siemens,
     specifiers_ss_para.SS_PARA_H: unit_registry.dimensionless,
@@ -709,6 +749,7 @@ unit_converter = {
     specifiers.DONNORS: 1 / unit_registry.meter / unit_registry.meter / unit_registry.meter,
     specifiers.ELECTRONS: 1 / unit_registry.meter / unit_registry.meter / unit_registry.meter,
     specifiers.HOLES: 1 / unit_registry.meter / unit_registry.meter / unit_registry.meter,
+    specifiers.GRADING: unit_registry.dimensionless,
 }  # type: dict[SpecifierStr, Unit]
 
 
@@ -761,6 +802,7 @@ def to_tex(self, subscript="", superscript=""):
     tex : str
             A Tex representation fo the specifier.
     """
+    # first catch special cases and add subscript
     if self.specifier in specifiers_ss_para:
         nodes_temp = copy.deepcopy(self.nodes)
 
@@ -771,26 +813,11 @@ def to_tex(self, subscript="", superscript=""):
             node = node.replace("D", "2")
             nodes_temp[i_nodes] = node
 
-        if subscript == "":
-            tex = (
-                r"\underline{"
-                + str(self.specifier)
-                + r"}_{\mathrm{"
-                + str("".join(nodes_temp))
-                + r"}}"
-            )
-        else:
-            tex = (
-                r"\underline{"
-                + str(self.specifier)
-                + r"}_{\mathrm{"
-                + str("".join(nodes_temp))
-                + r","
-                + subscript
-                + r"}}"
-            )
+        tex = r"\underline{" + str(self.specifier) + r"}_{\mathrm{" + "".join(nodes_temp)
+        if subscript:
+            tex += "," + subscript
+        tex += r"}}"
 
-    # first catch special cases and add subscript
     elif self.specifier == specifiers.TRANSIT_FREQUENCY:
         tex = r"f_{\mathrm{T" + subscript + r"}}"
     elif self.specifier == specifiers.DC_CURRENT_AMPLIFICATION:
@@ -810,26 +837,22 @@ def to_tex(self, subscript="", superscript=""):
     elif self.specifier == specifiers.NET_DOPING:
         tex = r"N_{\mathrm{net}}"
     elif self.specifier == specifiers.ACCEPTORS:
-        tex = r"N_{\mathrm{A}}col_ib"
+        tex = r"N_{\mathrm{A}}"
     elif self.specifier == specifiers.DONNORS:
         tex = r"N_{\mathrm{D}}"
+    elif self.specifier == specifiers.HOLES:
+        tex = r"p_{\mathrm{" + subscript + r"}}"
+    elif self.specifier == specifiers.ELECTRONS:
+        tex = r"n_{\mathrm{" + subscript + r"}}"
     elif self.specifier == specifiers.TIME:
-        if subscript:
-            tex = r"t_{\mathrm{" + subscript + r"}}"
-        else:
-            tex = r"t"
+        tex = r"t_{\mathrm{" + subscript + r"}}"
     else:  # general case
         if subscript:
             tex = (
-                str(self.specifier)
-                + r"_{\mathrm{"
-                + str("".join(self.nodes))
-                + r","
-                + subscript
-                + r"}}"
+                str(self.specifier) + r"_{\mathrm{" + "".join(self.nodes) + "," + subscript + r"}}"
             )
         else:
-            tex = str(self.specifier) + r"_{\mathrm{" + str("".join(self.nodes)) + r"}}"
+            tex = str(self.specifier) + r"_{\mathrm{" + "".join(self.nodes) + r"}}"
 
     # add superscript
     if superscript:
@@ -1028,12 +1051,12 @@ def get_specifier_from_string(string, nodes=None):
     )
 
     # test if everything is inside the new specifier
-    rest = string.replace(str(specifier_in_string), "")
+    rest = string.replace(str(specifier_in_string), "", 1)
     if nodes_in_string:
-        rest = rest.replace("_" + "".join(nodes_in_string), "")
+        rest = rest.replace("_" + "".join(nodes_in_string), "", 1)
     if sub_specifiers_in_string:
         for sub_spec in sub_specifiers_in_string:
-            rest = rest.replace("|" + sub_spec, "")
+            rest = rest.replace("|" + sub_spec, "", 1)
 
     if rest:
         return string
@@ -1068,4 +1091,10 @@ natural_scales = {
     specifiers.UNILATERAL_GAIN: 1,
     specifiers.NET_DOPING: 1e-6,  # 1/cm^3
     specifiers.NOISE: 1,
+    specifiers.HOLES: 1e-6,  # 1/cm^3
+    specifiers.ELECTRONS: 1e-6,  # 1/cm^3
 }
+
+
+specifiers.add_members(DATA_CONFIG["custom_specifiers"])
+sub_specifiers.add_members(DATA_CONFIG["custom_sub_specifiers"])

@@ -1,9 +1,10 @@
-""" Wrapper for nice plots with tikz, pyqtgraph and matplotlib.
+"""Wrapper for nice plots with tikz, pyqtgraph and matplotlib.
 
 Author:
     Mario Krattenmacher | Mario.Krattenmacher@semimod.de
     Markus Mueller | Markus.Mueller3@tu-dresden.de
 """
+
 # DMT_core
 # Copyright (C) from 2022  SemiMod
 # Copyright (C) until 2021  Markus Müller, Mario Krattenmacher and Pascal Kuthe
@@ -26,12 +27,12 @@ Author:
 import os
 import sys
 import re
+import warnings
 from typing import Union
 import numpy as np
 from pathlib import Path
 from cycler import cycler
-from colormath.color_objects import sRGBColor
-from DMT.core import natural_scales, sub_specifiers
+from DMT.core import natural_scales, sub_specifiers, SpecifierStr
 from DMT.external import (
     tex_to_text,
     build_tex,
@@ -80,8 +81,8 @@ try:
         "\\sisetup{range-units=repeat, list-units=repeat, binary-units, exponent-product = \\cdot, print-unity-mantissa=false, per-mode=symbol}\n",
         "\\DeclareSIUnit\\sq{\\ensuremath{\\Box}}\n",
         "\\DeclareSIUnit\\degC{\\degreeCelsius}\n",
-        "\\DeclareUnicodeCharacter{221E}{$\infty$}\n",
-        "\\DeclareUnicodeCharacter{03A9}{$\Omega$}\n",
+        "\\DeclareUnicodeCharacter{221E}{$\\infty$}\n",
+        "\\DeclareUnicodeCharacter{03A9}{$\\Omega$}\n",
     ]
     packages_to_add = []
     str_user_packages = "".join(matplotlib.rcParams["text.latex.preamble"])
@@ -144,23 +145,24 @@ PLOT_STYLES.append(MIX)
 MIX_BW = "mix_bw"
 PLOT_STYLES.append(MIX_BW)
 
-CYCLER_MARKERS = cycler(marker=[char for char in "x+v^*<>.so"])
-CYCLER_LINESTYLES = cycler(linestyle=["-", "--", "-.", ":"])
-CYCLER_COLORS = cycler(
-    color=[
-        "#000000",  # black
-        "#006400",  # darkgreen
-        "#00008b",  # darkblue
-        "#b03060",  # maroon3
-        "#ff0000",  # red
-        "#9467bd",  # yellow -> replaced by violett/brown combo
-        "#deb887",  # curlywood
-        "#00ff00",  # lime
-        "#00ffff",  # aqua
-        "#ff00ff",  # fuchsia
-        "#6495ed",  # cornflower
-    ]
-)
+MARKERS = [char for char in "x+v^*<>.so"]
+LINESTYLES = ["-", "--", "-.", ":"]
+COLORS = [
+    "#006400",  # darkgreen
+    "#00008b",  # darkblue
+    "#b03060",  # maroon3
+    "#ff0000",  # red
+    "#9467bd",  # yellow -> replaced by violett/brown combo
+    "#6495ed",  # cornflower
+    "#00ffff",  # aqua
+    "#00ff00",  # lime
+    "#ff00ff",  # fuchsia
+    "#deb887",  # curlywood
+]
+
+CYCLER_MARKERS = cycler(marker=MARKERS)
+CYCLER_LINESTYLES = cycler(linestyle=LINESTYLES)
+CYCLER_COLORS = cycler(color=COLORS)
 
 
 ### Translation dictionaries from matplotlib to tikz
@@ -195,7 +197,7 @@ _DICT_LINES_MPL_TO_PGF = {
     "--": "dashed, ",
     "-.": "dashdotted, ",
     "-": "solid, ",
-    ".": "dotted, ",
+    # ".": "dotted, ", # is used as a MARKER!
     ":": "dotted, ",  # or densely dotted ??
 }
 _DICT_COLORS_MPL = {
@@ -238,15 +240,16 @@ class Plot(object):
         style="mix",
         x_label=None,
         y_label=None,
-        x_specifier=None,
-        y_specifier=None,
+        x_specifier: SpecifierStr = None,
+        y_specifier: SpecifierStr = None,
         x_scale=None,
         y_scale=None,
         x_log=False,
         y_log=False,
         legend_location="upper right",
         num=None,
-        divide_by_unit=False,
+        divide_by_unit=True,
+        caption=None,
     ):
         """
         Parameters
@@ -325,6 +328,8 @@ class Plot(object):
         self.divide_by_unit = divide_by_unit
         self.x_scale = 1
         self.y_scale = 1
+        self.x_specifier = x_specifier
+        self.y_specifier = y_specifier
         self.x_label = ""
         self.y_label = ""
 
@@ -373,7 +378,11 @@ class Plot(object):
         else:
             self.y_axis_scale = "linear"
 
-    def set_x_label(self, x_label=None, x_specifier=None, x_scale=None):
+        self.caption = caption
+
+    def set_x_label(
+        self, x_label: str = None, x_specifier: SpecifierStr = None, x_scale: float = None
+    ):
         """Set the x label. Either using directly a string or a specifier.
 
         Parameters
@@ -410,20 +419,22 @@ class Plot(object):
         else:
             raise IOError("Either label or specifier have to be set!")
 
-    def set_y_label(self, y_label=None, y_specifier=None, y_scale=None):
+    def set_y_label(
+        self, y_label: str = None, y_specifier: SpecifierStr = None, y_scale: float = None
+    ):
         """Set the y label. Either using directly a string or a specifier.
 
-        Parameters
-        ----------
-        y_label : str
-        y_specifier : SpecifierStr
-        y_scale : float
-            If given, self.y_scale is overwritten with this value.
+                Parameters
+                ----------
+        #        y_label : str
+                y_specifier : SpecifierStr
+                y_scale : float
+                    If given, self.y_scale is overwritten with this value.
 
-        Raises
-        ------
-        IOError
-            If neither y_label nor y_specifier were given.
+                Raises
+                ------
+                IOError
+                    If neither y_label nor y_specifier were given.
         """
         try:
             if y_scale is None and y_specifier is not None:
@@ -458,32 +469,9 @@ class Plot(object):
             'color', 'bw', 'markers_color', 'markers', 'markers_lines',
             'xtraction', 'xtraction_color', 'xtraction_interpolated', 'xtraction_interpolated_color',
         """
-        markers = [char for char in "x+v^*<>.so"]
-        linestyles = ["-", "--", "-.", ":"]
-        # MM: replaced grey1 (#7f7f7f) with black(#) and grey2 with dark blue #1012d5. Does this cause problems?
-        # MK: introduced completely new palette from https://mokole.com/palette.html (settings: 10 colors, 1% min, 80% max, 15000 loops, score 65.49)
-        colors = [
-            # "#1f77b4",
-            # "#ff7f0e",
-            # "#2ca02c",
-            # "#d62728",
-            # "#9467bd",
-            # "#e377c2",
-            # "#8c564b",
-            # "#0e1111",
-            # "#1012d5",
-            # "#17becf",
-            "#006400",  # darkgreen
-            "#00008b",  # darkblue
-            "#b03060",  # maroon3
-            "#ff0000",  # red
-            "#9467bd",  # yellow -> replaced by violett/brown combo
-            "#deb887",  # curlywood
-            "#00ff00",  # lime
-            "#00ffff",  # aqua
-            "#ff00ff",  # fuchsia
-            "#6495ed",  # cornflower
-        ]
+        markers = MARKERS
+        linestyles = LINESTYLES
+        colors = COLORS
 
         if style == BLACK_WHITE:
             self._cycler = (
@@ -683,15 +671,17 @@ class Plot(object):
 
             xtraction_markers = []
             for i, marker in enumerate(markers[:n_styles]):
-                xtraction_markers.append(None)
                 xtraction_markers.append(marker)
                 xtraction_markers.append(None)
-                xtraction_markers.append(markers[i + 1])
+                xtraction_markers.append(None)
+                xtraction_markers.append(None)
+
+                # xtraction_markers.append(markers[i + 1])
 
             xtraction_lstyle = []
             for marker in markers[:n_styles]:
-                xtraction_lstyle.append("-")
                 xtraction_lstyle.append("")
+                xtraction_lstyle.append("-")
                 xtraction_lstyle.append("--")
                 xtraction_lstyle.append("-.")
 
@@ -773,6 +763,11 @@ class Plot(object):
         style : string, optional
             Matplotlib style descriptor for this line.
         """
+        if isinstance(x, float) and len(y) > 1:
+            x = [x] * len(y)
+        elif isinstance(y, float) and len(x) > 1:
+            y = [y] * len(x)
+
         self.data.append(
             {
                 "x": np.asanyarray(x),
@@ -1097,15 +1092,49 @@ class Plot(object):
             x = dict_line["x"]
             y = dict_line["y"]
 
-            if self.x_axis_scale == "log":
-                x = np.array(np.abs(x))
+            # clean x
+            if np.iscomplex(x).any() and self.x_specifier is not None:
+                if sub_specifiers.REAL in self.x_specifier:
+                    x = np.real(x)
+                elif sub_specifiers.IMAG in self.x_specifier:
+                    x = np.imag(x)
+                elif sub_specifiers.MAG in self.x_specifier:
+                    x = np.abs(x)
+                elif sub_specifiers.PHASE in self.x_specifier:
+                    x = np.angle(x, deg=True)
+                else:
+                    warnings.warn(
+                        f"DMT-Plot-complex: In the plot {self.name} is a line with untreated complex x-values. Real part is used, as it was.",
+                        category=DeprecationWarning,
+                    )
+                    x = np.real(x)
             else:
-                x = np.array(np.real(x))
+                x = np.array(x)
+
+            if self.x_axis_scale == "log":
+                x = np.abs(x)
+
+            # clean y
+            if np.iscomplex(y).any() and self.y_specifier is not None:
+                if sub_specifiers.REAL in self.y_specifier:
+                    y = np.real(y)
+                elif sub_specifiers.IMAG in self.y_specifier:
+                    y = np.imag(y)
+                elif sub_specifiers.MAG in self.y_specifier:
+                    y = np.abs(y)
+                elif sub_specifiers.PHASE in self.y_specifier:
+                    y = np.angle(y, deg=True)
+                else:
+                    warnings.warn(
+                        f"DMT-Plot-complex: In the plot {self.name} is a line with untreated complex y-values. Real part is used, as it was.",
+                        category=DeprecationWarning,
+                    )
+                    y = np.real(y)
+            else:
+                y = np.array(y)
 
             if self.y_axis_scale == "log":
-                y = np.array(np.abs(y))
-            else:
-                y = np.array(np.real(y))
+                y = np.abs(y)
 
             label = dict_line["label"]
             if label is not None:
@@ -1132,10 +1161,11 @@ class Plot(object):
                 )
             except ValueError as err:
                 raise ValueError(
-                    "Too many values to unpack in plot "
-                    + self.name
-                    + " for line with label "
-                    + str(label)
+                    f"DMT.Plot: Too many values to unpack in plot {self.name} in line with label {label}."
+                ) from err
+            except Exception as err:
+                raise Exception(
+                    f"DMT.Plot: In plot {self.name} in line the label {label}."
                 ) from err
 
         # set scale
@@ -1473,6 +1503,7 @@ class Plot(object):
         legend_to_name=None,
         legend_columns=4,
         mark_phase=False,
+        # print_legend=True,
         **kwargs,
     ):
         """Save plot in directory and return name of the tikz file.
@@ -1536,7 +1567,11 @@ class Plot(object):
         """
         if not isinstance(directory, Path):
             directory = Path(directory)
-        os.makedirs(directory, exist_ok=True)
+        directory.mkdir(parents=True, exist_ok=True)
+        # os.makedirs(directory, exist_ok=True)
+
+        if kwargs:
+            warnings.warn("kwargs are not used in DMT.Plot.save_tikz()", DeprecationWarning)
 
         legend_pos = {
             "lower left": "at={(0.02,0.02)}, anchor=south west,",
@@ -1559,18 +1594,18 @@ class Plot(object):
                 "\\begin{tikzpicture}[font=\\"
                 + fontsize
                 + "]\n"
-                + "\\pgfplotsset{every axis/.append style={"
+                + "\\pgfplotsset{every axis plot/.append style={"
                 + line_width
-                + "},compat=1.5},\n"
+                + "},compat=1.18},\n"
             )
         else:  # if this figure is used in other tex documents, the axis are trimed so that figures with different y-labels and ticks get displayed nicely
             str_tikz_picture = (
                 "\\begin{tikzpicture}[font=\\"
                 + fontsize
-                + ",trim axis left, trim axis right,tight background]\n"
-                + "\\pgfplotsset{every axis/.append style={"
+                + ", trim axis left, trim axis right, tight background]\n"
+                + "\\pgfplotsset{every axis plot/.append style={"
                 + line_width
-                + "},compat=1.5},\n"
+                + "},compat=1.18}\n"
             )
         str_height = "" if height is None else "height=" + height + ",\n"
         if width is None:
@@ -1615,8 +1650,20 @@ class Plot(object):
             str_limits += f"xmax={x_max:g},\n"
 
             if x_axis._scale.name == "linear":
-                x_min_restrict = x_min / 5 if x_min > 0 else x_min * 5
-                x_max_restrict = x_max / 5 if x_max < 0 else x_max * 5
+                if x_min == 0:
+                    x_min_restrict = -1e-20
+                elif x_min > 0:
+                    x_min_restrict = x_min / 5
+                else:
+                    x_min_restrict = x_min * 5
+
+                if x_max == 0:
+                    x_max_restrict = 1e-20
+                elif x_max < 0:
+                    x_max_restrict = x_max / 5
+                else:
+                    x_max_restrict = x_max * 5
+
                 str_limits += comment_restrict + "restrict x to domain={0:g}:{1:g},\n".format(
                     x_min_restrict, x_max_restrict
                 )
@@ -1631,8 +1678,19 @@ class Plot(object):
             str_limits += "ymin={0:g},\n".format(y_min)
             str_limits += "ymax={0:g},\n".format(y_max)
             if y_axis._scale.name == "linear":
-                y_min_restrict = y_min / 5 if y_min > 0 else y_min * 5
-                y_max_restrict = y_max / 5 if y_max < 0 else y_max * 5
+                if y_min == 0:
+                    y_min_restrict = -1e-20
+                elif y_min > 0:
+                    y_min_restrict = y_min / 5
+                else:
+                    y_min_restrict = y_min * 5
+
+                if y_max == 0:
+                    y_max_restrict = 1e-20
+                elif y_max < 0:
+                    y_max_restrict = y_max / 5
+                else:
+                    y_max_restrict = y_max * 5
                 str_limits += comment_restrict + "restrict y to domain={0:g}:{1:g},\n".format(
                     y_min_restrict, y_max_restrict
                 )
@@ -1816,11 +1874,12 @@ class Plot(object):
 
         str_shift_labels = ""
         if fontsize == "normalsize":
-            str_shift_labels = "xlabel shift = -5 pt,\n ylabel shift = -5 pt,\n"
+            str_shift_labels = "xlabel shift=-5pt,\n ylabel shift=-5pt,\n"
 
         ### header
         str_axis = (
-            "\n\\begin{axis}[scale only axis,ytick pos=left,\n"
+            "\n\\begin{axis}[\n"
+            + "scale only axis,\n"
             # + fontsize+",\n"
             + str_width
             + str_height
@@ -1835,6 +1894,7 @@ class Plot(object):
             + str_limits
             + str_x_ticks
             + str_y_ticks
+            + "ytick pos=left,\n"
             + str_shift_labels
             + "xmajorgrids,\n"
             + "enlargelimits=false,\n"
@@ -1892,12 +1952,7 @@ class Plot(object):
 
         ### merge:
         str_tikz_picture += (
-            self._convert_colors_to_texdefines(
-                colors
-            )  # needs work! -> replaced matplotlib with colormath! Test this!
-            + str_axis
-            + str_lines
-            + str_footer
+            self._convert_colors_to_texdefines(colors) + str_axis + str_lines + str_footer
         )
 
         if standalone:
@@ -1972,10 +2027,6 @@ class Plot(object):
         """
         x_data = dict_line["x"]
         y_data = dict_line["y"]
-        if self.x_axis_scale == "log":
-            x_data = np.abs(x_data)
-        if self.y_axis_scale == "log":
-            y_data = np.abs(y_data)
 
         if len(x_data) == 0:
             return "\n", colors
@@ -2010,11 +2061,40 @@ class Plot(object):
             self.x_scale, self.y_scale
         )
 
-        if np.iscomplex(x_data).any() or np.iscomplex(y_data).any():
-            raise IOError("DMT: tikz_addplot: can not plot complex numbers.")
+        # clean x
+        if np.iscomplex(x_data).any() and self.x_specifier is not None:
+            if sub_specifiers.REAL in self.x_specifier:
+                x_data = np.real(x_data)
+            elif sub_specifiers.IMAG in self.x_specifier:
+                x_data = np.imag(x_data)
+            elif sub_specifiers.MAG in self.x_specifier:
+                x_data = np.abs(x_data)
+            elif sub_specifiers.PHASE in self.x_specifier:
+                x_data = np.angle(x_data, deg=True)
+            else:
+                raise IOError(f"DMT: tikz_addplot: can not plot complex numbers. {self.name}")
+        else:
+            x_data = np.real(x_data)
 
-        x_data = np.real(x_data)
-        y_data = np.real(y_data)
+        # clean y
+        if np.iscomplex(y_data).any() and self.y_specifier is not None:
+            if sub_specifiers.REAL in self.y_specifier:
+                y_data = np.real(y_data)
+            elif sub_specifiers.IMAG in self.y_specifier:
+                y_data = np.imag(y_data)
+            elif sub_specifiers.MAG in self.y_specifier:
+                y_data = np.abs(y_data)
+            elif sub_specifiers.PHASE in self.y_specifier:
+                y_data = np.angle(y_data, deg=True)
+            else:
+                raise IOError(f"DMT: tikz_addplot: can not plot complex numbers. {self.name}")
+        else:
+            y_data = np.real(y_data)
+
+        if self.x_axis_scale == "log":
+            x_data = np.abs(x_data)
+        if self.y_axis_scale == "log":
+            y_data = np.abs(y_data)
 
         # for x, y  in zip(np.abs(x_data), np.abs(y_data)): # why abs??
         for x, y in zip(x_data, y_data):
@@ -2131,13 +2211,15 @@ class Plot(object):
         str_tex = ""
 
         for i_color, color_a in enumerate(colors):
-            # blue #00008b conversion is buggy? -> replaced matplotlib with colormath! Test this!
             if (
                 color_a == "black"
             ):  # black is the only color given as a name in the cyclers above...
                 color = (0.0, 0.0, 0.0)
             else:
-                color = sRGBColor.new_from_rgb_hex(color_a).get_value_tuple()
+                if color_a[0] == "#":
+                    color_a = color_a[1:]
+                color = [int(n, 16) / 255.0 for n in [color_a[:2], color_a[2:4], color_a[4:]]]
+                # color = sRGBColor.new_from_rgb_hex(color_a).get_value_tuple()
 
             str_tex += "\\definecolor{{color{0:d}}}{{rgb}}{{{1:.5f}, {2:.5f}, {3:.5f}}}\n".format(
                 i_color, *color
@@ -2178,6 +2260,7 @@ def save_or_show(plts, show=True, location=None, **kwargs):
                 clean=True,
                 build=True,
                 standalone=True,
+                svg=True,
                 **kwargs,
             )
             plt.save_tikz(

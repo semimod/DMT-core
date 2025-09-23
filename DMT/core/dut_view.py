@@ -203,6 +203,7 @@ class DutView(object):
                 self.list_copy = list_copy
         self._list_va_file_contents: list[VAFileMap] = []
 
+        self.manager = DatabaseManager()
         # if the dut already exists and no force -> error!
         if self.save_dir.exists():
             if force:
@@ -218,11 +219,10 @@ class DutView(object):
 
         # attributes for data management
         self._separate_databases = separate_databases
-        self._data = {}  # this is now hidden
+        self._data: dict[str, DataFrame] = {}  # this is now hidden
 
-        self.dut_type: DutTypeFlag | DutTypeInt = dut_type
+        self.dut_type: Union[DutTypeFlag, DutTypeInt] = dut_type
 
-        self.manager = DatabaseManager()
         if nodes is None:
             self.nodes = dut_type.get_nodes()
         else:
@@ -451,7 +451,7 @@ class DutView(object):
         return self.save_dir / "dut.json"
 
     @property
-    def data(self):
+    def data(self) -> dict[str, DataFrame]:
         """data is a property to ensure loading before usage.
 
         As _data is a dict, the getter is also called before setting. So the separate setter is not necessary.
@@ -742,6 +742,7 @@ class DutView(object):
         data: Union[DataFrame, Sweep, str, os.Pathlike],
         key: Union[str, None] = None,
         force: bool = True,
+        validate: bool = True,
         **kwargs,
     ):
         """Add a measurement or simulation data to the DutView's data.
@@ -787,7 +788,8 @@ class DutView(object):
             self.data[key] = data
         elif isinstance(data, Sweep):
             # simulation valid?
-            self.validate_simulation_successful(data)
+            if not validate:
+                self.validate_simulation_successful(data)
             # try special import
             self.import_output_data(data)
         else:
@@ -848,18 +850,14 @@ class DutView(object):
     def del_db(self):
         """Delete the DutView's complete database."""
         # iterate over the folder in case of self.separate_databases
-        for root, _dirs, files in os.walk(self.save_dir):
-            for my_file in files:
-                if my_file.endswith(".h5"):
-                    self.manager.del_db(root + "/" + my_file)
+        for my_file in self.save_dir.glob("*.h5"):
+            self.manager.del_db(my_file)
         logging.info("DMT -> DutView -> del_data(): Deleted a complete database.")
 
     def del_dut(self):
         """Delete the DutView's pickled file."""
-        if os.path.exists(self.dut_dir):
-            os.remove(self.dut_dir)
-
-        logging.info("DMT -> DutView -> del_dut(): Deleted a pickled DutView object.")
+        self.dut_dir.unlink(missing_ok=True)
+        logging.info("DMT -> DutView -> del_dut(): Deleted a DutView object.")
 
     def clean_data(self, fallback=None, **kwargs):
         """Clean the dataframe columns of the DataFrame objects in this DutMeas objects database.
@@ -902,7 +900,7 @@ class DutView(object):
 
             self.data[key] = df
 
-    def save_db(self, sweep_keys=None):
+    def save_db(self, sweep_keys=None, sweeps=None):
         """Write a database for this dut. If it already exists it is overwritten. Does NOT save all keys starting with '_'
 
         Parameters
@@ -916,13 +914,18 @@ class DutView(object):
 
         if self._separate_databases:
             if sweep_keys is None:
-                # find all sweeps in self.data
-                sweep_keys = []
-                for key in self._data.keys():
-                    ## key is equal except for the last part -> same sweep
-                    sweep_key = self.join_key(*self.split_key(key)[0:-1])
-                    if sweep_key not in sweep_keys:
-                        sweep_keys.append(sweep_key)
+                if sweeps is None:
+                    # find all sweeps in self.data
+                    sweep_keys = []
+                    for key in self._data.keys():
+                        ## key is equal except for the last part -> same sweep
+                        sweep_key = self.join_key(*self.split_key(key)[0:-1])
+                        if sweep_key not in sweep_keys:
+                            sweep_keys.append(sweep_key)
+                else:
+                    sweep_keys = []
+                    for sweep in sweeps:
+                        sweep_keys.append(self.get_sweep_key(sweep))
 
             for sweep_key in sweep_keys:
                 data_to_save = {}

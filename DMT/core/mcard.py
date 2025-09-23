@@ -1,8 +1,9 @@
-""" Base class to handle verilog-a modelcards.
+"""Base class to handle verilog-a modelcards.
 
 Author: Mario Krattenmacher | Mario.Krattenmacher@semimod.de
 Author: Markus Müller       | Markus.Mueller3@tu-dresden.de
 """
+
 # DMT_core
 # Copyright (C) from 2022  SemiMod
 # Copyright (C) until 2021  Markus Müller, Mario Krattenmacher and Pascal Kuthe
@@ -33,7 +34,7 @@ import ast
 import operator
 import warnings
 from pathlib import Path
-from typing import Union, Optional, TYPE_CHECKING
+from typing import Union, Optional, TYPE_CHECKING, TypeVar
 from types import ModuleType
 
 try:
@@ -337,11 +338,13 @@ class MCard(McParameterCollection):
 
                 if para.min > para_properties.min:
                     para.min = para_properties.min
-                    para.inc_min = para_properties.min_inclusive  # type: ignore
+
+                para.inc_min = para_properties.min_inclusive  # type: ignore
 
                 if para.max < para_properties.max:
                     para.max = para_properties.max
-                    para.inc_max = para_properties.max_inclusive  # type: ignore
+
+                para.inc_max = para_properties.max_inclusive  # type: ignore
 
                 para.unit = unit_converter[para_properties.unit]  # type: ignore
                 para.description = para_properties.description  # type: ignore

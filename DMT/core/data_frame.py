@@ -1,9 +1,10 @@
-""" data_frame module
+"""data_frame module
 
 Implements a extended pandas.DataFrame. It is based on the pandas.DataFrame and extended by many special methods that simplify working with electrical quantities.
 This includes easy management of small signal parameter and other quantities which can be calculated from them.
 
 """
+
 # DMT_core
 # Copyright (C) from 2022  SemiMod
 # Copyright (C) until 2021  Markus Müller, Mario Krattenmacher and Pascal Kuthe
@@ -23,24 +24,27 @@ This includes easy management of small signal parameter and other quantities whi
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
-import re
-import logging
+import os
 import copy
+import logging
+import re
+from pathlib import Path
+from typing import Dict, Iterator, Tuple, Union
+
 import numpy as np
 import pandas as pd
 from scipy.optimize import curve_fit
-from typing import Iterator, Tuple
-from DMT.exceptions import UnknownColumnError
-from DMT.core.data_processor import DataProcessor, flatten
 from DMT.core import (
-    specifiers_ss_para,
-    get_specifier_from_string,
-    specifiers,
     SpecifierStr,
-    sub_specifiers,
     get_nodes,
+    get_specifier_from_string,
     get_sub_specifiers,
+    specifiers,
+    specifiers_ss_para,
+    sub_specifiers,
 )
+from DMT.core.data_processor import DataProcessor, flatten
+from DMT.exceptions import UnknownColumnError
 
 # pylint: disable = too-many-lines
 
@@ -388,7 +392,8 @@ class DataFrame(DataProcessor, pd.DataFrame):
                 if fallback[col] is None:
                     if warnings:
                         logging.warning(
-                            "The column %s is dropped as it is in the fallback dictionary!", col
+                            "The column %s is dropped as it is in the fallback dictionary!",
+                            col,
                         )
                     # drop it!
                 elif fallback[col]:
@@ -755,7 +760,10 @@ class DataFrame(DataProcessor, pd.DataFrame):
         elif (specifier == specifiers.VOLTAGE) and (len(nodes) == 1):
             try:
                 self = self.create_potential(
-                    nodes, reference_node, voltage_sub_specifiers=sub_specifiers_in_col, debug=debug
+                    nodes,
+                    reference_node,
+                    voltage_sub_specifiers=sub_specifiers_in_col,
+                    debug=debug,
                 )
             except IOError as err:
                 raise KeyError(
@@ -764,6 +772,11 @@ class DataFrame(DataProcessor, pd.DataFrame):
                     + "' and the needed voltages are missing in the given data frame and can not be calculated."
                 ) from err
 
+        elif (specifier == specifiers.CURRENT) and (len(nodes) == 2):
+            self[col] = (
+                self[SpecifierStr(specifier, nodes[0], sub_specifiers=sub_specifiers_to_ensure)]
+                - self[SpecifierStr(specifier, nodes[1], sub_specifiers=sub_specifiers_to_ensure)]
+            )
         elif specifier == specifiers.CURRENT_DENSITY:
             if area is None:
                 raise IOError(
@@ -789,21 +802,23 @@ class DataFrame(DataProcessor, pd.DataFrame):
                 )
 
             try:
-                if nodes[0] == "B" and nodes[1] == "E":  # CBE
+                if nodes[0] == "B" and nodes[1] == "E":  # bjt CBE
                     self = self.calc_cbe(port_1=ports[0], port_2=ports[1])
-                elif nodes[0] == "C" and nodes[1] == "E":  # CCE
+                elif nodes[0] == "C" and nodes[1] == "E":  # bjt CCE
                     self = self.calc_cce(port_1=ports[0], port_2=ports[1])
-                elif nodes[0] == "B" and nodes[1] == "C":  # CBC
+                elif nodes[0] == "B" and nodes[1] == "C":  # bjt CBC
                     self = self.calc_cbc(port_1=ports[0], port_2=ports[1])
-                elif nodes[0] == "G" and nodes[1] == "S":  # CGS
+                elif nodes[0] == "C" and nodes[1] == "S":  # bjt CSC
+                    self = self.calc_ccs(port_1=ports[0], port_2=ports[1])
+                elif nodes[0] == "G" and nodes[1] == "S":  # mos CGS
                     self = self.calc_cgs(port_1=ports[0], port_2=ports[1])
-                elif nodes[0] == "G" and nodes[1] == "D":  # CGD
+                elif nodes[0] == "G" and nodes[1] == "D":  # mos CGD
                     self = self.calc_cgd(port_1=ports[0], port_2=ports[1])
-                elif nodes[0] == "G" and nodes[1] == "G":  # CGG
+                elif nodes[0] == "G" and nodes[1] == "G":  # mos CGG
                     self = self.calc_cgg(port_1=ports[0], port_2=ports[1])
-                elif nodes[0] == "D" and nodes[1] == "B":  # CDB
+                elif nodes[0] == "D" and nodes[1] == "B":  # mos CDB
                     self = self.calc_cdb(port_1=ports[0], port_2=ports[1], port_3=ports[2])
-                elif nodes[0] == "S" and nodes[1] == "B":  # CSB
+                elif nodes[0] == "S" and nodes[1] == "B":  # mos CSB
                     self = self.calc_csb(port_1=ports[0], port_2=ports[1], port_3=ports[2])
                 else:
                     raise KeyError("The " + "".join(nodes) + " capacitance can not be calculated.")
@@ -891,7 +906,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
             except IOError as err:  # try to get from Y paras
                 try:
                     self = self.convert_n_port_para(p_from="Y", p_to=specifier, ports=ports)
-                except:
+                except Exception:
                     raise KeyError(
                         "The conversion from the S- and Y-Parameters to the small signal "
                         + specifier
@@ -1054,7 +1069,9 @@ class DataFrame(DataProcessor, pd.DataFrame):
 
         try:
             reference_potential = SpecifierStr(
-                specifiers.VOLTAGE, reference_node, sub_specifiers=voltage_sub_specifiers
+                specifiers.VOLTAGE,
+                reference_node,
+                sub_specifiers=voltage_sub_specifiers,
             )
         except TypeError as err:
             raise IOError("DMT->data_frame: No or incompatible reference_node were given.") from err
@@ -1300,7 +1317,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
             freq_self_unique
         ):  # try to throw away frequencies in short
             indices_to_delete = [
-                i for i, _freq in enumerate(freq_short_unique) if not _freq in freq_self_unique
+                i for i, _freq in enumerate(freq_short_unique) if _freq not in freq_self_unique
             ]
             s_para_short_values = np.delete(s_para_short_values, indices_to_delete, 0)
             s_para_values = DataFrame.processor.deembed_short(
@@ -1351,7 +1368,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
                 freq_self_unique
             ):  # try to throw away frequencies in open
                 indices_to_delete = [
-                    i for i, _freq in enumerate(freq_open_unique) if not _freq in freq_self_unique
+                    i for i, _freq in enumerate(freq_open_unique) if _freq not in freq_self_unique
                 ]
                 s_para_open_values = np.delete(s_para_open_values, indices_to_delete, 0)
                 s_para_values = DataFrame.processor.deembed_open(
@@ -1370,7 +1387,15 @@ class DataFrame(DataProcessor, pd.DataFrame):
         self = self.strip_ss_para()
         return self
 
-    def deembed(self, df_open, df_short, ports=None, ndevices=1, ndevices_open=1, ndevices_short=1):
+    def deembed(
+        self,
+        df_open,
+        df_short,
+        ports=None,
+        ndevices=1,
+        ndevices_open=1,
+        ndevices_short=1,
+    ):
         """Deembed the measured data in df from the measured data in df_open and df_short.
 
         This method deembeds the masured small signal parameters in df using the measured small signal parameters of one dummy open and one dummy short structure.
@@ -1438,7 +1463,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
         # pr.print_stats(sort='cumtime')
         return self
 
-    def determine_mres(self, forced_current=False):
+    def determine_mres(self, forced_current=False, ac_ports=None, reference_node="E") -> Dict:
         """Determine the external restistances caused by the metallization.
 
         Parameters
@@ -1452,18 +1477,27 @@ class DataFrame(DataProcessor, pd.DataFrame):
             A dict of resistances Rb,m, Rc,m, and Re,m.
 
         """
+        if ac_ports is None:
+            ac_ports = ["B", "C"]
+
+        sp_in0 = specifiers.CURRENT + ac_ports[0]
+        sp_vn0 = specifiers.VOLTAGE + ac_ports[0]
+        sp_in1 = specifiers.CURRENT + ac_ports[1]
+        sp_vn1 = specifiers.VOLTAGE + ac_ports[1]
+        # sp_inr = specifiers.CURRENT + reference_node
+        sp_vnr = specifiers.VOLTAGE + reference_node
 
         if forced_current:
             try:
-                df_RC = self.loc[np.isclose(self[specifiers.CURRENT + "B"], 0.0, atol=1e-6)]
-                df_RB = self.loc[np.isclose(self[specifiers.CURRENT + "C"], 0.0, atol=1e-6)]
+                df_RC = self.loc[np.isclose(self[sp_in0], 0.0, atol=1e-6)]
+                df_RB = self.loc[np.isclose(self[sp_in1], 0.0, atol=1e-6)]
             except KeyError:
                 raise IOError
 
             mres = {}
 
-            re2 = np.polyfit(df_RB["I_B"], df_RB["V_C"], 1)[0]
-            re1 = np.polyfit(df_RC["I_C"], df_RC["V_B"], 1)[0]
+            re2 = np.polyfit(df_RB[sp_in0], df_RB[sp_vn1], 1)[0]
+            re1 = np.polyfit(df_RC[sp_in1], df_RC[sp_vn0], 1)[0]
 
             re = (re1 + re2) / 2
             de = np.abs(re1 - re2)
@@ -1472,20 +1506,24 @@ class DataFrame(DataProcessor, pd.DataFrame):
                 f"rem disagreement is {de} Ohm. Using average {re} Ohm with uncertantiy {de / (200 * re)}%"
             )
 
-            rc = np.polyfit(df_RC["I_C"], df_RC["V_C"], 1)[0] - re
-            rb = np.polyfit(df_RB["I_B"], df_RB["V_B"], 1)[0] - re
+            rc = np.polyfit(df_RC[sp_in1], df_RC[sp_vn1], 1)[0] - re
+            rb = np.polyfit(df_RB[sp_in0], df_RB[sp_vn0], 1)[0] - re
 
-            return {"R_CM": rc, "R_BM": rb, "R_EM": re}
+            return {f"R_{ac_ports[0]}M": rb, f"R_{ac_ports[1]}M": rc, f"R_{reference_node}M": re}
         else:
             try:
                 df_RCE_RBE = self.loc[
                     np.isclose(
-                        self[specifiers.VOLTAGE + "C"], self[specifiers.VOLTAGE + "E"], atol=1e-4
+                        self[sp_vn1],
+                        self[sp_vnr],
+                        atol=1e-4,
                     )
                 ]
                 df_RBC = self.loc[
                     np.isclose(
-                        self[specifiers.VOLTAGE + "B"], self[specifiers.VOLTAGE + "E"], atol=1e-4
+                        self[sp_vn0],
+                        self[sp_vnr],
+                        atol=1e-4,
                     )
                 ]
             except KeyError:
@@ -1493,14 +1531,27 @@ class DataFrame(DataProcessor, pd.DataFrame):
 
             mres = {}
 
-            mres = DataFrame.processor.calc_RBC_RBE(mres, df_RCE_RBE)
-            mres = DataFrame.processor.calc_RCE(mres, df_RBC)
+            mres = DataFrame.processor.calc_RBC_RBE(
+                mres, df_RCE_RBE, ac_ports=ac_ports, reference_node=reference_node
+            )
+            mres = DataFrame.processor.calc_RCE(
+                mres, df_RBC, ac_ports=ac_ports, reference_node=reference_node
+            )
 
-            mres = DataFrame.processor.convert_mres(mres)
+            mres = DataFrame.processor.convert_mres(
+                mres, ac_ports=ac_ports, reference_node=reference_node
+            )
 
             return mres
 
-    def deembed_DC(self, mres=None, df_short_dc=None, forced_current=False):
+    def deembed_DC(
+        self,
+        mres: Dict = None,
+        df_short_dc=None,
+        forced_current=False,
+        ac_ports=None,
+        reference_node="E",
+    ):
         """Deembed the measured DC data in df from external metallization resistances.
 
         Determine the metallization resistances and substract their impact from the measured voltages.
@@ -1519,9 +1570,13 @@ class DataFrame(DataProcessor, pd.DataFrame):
         """
 
         if mres is None:
-            mres = df_short_dc.determine_mres(forced_current=forced_current)
+            mres = df_short_dc.determine_mres(
+                forced_current=forced_current, ac_ports=ac_ports, reference_node=reference_node
+            )
 
-        return DataFrame.processor.deembed_mres(self, mres)
+        return DataFrame.processor.deembed_mres(
+            self, mres, ac_ports=ac_ports, reference_node=reference_node
+        )
 
     def check_ss_cols(self, para):
         """Check the existence of the small signal parameters para cols.
@@ -2077,6 +2132,31 @@ class DataFrame(DataProcessor, pd.DataFrame):
         pd.options.mode.chained_assignment = "warn"
         return self
 
+    def calc_ccs(self, port_1="C", port_2="S"):
+        """Calculates the substrate-collector junction capacitance CSC, assuming PI equivalent circuit and common base-emitter configuration with substrate at port 1 and collector at port 2
+
+        Returns
+        -------
+        :class:`DMT.core.DataFrame`
+            Dataframe that contains CSC.
+        """
+        # get values
+        s_para_values = self.get_ss_para("Y", port_1, port_2)
+
+        # put values in col of self
+        pd.options.mode.chained_assignment = None  # default='warn', This should not warn here.
+        if port_1 == "C" and port_2 == "S":
+            self[specifiers.CAPACITANCE + ["C", "S"]] = self.processor.calc_cap_series_thru(
+                self["FREQ"], s_para_values, "Y"
+            )
+        else:
+            raise NotImplementedError(
+                "DMT -> DataFrame -> calc_csc: transistor configuration not implemented."
+            )
+
+        pd.options.mode.chained_assignment = "warn"
+        return self
+
     def calc_cgd(self, port_1="G", port_2="D"):
         """Calculates the gate-drain capacitance CGD.
 
@@ -2150,8 +2230,8 @@ class DataFrame(DataProcessor, pd.DataFrame):
     def calc_gm(self, ports=["B", "C", "E"]):
         """Calculates the DC transconductance of a BJT.
 
-        Arguments
-        --------
+        Parameters
+        ----------
         ports : [str], None
             If None, BJT contact ports are assumed. Else it is assumed that ports[2] is the
             grounded contact, ports[0] is the input port (gate/base) and ports[1] is the output port.
@@ -2161,7 +2241,9 @@ class DataFrame(DataProcessor, pd.DataFrame):
         :class:`DMT.core.DataFrame`
             Dataframe that contains the TRANSCONDUCTANCE
         """
-        if ports is None or ports == []:
+        if ports is None:
+            ports = ["B", "C", "E"]
+        elif len(ports) == 2 and ports[0] == "B" and ports[1] == "C":
             ports = ["B", "C", "E"]
 
         col_i = specifiers.CURRENT + ports[1]
@@ -2196,8 +2278,8 @@ class DataFrame(DataProcessor, pd.DataFrame):
     def calc_go(self, ports=["B", "C", "E"]):
         """Calculates the DC output condutance of a BJT or generic transistor in common emitter/source configuration.
 
-        Arguments
-        --------
+        Parameters
+        ----------
         ports : [str], None
             If None, BJT contact ports are assumed. Else it is assumed that ports[2] is the
             grounded contact, ports[0] is the input port (gate/base) and ports[1] is the output port.
@@ -2207,7 +2289,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
         :class:`DMT.core.DataFrame`
             Dataframe that contains the TRANSCONDUCTANCE
         """
-        if ports == None:  # assume HBT
+        if ports is None:  # assume HBT
             col_ic = specifiers.CURRENT + "C"
             col_vce_forced = specifiers.VOLTAGE + ["C", "E"] + sub_specifiers.FORCED
         else:
@@ -2301,7 +2383,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
                             norm = 2 * np.pi * freq_i
 
                         popt, _pcov = curve_fit(fun, np.log10(freq_i_lim), y_raw_lim / norm_lim)
-                        y_fitted_lim = fun(np.log10(freq_i_lim), *popt)
+                        # y_fitted_lim = fun(np.log10(freq_i_lim), *popt)
 
                         df_new.iloc[i_low:i_upp, df_new.columns.get_loc(y_para)] = (
                             fun(np.log10(freq_i), *popt) * norm
@@ -2372,3 +2454,97 @@ class DataFrame(DataProcessor, pd.DataFrame):
 
             yield index, val, dataframe
             index += 1
+
+    def to_feather(
+        self, file_name: Union[str, os.PathLike], version=2, compression="lz4", **kwargs
+    ):
+        """Saves the dataframe as a feather binary file
+
+        Parameters
+        ----------
+        file_name : str | os.PathLike
+            file name and path to save to.
+        version : int, optional
+            Feather version (passed on to pandas.DataFrame.to_feather), by default 2
+        compression : str, optional
+            compresion algorithm (passed on to pandas.DataFrame.to_feather), by default "lz4"
+        kwargs: optional
+            passed on to pandas.DataFrame.to_feather
+        """
+        if isinstance(file_name, Path):
+            file_name.parent.mkdir(parents=True, exist_ok=True)
+            file_name = str(file_name)
+        else:
+            Path(file_name).parent.mkdir(parents=True, exist_ok=True)
+
+        for col in self.columns:
+            if pd.api.types.is_complex_dtype(self[col]):
+                self[col + sub_specifiers.REAL] = np.real(self[col])
+                self[col + sub_specifiers.IMAG] = np.imag(self[col])
+                del self[col]
+
+        dict_convert = {}
+        for col in self.columns:
+            try:
+                dict_convert[col] = col.string_to_save()
+            except AttributeError:
+                pass
+        df_save = self.rename(columns=dict_convert, inplace=False, copy=True)
+        df_save.__class__ = pd.DataFrame
+        df_save.to_feather(file_name, version=version, compression=compression, **kwargs)
+
+    @classmethod
+    def from_feather(cls, file_name: Union[str, os.PathLike], to_specifier=True) -> "DataFrame":
+        """Load the data stored in file_name, where file_name is the direct path to the file.
+
+        Parameters
+        ----------
+        file_name  :  str
+            Direct path to the file
+        to_specifier : bool
+            If True, the column names are cast to specifiers. Only neeeded for feather files. Default is True.
+
+        Returns
+        -------
+        df  :  DMT.core.DataFrame
+            Loaded dataframe object.
+        """
+        df = pd.read_feather(str(file_name))
+        df.__class__ = DataFrame
+
+        if to_specifier:
+            # here we should cast
+            dict_reconvert = {}
+            for col in df.columns:
+                specifier = SpecifierStr.string_from_load(col)
+                if not isinstance(specifier, SpecifierStr):
+                    # did not work so try default cast
+                    specifier = get_specifier_from_string(col)
+
+                dict_reconvert[col] = specifier
+
+            df.rename(columns=dict_reconvert, inplace=True)
+            # prevent invisible column bug:
+            df = df.loc[:, ~df.columns.duplicated()]
+            if not df.columns.is_unique:
+                raise IOError()
+
+        for col in df.columns:
+            if (
+                isinstance(col, SpecifierStr)
+                and (sub_specifiers.REAL.sub_specifiers <= col.sub_specifiers)
+                and (col - sub_specifiers.REAL + sub_specifiers.IMAG in df.columns)
+            ):
+                df[col - sub_specifiers.REAL] = (
+                    df[col] + 1j * df[col - sub_specifiers.REAL + sub_specifiers.IMAG]
+                )
+                del df[col]
+                del df[col - sub_specifiers.REAL + sub_specifiers.IMAG]
+
+        return df
+
+    @classmethod
+    def from_parts(cls, *frames: "DataFrame") -> "DataFrame":
+        frame = pd.concat(frames, axis=0, ignore_index=True)
+        frame.__class__ == cls
+        return frame

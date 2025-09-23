@@ -1,5 +1,5 @@
-""" test ngspice vs ADS using a real modelcard.
-"""
+"""test ngspice vs ADS using a real modelcard."""
+
 import logging
 from pathlib import Path
 from DMT.core import SimCon, Plot, DutType, Sweep, specifiers, McParameter

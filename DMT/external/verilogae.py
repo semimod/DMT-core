@@ -1,5 +1,5 @@
-""" Helpers to integrate VerilogAE into DMT
-"""
+"""Helpers to integrate VerilogAE into DMT"""
+
 # DMT_core
 # Copyright (C) from 2022  SemiMod
 # Copyright (C) until 2021  Markus Müller, Mario Krattenmacher and Pascal Kuthe

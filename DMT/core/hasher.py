@@ -1,4 +1,4 @@
-""" Creates MD5-HASH from given string-convertable data.
+"""Creates MD5-HASH from given string-convertable data.
 
 In DMT this is used mainly to ensure unique simulation folders and keys.
 A simulation folder consist of 3 parts:
@@ -9,6 +9,7 @@ A simulation folder consist of 3 parts:
 
 Author: Mario Krattenmacher | Mario.Krattenmacher@semimod.de
 """
+
 # DMT_core
 # Copyright (C) from 2022  SemiMod
 # Copyright (C) until 2021  Markus Müller, Mario Krattenmacher and Pascal Kuthe

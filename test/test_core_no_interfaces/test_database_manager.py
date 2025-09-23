@@ -1,5 +1,5 @@
-""" Testing the database manager
-"""
+"""Testing the database manager"""
+
 import pytest
 import numpy as np
 import pandas as pd

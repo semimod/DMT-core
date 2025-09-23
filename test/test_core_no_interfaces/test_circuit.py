@@ -1,5 +1,5 @@
-""" Testing Circuit and CircuitElement class.
-"""
+"""Testing Circuit and CircuitElement class."""
+
 from DMT.core.mcard import MCard
 import pytest
 from DMT.core import Circuit, CircuitElement

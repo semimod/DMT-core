@@ -1,9 +1,10 @@
-""" Provdes a class for TCAD DuTs
+"""Provdes a class for TCAD DuTs
 
 Provides a interface superclass. Here all methods which must be implemented by all TCAD interfaces are collected.
 
 Author: Mario Krattenmacher | Mario.Krattenmacher@semimod.de
 """
+
 # DMT_core
 # Copyright (C) from 2022  SemiMod
 # Copyright (C) until 2021  Markus Müller, Mario Krattenmacher and Pascal Kuthe

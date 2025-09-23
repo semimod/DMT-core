@@ -28,7 +28,7 @@ import json
 from pathlib import Path
 from joblib import Parallel, delayed
 from typing import List, Type, Union
-from DMT.core import DutType, DutTypeFlag, print_progress_bar, DutView, Technology
+from DMT.core import DutType, DutTypeFlag, print_progress_bar, DutView, Technology, DataFrame
 from DMT.exceptions import NoOpenDeembeddingDut, NoShortDeembeddingDut
 
 try:
@@ -42,7 +42,7 @@ try:
 except ImportError:
     pass
 
-SEMVER_DUTLIB_CURRENT = VersionInfo(major=1, minor=0)
+SEMVER_DUTLIB_CURRENT = VersionInfo(major=1, minor=2)
 
 
 class __Filter(object):
@@ -205,7 +205,7 @@ class DutLib(object):
 
     def __init__(
         self,
-        deem_types=None,
+        deem_types: List[DutType] = None,
         AC_filter_names=None,
         DC_filter_names=None,
         is_deembedded_DC=False,
@@ -224,17 +224,15 @@ class DutLib(object):
         self.is_deembedded_AC = is_deembedded_AC
         self.is_deembedded_DC = is_deembedded_DC
 
-        self.deem_open = (
-            DutTypeFlag.flag_open
-        )  # deem_open_bjt # look only for the flag not for the device!
-        self.deem_short = DutTypeFlag.flag_short  # deem_short_bjt
+        self.deem_open = DutTypeFlag.flag_open  # look only for the flag not for the device!
+        self.deem_short = DutTypeFlag.flag_short
 
-        self.duts = []  # The devices that shall be managed by this dut
-        self._dut_ref = None  # The reference device of this technology
+        self.duts: List[DutView] = []  # The devices that shall be managed by this dut
+        self._dut_ref: DutView = None  # The reference device of this technology
         self.dut_ref_dut_dir = None
-        self._dut_intrinsic = None  # The intrinsic dut of the reference dut (without rbi)
+        self._dut_intrinsic: DutView = None  # The intrinsic dut of the reference dut (without rbi)
         self.dut_intrinsic_dut_dir = None  # The intrinsic dut of the reference dut (without rbi)
-        self._dut_internal = None  # The internal dut of the reference dut (with rbi)
+        self._dut_internal: DutView = None  # The internal dut of the reference dut (with rbi)
         self.dut_internal_dut_dir = None  # The intrinsic dut of the reference dut (without rbi)
         self._save_dir = None  # Here the DutLib will try to save itself
         if save_dir is not None:
@@ -246,7 +244,7 @@ class DutLib(object):
 
             self.save_dir = save_dir  # Here the DutLib will try to save itself
 
-        self.ignore_duts = []  # list of names which are not returned while iteration
+        self.ignore_duts: List[str] = []  # list of names which are not returned while iteration
 
         self.n_jobs = n_jobs  # number of parallel jobs while directory import
 
@@ -254,6 +252,8 @@ class DutLib(object):
         self.wafer = None
         self.date_tapeout = None
         self.date_received = None
+
+        self.plots = []  # list of plots for the documentation.
 
     @property
     def dut_ref(self):
@@ -264,9 +264,9 @@ class DutLib(object):
         return self._dut_ref
 
     @dut_ref.setter
-    def dut_ref(self, dut):
+    def dut_ref(self, dut: DutView):
         """Ensure that dut_ref is in duts"""
-        if not id(dut) in [id(dut_) for dut_ in self.duts]:
+        if id(dut) not in [id(dut_) for dut_ in self.duts]:
             self.duts.append(dut)
 
         self._dut_ref = dut
@@ -280,9 +280,9 @@ class DutLib(object):
         return self._dut_internal
 
     @dut_internal.setter
-    def dut_internal(self, dut):
+    def dut_internal(self, dut: DutView):
         """Ensure that dut_internal is in duts"""
-        if not id(dut) in [id(dut_) for dut_ in self.duts]:
+        if id(dut) not in [id(dut_) for dut_ in self.duts]:
             self.duts.append(dut)
 
         self._dut_internal = dut
@@ -296,9 +296,9 @@ class DutLib(object):
         return self._dut_intrinsic
 
     @dut_intrinsic.setter
-    def dut_intrinsic(self, dut):
+    def dut_intrinsic(self, dut: DutView):
         """Ensure that dut_intrinsic is in duts"""
-        if not id(dut) in [id(dut_) for dut_ in self.duts]:
+        if id(dut) not in [id(dut_) for dut_ in self.duts]:
             self.duts.append(dut)
 
         self._dut_intrinsic = dut
@@ -405,8 +405,8 @@ class DutLib(object):
             duts.append(dut_filter(str(import_dir)))
             dut_paths.append(import_dir)
         else:
-            for child in import_dir.glob("*/" * (dut_level)):  # can be used in windows and linux
-                if child.is_dir():  # only directories are allowed
+            for child in import_dir.glob("**/*"):  # can be used in windows and linux
+                if child.parents[dut_level - 1] == import_dir:
                     child = child.resolve()
                     dut = dut_filter(str(child))
                     if dut is not None:
@@ -451,13 +451,21 @@ class DutLib(object):
             for dut in duts:
                 if dut.name in [dut_a.name for dut_a in self.duts]:
                     raise IOError(
-                        "DutLib: A DuT of name " + dut.name + " already exists. Dut names must be unique!"
+                        f"DutLib: A DuT with the name {dut.name} already exists. Dut names must be unique!"
+                    )
+                if "|" in dut.name:
+                    raise IOError(
+                        f"DutLib: A DuT with the name {dut.name} was tried to add to the lib. The sign | is reserved in DutLibs for saving!"
                     )
                 self.duts.append(dut)
         except TypeError:
             if duts.name in [dut_a.name for dut_a in self.duts]:
                 raise IOError(
-                    "DutLib: A DuT of this name already exists. Dut names must be unique!"
+                    f"DutLib: A DuT with the name {dut.name} already exists. Dut names must be unique!"
+                )
+            if "|" in dut.name:
+                raise IOError(
+                    f"DutLib: A DuT with the name {dut.name} was tried to add to the lib. The sign | is reserved in DutLibs for saving!"
                 )
             self.duts.append(duts)
 
@@ -478,7 +486,8 @@ class DutLib(object):
         ignore_duts = copy.deepcopy(self.ignore_duts)
         self.ignore_duts = []  # save all duts, even the one who were ignored
         for dut in self.duts:
-            if dut.database_dir != self.save_dir / "duts":
+            # change dut.save_dir, so that the duts are saved inside the DutLib folder
+            if self.save_dir / "duts" not in dut.database_dir.parents:
                 try:  # if enough data available, sort by wafer and dies
                     directory = (
                         self.save_dir
@@ -534,13 +543,14 @@ class DutLib(object):
             "dut_ref_dut_dir": str(self.dut_ref_dut_dir),
             "dut_intrinsic_dut_dir": str(self.dut_intrinsic_dut_dir),
             "dut_internal_dut_dir": str(self.dut_internal_dut_dir),
-            "ignore_duts": "["
-            + ",".join(dut_name for dut_name in self.ignore_duts)
-            + "]",  # list of names which are not returned while iteration
+            "ignore_duts": "|".join(
+                dut_name for dut_name in self.ignore_duts
+            ),  # list of names which are not returned while iteration
             "n_jobs": self.n_jobs,
             "wafer": self.wafer,
             "date_tapeout": self.date_tapeout,
             "date_received": self.date_received,
+            "save_dir": str(self._save_dir),
             "__DutLib__": str(
                 SEMVER_DUTLIB_CURRENT
             ),  # make versions, so we can introduce compatibility here!}
@@ -578,7 +588,27 @@ class DutLib(object):
         if (lib_directory / "dut_lib.json").exists():
             with (lib_directory / "dut_lib.json").open("r", encoding="utf8") as file_json:
                 json_content = json.load(file_json)
-            if not json_content["__DutLib__"] == SEMVER_DUTLIB_CURRENT:
+
+            if json_content["__DutLib__"] == SEMVER_DUTLIB_CURRENT:
+                pass
+            elif json_content["__DutLib__"] == VersionInfo(major=1, minor=0):
+                print(
+                    "DMT:DutLib:load(): Loading an old lib. This will work, if the machine if the path stays the same. Otherwise, add 'save_dir' key to the dut_lib.json manually."
+                )
+            elif json_content["__DutLib__"] == VersionInfo(major=1, minor=1):
+                print(
+                    "DMT:DutLib:load(): Loading an old lib. This will work. Only the way ignore_duts are saved is different."
+                )
+
+                ignore_duts = []
+                for dut_name in json_content["ignore_duts"].split(","):
+                    dut_name = dut_name.lstrip("[")
+                    dut_name = dut_name.rstrip("]")
+                    if dut_name:
+                        ignore_duts.append(dut_name)
+                json_content["ignore_duts"] = "|".join(dut_name for dut_name in ignore_duts)
+
+            else:
                 raise IOError("DMT.DutLib: Tried to load a DutLib with unkown version.")
 
             for key, value in json_content.items():
@@ -604,10 +634,15 @@ class DutLib(object):
             dut_lib.dut_intrinsic_dut_dir = json_content["dut_intrinsic_dut_dir"]
             dut_lib.dut_internal_dut_dir = json_content["dut_internal_dut_dir"]
 
-            dut_lib.ignore_duts = json_content["ignore_duts"]
+            dut_lib.ignore_duts = json_content["ignore_duts"].split("|")
             dut_lib.wafer = json_content["wafer"]
             dut_lib.date_tapeout = json_content["date_tapeout"]
             dut_lib.date_received = json_content["date_received"]
+
+            try:
+                dut_lib._save_dir = json_content["save_dir"]
+            except KeyError:
+                pass
 
         elif (lib_directory / "dut_lib.p").exists():
             with (lib_directory / "dut_lib.p").open(mode="rb") as handle:
@@ -640,28 +675,33 @@ class DutLib(object):
             )
             loaded_paths.append(file_dut.parent)
         for file_dut in (dut_lib.save_dir / "duts").glob("**/*.p"):
-            if not file_dut.parent in loaded_paths:
+            if file_dut.parent not in loaded_paths:
                 dut_lib.duts.append(DutView.load_dut(file_dut))
 
         # correct dut paths:
-        if dut_lib.dut_ref_dut_dir is not None:
-            dut_lib.dut_ref_dut_dir = Path(dut_lib.dut_ref_dut_dir)
-            if not dut_lib.dut_ref_dut_dir.exists():
-                dut_lib.dut_ref_dut_dir = Path(
-                    str(dut_lib.dut_ref_dut_dir).replace(save_dir_old, str(lib_directory))
-                )
-        if dut_lib.dut_internal_dut_dir is not None:
-            dut_lib.dut_internal_dut_dir = Path(dut_lib.dut_internal_dut_dir)
-            if not dut_lib.dut_internal_dut_dir.exists():
-                dut_lib.dut_internal_dut_dir = Path(
-                    str(dut_lib.dut_internal_dut_dir).replace(save_dir_old, str(lib_directory))
-                )
-        if dut_lib.dut_intrinsic_dut_dir is not None:
-            dut_lib.dut_intrinsic_dut_dir = Path(dut_lib.dut_intrinsic_dut_dir)
-            if not dut_lib.dut_intrinsic_dut_dir.exists():
-                dut_lib.dut_intrinsic_dut_dir = Path(
-                    str(dut_lib.dut_intrinsic_dut_dir).replace(save_dir_old, str(lib_directory))
-                )
+        if save_dir_old:
+            if dut_lib.dut_ref_dut_dir is not None:
+                dut_lib.dut_ref_dut_dir = Path(dut_lib.dut_ref_dut_dir)
+                if not dut_lib.dut_ref_dut_dir.exists():
+                    dut_lib.dut_ref_dut_dir = Path(
+                        str(dut_lib.dut_ref_dut_dir).replace(save_dir_old, str(lib_directory), 1)
+                    )
+            if dut_lib.dut_internal_dut_dir is not None:
+                dut_lib.dut_internal_dut_dir = Path(dut_lib.dut_internal_dut_dir)
+                if not dut_lib.dut_internal_dut_dir.exists():
+                    dut_lib.dut_internal_dut_dir = Path(
+                        str(dut_lib.dut_internal_dut_dir).replace(
+                            save_dir_old, str(lib_directory), 1
+                        )
+                    )
+            if dut_lib.dut_intrinsic_dut_dir is not None:
+                dut_lib.dut_intrinsic_dut_dir = Path(dut_lib.dut_intrinsic_dut_dir)
+                if not dut_lib.dut_intrinsic_dut_dir.exists():
+                    dut_lib.dut_intrinsic_dut_dir = Path(
+                        str(dut_lib.dut_intrinsic_dut_dir).replace(
+                            save_dir_old, str(lib_directory), 1
+                        )
+                    )
 
         for dut in dut_lib.duts:
             if dut_lib.dut_ref_dut_dir is not None:
@@ -970,6 +1010,8 @@ class DutLib(object):
                 "DMT -> DutLib: You did not select any filter flags that would allow deembedding!"
             )
 
+        mres = {}
+
         # Iterating through the dev_list, which contains all devices that require deembedding.
         for i_dev, dev in enumerate(dev_list):
             print("\n")
@@ -1018,13 +1060,15 @@ class DutLib(object):
                     suffix=dev.name,
                     length=50,
                 )
-                mres = self.deembed_dut_DC(
-                    dev,
-                    suitable_shorts[0],
-                    function_dut=function_dut,
-                    function_df=function_df,
-                    t_ref=t_ref,
-                    forced_current=forced_current,
+                mres.update(
+                    self.deembed_dut_DC(
+                        dev,
+                        suitable_shorts[0],
+                        function_dut=function_dut,
+                        function_df=function_df,
+                        t_ref=t_ref,
+                        forced_current=forced_current,
+                    )
                 )
 
         print_progress_bar(
@@ -1265,17 +1309,20 @@ class DutLib(object):
         # ISSUE: No for-loop "(meas_filter, deem_filter) in self.DC_filter_names:" performed here.
         # all measurements stored under keys are DC deembedded here!
         if function_dut is not None:
-            mres_tref = function_dut(dut_short)
+            mres = function_dut(dut_short)
             print("\n")
             print(dut.name)
             print("\n")
             for key in dut.data.keys():
                 print(key)
                 dut.data[key] = dut.data[key].deembed_DC(
-                    mres=mres_tref, forced_current=forced_current
+                    mres=mres,
+                    forced_current=forced_current,
+                    ac_ports=dut.ac_ports,
+                    reference_node=dut.reference_node,
                 )
         else:
-            mres_tref = None
+            mres = {}
 
             for meas_filter, deem_filter in self.DC_filter_names:
                 # get the short keys
@@ -1289,50 +1336,74 @@ class DutLib(object):
                     df_short = dut_short.data[short_keys[0]]
 
                     if function_df is None:
-                        mres_tref = df_short.determine_mres(forced_current=forced_current)
+                        mres = df_short.determine_mres(
+                            forced_current=forced_current,
+                            ac_ports=dut_short.ac_ports,
+                            reference_node=dut_short.reference_node,
+                        )
                     else:
-                        mres_tref = function_df(dut_short)
+                        mres = function_df(dut_short)
 
                 for key in dut.data.keys():
                     # check if df needs to be DC deembedded
                     if re.search(meas_filter, key, re.IGNORECASE):
                         if len(short_keys) == 1:
                             mres = mres_tref
-                        else:  # NOT TESTED!!!!
-                            # bad news...try to find matching temperatures. #TODO: Does not work if no keys are found
+                        else:
+                            # try to find matching temperatures.
                             key_temperature = dut.get_key_temperature(key)
+                            short_keys_matching = []
                             for short_key in short_keys:
                                 if np.isclose(
                                     key_temperature,
                                     dut_short.get_key_temperature(short_key),
+                                    atol=3,
                                 ):
-                                    break
-                            df_short = dut_short.data[short_key]
+                                    short_keys_matching.append(short_key)
+
+                            df_shorts = []
+                            for short_key in short_keys_matching:
+                                df_shorts.append(dut_short.data[short_key])
+                            if df_shorts:
+                                df_short = DataFrame.from_parts(*df_shorts)
+                            else:
+                                raise IOError(
+                                    f"Did not find suitable short keys for {dut.name} at {key_temperature}K. \n The available short keys were: "
+                                    + ",".join(short_keys)
+                                )
 
                             if function_df is None:
                                 try:
-                                    mres = df_short.determine_mres(forced_current=forced_current)
+                                    mres[f"{dut_short.name}@{key_temperature:.0f}K"] = (
+                                        df_short.determine_mres(
+                                            forced_current=forced_current,
+                                            ac_ports=dut_short.ac_ports,
+                                            reference_node=dut_short.reference_node,
+                                        )
+                                    )
                                 except IOError as err:
                                     raise IOError(
                                         "Column missing in df of dut "
                                         + dut_short.name
                                         + " of df with key "
                                         + short_key
-                                        + ". Available keys: "
-                                        + str(df_short.data.keys())
+                                        + ". Available columns: "
+                                        + str(df_short.columns())
                                         + "."
                                     ) from err
                             else:
-                                mres = function_df(dut_short)
-
-                            if np.isclose(key_temperature, t_ref):
-                                mres_tref = mres
+                                mres["f{dut_short.name}@{key_temperature:.0f}K"] = function_df(
+                                    dut_short
+                                )
 
                         dut.data[key] = dut.data[key].deembed_DC(
-                            mres=mres, forced_current=forced_current
+                            mres=mres,
+                            forced_current=forced_current,
+                            ac_ports=dut.ac_ports,
+                            reference_node=dut.reference_node,
                         )
 
-        return mres_tref
+        return mres
 
     def toTex(self):
         """This function generates a TeX representation of a DutLib.
@@ -1406,6 +1477,17 @@ class DutLib(object):
                                     ]
                                 )
                             )
+                            if dut_type.is_subtype(DutTypeFlag.flag_tlm):
+                                for dut in duts:
+                                    dut_name = dut.name.replace("_", "\_")
+                                    doc.append(
+                                        NoEscape(
+                                            f"One TLM-Structure with the name {dut_name} with the width \\SI{{{dut.width*1e6}}}{{\\micro\\metre}} and the lengths \\SI{{{dut.length[0]*1e6}}}{{\\micro\\metre}} and \\SI{{{dut.length[1]*1e6}}}{{\\micro\\metre}}."
+                                        )
+                                    )
+                                doc.append("\r")
+                                continue
+
                             lE0s = list(set([dut.length for dut in duts]))
                             bE0s = list(set([dut.width for dut in duts]))
                             lE0s.sort()
@@ -1629,25 +1711,30 @@ def _read_dut_folder(dut, path, force, temperature_converter, **kwargs):
     """
     if not force:
         dut.load_db()
-    for root, _dirs, files in os.walk(path):
-        for name in files:
+    if path.is_file():
+        key_list = path.name
+        key = dut.join_key_temperature(path.stem, temperature_converter=temperature_converter)
+        dut.add_data(path, key, force, **kwargs)
+    else:
+        for file in path.glob("**/*"):
             # get extension name and cast to lower case
-            extension = name.split(".")[-1]
-            extension = extension.lower()
+            extension = file.suffix.lower()
             if (
-                (extension == "mdm")
-                or (extension == "elpa")
+                (extension == ".mdm")
+                or (extension == ".elpa")
                 or (extension == "xls")
-                or (extension == "csv")
-                or (extension == "feather")
+                or (extension == ".csv")
+                or (extension == ".feather")
             ):
-                path_root = Path(root)
                 # cut the everything before dut lvl and split the path into groups
-                key_list = path_root.relative_to(path).parts
+                key_list = file.relative_to(path).parts
+                key_list = list(key_list[:-1]) + [
+                    Path(key_list[-1]).stem
+                ]  # cut away the file extension
                 # join the groups together into a valid dut_data key
                 key = dut.join_key_temperature(
-                    *key_list, name.split(".")[0], temperature_converter=temperature_converter
+                    *key_list, temperature_converter=temperature_converter
                 )
-                dut.add_data(path_root / name, key, force, **kwargs)
+                dut.add_data(file, key, force, **kwargs)
 
     return dut.data

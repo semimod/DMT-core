@@ -1,9 +1,10 @@
-""" Wrapper for plots with 2 y axis. Shows only "left plot" in pyqtgraph and merged in tikz
+"""Wrapper for plots with 2 y axis. Shows only "left plot" in pyqtgraph and merged in tikz
 
 Author:
     Mario Krattenmacher | Mario.Krattenmacher@semimod.de
     Markus Mueller | Markus.Mueller3@tu-dresden.de
 """
+
 # DMT_core
 # Copyright (C) from 2022  SemiMod
 # Copyright (C) until 2021  Markus Müller, Mario Krattenmacher and Pascal Kuthe
@@ -26,6 +27,7 @@ Author:
 import os
 import numpy as np
 from pathlib import Path
+from DMT.core import Plot
 from DMT.external import build_tex, build_svg, clean_tex_files, build_png, slugify, tex_to_text
 
 try:
@@ -66,7 +68,7 @@ class Plot2YAxis(object):
 
     """
 
-    def __init__(self, name, plot_left, plot_right, legend_location=None):
+    def __init__(self, name: str, plot_left: Plot, plot_right: Plot, legend_location=None):
         self.name = name
 
         # do not check anything here!
@@ -83,6 +85,10 @@ class Plot2YAxis(object):
 
         # self.lines_left = []
         # self.lines_right = []
+
+    @property
+    def caption(self):
+        return self.plot_left.caption + self.plot_right.caption
 
     def plot_py(
         self,
@@ -338,7 +344,9 @@ class Plot2YAxis(object):
 
     def plot_pyqtgraph(self, *args, **kwargs):
         """At the moment only a pass through to the left plot..."""
-        self.plot_left.plot_pyqtgraph(*args, **kwargs)
+        show = kwargs.pop("show", True)
+        self.plot_left.plot_pyqtgraph(*args, show=False, **kwargs)
+        self.plot_right.plot_pyqtgraph(*args, show=show, **kwargs)
 
     def show_pyqtgraph(self, *args, **kwargs):
         self.plot_left.show_pyqtgraph(*args, **kwargs)
@@ -359,6 +367,7 @@ class Plot2YAxis(object):
         show_legend=True,
         legend_location=None,
         legend_columns=4,
+        legend_to_name=None,
         standalone=False,
         build=False,
         clean=False,
@@ -397,6 +406,9 @@ class Plot2YAxis(object):
         self.plot_right.name = name_old_right + "_tmp"
         self.plot_right.num = num_old_right + "_tmp"
 
+        self.plot_left.legend_frame = self.legend_frame
+        self.plot_right.legend_frame = self.legend_frame
+
         if legend_location is None:
             legend_location = self.legend_location
 
@@ -412,6 +424,7 @@ class Plot2YAxis(object):
             legend_location=legend_location,
             legend_columns=legend_columns,
             fontsize=fontsize,
+            line_width=line_width,
         )
         file_tikz_right = self.plot_right.save_tikz(
             directory,
@@ -424,6 +437,8 @@ class Plot2YAxis(object):
             show_legend=show_legend,
             legend_location=legend_location,
             legend_columns=legend_columns,
+            line_width=line_width,
+            legend_to_name=legend_to_name,
             fontsize=fontsize,
         )
 
@@ -490,11 +505,11 @@ class Plot2YAxis(object):
             str_hide_second_axis = "% " + str_hide_second_axis
 
         str_hide_second_ticks = ",\n"
-        y_label_def = "ylabel style={at={(1.32, 0.5)}, anchor=north},\n"
+        y_label_def = "ylabel style={at={(1.08, 0.5)}, anchor=north},\n"
         if hide_second_ticks:
             str_hide_second_ticks = "ytick=\\empty,\n"
             y_label_def = "ylabel style={at={(1.02, 0.5)}, anchor=north},\n"
-        y_label_def = ""
+        # y_label_def = ""
 
         lines_str_tikz_right.insert(
             i_start + i_line,

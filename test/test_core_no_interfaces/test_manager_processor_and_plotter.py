@@ -1,4 +1,5 @@
 import logging
+import numpy as np
 from pathlib import Path
 from DMT.core import DutMeas, DutType, Plot, DutLib
 
@@ -20,11 +21,7 @@ def get_lib_import():
     # -->Define subroutine at first
     # --->Subroutine: filter_dut
     def filter_dut(dut_name):
-        if "dummies" in dut_name:
-            return None
-        elif "TLM" in dut_name:
-            return None
-        elif dut_name == "":
+        if not "0p25x10x1_full" in dut_name:
             return None
         else:
             dut_transistor = DutMeas(
@@ -117,11 +114,7 @@ def get_lib_import_lvl1():
     # -->Define subroutine at first
     # --->Subroutine: filter_dut
     def filter_dut(dut_name):
-        if "dummies" in dut_name:
-            return None
-        elif "TLM" in dut_name:
-            return None
-        elif dut_name == "":
+        if not "0p25x10x1_full" in dut_name:
             return None
         else:
             dut_transistor = DutMeas(
@@ -146,6 +139,7 @@ def get_lib_import_lvl1():
         DC_filter_names=[("fgummel", "dc")],
     )
     # --->Add source measurement information in dmt and to duts
+    lib.n_jobs = 1
     lib.import_directory(
         import_dir=folder_path / "test_data",
         dut_filter=filter_dut,
@@ -223,6 +217,8 @@ if __name__ == "__main__":
     ic, ft, vbc, ic_ftmax = [], [], [], []
     for df in ft_dfs:
         df = df.calc_ft("B", "C")
+        if any(np.isnan(df["F_T"])):
+            continue
         df = df[df["FREQ"] == 10e9]
         ic.append(df["I_C"])
         ft.append(df["F_T"])

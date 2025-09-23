@@ -102,6 +102,10 @@ def test_specifier_from_string():
     assert isinstance(SpecifierStr.string_from_load("FREQ"), str)
     assert not isinstance(SpecifierStr.string_from_load("FREQ"), SpecifierStr)
 
+    # hidden bug in specifier autoconversion when specifier is repeated
+    assert isinstance(get_specifier_from_string("VV"), str)
+    assert not isinstance(get_specifier_from_string("VV"), SpecifierStr)
+
 
 def column_save_load():
     a = DataFrame({SpecifierStr("V", "B"): [1]})
@@ -154,9 +158,9 @@ def test_pretty_printing():
 
 
 if __name__ == "__main__":
-    test_index_objects()
-    test_specifier_texts()
-    test_specifier_from_string()
-    column_save_load()
+    # test_index_objects()
+    # test_specifier_texts()
+    # test_specifier_from_string()
+    # column_save_load()
     test_pretty_printing()
     dummy = 1
