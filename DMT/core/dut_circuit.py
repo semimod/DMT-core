@@ -88,7 +88,7 @@ class DutCircuit(DutView):
         input_circuit,
         simulator_options: dict = None,
         get_circuit_arguments: dict = None,
-        **kwargs
+        **kwargs,
     ):
         self._inp_header = ""
 
@@ -179,7 +179,12 @@ class DutCircuit(DutView):
         """
         modelcard = None
         if self._modelcard is not None:
-            modelcard = self._modelcard.dumps_json()
+            try:
+                modelcard = self._modelcard.dumps_json()
+            except AttributeError:
+                # if the dutview is loaded, the modelcard is a string since it can not be deserialized as MCard subclass is unknown...
+                modelcard = str(self._modelcard)
+
         return {
             "__DutCircuit__": str(SEMVER_DUTCIRCUIT_CURRENT),
             "parent": super(DutCircuit, self).info_json(**_kwargs),
@@ -275,7 +280,13 @@ class DutCircuit(DutView):
         else:
             list_va = []
 
-        return create_md5_hash(self.inp_header, *self.list_copy, *list_va)
+        list_copy = []
+        for name, value in self.dict_copy.items():
+            if "name" == "datafile.tbl":
+                list_copy.append(value)
+            else:
+                list_copy.append(f";{name}={value}")
+        return create_md5_hash(self.inp_header, *list_copy, *list_va)
 
     def create_inp_header(self, inp_circuit):
         """Creates the inp_header from the given circuit.

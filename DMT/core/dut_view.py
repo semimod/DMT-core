@@ -44,7 +44,10 @@ import DMT.core.technology as dmt_tech
 from DMT.config import DATA_CONFIG
 from DMT.exceptions import UnknownColumnError
 
-SEMVER_DUTVIEW_CURRENT = VersionInfo(major=1, minor=0)
+# SEMVER_DUTVIEW_CURRENT = VersionInfo(major=1, minor=0)
+SEMVER_DUTVIEW_CURRENT = VersionInfo(
+    major=1, minor=1
+)  # changed list_copy to dict_copy for mutliple files with names
 
 
 class DutView(object):
@@ -163,6 +166,7 @@ class DutView(object):
         loading=False,
         separate_databases=False,
         list_copy=None,
+        dict_copy=None,
         t_max=None,
         sim_dir=DATA_CONFIG["directories"]["simulation"],
         simulate_on_server=None,
@@ -194,13 +198,22 @@ class DutView(object):
         self.name = name
         self._copy_va_files = copy_va_files
         # files to be copied into simulation directory
-        if list_copy is None:
-            self.list_copy = []
+        if dict_copy is None:
+            self.dict_copy = {}
         else:
+            self.dict_copy = dict_copy
+
+        if list_copy is not None and dict_copy is None:
+            warnings.warn("Use dict_copy from now on!", DeprecationWarning)
             if not isinstance(list_copy, list):
-                self.list_copy = [list_copy]
+                self.dict_copy = {"datafile.tbl": list_copy}
             else:
-                self.list_copy = list_copy
+                for i_c, to_copy in enumerate(list_copy):
+                    if i_c == 0:
+                        self.dict_copy[f"datafile.tbl"] = to_copy
+                    else:
+                        self.dict_copy[f"datafile_{i_c}.tbl"] = to_copy
+
         self._list_va_file_contents: list[VAFileMap] = []
 
         self.manager = DatabaseManager()
@@ -326,17 +339,17 @@ class DutView(object):
             pbs_content = self.make_pbs(sweep)  # needs to be implemented by the DUT
             (sim_folder / "pbs_job").write_text(pbs_content)
 
-        for data_copy in self.list_copy:
+        for name, data_copy in self.dict_copy.items():
             try:
                 if os.path.isfile(data_copy):
                     filename = os.path.basename(data_copy)
                     shutil.copyfile(data_copy, os.path.join(sim_folder, filename))
                 else:
                     # filename ??? Setting default file name... seems crazy here
-                    (sim_folder / "datafile.tbl").write_text(data_copy)
+                    (sim_folder / name).write_text(data_copy)
             except TypeError:
                 file_content = self._write_data_table(data_copy)
-                file_name = sim_folder / "datafile.tbl"
+                file_name = sim_folder / name
                 with file_name.open("a") as file_table:
                     file_table.write(file_content)
 
@@ -531,7 +544,9 @@ class DutView(object):
         return {
             "__DutView__": str(SEMVER_DUTVIEW_CURRENT),
             "copy_va_files": self._copy_va_files,
-            "list_copy": [str(to_copy) for to_copy in self.list_copy],
+            "dict_copy": "|||".join(
+                [name + ":::" + str(to_copy) for name, to_copy in self.dict_copy.items()]
+            ),
             "list_va_file_contents": [
                 va_file.export_dict() for va_file in self._list_va_file_contents
             ],
@@ -672,8 +687,21 @@ class DutView(object):
         DutView
             Loaded object.
         """
-        if json_content["__DutView__"] != SEMVER_DUTVIEW_CURRENT:
+        dict_copy = {}
+        if json_content["__DutView__"] == VersionInfo(major=1, minor=0):
+            for i_c, to_copy in enumerate(json_content["list_copy"]):
+                if i_c == 0:
+                    dict_copy[f"datafile.tbl"] = to_copy
+                else:
+                    dict_copy[f"datafile_{i_c}.tbl"] = to_cop
+        elif json_content["__DutView__"] != SEMVER_DUTVIEW_CURRENT:
             raise NotImplementedError("DMT.DutView: Unknown version of DutView to load!")
+        else:
+            str_copy = json_content["dict_copy"]
+            if str_copy:
+                for item in str_copy.split("|||"):
+                    name, value = item.split(":::")
+                    dict_copy[name] = value
 
         serialized_technology = json_content["technology"]
         if serialized_technology is None:
@@ -711,7 +739,7 @@ class DutView(object):
             force=False,
             loading=True,
             separate_databases=json_content["separate_databases"],
-            list_copy=json_content["list_copy"],
+            dict_copy=dict_copy,
             t_max=json_content["t_max"],
             sim_dir=json_content["sim_dir"],
             simulate_on_server=json_content["simulate_on_server"],
