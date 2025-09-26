@@ -242,7 +242,8 @@ class DutNgspice(DutCircuit):
             self._modelcard = None
             self._inp_circuit = copy.deepcopy(inp_circuit)
 
-            self.list_copy += inp_circuit.lib_files
+            for i_file, lib_file in enumerate(inp_circuit.lib_files):
+                self.dict_copy[f"libfile_{i_file}"] = lib_file
         else:
             raise OSError(
                 "For ngspice circuits netlist generation is only possible from object of class DMT.core.MCard or DMT.core.Circuit"
