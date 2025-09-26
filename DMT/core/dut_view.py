@@ -28,6 +28,7 @@ import logging
 from pathlib import Path
 import pandas as pd
 from typing import List, Dict, Type, Union
+import warnings
 
 try:
     from semver.version import Version as VersionInfo
@@ -345,7 +346,6 @@ class DutView(object):
                     filename = os.path.basename(data_copy)
                     shutil.copyfile(data_copy, os.path.join(sim_folder, filename))
                 else:
-                    # filename ??? Setting default file name... seems crazy here
                     (sim_folder / name).write_text(data_copy)
             except TypeError:
                 file_content = self._write_data_table(data_copy)
@@ -693,7 +693,7 @@ class DutView(object):
                 if i_c == 0:
                     dict_copy[f"datafile.tbl"] = to_copy
                 else:
-                    dict_copy[f"datafile_{i_c}.tbl"] = to_cop
+                    dict_copy[f"datafile_{i_c}.tbl"] = to_copy
         elif json_content["__DutView__"] != SEMVER_DUTVIEW_CURRENT:
             raise NotImplementedError("DMT.DutView: Unknown version of DutView to load!")
         else:

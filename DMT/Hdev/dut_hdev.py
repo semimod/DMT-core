@@ -255,7 +255,7 @@ class DutHdev(DutTcad):
                 cont_name = str(key)[0]
             f.create_dataset(cont_name, data=val)
         f.close()
-        self.list_copy.append(path_bias)
+        self.dict_copy["bias.h5"] = path_bias
         # end save sweep definition
         for sub_sweep in sweep.sweepdef:
             try:
