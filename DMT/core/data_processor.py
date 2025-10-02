@@ -19,6 +19,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
+import warnings
 import numpy as np
 from skrf import network as rf_network
 from DMT.core.naming import specifiers, sub_specifiers
@@ -991,7 +992,10 @@ class DataProcessor(object):
                 ic = ic[vbe_indexes]
 
             # calculate
-            gm = np.gradient(np.log(np.abs(ic)), vbe) * ic
+            # with warnings.catch_warnings():
+            # warnings.filterwarnings("error")
+            gm = np.where(ic == 0.0, np.finfo(float).eps, np.gradient(np.log(np.abs(ic)), vbe) * ic)
+            # if current is 0, gm is set to eps to avoid nans
 
             if resort is not None:
                 gm = gm[resort]

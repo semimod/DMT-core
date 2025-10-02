@@ -39,7 +39,7 @@ import warnings
 from joblib import Parallel, delayed
 from reprint import output
 from pathlib import Path, PurePosixPath, PureWindowsPath
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Dict
 import multiprocessing
 
 from DMT.core import Singleton, print_progress_bar
@@ -468,7 +468,7 @@ class SimCon(object, metaclass=Singleton):
             # reraise it in order to allow run_and_read to go on and try again in 2 seconds
             raise FileNotFoundError() from err
 
-    def run_simulations(self, sim_list):
+    def run_simulations(self, sim_list: List[Dict[str, Union[DutView, Sweep]]]):
         """Runs all given simulations in parallel.
 
         Parameters
