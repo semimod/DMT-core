@@ -1076,6 +1076,7 @@ class Plot(object):
                     x = np.abs(x)
                 elif sub_specifiers.PHASE in self.x_specifier:
                     x = np.angle(x, deg=True)
+                    x = np.where(x > 0, x - 360, x)  # have only negative phases (?)
                 else:
                     warnings.warn(
                         f"DMT-Plot-complex: In the plot {self.name} is a line with untreated complex x-values. Real part is used, as it was.",
@@ -1098,6 +1099,7 @@ class Plot(object):
                     y = np.abs(y)
                 elif sub_specifiers.PHASE in self.y_specifier:
                     y = np.angle(y, deg=True)
+                    y = np.where(y > 0, y - 360, y)  # have only negative phases (?)
                 else:
                     warnings.warn(
                         f"DMT-Plot-complex: In the plot {self.name} is a line with untreated complex y-values. Real part is used, as it was.",
@@ -2032,6 +2034,7 @@ class Plot(object):
                 x_data = np.abs(x_data)
             elif sub_specifiers.PHASE in self.x_specifier:
                 x_data = np.angle(x_data, deg=True)
+                x_data = np.where(x_data > 0, x_data - 360, x_data)  # have only negative phases (?)
             else:
                 raise IOError(f"DMT: tikz_addplot: can not plot complex numbers. {self.name}")
         else:
@@ -2047,6 +2050,7 @@ class Plot(object):
                 y_data = np.abs(y_data)
             elif sub_specifiers.PHASE in self.y_specifier:
                 y_data = np.angle(y_data, deg=True)
+                y_data = np.where(y_data > 0, y_data - 360, y_data)  # have only negative phases (?)
             else:
                 raise IOError(f"DMT: tikz_addplot: can not plot complex numbers. {self.name}")
         else:

@@ -814,7 +814,7 @@ class McParameterCollection(object):
         IOError
             If the collection dictionary is not found in the json file.
         """
-        content = json.loads(s)
+        content = json.loads(str(s))
 
         collection = None
         for dict_content in content:
