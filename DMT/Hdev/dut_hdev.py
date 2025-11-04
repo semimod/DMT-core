@@ -217,12 +217,20 @@ class DutHdev(DutTcad):
         inp_str = cast(str, inp_str)
         # find frequency sweep def
         has_f_def = False
+        has_time_def = False
         for i, sub_sweep in enumerate(sweep.sweepdef):
             if sub_sweep.var_name == specifiers.FREQUENCY:
                 has_f_def = True
                 break
         if has_f_def:
             f_def = sweep.sweepdef.pop(i)  # type: ignore
+        for i, sub_sweep in enumerate(sweep.sweepdef):
+            if sub_sweep.var_name == specifiers.TIME:
+                has_time_def = True
+                break
+        if has_time_def:
+            time_def = sweep.sweepdef.pop(i)  # type: ignore
+
         sweep.set_values()
         df = sweep.create_df()
         # add T sweep if not specified
@@ -327,6 +335,36 @@ class DutHdev(DutTcad):
                 inp_str = inp_str + "\n" + bias_str
             else:
                 raise NotImplementedError
+
+        if has_time_def:
+            sub_sweep = time_def
+            if sub_sweep.sweep_type == "SINUS":
+                func_type = "sin"
+            elif sub_sweep.sweep_type == "SMOOTH_RAMP":
+                func_type = "exp2"
+            else:
+                raise NotImplementedError(
+                    "DutHdev: Transient sweep type " + sub_sweep.sweep_type + " not implemented!"
+                )
+            if len(sub_sweep.value_def) > 1:
+                raise NotImplementedError(
+                    "DutHdev: Transient sweep with multiple frequencies not implemented!"
+                )
+
+            bias_info = {
+                "cont_name": "'" + sub_sweep.contact + "'",
+                "func_type": "'" + func_type + "'",
+                "v_max": sub_sweep.amp,
+                "T": sub_sweep.value_def[0],
+                "phase": sub_sweep.phase,
+            }
+            # add sweep definition to inp file
+            bias_str = (
+                "&TR_INFO "
+                + "".join([name + "=" + str(value) + " " for name, value in bias_info.items()])
+                + "/"
+            )
+            inp_str = inp_str + "\n" + bias_str
 
         if not has_t_def:
             bias_str = (
@@ -489,6 +527,26 @@ class DutHdev(DutTcad):
                 for i in range(len(ac_keys)):
                     dfs_ac.append(self.get_df(df_, "ac", "op" + str(i + 1)))
 
+            # transient?
+            key_tr = ""
+            df_tr = None
+            dfs_tr = []
+            for key_df in df_.keys():
+                if key_df.startswith("tr_op"):
+                    key_tr = key_df
+                    break
+            if key_tr:
+                key_ = self.join_key(key, "tr")
+                # df_tr = # df_[key_tr]
+                df_tr = self.get_df(df_, None, key_tr)
+
+                tr_keys = list(df_["tr_inqu"].keys())
+                tr_keys_start = tr_keys[0].find("tr")
+                for i in range(len(tr_keys)):
+                    dfs_tr.append(
+                        self.get_df(df_, "tr_inqu", tr_keys[0][: tr_keys_start + 2] + str(i + 1))
+                    )
+
             df_.close()
 
             # add the inqu and acinqu files
@@ -510,6 +568,11 @@ class DutHdev(DutTcad):
             if df_cap is not None:
                 key_ = self.join_key(key, "cap")
                 self.data[key_] = df_cap
+
+            # add the transient inqu files
+            for i, df_tr_inqu in enumerate(dfs_tr):
+                key_ = self.join_key(key, "tr_inqu" + str(i))
+                self.data[key_] = df_tr_inqu
 
             ac = False
             # read in the iv data
@@ -625,104 +688,114 @@ class DutHdev(DutTcad):
                     # x_be = np.ones(len(df_dc))
                     # x_bc = np.ones(len(df_dc))
 
-                    try:
-                        for i_row, row in df_dc.iterrows():
-                            key_inqu = self.join_key(key, f"op{i_row+1:.0f}_inqu")
-                            key_ac_inqu = self.join_key(key, f"acinqu_op{i_row+1:.0f}_dVb_f1")
+                    # try:
+                    for i_row, row in df_dc.iterrows():
+                        key_inqu = self.join_key(key, f"op{i_row+1:.0f}_inqu")
+                        key_ac_inqu = self.join_key(key, f"acinqu_op{i_row+1:.0f}_dVb_f1")
 
-                            # get the necessary data
-                            df_ac_inqu_i = self.data[key_ac_inqu]
-                            dn_dic = df_ac_inqu_i["re_d_n_x"].to_numpy() / gm[int(i_row)]
-                            try:
-                                dn2_dic = df_ac_inqu_i["re_d_n2_x"].to_numpy() / gm[int(i_row)]
-                            except KeyError:
-                                dn2_dic = df_ac_inqu_i["re_d_n_x"].to_numpy() / gm[int(i_row)]
+                        # get the necessary data
+                        df_ac_inqu_i = self.data[key_ac_inqu]
+                        dn_dic = df_ac_inqu_i["re_d_n_x"].to_numpy() / gm[int(i_row)]
+                        try:
+                            dn2_dic = df_ac_inqu_i["re_d_n2_x"].to_numpy() / gm[int(i_row)]
+                        except KeyError:
+                            dn2_dic = df_ac_inqu_i["re_d_n_x"].to_numpy() / gm[int(i_row)]
 
-                            dp_dic = df_ac_inqu_i["re_d_p_x"].to_numpy() / gm[int(i_row)]
-                            droh_dic = dp_dic - dn_dic
-                            # transit time
-                            changes = (
-                                np.where(np.sign(droh_dic[:-1]) != np.sign(droh_dic[1:]))[0] + 1
-                            )
-                            index_be = changes[np.argmin(np.abs(changes - junctions[0]))]
-                            index_bc = changes[np.argmin(np.abs(changes - junctions[1]))]
-                            if index_bc == index_be:
-                                index_bc = changes[np.argmin(np.abs(changes - junctions[1])) + 1]
-                            x_be = x[index_be]
-                            x_bc = x[index_bc]
+                        dp_dic = df_ac_inqu_i["re_d_p_x"].to_numpy() / gm[int(i_row)]
+                        # droh_dic = dp_dic - dn_dic
 
-                            tau = np.zeros(len(x))
-                            taup = np.zeros(len(x))
-                            taun = np.zeros(len(x))
-                            taun2 = np.zeros(len(x))
-                            for j, x_ in enumerate(x):
-                                if x_ <= x_be:
-                                    tau[j] += np.trapezoid(dp_dic[:j], x[:j])
-                                    tau[j] += np.trapezoid(dn_dic[:j], x[:j]) - np.trapezoid(
-                                        dp_dic[:j], x[:j]
-                                    )
-                                elif x_ <= x_bc:
-                                    tau[j] += np.trapezoid(dn_dic[:j], x[:j])
-                                else:
-                                    tau[j] += np.trapezoid(dp_dic[:j], x[:j])
-                                    tau[j] += np.trapezoid(dn_dic[:j], x[:j]) - np.trapezoid(
-                                        dp_dic[:j], x[:j]
-                                    )
+                        dn_dvb = df_ac_inqu_i["re_d_n_x"].to_numpy()
+                        dp_dvb = df_ac_inqu_i["re_d_p_x"].to_numpy()
+                        droh_dvb = dp_dvb - dn_dvb
+                        # transit time
+                        changes = np.where(np.sign(droh_dvb[:-1]) != np.sign(droh_dvb[1:]))[0] + 1
+                        index_be = changes[np.argmin(np.abs(changes - junctions[0]))]
+                        index_bc = changes[np.argmin(np.abs(changes - junctions[1]))]
+                        if index_bc == index_be:
+                            index_bc = changes[np.argmin(np.abs(changes - junctions[1])) + 1]
+                        x_be = x[index_be]
+                        x_bc = x[index_bc]
 
-                                taun[j] = np.trapezoid(dn_dic[:j], x[:j])
-                                taup[j] = np.trapezoid(dp_dic[:j], x[:j])
-                                taun2[j] = np.trapezoid(dn2_dic[:j], x[:j])
+                        tau = np.zeros(len(x))
+                        taup = np.zeros(len(x))
+                        taun = np.zeros(len(x))
+                        taun2 = np.zeros(len(x))
+                        for j, x_ in enumerate(x):
+                            if x_ <= x_be:
+                                tau[j] += np.trapezoid(dp_dic[:j], x[:j])
+                                tau[j] += np.trapezoid(dn_dic[:j], x[:j]) - np.trapezoid(
+                                    dp_dic[:j], x[:j]
+                                )
+                            elif x_ <= x_bc:
+                                tau[j] += np.trapezoid(dn_dic[:j], x[:j])
+                            else:
+                                tau[j] += np.trapezoid(dp_dic[:j], x[:j])
+                                tau[j] += np.trapezoid(dn_dic[:j], x[:j]) - np.trapezoid(
+                                    dp_dic[:j], x[:j]
+                                )
 
-                            tau = tau * constants.P_Q
-                            taun = taun * constants.P_Q
-                            taun2 = taun2 * constants.P_Q
-                            taup = taup * constants.P_Q
+                            taun[j] = np.trapezoid(dn_dic[:j], x[:j])
+                            taup[j] = np.trapezoid(dp_dic[:j], x[:j])
+                            taun2[j] = np.trapezoid(dn2_dic[:j], x[:j])
 
-                            tau_e = np.trapezoid(dp_dic[:index_be], x[:index_be]) * constants.P_Q
-                            tau_be = (
-                                np.trapezoid(dn_dic[:index_be], x[:index_be]) * constants.P_Q
-                                - tau_e
-                            )
-                            tau_b = (
-                                np.trapezoid(dn_dic[index_be:index_bc], x[index_be:index_bc])
-                                * constants.P_Q
-                            )
-                            tau_c = np.trapezoid(dp_dic[index_bc:], x[index_bc:]) * constants.P_Q
-                            tau_bc = (
-                                np.trapezoid(dn_dic[index_bc:], x[index_bc:]) * constants.P_Q
-                                - tau_c
-                            )
+                        tau = tau * constants.P_Q
+                        taun = taun * constants.P_Q
+                        taun2 = taun2 * constants.P_Q
+                        taup = taup * constants.P_Q
 
-                            dm_dic = np.where(dn_dic < dp_dic, dn_dic, dn_dic)
+                        tau_e = np.trapezoid(dp_dic[:index_be], x[:index_be]) * constants.P_Q
+                        tau_be = (
+                            np.trapezoid(dn_dic[:index_be], x[:index_be]) * constants.P_Q - tau_e
+                        )
+                        tau_b = (
+                            np.trapezoid(dn_dic[index_be:index_bc], x[index_be:index_bc])
+                            * constants.P_Q
+                        )
+                        tau_c = np.trapezoid(dp_dic[index_bc:], x[index_bc:]) * constants.P_Q
+                        tau_bc = (
+                            np.trapezoid(dn_dic[index_bc:], x[index_bc:]) * constants.P_Q - tau_c
+                        )
 
-                            # for j in range(len(tau)):
-                            #     tau[j] = constants.P_Q * np.trapezoid(dm_dic[:j], x[:j])
+                        dm_dic = np.where(dn_dic < dp_dic, dn_dic, dn_dic)
 
-                            self.data[key_inqu][specifiers.TRANSIT_TIME] = tau
-                            self.data[key_inqu]["TAUP"] = taup
-                            self.data[key_inqu]["TAUN"] = taun
-                            self.data[key_inqu]["TAUN2"] = taun2
+                        # for j in range(len(tau)):
+                        #     tau[j] = constants.P_Q * np.trapezoid(dm_dic[:j], x[:j])
 
-                            indexes_op = (
-                                df_iv[specifiers.CURRENT + "C"] == row[specifiers.CURRENT + "C"]
-                            )
+                        self.data[key_inqu][specifiers.TRANSIT_TIME] = tau
+                        self.data[key_inqu]["TAUP"] = taup
+                        self.data[key_inqu]["TAUN"] = taun
+                        self.data[key_inqu]["TAUN2"] = taun2
 
-                            df_iv.loc[indexes_op, "tau_e"] = tau_e
-                            df_iv.loc[indexes_op, "tau_be"] = tau_be
-                            df_iv.loc[indexes_op, "tau_b"] = tau_b
-                            df_iv.loc[indexes_op, "tau_bc"] = tau_bc
-                            df_iv.loc[indexes_op, "tau_c"] = tau_c
+                        indexes_op = (
+                            df_iv[specifiers.CURRENT + "C"] == row[specifiers.CURRENT + "C"]
+                        )
 
-                            df_iv.loc[indexes_op, "x_be"] = x_be
-                            df_iv.loc[indexes_op, "x_bc"] = x_bc
+                        df_iv.loc[indexes_op, "tau_e"] = tau_e
+                        df_iv.loc[indexes_op, "tau_be"] = tau_be
+                        df_iv.loc[indexes_op, "tau_b"] = tau_b
+                        df_iv.loc[indexes_op, "tau_bc"] = tau_bc
+                        df_iv.loc[indexes_op, "tau_c"] = tau_c
 
-                    except Exception as err:
-                        print(err)
-                        # pass
+                        df_iv.loc[indexes_op, "x_be"] = x_be
+                        df_iv.loc[indexes_op, "x_bc"] = x_bc
+
+                    # except Exception as err:
+                    # print(err)
+                    # raise err
+                    # pass
 
             key_iv = self.join_key(key, "iv")
             df_iv.index = [a for a in range(df_iv.shape[0])]
             self.data[key_iv] = df_iv
+
+            if df_tr is not None:
+                for _col in df_tr.columns:
+                    df_tr.rename(
+                        columns={_col: get_specifier_from_string(_col, nodes=self.nodes)},
+                        inplace=True,
+                    )
+                key_tr = self.join_key(key, "tr")
+                self.data[key_tr] = df_tr
 
             logging.info(
                 "Read the Hdev simulation output data of the sweep %s. \nThe simulation folder is %s",

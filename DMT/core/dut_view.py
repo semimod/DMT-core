@@ -173,7 +173,7 @@ class DutView(object):
         simulate_on_server=None,
         simulator_command="",
         simulator_arguments=None,
-        technology: "dmt_tech.Technology" = None,
+        technology: Optional["dmt_tech.Technology"] = None,
         width=None,
         length=None,
         nfinger=None,
@@ -1090,8 +1090,8 @@ class DutView(object):
         try:
             return self.join_key(sweep.get_temperature(), sweep.name + "_" + sweep.get_hash())
         except AttributeError:
-            # given sweep parameter does not have a get_hash(), is it a string?!?
-            return sweep
+            # given sweep parameter does not have a get_hash(), is it a string directly?!?
+            return str(sweep)
 
     def get_key_temperature(self, key):
         """Function that returns the temperature of a given data key. Overwrite this if the measurements differ from the default DMT naming.

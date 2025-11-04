@@ -1021,6 +1021,9 @@ def get_specifier_from_string(string, nodes=None):
     """
     if isinstance(string, SpecifierStr):
         return string
+    # special case of "time"
+    if string.lower() == "time":
+        return specifiers.TIME
 
     # find the correct specifier
     specifier_in_string = ""
