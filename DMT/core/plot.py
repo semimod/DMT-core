@@ -1890,7 +1890,7 @@ class Plot(object):
             if len(dict_line["x"]) == 0:
                 continue
             if bool_mark_phase and mark_repeat != 1:
-                mark_phase = nr_line
+                mark_phase = nr_line + 1
 
             str_addplot, colors = self._tikz_addplot(
                 dict_line,
@@ -2007,7 +2007,10 @@ class Plot(object):
             opts_style, colors = self._convert_mpl_to_pfg(style, colors)
 
         if "mark phase" not in opts_style:
-            opts_style += "mark phase={:d}, ".format(mark_phase)
+            if mark_phase is not None:
+                opts_style += "mark phase={:d}, ".format(mark_phase)
+            else:
+                opts_style += "mark phase=0, "
 
         if line_width is not None:
             opts_style += "line width={0:f}pt, ".format(line_width)
@@ -2118,7 +2121,7 @@ class Plot(object):
         if mpl_style:
             for mpl_marker in _DICT_MARKERS_MPL_TO_PGF:
                 if mpl_marker in mpl_style:
-                    pgf_marker = _DICT_MARKERS_MPL_TO_PGF[mpl_marker] + "mark phase=0, "
+                    pgf_marker = _DICT_MARKERS_MPL_TO_PGF[mpl_marker]  # + "mark phase=0, "
                     mpl_style = mpl_style.replace(mpl_marker, "")
                     break
 

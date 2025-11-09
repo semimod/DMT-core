@@ -68,7 +68,7 @@ hdev_iv_fallback = {
     "T_CPU": None,
 }
 
-SEMVER_DUTHDEV_CURRENT = VersionInfo(major=1, minor=0)
+SEMVER_DUTHDEV_CURRENT = VersionInfo(major=1, minor=1)
 
 
 class DutHdev(DutTcad):
@@ -117,6 +117,8 @@ class DutHdev(DutTcad):
         if "name" in inp_structure:
             name = inp_structure.pop("name")
 
+        self.bias_def = None
+
         super().__init__(
             database_dir,
             name,
@@ -146,6 +148,7 @@ class DutHdev(DutTcad):
         return {
             str(DutHdev): {
                 "__DutHdev__": str(SEMVER_DUTHDEV_CURRENT),
+                "bias_def": self.bias_def,
                 "parent": super(DutHdev, self).info_json(**_kwargs),
             }
         }
@@ -175,12 +178,20 @@ class DutHdev(DutTcad):
         DutHdev
             Loaded object.
         """
-        if json_content["__DutHdev__"] != SEMVER_DUTHDEV_CURRENT:
+        if json_content["__DutHdev__"] == VersionInfo(major=1, minor=0):
+            bias_def = None
+        elif json_content["__DutHdev__"] != SEMVER_DUTHDEV_CURRENT:
             raise NotImplementedError("DMT.DutHdev: Unknown version of DutHdev to load!")
+        else:
+            bias_def = json_content["bias_def"]
 
         dut_view = super().from_json(
             json_content["parent"], classes_technology, subclass_kwargs=subclass_kwargs
         )
+        if bias_def is None:
+            dut_view.bias_def = dut_view.inp_dict.pop("BIAS_DEF")
+        else:
+            dut_view.bias_def = json_content["bias_def"]
         return dut_view
 
     def create_inp_header(self, inp_):
@@ -196,14 +207,20 @@ class DutHdev(DutTcad):
         -------
         inp_header : str
         """
-        if not "BIAS_DEF" in inp_:
-            inp_["BIAS_DEF"] = {}
+        if "BIAS_DEF" in inp_:
+            self.bias_def = inp_.pop("BIAS_DEF")
+            self.bias_def["list"] = 1
+        elif self.bias_def is not None:
+            pass
+        else:
+            self.bias_def = {"list": 1}
+            # inp_["BIAS_DEF"] = {}
+            # inp_["BIAS_DEF"]["list"] = 1
 
         if not "OUTPUT" in inp_:
             inp_["OUTPUT"] = {}
 
         # to be consistent with the resolving of DMT sweepdef for Hdev simulation
-        inp_["BIAS_DEF"]["list"] = 1
         inp_["OUTPUT"]["path"] = "output"
         inp_["OUTPUT"]["name"] = "dut"
         self.inp_dict = inp_
@@ -215,6 +232,7 @@ class DutHdev(DutTcad):
         """Adds bias blocks to a Hdev heade file (string)"""
         inp_str = self._inp_header
         inp_str = cast(str, inp_str)
+
         # find frequency sweep def
         has_f_def = False
         has_time_def = False
@@ -228,8 +246,26 @@ class DutHdev(DutTcad):
             if sub_sweep.var_name == specifiers.TIME:
                 has_time_def = True
                 break
+
+        bias_def = copy.deepcopy(self.bias_def)
         if has_time_def:
             time_def = sweep.sweepdef.pop(i)  # type: ignore
+
+            bias_def["n_t"] = 121
+            bias_def["d_t"] = 3 / time_def.value_def[0] / 120  # 3 periods
+
+        # add bias def
+        inp_str += "\n"
+        inp_str += "&BIAS_DEF"
+        for para_name, para_value in bias_def.items():
+            if type(para_value) is str:
+                para_value = "'" + para_value + "'"
+            elif type(para_value) is list or type(para_value) is tuple:
+                para_value = [str(elem) + " " for elem in para_value]
+                para_value = "".join(para_value)
+
+            inp_str += " " + para_name + "=" + str(para_value)
+        inp_str += " /\n"
 
         sweep.set_values()
         df = sweep.create_df()
@@ -355,7 +391,7 @@ class DutHdev(DutTcad):
                 "cont_name": "'" + sub_sweep.contact + "'",
                 "func_type": "'" + func_type + "'",
                 "v_max": sub_sweep.amp,
-                "T": sub_sweep.value_def[0],
+                "T": 1 / sub_sweep.value_def[0],
                 "phase": sub_sweep.phase,
             }
             # add sweep definition to inp file
