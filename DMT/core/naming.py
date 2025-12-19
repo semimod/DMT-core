@@ -525,6 +525,7 @@ class _sub_specifiers(GlobalObj, metaclass=Singleton):
     DELTA = SpecifierStr("", sub_specifiers="DELTA")
     NOISE = SpecifierStr("", sub_specifiers="NOISE")
     QUASISTATIC = SpecifierStr("", sub_specifiers="QUASISTATIC")
+    NONQUASISTATIC = SpecifierStr("", sub_specifiers="NQS")
     JUNCTION = SpecifierStr("", sub_specifiers="JUNCTION")
     MINORITY = SpecifierStr("", sub_specifiers="MINORITY")
     MAJORITY = SpecifierStr("", sub_specifiers="MAJORITY")
