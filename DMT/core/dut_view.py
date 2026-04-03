@@ -27,7 +27,7 @@ import copy
 import logging
 from pathlib import Path
 import pandas as pd
-from typing import List, Dict, Type, Union
+from typing import List, Dict, Type, Union, Optional
 import warnings
 
 try:

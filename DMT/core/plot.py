@@ -244,7 +244,7 @@ class Plot(object):
         y_log=False,
         legend_location="upper right",
         num=None,
-        divide_by_unit=True,
+        divide_by_unit=False,
         caption=None,
     ):
         """
@@ -1570,7 +1570,7 @@ class Plot(object):
                 + "]\n"
                 + "\\pgfplotsset{every axis plot/.append style={"
                 + line_width
-                + "},compat=1.18},\n"
+                + "}},\n"
             )
         else:  # if this figure is used in other tex documents, the axis are trimed so that figures with different y-labels and ticks get displayed nicely
             str_tikz_picture = (
@@ -1579,7 +1579,7 @@ class Plot(object):
                 + ", trim axis left, trim axis right, tight background]\n"
                 + "\\pgfplotsset{every axis plot/.append style={"
                 + line_width
-                + "},compat=1.18}\n"
+                + "}}\n"
             )
         str_height = "" if height is None else "height=" + height + ",\n"
         if width is None:
