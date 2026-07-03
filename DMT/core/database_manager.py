@@ -84,7 +84,7 @@ class DatabaseManager(object, metaclass=Singleton):
             db_dir = Path(db_dir)
 
         if not db_dir.exists():
-            raise FileNotFoundError
+            raise FileNotFoundError(f"Database file {db_dir} does not exist!")
 
         data = {}
 

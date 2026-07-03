@@ -848,7 +848,9 @@ def _check_simulation_needed(i_sim, n_tot, dut=None, sweep=None, validate=True, 
             f"\n Simulation of DuT {dut_name} with sweep {sim_name} already done and failed.",
         )
     # except (SimulationUnsuccessful, FileNotFoundError, IndexError, struct.error):
-    except:  # all exceptions should be re-simulated
+    except Exception as err:  # all exceptions should be re-simulated
+        print(f"Simulation of DuT {dut_name} with sweep {sim_name} needed. Results removed")
+        print(err)
         # ok simulate it!
         dut.delete_sim_results(sweep, ignore_errors=True)  # remove for safety
         logging.info("Simulation of DuT %s with sweep %s needed.", dut_name, sim_name)
