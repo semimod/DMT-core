@@ -306,6 +306,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
         specifier_frequency=specifiers.FREQUENCY,
         specifier_temperature=specifiers.TEMPERATURE,
         warnings=True,
+        voltage_sub_specifiers=None,
     ):
         """Clean DataFrame.  This is one of the most important methods and should be called on all imported data. This ensures data consistency within DMT!
 
@@ -489,7 +490,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
         self = self.rename(index=str, columns=to_rename)
 
         # set reference potential
-        self.create_potential([reference_node], reference_node)
+        self.create_potential([reference_node], reference_node, voltage_sub_specifiers=voltage_sub_specifiers)
 
         # find all existing potentials and voltages and clean their name
         potentials = []
@@ -521,7 +522,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
 
         # get the potentials (nodes are known at this point), voltages later if-needed
         # find missing potentials
-        possible_potentials = [SpecifierStr(specifiers.VOLTAGE, node) for node in nodes]
+        possible_potentials = [SpecifierStr(specifiers.VOLTAGE, node, sub_specifiers=voltage_sub_specifiers) for node in nodes]
         missing_potentials = [
             potential for potential in possible_potentials if potential not in potentials
         ]
@@ -533,7 +534,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
             # find voltage that contains the potential's node
             try:
                 # sometimes voltages with sub_specifiers are present in the data. We don't use these voltages here.
-                self.create_potential(potential.nodes, reference_node)
+                self.create_potential(potential.nodes, reference_node, voltage_sub_specifiers=voltage_sub_specifiers)
             except IOError:
                 # sometimes it may be impossible to create the potentials this way.
                 # Assume e.g. V_S is missing and we dont have any voltage that contains the S node
@@ -970,8 +971,17 @@ class DataFrame(DataProcessor, pd.DataFrame):
         )
 
         # ensure the existence of potentials
-        self.ensure_specifier_column(potential_0, reference_node=reference_node)
-        self.ensure_specifier_column(potential_1, reference_node=reference_node)
+        try:
+            self.ensure_specifier_column(potential_0, reference_node=reference_node)
+            self.ensure_specifier_column(potential_1, reference_node=reference_node)
+        except RecursionError as err:
+            raise RecursionError(
+                (
+                    "DMT -> Data_manager: Tried to create column voltage but could not identify suitable potentials. \n"
+                    + f"The voltage {col} could not be created from the potentials {potential_0} and {potential_1}. \n"
+                    + f"The available columns are \n: {self.columns}"
+                )
+            ) from err
 
         # I think the setting with Copy Warning is broken here...
         pd.options.mode.chained_assignment = None  # default='warn'

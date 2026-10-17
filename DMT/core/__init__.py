@@ -80,7 +80,7 @@ from .mc_skywater import McSkywater
 # plotting
 from .plot import Plot
 from .plot import save_or_show
-from .plot import COMPARISON_3
+from .plot import COMPARISON_3, PlotStyleEnum
 from .plot_smith import SmithPlot
 from .plot_2yaxis import Plot2YAxis
 

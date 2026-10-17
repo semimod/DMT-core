@@ -145,6 +145,54 @@ PLOT_STYLES.append(MIX)
 MIX_BW = "mix_bw"
 PLOT_STYLES.append(MIX_BW)
 
+if sys.version_info >= (3, 11):
+    from enum import StrEnum
+
+    class PlotStyleEnum(StrEnum):
+        BLACK_WHITE = BLACK_WHITE
+        BLACK_SOLID = BLACK_SOLID
+        BLACK_DASHED = BLACK_DASHED
+        BLACK_LINESTYLE = BLACK_LINESTYLE
+        COLOR = COLOR
+        MARKERS_COLOR = MARKERS_COLOR
+        MARKERS_LINES_COLOR = MARKERS_LINES_COLOR
+        MARKERS = MARKERS
+        MARKERS_LINES = MARKERS_LINES
+        XTRACTION = XTRACTION
+        COMPARISON_2_LINES = COMPARISON_2_LINES
+        XTRACTION_COLOR = XTRACTION_COLOR
+        XTRACTION_COLOR_4 = XTRACTION_COLOR_4
+        COMPARISON_3 = COMPARISON_3
+        COMPARISON_3_MARKERS = COMPARISON_3_MARKERS
+        COMPARISON_4 = COMPARISON_4
+        XTRACTION_INTERPOLATED = XTRACTION_INTERPOLATED
+        XTRACTION_INTERPOLATED_COLOR = XTRACTION_INTERPOLATED_COLOR
+        MIX = MIX
+else:
+    # seems to be the alternative, but not tested yet
+    from enum import Enum
+
+    class PlotStyleEnum(str, Enum):
+        BLACK_WHITE = BLACK_WHITE
+        BLACK_SOLID = BLACK_SOLID
+        BLACK_DASHED = BLACK_DASHED
+        BLACK_LINESTYLE = BLACK_LINESTYLE
+        COLOR = COLOR
+        MARKERS_COLOR = MARKERS_COLOR
+        MARKERS_LINES_COLOR = MARKERS_LINES_COLOR
+        MARKERS = MARKERS
+        MARKERS_LINES = MARKERS_LINES
+        XTRACTION = XTRACTION
+        COMPARISON_2_LINES = COMPARISON_2_LINES
+        XTRACTION_COLOR = XTRACTION_COLOR
+        XTRACTION_COLOR_4 = XTRACTION_COLOR_4
+        COMPARISON_3 = COMPARISON_3
+        COMPARISON_3_MARKERS = COMPARISON_3_MARKERS
+        COMPARISON_4 = COMPARISON_4
+        XTRACTION_INTERPOLATED = XTRACTION_INTERPOLATED
+        XTRACTION_INTERPOLATED_COLOR = XTRACTION_INTERPOLATED_COLOR
+        MIX = MIX
+
 MARKERS = [char for char in "x+v^*<>.so"]
 LINESTYLES = ["-", "--", "-.", ":"]
 COLORS = [
@@ -248,7 +296,7 @@ class Plot(object):
         y_log=False,
         legend_location="upper right",
         num=None,
-        divide_by_unit=True,
+        divide_by_unit=False,
         caption=None,
     ):
         """
@@ -1102,6 +1150,7 @@ class Plot(object):
                     x = np.abs(x)
                 elif sub_specifiers.PHASE in self.x_specifier:
                     x = np.angle(x, deg=True)
+                    x = np.where(x > 0, x - 360, x)  # have only negative phases (?)
                 else:
                     warnings.warn(
                         f"DMT-Plot-complex: In the plot {self.name} is a line with untreated complex x-values. Real part is used, as it was.",
@@ -1124,6 +1173,7 @@ class Plot(object):
                     y = np.abs(y)
                 elif sub_specifiers.PHASE in self.y_specifier:
                     y = np.angle(y, deg=True)
+                    y = np.where(y > 0, y - 360, y)  # have only negative phases (?)
                 else:
                     warnings.warn(
                         f"DMT-Plot-complex: In the plot {self.name} is a line with untreated complex y-values. Real part is used, as it was.",
@@ -1596,7 +1646,7 @@ class Plot(object):
                 + "]\n"
                 + "\\pgfplotsset{every axis plot/.append style={"
                 + line_width
-                + "},compat=1.18},\n"
+                + "}},\n"
             )
         else:  # if this figure is used in other tex documents, the axis are trimed so that figures with different y-labels and ticks get displayed nicely
             str_tikz_picture = (
@@ -1605,7 +1655,7 @@ class Plot(object):
                 + ", trim axis left, trim axis right, tight background]\n"
                 + "\\pgfplotsset{every axis plot/.append style={"
                 + line_width
-                + "},compat=1.18}\n"
+                + "}}\n"
             )
         str_height = "" if height is None else "height=" + height + ",\n"
         if width is None:
@@ -1927,7 +1977,7 @@ class Plot(object):
             if len(dict_line["x"]) == 0:
                 continue
             if bool_mark_phase and mark_repeat != 1:
-                mark_phase = nr_line
+                mark_phase = nr_line + 1
 
             str_addplot, colors = self._tikz_addplot(
                 dict_line,
@@ -2044,7 +2094,10 @@ class Plot(object):
             opts_style, colors = self._convert_mpl_to_pfg(style, colors)
 
         if "mark phase" not in opts_style:
-            opts_style += "mark phase={:d}, ".format(mark_phase)
+            if mark_phase is not None:
+                opts_style += "mark phase={:d}, ".format(mark_phase)
+            else:
+                opts_style += "mark phase=0, "
 
         if line_width is not None:
             opts_style += "line width={0:f}pt, ".format(line_width)
@@ -2071,6 +2124,7 @@ class Plot(object):
                 x_data = np.abs(x_data)
             elif sub_specifiers.PHASE in self.x_specifier:
                 x_data = np.angle(x_data, deg=True)
+                x_data = np.where(x_data > 0, x_data - 360, x_data)  # have only negative phases (?)
             else:
                 raise IOError(f"DMT: tikz_addplot: can not plot complex numbers. {self.name}")
         else:
@@ -2086,6 +2140,7 @@ class Plot(object):
                 y_data = np.abs(y_data)
             elif sub_specifiers.PHASE in self.y_specifier:
                 y_data = np.angle(y_data, deg=True)
+                y_data = np.where(y_data > 0, y_data - 360, y_data)  # have only negative phases (?)
             else:
                 raise IOError(f"DMT: tikz_addplot: can not plot complex numbers. {self.name}")
         else:
@@ -2153,7 +2208,7 @@ class Plot(object):
         if mpl_style:
             for mpl_marker in _DICT_MARKERS_MPL_TO_PGF:
                 if mpl_marker in mpl_style:
-                    pgf_marker = _DICT_MARKERS_MPL_TO_PGF[mpl_marker] + "mark phase=0, "
+                    pgf_marker = _DICT_MARKERS_MPL_TO_PGF[mpl_marker]  # + "mark phase=0, "
                     mpl_style = mpl_style.replace(mpl_marker, "")
                     break
 

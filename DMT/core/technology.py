@@ -152,7 +152,7 @@ class Technology(object):
         config : str
             A unique identifier for the configuration.
         """
-        raise NotImplementedError
+        raise NotImplementedError()
 
     def scale_capacitances(self, mcard, lE0, bE0, nfinger, config):
         """This method receives a Modelcard (that includes relevant scaling parameters such as sheet resistances) and sets the scaled capacitances accordingly.
@@ -170,7 +170,7 @@ class Technology(object):
         config : str
             A unique identifier for the configuration.
         """
-        raise NotImplementedError
+        raise NotImplementedError()
 
     def scale_sheet_resistances(self, mcard, lE0, bE0, nfinger, config):
         """This method receives a Modelcard (that includes relevant scaling parameters such as sheet resistances) and sets the scaled resistances accordingly.
@@ -188,7 +188,7 @@ class Technology(object):
         config : str
             A unique identifier for the configuration.
         """
-        raise NotImplementedError
+        raise NotImplementedError()
 
     def scale_modelcard(
         self,
@@ -218,4 +218,26 @@ class Technology(object):
         dut : :class:`~DMT.core.DutView`
             DutView to scale for.
         """
-        raise NotImplementedError
+        raise NotImplementedError()
+
+    def get_effective_area(
+        lE_drawn,
+        bE_drawn,
+        dlE,
+        dbE,
+        gamma_l=None,
+        gamma_b=None,
+        gamma_c=None,
+        recr=None,
+        **_kwargs):
+        """This method calculates the correct effective area of a device of this technology.
+
+        Parameters
+        ----------
+        
+        Returns
+        -------
+        float
+            Effective area of the emitter window.
+        """
+        raise NotImplementedError()

@@ -39,7 +39,7 @@ import warnings
 from joblib import Parallel, delayed
 from reprint import output
 from pathlib import Path, PurePosixPath, PureWindowsPath
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Dict
 import multiprocessing
 
 from DMT.core import Singleton, print_progress_bar
@@ -468,7 +468,7 @@ class SimCon(object, metaclass=Singleton):
             # reraise it in order to allow run_and_read to go on and try again in 2 seconds
             raise FileNotFoundError() from err
 
-    def run_simulations(self, sim_list):
+    def run_simulations(self, sim_list: List[Dict[str, Union[DutView, Sweep]]]):
         """Runs all given simulations in parallel.
 
         Parameters
@@ -848,7 +848,9 @@ def _check_simulation_needed(i_sim, n_tot, dut=None, sweep=None, validate=True, 
             f"\n Simulation of DuT {dut_name} with sweep {sim_name} already done and failed.",
         )
     # except (SimulationUnsuccessful, FileNotFoundError, IndexError, struct.error):
-    except:  # all exceptions should be re-simulated
+    except Exception as err:  # all exceptions should be re-simulated
+        print(f"Simulation of DuT {dut_name} with sweep {sim_name} needed. Results removed")
+        print(err)
         # ok simulate it!
         dut.delete_sim_results(sweep, ignore_errors=True)  # remove for safety
         logging.info("Simulation of DuT %s with sweep %s needed.", dut_name, sim_name)

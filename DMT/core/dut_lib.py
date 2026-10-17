@@ -429,10 +429,13 @@ class DutLib(object):
         for dut, data in zip(duts, datas):
             dut._data = data  # pylint: disable=protected-access
 
-        print("DutLib imported " + str(len(duts)) + " DUTs.")
 
         if not self.is_deembedded_AC and not self.is_deembedded_DC:
             self.add_duts(duts)
+            print("DutLib imported " + str(len(duts)) + " DUTs.")
+        else:
+            print("DutLib did not add DuTs to itself, since lib is already deembeded!")
+            
 
         return duts
 

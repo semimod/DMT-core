@@ -183,6 +183,7 @@ class MCard(McParameterCollection):
         pdk_path: str = "",
         pdk_corner: str = "",
         op_vars: Optional[list[str]] = None,
+        vae_module_load=True,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -254,7 +255,7 @@ class MCard(McParameterCollection):
         elif va_file is not None:
             self.set_va_codes(va_file)
 
-        if self._va_codes:
+        if self._va_codes and vae_module_load:
             self.update_from_vae()
 
     @property

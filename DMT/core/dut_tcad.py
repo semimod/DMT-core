@@ -224,3 +224,25 @@ class DutTcad(DutView):
             Input circuit
         """
         raise NotImplementedError("create_inp_header() must be implemented in inheriting class!")
+
+    def get_keys_of_sweep(self, sweep):
+        """Returns the list of keys which are stored under the specific sweep.
+
+        Parameters
+        ----------
+        sweep : :class:`~DMT.core.sweep.Sweep`
+            Sweep for which the keys should be returned.
+
+        Returns
+        -------
+        list[str]
+            List of keys (without sweep key)
+        """
+        keys = []
+        sweep_key = self.get_sweep_key(sweep)
+
+        for k in self._data.keys():
+            if k.startswith(sweep_key):
+                keys.append(k[len(sweep_key) + 1 :])
+
+        return keys
