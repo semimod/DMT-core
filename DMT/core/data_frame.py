@@ -2241,7 +2241,7 @@ class DataFrame(DataProcessor, pd.DataFrame):
         :class:`DMT.core.DataFrame`
             Dataframe that contains the TRANSCONDUCTANCE
         """
-        if ports is None:
+        if ports is None or ports == []:
             ports = ["B", "C", "E"]
         elif len(ports) == 2 and ports[0] == "B" and ports[1] == "C":
             ports = ["B", "C", "E"]
@@ -2289,7 +2289,8 @@ class DataFrame(DataProcessor, pd.DataFrame):
         :class:`DMT.core.DataFrame`
             Dataframe that contains the TRANSCONDUCTANCE
         """
-        if ports is None:  # assume HBT
+        #if ports is None:  # assume HBT
+        if True:
             col_ic = specifiers.CURRENT + "C"
             col_vce_forced = specifiers.VOLTAGE + ["C", "E"] + sub_specifiers.FORCED
         else:

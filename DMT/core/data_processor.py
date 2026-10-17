@@ -533,8 +533,8 @@ class DataProcessor(object):
             pass
 
         try:
-            sp_in0 = specifiers.VOLTAGE + ac_ports[0]
-            sp_in1 = specifiers.VOLTAGE + ac_ports[1]
+            sp_in0 = specifiers.CURRENT + ac_ports[0]
+            sp_in1 = specifiers.CURRENT + ac_ports[1]
             i_n = df[sp_in0].to_numpy() + df[sp_in1].to_numpy()
             df[sp_vn] = df[sp_vn_force] + i_n * mres[f"R_{reference_node}M"]
         except KeyError:

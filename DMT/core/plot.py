@@ -2257,10 +2257,10 @@ def save_or_show(plts, show=True, location=None, **kwargs):
             plt.save_tikz(
                 location,
                 plt.name + "_standalone",
-                clean=True,
+                clean=False,
                 build=True,
                 standalone=True,
-                svg=True,
+                svg=False,
                 **kwargs,
             )
             plt.save_tikz(

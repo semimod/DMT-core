@@ -595,8 +595,8 @@ class DutHdev(DutTcad):
                         except:
                             continue
                         df_inqu = self.data[key_inqu]
-                        qn[i_row] = np.trapezoid(df_inqu["N"], df_inqu["X"])
-                        qp[i_row] = np.trapezoid(df_inqu["P"], df_inqu["X"])
+                        qn[i_row] = np.trapz(df_inqu["N"], df_inqu["X"])
+                        qp[i_row] = np.trapz(df_inqu["P"], df_inqu["X"])
 
                     df_iv["Q|N"] = qn
                     df_iv["Q|P"] = qp

@@ -721,6 +721,7 @@ unit_converter = {
     specifiers_ss_para.SS_PARA_Y: unit_registry.siemens,
     specifiers_ss_para.SS_PARA_H: unit_registry.dimensionless,
     specifiers_ss_para.SS_PARA_S: unit_registry.dimensionless,
+    specifiers_ss_para.SS_PARA_Z: unit_registry.ohm,
     specifiers.UNILATERAL_GAIN: unit_registry.dimensionless,
     specifiers.VOLTAGE: unit_registry.volt,
     specifiers.CAPACITANCE: unit_registry.farad,
@@ -1080,6 +1081,7 @@ natural_scales = {
     specifiers.CHARGE: 1e15,
     specifiers.CHARGE_DENSITY: 1e15 / (1e6 * 1e6),  # fF/um^2
     specifiers.SS_PARA_Y: 1e3,
+    specifiers.SS_PARA_Z: 1,
     specifiers.DC_CURRENT_AMPLIFICATION: 1,
     specifiers.FREQUENCY: 1e-9,  # GHz
     specifiers.TEMPERATURE: 1,
